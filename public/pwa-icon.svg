@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Mike Fitness Tracker icon</title>
+  <desc id="desc">A dark fitness app icon with a dumbbell and the letters MF.</desc>
+  <rect width="512" height="512" rx="112" fill="#020617"/>
+  <rect x="42" y="42" width="428" height="428" rx="92" fill="#0f172a"/>
+  <circle cx="256" cy="256" r="160" fill="#10151b" stroke="#24313c" stroke-width="10"/>
+  <path d="M139 238h42v-34h36v104h-36v-34h-42v34h-36V204h36v34Zm229 0h41v-34h36v104h-36v-34h-41v34h-36V204h36v34Zm-142 0h60c19 0 34 15 34 34s-15 34-34 34h-60v-68Zm35 25v18h22c6 0 11-4 11-9s-5-9-11-9h-22Z" fill="#32d583"/>
+  <path d="M171 361V151h47l38 92 38-92h47v210h-45V244l-25 66h-31l-25-66v117h-44Z" fill="#edf4f1"/>
+</svg>

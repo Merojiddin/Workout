@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-label="CHEST exercise placeholder image">
+  <defs>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.7">
+      <stop offset="0" stop-color="#32d583" stop-opacity="0.10"/>
+      <stop offset="1" stop-color="#32d583" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0d1319"/>
+      <stop offset="1" stop-color="#090d11"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bg)"/>
+  <rect width="640" height="360" fill="url(#glow)"/>
+  <rect x="1.5" y="1.5" width="637" height="357" rx="10" fill="none" stroke="#1d2933" stroke-width="3"/>
+  <g stroke="#32d583" stroke-width="11" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(320,150)">
+    <line x1="-150" y1="-38" x2="150" y2="-38"/>
+    <rect x="-124" y="-72" width="26" height="68" rx="8"/>
+    <rect x="98" y="-72" width="26" height="68" rx="8"/>
+    <path d="M -58 30 C -58 6 -6 6 -2 34"/>
+    <path d="M 58 30 C 58 6 6 6 2 34"/>
+    <line x1="-46" y1="-38" x2="-46" y2="-4"/>
+    <line x1="46" y1="-38" x2="46" y2="-4"/>
+  </g>
+  <text x="320" y="280" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="24" font-weight="800" letter-spacing="7" fill="#8ea39d">CHEST</text>
+  <text x="320" y="306" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13" font-weight="600" letter-spacing="3" fill="#5b6b66">EXERCISE IMAGE</text>
+</svg>
