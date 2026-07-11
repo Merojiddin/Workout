@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, Dumbbell } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Clock3, Dumbbell } from 'lucide-react'
 
 interface LiveWorkoutHeaderProps {
   workoutName: string
@@ -7,6 +7,8 @@ interface LiveWorkoutHeaderProps {
   completedSets: number
   totalSets: number
   duration: number
+  /** Name of the upcoming exercise; omit on the last one. */
+  nextExerciseName?: string | null
 }
 
 export function LiveWorkoutHeader({
@@ -16,6 +18,7 @@ export function LiveWorkoutHeader({
   completedSets,
   totalSets,
   duration,
+  nextExerciseName,
 }: LiveWorkoutHeaderProps) {
   const safeTotalSets = Math.max(totalSets, 1)
   const progress = Math.min((completedSets / safeTotalSets) * 100, 100)
@@ -27,10 +30,18 @@ export function LiveWorkoutHeader({
           <p className="eyebrow">Live Workout</p>
           <h1>{workoutName}</h1>
         </div>
-        <span className="live-header__timer">
-          <Clock3 size={16} strokeWidth={2.4} aria-hidden="true" />
-          {duration} min
-        </span>
+        <div className="live-header__badges">
+          {nextExerciseName ? (
+            <span className="live-header__next">
+              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
+              Next: {nextExerciseName}
+            </span>
+          ) : null}
+          <span className="live-header__timer">
+            <Clock3 size={16} strokeWidth={2.4} aria-hidden="true" />
+            {duration} min
+          </span>
+        </div>
       </div>
 
       <div className="live-header__meta">

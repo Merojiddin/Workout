@@ -1,4 +1,4 @@
-import { BookOpen, ImageOff, Play, Video, WifiOff, X } from 'lucide-react'
+import { BookOpen, Eye, EyeOff, ImageOff, Play, Video, WifiOff, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import {
@@ -24,9 +24,10 @@ interface ExerciseMediaProps {
 }
 
 /**
- * Exercise image + inline (embedded) video player with safe fallbacks:
- * placeholder image when no/broken image, collapsed-by-default video,
- * offline notice, and a loading skeleton while the iframe loads.
+ * One media panel per exercise: the image with a play overlay, swapped
+ * in place for the embedded video (never both at once). Safe fallbacks:
+ * placeholder when no/broken image, offline notice, and a loading
+ * skeleton while the iframe loads.
  */
 export function ExerciseMedia({
   exercise,
@@ -39,6 +40,9 @@ export function ExerciseMedia({
   const [showVideo, setShowVideo] = useState(showVideoDefault)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [imageFailed, setImageFailed] = useState(false)
+  // Deliberately NOT reset per exercise: once hidden, media stays hidden
+  // for the rest of the session until the user shows it again.
+  const [mediaHidden, setMediaHidden] = useState(false)
 
   const exerciseName = typeof exercise?.name === 'string' ? exercise.name : ''
   const videoUrl = getExerciseVideo(exercise)
@@ -60,67 +64,137 @@ export function ExerciseMedia({
   const imageSrc = imageFailed ? DEFAULT_EXERCISE_IMAGE : getExerciseImage(exercise)
   const videoOpen = showVideo && hasVideo
 
+  function toggleVideo() {
+    setVideoLoaded(false)
+    setShowVideo((open) => !open)
+  }
+
   return (
     <section
       className={`exercise-media${compact ? ' exercise-media--compact' : ''}`}
       aria-label={`${exerciseName || 'Exercise'} media`}
     >
-      {showImage ? (
-        <figure className="exercise-media__figure">
-          <img
-            alt={getExerciseImageAlt(exercise)}
-            className="exercise-media__image"
-            loading="lazy"
-            onError={(event) => {
-              // Broken external image -> local placeholder. If even that
-              // fails, fall through to the text placeholder below.
-              if (!imageFailed) {
-                setImageFailed(true)
-              } else {
-                event.currentTarget.style.display = 'none'
-              }
-            }}
-            src={imageSrc}
-          />
-          <figcaption className="exercise-media__caption">
-            {exercise.imageUrl && !imageFailed
-              ? exerciseName
-              : 'Exercise image coming soon'}
-          </figcaption>
-        </figure>
+      {!mediaHidden && (showImage || videoOpen) ? (
+        <div className="exercise-media__panel">
+          {videoOpen && isOnline ? (
+            <div className="exercise-media__video">
+              {!videoLoaded ? (
+                <div className="exercise-media__skeleton" aria-hidden="true">
+                  <Play size={28} strokeWidth={2.2} />
+                  <span>Loading video...</span>
+                </div>
+              ) : null}
+              <iframe
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className={videoLoaded ? 'exercise-media__iframe--loaded' : ''}
+                loading="lazy"
+                onLoad={() => setVideoLoaded(true)}
+                referrerPolicy="strict-origin-when-cross-origin"
+                src={videoUrl}
+                title={getExerciseVideoTitle(exercise)}
+              />
+              <button
+                aria-label="Back to image"
+                className="exercise-media__close"
+                onClick={toggleVideo}
+                type="button"
+              >
+                <X size={16} strokeWidth={2.4} aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <>
+              {showImage ? (
+                <figure className="exercise-media__figure">
+                  <img
+                    alt={getExerciseImageAlt(exercise)}
+                    className="exercise-media__image"
+                    loading="lazy"
+                    onError={(event) => {
+                      // Broken external image -> local placeholder. If even
+                      // that fails, fall through to the text placeholder.
+                      if (!imageFailed) {
+                        setImageFailed(true)
+                      } else {
+                        event.currentTarget.style.display = 'none'
+                      }
+                    }}
+                    src={imageSrc}
+                  />
+                  <figcaption className="exercise-media__caption">
+                    {exercise.imageUrl && !imageFailed
+                      ? exerciseName
+                      : 'Exercise image coming soon'}
+                  </figcaption>
+                </figure>
+              ) : null}
+              {hasVideo && showImage ? (
+                <button
+                  aria-expanded={false}
+                  className="exercise-media__play"
+                  onClick={toggleVideo}
+                  type="button"
+                >
+                  <span>
+                    <Play size={16} strokeWidth={2.4} aria-hidden="true" />
+                    Watch Video
+                  </span>
+                </button>
+              ) : null}
+            </>
+          )}
+        </div>
       ) : null}
 
-      <div className="exercise-media__actions">
-        {hasVideo ? (
-          <button
-            aria-expanded={videoOpen}
-            className={`workout-secondary-button exercise-media__video-toggle${
-              videoOpen ? ' exercise-media__video-toggle--open' : ''
-            }`}
-            onClick={() => setShowVideo((open) => !open)}
-            type="button"
-          >
-            {videoOpen ? (
-              <X size={18} strokeWidth={2.4} aria-hidden="true" />
-            ) : (
-              <Play size={18} strokeWidth={2.4} aria-hidden="true" />
-            )}
-            {videoOpen ? 'Hide Video' : 'Watch Video'}
-          </button>
-        ) : null}
-        {onOpenFormGuide ? (
-          <button
-            className="workout-secondary-button"
-            onClick={onOpenFormGuide}
-            type="button"
-          >
-            <BookOpen size={18} strokeWidth={2.4} aria-hidden="true" />
-            Open Form Guide
-          </button>
-        ) : null}
-      </div>
+      {showImage || hasVideo || onOpenFormGuide ? (
+        <div className="exercise-media__actions">
+          {showImage || hasVideo ? (
+            <button
+              aria-pressed={mediaHidden}
+              className="workout-secondary-button"
+              onClick={() => setMediaHidden((hidden) => !hidden)}
+              type="button"
+            >
+              {mediaHidden ? (
+                <Eye size={18} strokeWidth={2.4} aria-hidden="true" />
+              ) : (
+                <EyeOff size={18} strokeWidth={2.4} aria-hidden="true" />
+              )}
+              {mediaHidden ? 'Show Video / Image' : 'Hide Video / Image'}
+            </button>
+          ) : null}
+          {!mediaHidden && !showImage && hasVideo ? (
+            <button
+              aria-expanded={videoOpen}
+              className={`workout-secondary-button exercise-media__video-toggle${
+                videoOpen ? ' exercise-media__video-toggle--open' : ''
+              }`}
+              onClick={toggleVideo}
+              type="button"
+            >
+              {videoOpen ? (
+                <X size={18} strokeWidth={2.4} aria-hidden="true" />
+              ) : (
+                <Play size={18} strokeWidth={2.4} aria-hidden="true" />
+              )}
+              {videoOpen ? 'Hide Video' : 'Watch Video'}
+            </button>
+          ) : null}
+          {onOpenFormGuide ? (
+            <button
+              className="workout-secondary-button"
+              onClick={onOpenFormGuide}
+              type="button"
+            >
+              <BookOpen size={18} strokeWidth={2.4} aria-hidden="true" />
+              Open Form Guide
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
-      {!hasVideo ? (
+      {!mediaHidden && !hasVideo ? (
         <p className="exercise-media__note">
           <Video size={15} strokeWidth={2.4} aria-hidden="true" />
           Video guide not added yet.
@@ -134,35 +208,14 @@ export function ExerciseMedia({
         </p>
       ) : null}
 
-      {videoOpen ? (
-        isOnline ? (
-          <div className="exercise-media__video">
-            {!videoLoaded ? (
-              <div className="exercise-media__skeleton" aria-hidden="true">
-                <Play size={28} strokeWidth={2.2} />
-                <span>Loading video...</span>
-              </div>
-            ) : null}
-            <iframe
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className={videoLoaded ? 'exercise-media__iframe--loaded' : ''}
-              loading="lazy"
-              onLoad={() => setVideoLoaded(true)}
-              referrerPolicy="strict-origin-when-cross-origin"
-              src={videoUrl}
-              title={getExerciseVideoTitle(exercise)}
-            />
-          </div>
-        ) : (
-          <p className="exercise-media__note exercise-media__note--offline">
-            <WifiOff size={15} strokeWidth={2.4} aria-hidden="true" />
-            Video requires internet connection.
-          </p>
-        )
+      {videoOpen && !isOnline ? (
+        <p className="exercise-media__note exercise-media__note--offline">
+          <WifiOff size={15} strokeWidth={2.4} aria-hidden="true" />
+          Video requires internet connection.
+        </p>
       ) : null}
 
-      {showImage && imageFailed ? (
+      {!mediaHidden && showImage && imageFailed ? (
         <p className="exercise-media__note">
           <ImageOff size={15} strokeWidth={2.4} aria-hidden="true" />
           Original image failed to load - showing placeholder.

@@ -34,6 +34,7 @@ import {
   getMeasurementProgress,
   type MeasurementKey,
 } from '../utils/bodyCheckInUtils'
+import { getUserProfileSettings } from '../utils/settingsUtils'
 
 const chartConfigs: { key: MeasurementKey; title: string; unit: string }[] = [
   { key: 'bodyWeightKg', title: 'Body weight', unit: 'kg' },
@@ -62,6 +63,7 @@ export function BodyCheckIn() {
   const formRef = useRef<HTMLDivElement>(null)
 
   const latest = useMemo(() => getLatestCheckIn(checkIns), [checkIns])
+  const profileSettings = getUserProfileSettings()
   const trends = useMemo(() => getBodyTrendSummary(checkIns), [checkIns])
   const hasCheckIns = checkIns.length > 0
 
@@ -237,15 +239,22 @@ export function BodyCheckIn() {
           <div className="goal-list">
             <div className="goal-line">
               <span>Current weight</span>
-              <strong>76 kg</strong>
+              <strong>
+                {latest?.bodyWeightKg != null
+                  ? `${latest.bodyWeightKg} kg`
+                  : `${profileSettings.profile.currentWeightKg} kg`}
+              </strong>
             </div>
             <div className="goal-line">
               <span>Goal</span>
-              <strong>78–82 kg lean</strong>
+              <strong>
+                {profileSettings.profile.goalWeightMinKg}–
+                {profileSettings.profile.goalWeightMaxKg} kg lean
+              </strong>
             </div>
             <div className="goal-line">
               <span>Main focus</span>
-              <strong>Bigger upper body, visible abs, controlled waist</strong>
+              <strong>{profileSettings.profile.trainingGoal}</strong>
             </div>
           </div>
           <p className="card-copy">

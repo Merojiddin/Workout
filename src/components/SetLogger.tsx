@@ -19,11 +19,6 @@ interface SetLoggerProps {
   saveSignal?: number
 }
 
-const REP_STEPS = [-1, 1, 5]
-const WEIGHT_STEPS = [-2.5, 2.5, 5]
-const RPE_OPTIONS = [7, 8, 9, 10]
-const PAIN_OPTIONS = [0, 1, 2, 3, 4]
-
 export function SetLogger({
   setNumber,
   initialData,
@@ -33,8 +28,8 @@ export function SetLogger({
 }: SetLoggerProps) {
   const [reps, setReps] = useState('')
   const [weight, setWeight] = useState('')
-  const [rpe, setRpe] = useState<number | null>(null)
-  const [pain, setPain] = useState<number | null>(null)
+  const [rpe, setRpe] = useState('')
+  const [pain, setPain] = useState('')
   const [notes, setNotes] = useState('')
   // Seed with the mount-time signal so a remount (next set) does not re-fire
   // a save that belonged to the previous set.
@@ -44,8 +39,8 @@ export function SetLogger({
   useEffect(() => {
     setReps(numberToInput(initialData?.reps))
     setWeight(numberToInput(initialData?.weightKg))
-    setRpe(initialData?.rpe ?? null)
-    setPain(initialData?.painLevel ?? null)
+    setRpe(numberToInput(initialData?.rpe))
+    setPain(numberToInput(initialData?.painLevel))
     setNotes(initialData?.notes ?? '')
     // Only re-run when the target set changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,27 +58,17 @@ export function SetLogger({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveSignal])
 
-  function bumpReps(step: number) {
-    const next = Math.max(0, Math.round(toNumber(reps) + step))
-    setReps(String(next))
-  }
-
-  function bumpWeight(step: number) {
-    const next = Math.max(0, roundHalf(toNumber(weight) + step))
-    setWeight(String(next))
-  }
-
   function handleSave() {
     onSave({
       reps: parseField(reps),
       weightKg: parseField(weight),
-      rpe,
-      painLevel: pain,
+      rpe: parseField(rpe),
+      painLevel: parseField(pain),
       notes: notes.trim(),
     })
   }
 
-  const painIsHigh = pain !== null && pain >= 4
+  const painIsHigh = pain.trim() !== '' && toNumber(pain) >= 4
 
   return (
     <section className="set-logger" aria-label={`Log set ${setNumber}`}>
@@ -99,18 +84,6 @@ export function SetLogger({
             type="number"
             value={reps}
           />
-          <div className="quick-row">
-            {REP_STEPS.map((step) => (
-              <button
-                className="quick-button"
-                key={step}
-                onClick={() => bumpReps(step)}
-                type="button"
-              >
-                {formatStep(step)}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="set-logger__field">
@@ -125,73 +98,44 @@ export function SetLogger({
             type="number"
             value={weight}
           />
-          <div className="quick-row">
-            {WEIGHT_STEPS.map((step) => (
-              <button
-                className="quick-button"
-                key={step}
-                onClick={() => bumpWeight(step)}
-                type="button"
-              >
-                {formatStep(step)}
-              </button>
-            ))}
-          </div>
+        </div>
+
+        <div className="set-logger__field">
+          <label htmlFor="set-rpe">RPE</label>
+          <input
+            id="set-rpe"
+            inputMode="decimal"
+            max={10}
+            min={0}
+            onChange={(event) => setRpe(sanitize(event.target.value))}
+            placeholder="7-10"
+            step="0.5"
+            type="number"
+            value={rpe}
+          />
+        </div>
+
+        <div className="set-logger__field">
+          <label htmlFor="set-pain">Pain</label>
+          <input
+            id="set-pain"
+            inputMode="numeric"
+            max={10}
+            min={0}
+            onChange={(event) => setPain(sanitize(event.target.value))}
+            placeholder="0-4"
+            type="number"
+            value={pain}
+          />
         </div>
       </div>
 
-      <div className="set-logger__field">
-        <label>RPE (effort)</label>
-        <div className="chip-row">
-          {RPE_OPTIONS.map((value) => (
-            <button
-              aria-pressed={rpe === value}
-              className={`chip-button${rpe === value ? ' chip-button--active' : ''}`}
-              key={value}
-              onClick={() => setRpe(rpe === value ? null : value)}
-              type="button"
-            >
-              {value}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="set-logger__field">
-        <label>Pain level</label>
-        <div className="chip-row">
-          {PAIN_OPTIONS.map((value) => (
-            <button
-              aria-pressed={pain === value}
-              className={`chip-button chip-button--pain${
-                pain === value ? ' chip-button--active' : ''
-              }${value >= 4 ? ' chip-button--danger' : ''}`}
-              key={value}
-              onClick={() => setPain(pain === value ? null : value)}
-              type="button"
-            >
-              {value >= 4 ? '4+' : value}
-            </button>
-          ))}
-        </div>
-        {painIsHigh ? (
-          <p className="set-logger__pain-warning">
-            Pain detected. Do not increase load. Reduce intensity or stop this
-            exercise.
-          </p>
-        ) : null}
-      </div>
-
-      <div className="set-logger__field">
-        <label htmlFor="set-notes">Notes</label>
-        <textarea
-          id="set-notes"
-          onChange={(event) => setNotes(event.target.value)}
-          placeholder="Optional - how did it feel?"
-          rows={2}
-          value={notes}
-        />
-      </div>
+      {painIsHigh ? (
+        <p className="set-logger__pain-warning">
+          Pain detected. Do not increase load. Reduce intensity or stop this
+          exercise.
+        </p>
+      ) : null}
 
       <div className="set-logger__actions">
         <button
@@ -241,12 +185,4 @@ function numberToInput(value: number | null | undefined): string {
 function toNumber(value: string): number {
   const numeric = Number(value)
   return Number.isFinite(numeric) ? numeric : 0
-}
-
-function roundHalf(value: number): number {
-  return Math.round(value * 2) / 2
-}
-
-function formatStep(step: number): string {
-  return step > 0 ? `+${step}` : `${step}`
 }

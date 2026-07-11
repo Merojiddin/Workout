@@ -14,11 +14,14 @@ import { useEffect } from 'react'
 import type { Difficulty, LibraryExercise } from '../data/exerciseLibrary'
 import { getGeneralProgressionAdvice } from '../utils/progressionUtils'
 import { ExerciseMedia } from './ExerciseMedia'
+import { ExerciseMediaEditor } from './ExerciseMediaEditor'
 import { Tag, type TagVariant } from './Tag'
 
 interface ExerciseDetailModalProps {
   exercise: LibraryExercise
   onClose: () => void
+  /** When provided, the user can attach their own image / video link. */
+  onUpdateExercise?: (exercise: LibraryExercise) => void
 }
 
 function difficultyVariant(difficulty: Difficulty): TagVariant {
@@ -41,7 +44,11 @@ const dayNames: Record<number, string> = {
   7: 'Day 7 · Rest',
 }
 
-export function ExerciseDetailModal({ exercise, onClose }: ExerciseDetailModalProps) {
+export function ExerciseDetailModal({
+  exercise,
+  onClose,
+  onUpdateExercise,
+}: ExerciseDetailModalProps) {
   const progressionAdvice = getGeneralProgressionAdvice({
     name: exercise.name,
     category: exercise.category,
@@ -91,6 +98,12 @@ export function ExerciseDetailModal({ exercise, onClose }: ExerciseDetailModalPr
 
         <div className="exercise-detail-media">
           <ExerciseMedia exercise={exercise} showVideoDefault />
+          {onUpdateExercise ? (
+            <ExerciseMediaEditor
+              exercise={exercise}
+              onSave={(updates) => onUpdateExercise({ ...exercise, ...updates })}
+            />
+          ) : null}
         </div>
 
         <div className="exercise-detail-tags">

@@ -593,22 +593,27 @@ function LiveWorkoutScreen({
         completedSets={getCompletedSetsCount(session)}
         currentExerciseIndex={session.currentExerciseIndex}
         duration={getWorkoutDuration(session, new Date(nowTs))}
+        nextExerciseName={
+          session.exercises[session.currentExerciseIndex + 1]?.exerciseName ?? null
+        }
         totalExercises={totalExercises}
         totalSets={getTotalPlannedSets(session)}
         workoutName={session.workoutName}
       />
 
-      <AssistantCard assistant={assistant} />
+      <div className="live-coach-row">
+        <AssistantCard assistant={assistant} />
 
-      <article className={`assistant-card assistant-card--${liveCoach.tone}`}>
-        <span className="assistant-card__icon" aria-hidden="true">
-          <Brain size={18} strokeWidth={2.4} />
-        </span>
-        <div>
-          <p className="eyebrow">Coach says</p>
-          <p className="assistant-card__message">{liveCoach.message}</p>
-        </div>
-      </article>
+        <article className={`assistant-card assistant-card--${liveCoach.tone}`}>
+          <span className="assistant-card__icon" aria-hidden="true">
+            <Brain size={18} strokeWidth={2.4} />
+          </span>
+          <div>
+            <p className="eyebrow">Coach says</p>
+            <p className="assistant-card__message">{liveCoach.message}</p>
+          </div>
+        </article>
+      </div>
 
       <div className="workout-mode-grid">
         <div className="live-primary-column">
@@ -622,7 +627,6 @@ function LiveWorkoutScreen({
             libraryExercise={formGuideExercise}
             onViewFormGuide={onViewFormGuide}
             previousPerformance={previousPerformance}
-            progressionSuggestion={progressionSuggestion}
             suggestedTarget={suggestedTarget}
             totalExercises={totalExercises}
           />
@@ -657,7 +661,6 @@ function LiveWorkoutScreen({
           />
 
           <div className="workout-control-panel dashboard-card">
-            <p className="eyebrow">Navigation</p>
             <div className="control-grid">
               <button
                 className="workout-secondary-button"

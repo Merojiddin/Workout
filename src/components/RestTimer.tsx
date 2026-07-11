@@ -68,12 +68,14 @@ export function RestTimer({
     setIsComplete(false)
   }, [safeRest])
 
-  // Auto-start after a set is saved.
+  // Auto-start after a set is saved. The signal comes from the Save Set
+  // click, so user activation is still fresh enough to unlock audio here.
   useEffect(() => {
     if (autoStartSignal === undefined || autoStartSignal === 0) {
       return
     }
 
+    unlockAudio()
     setDuration(safeRest)
     setSecondsLeft(safeRest)
     setIsComplete(false)
@@ -106,6 +108,7 @@ export function RestTimer({
   }, [isRunning])
 
   function start() {
+    unlockAudio()
     if (secondsLeft <= 0) {
       setSecondsLeft(duration)
     }
@@ -132,33 +135,12 @@ export function RestTimer({
     onSkip?.()
   }
 
-  const progress = duration > 0 ? Math.min(secondsLeft / duration, 1) : 0
-
   return (
     <section
       className={`rest-timer${isComplete ? ' rest-timer--done' : ''}`}
       aria-label="Rest timer"
     >
-      <div className="rest-timer__display">
-        <p className="eyebrow">Rest Timer</p>
-        <strong aria-live="polite">{formatSeconds(secondsLeft)}</strong>
-        <span>
-          {isComplete
-            ? 'Rest complete. Start next set.'
-            : isRunning
-              ? 'Resting...'
-              : `Target rest: ${duration} sec`}
-        </span>
-        <div
-          className="rest-timer__bar"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={duration}
-          aria-valuenow={secondsLeft}
-        >
-          <span style={{ width: `${progress * 100}%` }} />
-        </div>
-      </div>
+      <strong aria-live="polite">{formatSeconds(secondsLeft)}</strong>
 
       <div className="timer-actions">
         {isRunning ? (
@@ -225,17 +207,69 @@ function notifyRestReminder() {
   }
 }
 
-function beep() {
+/**
+ * Shared context, unlocked during a user gesture. An AudioContext created in
+ * the setInterval tick when the timer hits zero starts "suspended" under
+ * browser autoplay policies and plays nothing, so the beep must reuse a
+ * context that was resumed while a click was still fresh.
+ */
+let sharedAudioContext: AudioContext | null = null
+
+function getAudioContext(): AudioContext | null {
   try {
+    if (sharedAudioContext && sharedAudioContext.state !== 'closed') {
+      return sharedAudioContext
+    }
+
     const AudioContextClass =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext?: typeof AudioContext })
         .webkitAudioContext
     if (!AudioContextClass) {
+      return null
+    }
+
+    sharedAudioContext = new AudioContextClass()
+    return sharedAudioContext
+  } catch {
+    return null
+  }
+}
+
+/** Call from a click handler so the completion beep is allowed to play later. */
+function unlockAudio() {
+  try {
+    const context = getAudioContext()
+    if (!context) {
       return
     }
 
-    const context = new AudioContextClass()
+    if (context.state === 'suspended') {
+      context.resume().catch(() => undefined)
+    }
+
+    // iOS Safari also needs a buffer played inside the gesture itself.
+    const buffer = context.createBuffer(1, 1, context.sampleRate)
+    const source = context.createBufferSource()
+    source.buffer = buffer
+    source.connect(context.destination)
+    source.start(0)
+  } catch {
+    // Audio is best-effort.
+  }
+}
+
+function beep() {
+  try {
+    const context = getAudioContext()
+    if (!context) {
+      return
+    }
+
+    if (context.state === 'suspended') {
+      context.resume().catch(() => undefined)
+    }
+
     const oscillator = context.createOscillator()
     const gain = context.createGain()
 
@@ -249,7 +283,12 @@ function beep() {
     gain.connect(context.destination)
     oscillator.start()
     oscillator.stop(context.currentTime + 0.62)
-    oscillator.onended = () => context.close().catch(() => undefined)
+    // Keep the shared context open: closing it would put the next beep back
+    // behind the autoplay gate.
+    oscillator.onended = () => {
+      oscillator.disconnect()
+      gain.disconnect()
+    }
   } catch {
     // Audio is best-effort (autoplay policies, unsupported browsers).
   }

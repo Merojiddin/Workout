@@ -10,7 +10,10 @@ import {
   type LibraryExercise,
 } from '../data/exerciseLibrary'
 import { getExerciseVideo } from '../utils/mediaUtils'
-import { getCustomExerciseLibrary } from '../utils/settingsUtils'
+import {
+  getCustomExerciseLibrary,
+  saveCustomExerciseLibrary,
+} from '../utils/settingsUtils'
 
 type CategoryFilter = ExerciseCategory | 'All'
 type EquipmentFilter = EquipmentTag | 'All'
@@ -27,7 +30,21 @@ export function ExerciseLibrary() {
   const [viewingExercise, setViewingExercise] = useState<LibraryExercise | null>(
     null,
   )
-  const library = useMemo(() => getCustomExerciseLibrary(), [])
+  const [library, setLibrary] = useState<LibraryExercise[]>(() =>
+    getCustomExerciseLibrary(),
+  )
+
+  function handleExerciseUpdate(updated: LibraryExercise) {
+    const saved: LibraryExercise[] = saveCustomExerciseLibrary(
+      library.map((exercise) =>
+        exercise.id === updated.id ? updated : exercise,
+      ),
+    )
+    setLibrary(saved)
+    setViewingExercise(
+      saved.find((exercise) => exercise.id === updated.id) ?? null,
+    )
+  }
 
   const filtersActive =
     searchTerm.trim() !== '' ||
@@ -175,6 +192,7 @@ export function ExerciseLibrary() {
         <ExerciseDetailModal
           exercise={viewingExercise}
           onClose={() => setViewingExercise(null)}
+          onUpdateExercise={handleExerciseUpdate}
         />
       ) : null}
     </section>

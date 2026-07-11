@@ -1,6 +1,5 @@
 import { Dumbbell, History, Target, Timer, Trophy } from 'lucide-react'
 import { ExerciseMedia } from './ExerciseMedia'
-import { ProgressionSuggestionCard } from './ProgressionSuggestionCard'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import type { LoggedExercise } from '../data/workoutSessions'
 import {
@@ -10,13 +9,11 @@ import {
   type SuggestedSetTarget,
 } from '../utils/liveWorkoutUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
-import type { ProgressionSuggestion } from '../utils/progressionUtils'
 
 interface ActiveExerciseCardProps {
   exercise: ActiveExercise
   currentSetIndex: number
   previousPerformance: LoggedExercise | null
-  progressionSuggestion: ProgressionSuggestion | null
   suggestedTarget: SuggestedSetTarget
   bestSummary?: string | null
   hasFormGuide?: boolean
@@ -32,7 +29,6 @@ export function ActiveExerciseCard({
   exercise,
   currentSetIndex,
   previousPerformance,
-  progressionSuggestion,
   suggestedTarget,
   bestSummary,
   hasFormGuide = false,
@@ -106,44 +102,37 @@ export function ActiveExerciseCard({
         </div>
       </section>
 
-      <section className="form-cue" aria-label="Form cue">
-        <p className="eyebrow">Form cue</p>
-        {postureCue ? <p className="form-cue__posture">{postureCue}</p> : null}
-        {exercise.formTips.length > 0 ? (
-          <ul>
-            {exercise.formTips.slice(0, 4).map((tip) => (
-              <li key={tip}>{tip}</li>
-            ))}
-          </ul>
-        ) : (
-          <p>Move with control and stop 1-2 reps before form breaks.</p>
-        )}
-      </section>
+      {/* Compact info row: cue, history, and suggestion share one line.
+          Full form tips stay available in the Form Guide modal. */}
+      <div className="active-info-row">
+        <section className="form-cue" aria-label="Form cue">
+          <p className="eyebrow">Form cue</p>
+          <p className="form-cue__posture">
+            {postureCue ??
+              exercise.formTips[0] ??
+              'Move with control and stop 1-2 reps before form breaks.'}
+          </p>
+        </section>
 
-      <section className="previous-performance" aria-label="Previous performance">
-        <div className="previous-performance__row">
-          <span className="previous-performance__label">
-            <History size={14} strokeWidth={2.4} aria-hidden="true" />
-            Last time
-          </span>
-          <strong>{previousSummary ?? 'No previous data yet'}</strong>
-        </div>
-        {bestSummary ? (
+        <section className="previous-performance" aria-label="Previous performance">
           <div className="previous-performance__row">
             <span className="previous-performance__label">
-              <Trophy size={14} strokeWidth={2.4} aria-hidden="true" />
-              Best
+              <History size={14} strokeWidth={2.4} aria-hidden="true" />
+              Last time
             </span>
-            <strong>{bestSummary}</strong>
+            <strong>{previousSummary ?? 'No previous data yet'}</strong>
           </div>
-        ) : null}
-      </section>
-
-      {progressionSuggestion ? (
-        <section className="active-suggestion" aria-label="Progression suggestion">
-          <ProgressionSuggestionCard compact suggestion={progressionSuggestion} />
+          {bestSummary ? (
+            <div className="previous-performance__row">
+              <span className="previous-performance__label">
+                <Trophy size={14} strokeWidth={2.4} aria-hidden="true" />
+                Best
+              </span>
+              <strong>{bestSummary}</strong>
+            </div>
+          ) : null}
         </section>
-      ) : null}
+      </div>
     </article>
   )
 }

@@ -871,14 +871,9 @@
 .rest-timer strong {
   color: var(--text);
   display: block;
-  font-size: 46px;
+  font-size: 24px;
   line-height: 1;
-  margin: 8px 0 5px;
-}
-
-.rest-timer span {
-  color: var(--soft);
-  font-weight: 800;
+  text-align: center;
 }
 
 .timer-actions {
@@ -4184,6 +4179,28 @@
   margin: 4px 0 0;
 }
 
+.live-header__badges {
+  align-items: center;
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.live-header__next {
+  align-items: center;
+  background: var(--green-soft);
+  border: 1px solid rgba(50, 213, 131, 0.3);
+  border-radius: 999px;
+  color: var(--green);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 6px;
+  padding: 6px 12px;
+}
+
 .live-header__timer {
   align-items: center;
   background: rgba(255, 255, 255, 0.05);
@@ -4215,7 +4232,7 @@
 .live-header__progress {
   background: rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  height: 8px;
+  height: 4px;
   overflow: hidden;
 }
 
@@ -4234,8 +4251,8 @@
   background: var(--blue-soft);
   border-radius: 8px;
   display: flex;
-  gap: 12px;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 8px 12px;
 }
 
 .assistant-card__icon {
@@ -4245,16 +4262,21 @@
   color: var(--blue);
   display: flex;
   flex-shrink: 0;
-  height: 40px;
+  height: 28px;
   justify-content: center;
-  width: 40px;
+  width: 28px;
+}
+
+.assistant-card__icon svg {
+  height: 14px;
+  width: 14px;
 }
 
 .assistant-card__message {
   color: var(--text);
-  font-size: 16px;
-  font-weight: 800;
-  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
 }
 
 .assistant-card--warn {
@@ -4406,11 +4428,62 @@
   text-align: right;
 }
 
+/* Compact info row: form cue, history, and suggestion share one line. */
+.active-info-row {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 620px) {
+  .active-info-row {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+
+.active-info-row > section {
+  min-width: 0;
+}
+
+.active-info-row .form-cue {
+  align-content: start;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.active-info-row .form-cue__posture {
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 8px;
+}
+
+.active-info-row .previous-performance {
+  align-content: start;
+  gap: 6px;
+}
+
+.active-info-row .previous-performance__row {
+  padding: 6px 10px;
+}
+
+.active-info-row .previous-performance__label {
+  font-size: 12px;
+}
+
+.active-info-row .previous-performance__row strong {
+  font-size: 13px;
+}
+
 /* Set logger */
 .set-logger__grid {
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 620px) {
+  .set-logger__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 .set-logger__field {
@@ -4440,6 +4513,17 @@
   min-height: 56px;
 }
 
+/* Spinner arrows waste space in the dense number inputs. */
+.set-logger__field input::-webkit-outer-spin-button,
+.set-logger__field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.set-logger__field input[type='number'] {
+  -moz-appearance: textfield;
+}
+
 .set-logger__field textarea {
   font-size: 15px;
   font-weight: 600;
@@ -4450,72 +4534,6 @@
 .set-logger__field textarea:focus {
   border-color: var(--green);
   outline: 2px solid rgba(50, 213, 131, 0.16);
-}
-
-.quick-row {
-  display: grid;
-  gap: 6px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.quick-button {
-  background: var(--surface-3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: var(--text);
-  cursor: pointer;
-  font-weight: 900;
-  min-height: 44px;
-  transition: border-color 140ms ease, background-color 140ms ease;
-}
-
-.quick-button:hover,
-.quick-button:focus-visible {
-  border-color: rgba(50, 213, 131, 0.5);
-  outline: none;
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.chip-button {
-  background: var(--surface-3);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  color: var(--text);
-  cursor: pointer;
-  flex: 1 1 56px;
-  font-size: 17px;
-  font-weight: 950;
-  min-height: 50px;
-  min-width: 56px;
-  transition: border-color 140ms ease, background-color 140ms ease, color 140ms ease;
-}
-
-.chip-button:hover,
-.chip-button:focus-visible {
-  border-color: rgba(50, 213, 131, 0.5);
-  outline: none;
-}
-
-.chip-button--active {
-  background: var(--green-soft);
-  border-color: var(--green);
-  color: var(--text);
-}
-
-.chip-button--pain.chip-button--active {
-  background: var(--blue-soft);
-  border-color: var(--blue);
-}
-
-.chip-button--danger.chip-button--active {
-  background: var(--red-soft);
-  border-color: var(--red);
-  color: #ff9aac;
 }
 
 .set-logger__pain-warning {
@@ -4623,28 +4641,6 @@
 
 .rest-timer--done {
   border-color: rgba(50, 213, 131, 0.55);
-}
-
-.rest-timer__display {
-  display: grid;
-  gap: 4px;
-  text-align: center;
-}
-
-.rest-timer__bar {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 999px;
-  height: 8px;
-  margin-top: 10px;
-  overflow: hidden;
-}
-
-.rest-timer__bar span {
-  background: var(--green);
-  border-radius: 999px;
-  display: block;
-  height: 100%;
-  transition: width 900ms linear;
 }
 
 /* Control panel */
@@ -6048,6 +6044,66 @@
   padding: 6px 10px;
 }
 
+/* Single media panel: image with play overlay, or the video, one at a time. */
+.exercise-media__panel {
+  position: relative;
+}
+
+.exercise-media__play {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 0;
+  position: absolute;
+}
+
+.exercise-media__play span {
+  align-items: center;
+  background: rgba(5, 7, 10, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: var(--text);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 8px;
+  padding: 8px 16px;
+}
+
+.exercise-media__play:hover span,
+.exercise-media__play:focus-visible span {
+  background: rgba(5, 7, 10, 0.9);
+  border-color: rgba(50, 213, 131, 0.5);
+  color: var(--green);
+}
+
+.exercise-media__close {
+  align-items: center;
+  background: rgba(5, 7, 10, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 30px;
+  z-index: 2;
+}
+
+.exercise-media__close:hover,
+.exercise-media__close:focus-visible {
+  border-color: rgba(50, 213, 131, 0.5);
+  color: var(--green);
+}
+
 .exercise-media__actions {
   display: flex;
   flex-wrap: wrap;
@@ -6184,6 +6240,74 @@
   margin-top: 16px;
 }
 
+/* --- Custom image / video editor (form guide modal) ----------------------- */
+.exercise-media-editor {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.exercise-media-editor__toggle {
+  width: 100%;
+}
+
+.exercise-media-editor__body {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  padding: 14px;
+}
+
+.exercise-media-editor__block {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.exercise-media-editor__hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.exercise-media-editor__video-form {
+  display: grid;
+  gap: 8px;
+}
+
+.exercise-media-editor__current-video {
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: auto 1fr;
+  padding: 10px 12px;
+}
+
+.exercise-media-editor__current-video .image-upload__remove {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.exercise-media-editor__video-url {
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.exercise-media-editor__notice {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 850;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
 /* --- Sticky live-workout action bar (mobile) ------------------------------ */
 .live-sticky-bar {
   backdrop-filter: blur(10px);
@@ -6270,10 +6394,6 @@
     font-weight: 800;
   }
 
-  .rest-timer strong {
-    font-size: 60px;
-  }
-
   .set-logger__field input,
   .set-logger__field textarea {
     font-size: 17px;
@@ -6281,11 +6401,6 @@
 
   .set-logger__field input {
     min-height: 50px;
-  }
-
-  .quick-button,
-  .chip-button {
-    min-height: 44px;
   }
 }
 
@@ -6588,4 +6703,802 @@
 
 .predeploy-item--checked > svg {
   color: var(--green);
+}
+
+/* ==========================================================================
+   Compact live-workout layout - fit the whole session on one desktop screen
+   ========================================================================== */
+
+/* During a live session the sidebar disappears (like the mobile bottom
+   nav) so the workout takes the full width; it returns on finish/discard. */
+@media (min-width: 920px) {
+  .app-shell:has(.workout-page--live) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell:has(.workout-page--live) .sidebar {
+    display: none;
+  }
+}
+
+/* Coach banners share one row, stacking only on narrow phones. */
+.live-coach-row {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 620px) {
+  .live-coach-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 920px) {
+  .workout-page--live {
+    gap: 10px;
+  }
+
+  .workout-page--live .dashboard-card {
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  /* Header: smaller title, slimmer bar. */
+  .workout-page--live .live-header {
+    gap: 6px;
+    padding: 10px 16px;
+  }
+
+  .workout-page--live .live-header__title h1 {
+    font-size: 20px;
+  }
+
+  .workout-page--live .live-header__meta {
+    font-size: 13px;
+  }
+
+  .workout-page--live .live-header__timer {
+    padding: 4px 10px;
+  }
+
+  .workout-page--live .workout-mode-grid,
+  .workout-page--live .live-primary-column,
+  .workout-page--live .workout-side-stack {
+    gap: 10px;
+  }
+
+  /* Active exercise card: smaller headline, capped media height. */
+  .workout-page--live .active-exercise-card {
+    gap: 8px;
+  }
+
+  /* Exercise name and set counter share one line. */
+  .workout-page--live .active-exercise-card__head {
+    align-items: baseline;
+    column-gap: 10px;
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .workout-page--live .active-exercise-card__head .eyebrow {
+    flex-basis: 100%;
+  }
+
+  .workout-page--live .active-exercise-card__name {
+    font-size: 24px;
+    margin: 2px 0 0;
+  }
+
+  .workout-page--live .active-exercise-card__set {
+    font-size: 15px;
+  }
+
+  .workout-page--live .exercise-media {
+    gap: 8px;
+  }
+
+  .workout-page--live .exercise-media__image {
+    aspect-ratio: auto;
+    height: 220px;
+  }
+
+  /* Caption repeats the exercise name from the card heading. */
+  .workout-page--live .exercise-media__caption {
+    display: none;
+  }
+
+  .workout-page--live .exercise-media__actions .workout-secondary-button {
+    font-size: 13px;
+    gap: 6px;
+    min-height: 36px;
+    padding: 4px 10px;
+  }
+
+  /* Target / suggested / rest as slim label-value rows instead of tall cells. */
+  .workout-page--live .active-target-grid {
+    gap: 6px;
+    grid-template-columns: 1fr;
+  }
+
+  .workout-page--live .active-target-grid > div {
+    align-items: center;
+    gap: 2px 12px;
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 6px 10px;
+  }
+
+  .workout-page--live .active-target-grid strong {
+    font-size: 14px;
+    text-align: right;
+  }
+
+  .workout-page--live .active-target-grid small {
+    grid-column: 2;
+    text-align: right;
+  }
+
+  /* Set logger: shorter inputs and buttons. */
+  .workout-page--live .set-logger {
+    gap: 10px;
+  }
+
+  .workout-page--live .set-logger__field {
+    gap: 6px;
+  }
+
+  .workout-page--live .set-logger__field input {
+    font-size: 15px;
+    min-height: 34px;
+    padding: 6px 8px;
+  }
+
+  /* Rest timer: just the countdown line and buttons. */
+  .workout-page--live .rest-timer {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  /* Shorter action buttons across the live screen. */
+  .workout-page--live .workout-primary-button {
+    min-height: 46px;
+  }
+
+  .workout-page--live .workout-secondary-button,
+  .workout-page--live .timer-button {
+    min-height: 42px;
+  }
+
+  .workout-page--live .workout-side-stack {
+    top: 12px;
+  }
+
+  /* Set logger (or the exercise summary) sits in the right column under
+     the Navigation panel; the exercise card keeps the left column. */
+  .workout-page--live .live-primary-column {
+    display: contents;
+  }
+
+  .workout-page--live .workout-mode-grid {
+    align-items: start;
+  }
+
+  .workout-page--live .active-exercise-card {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .workout-page--live .workout-side-stack {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .workout-page--live .set-logger,
+  .workout-page--live .exercise-summary-card {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* The bare set-logger form floats in the column - give it card chrome. */
+  .workout-page--live .set-logger {
+    background: linear-gradient(180deg, rgba(21, 28, 36, 0.98), rgba(16, 21, 27, 0.98));
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+  }
+
+  /* All four inputs on one line in the side column - small and dense. */
+  .workout-page--live .set-logger__grid {
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .workout-page--live .set-logger__field > label {
+    font-size: 11px;
+  }
+}
+
+/* Wide screens: header and coach banners share the top row. */
+@media (min-width: 1220px) {
+  .workout-page--live {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+
+  .workout-page--live > .live-header {
+    grid-column: 1;
+  }
+
+  .workout-page--live > .live-coach-row {
+    grid-column: 2;
+  }
+
+  .workout-page--live > .workout-mode-grid {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ==========================================================================
+   Compact desktop layout - denser typography, cards, and grids on every
+   page so far more fits on one screen. Mobile keeps its larger targets.
+   ========================================================================== */
+
+@media (min-width: 920px) {
+  .app-main {
+    padding: 16px 20px 24px;
+  }
+
+  .app-main__topbar {
+    margin-bottom: 8px;
+  }
+
+  /* Page heroes: headlines drop from 32-44px to 26px. */
+  .dashboard-hero,
+  .progress-hero {
+    gap: 10px;
+    padding: 14px 18px;
+  }
+
+  .dashboard-hero h1,
+  .placeholder-page h1,
+  .workout-intro h1,
+  .workout-mode-header h1,
+  .finish-screen h1,
+  .progress-hero h1 {
+    font-size: 26px;
+    margin: 4px 0 4px;
+  }
+
+  /* Section headings: 22-24px down to 18px. */
+  .card-heading h2,
+  .quick-actions-card h2,
+  .posture-card h2,
+  .lower-grid h2,
+  .progress-empty-card h2,
+  .progress-chart-card h2,
+  .history-card h2,
+  .section-title-row h2,
+  .set-logger h2,
+  .previous-performance-card h2 {
+    font-size: 18px;
+  }
+
+  /* Cards: tighter padding and internal gaps. */
+  .dashboard-card,
+  .progress-chart-card,
+  .history-card,
+  .progress-empty-card {
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  /* Stat tiles: no forced height, smaller numbers and icons. */
+  .stat-card {
+    gap: 10px;
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .stat-card__icon {
+    height: 34px;
+    width: 34px;
+  }
+
+  .stat-card strong {
+    font-size: 19px;
+  }
+
+  .stat-card span:last-child {
+    font-size: 13px;
+  }
+
+  .overview-card {
+    min-height: 0;
+    padding: 10px 12px;
+  }
+
+  .overview-card strong {
+    font-size: 20px;
+  }
+
+  .overview-card span {
+    font-size: 13px;
+  }
+
+  /* Buttons: 52-56px tall down to 42-44px. */
+  .workout-primary-button,
+  .workout-secondary-button,
+  .timer-button {
+    min-height: 44px;
+  }
+
+  .quick-action,
+  .demo-data-button {
+    min-height: 42px;
+  }
+
+  /* Page and section grids: tighter gaps. */
+  .dashboard {
+    gap: 12px;
+  }
+
+  .dashboard-grid,
+  .lower-grid,
+  .progress-section,
+  .progress-chart-card,
+  .history-card {
+    gap: 10px;
+  }
+
+  .workout-page {
+    gap: 12px;
+  }
+
+  .coach-page,
+  .coach-top-grid,
+  .coach-advice-grid,
+  .coach-mini-actions,
+  .coach-priority-list,
+  .coach-reason-list,
+  .coach-advice-list,
+  .today-action-list,
+  .coach-warning-list {
+    gap: 10px;
+  }
+
+  /* Charts and tables. */
+  .chart-frame {
+    height: 190px;
+  }
+
+  .chart-empty-state {
+    min-height: 110px;
+    padding: 12px;
+  }
+
+  .history-table th,
+  .history-table td {
+    padding: 8px 10px;
+  }
+
+  /* Stat blocks used on intro/finish screens. */
+  .workout-intro__stats div,
+  .exercise-target-grid div,
+  .finish-summary-grid div {
+    gap: 3px;
+    padding: 10px 12px;
+  }
+
+  .workout-intro__stats strong,
+  .exercise-target-grid strong,
+  .finish-summary-grid strong {
+    font-size: 15px;
+  }
+
+  .workout-intro {
+    gap: 12px;
+  }
+}
+
+/* --- Per-page compaction (desktop) ---------------------------------------- */
+@media (min-width: 920px) {
+  /* Shared card internals. */
+  .mini-stat,
+  .measurement-tile {
+    gap: 3px;
+    min-height: 0;
+    padding: 8px 10px;
+  }
+
+  .mini-stat strong,
+  .measurement-tile strong {
+    font-size: 16px;
+  }
+
+  .performance-row {
+    padding: 8px 10px;
+  }
+
+  .card-copy,
+  .dashboard-hero p,
+  .progress-hero p,
+  .goal-card p,
+  .posture-card p {
+    font-size: 14px;
+  }
+
+  .hero-target {
+    gap: 4px;
+    padding: 10px 12px;
+  }
+
+  /* Dashboard: sync status becomes one slim row; quick actions and
+     progression suggestions pair up. */
+  .sync-status-card {
+    align-items: center;
+    grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.5fr) minmax(0, 1.1fr) auto;
+  }
+
+  .sync-status-card .mini-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .progression-focus-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Forms: shorter inputs everywhere (Settings, Plan Editor, forms). */
+  .settings-input {
+    font-size: 15px;
+    min-height: 42px;
+  }
+
+  .settings-field {
+    gap: 4px;
+  }
+
+  .settings-form-grid {
+    gap: 10px;
+  }
+
+  .checkin-form,
+  .nutrition-form,
+  .plan-editor-page {
+    gap: 12px;
+  }
+
+  .demo-data-button {
+    min-height: 40px;
+  }
+
+  /* Weekly plan / review internals. */
+  .weekly-day-card__head h2 {
+    font-size: 18px;
+  }
+
+  /* Exercise library cards: tighter, shorter thumbnails. */
+  .exercise-card {
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .exercise-card__titles h3 {
+    font-size: 16px;
+  }
+
+  .exercise-card__thumb img {
+    aspect-ratio: 21 / 9;
+  }
+
+  .export-action-card {
+    padding: 12px 16px;
+  }
+}
+
+@media (min-width: 1220px) {
+  /* Dashboard: one 6-across stat strip and three card columns. */
+  .stat-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Progress: six overview tiles in one row, charts three across. */
+  .overview-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .chart-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Nutrition: four target tiles in one row. */
+  .nutrition-target-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Exercise library: four cards per row. */
+  .exercise-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- Per-page compaction, round 2 (desktop) -------------------------------- */
+@media (min-width: 920px) {
+  /* Dashboard: fill card-grid holes, slimmer workout preview rows. */
+  .dashboard-grid {
+    grid-auto-flow: dense;
+  }
+
+  .exercise-preview__row {
+    gap: 2px;
+    padding: 8px 10px;
+  }
+
+  /* Weekly plan: slimmer exercise rows and guide buttons. */
+  .weekly-plan-grid,
+  .weekly-day-card {
+    gap: 10px;
+  }
+
+  .weekly-exercise-list {
+    gap: 6px;
+  }
+
+  .weekly-exercise-row {
+    gap: 8px;
+    padding: 6px 10px;
+  }
+
+  .weekly-guide-button {
+    min-height: 32px;
+    padding: 0 10px;
+  }
+
+  /* Weekly review: tighter muscle-volume list and comparison table. */
+  .muscle-volume-list {
+    gap: 8px;
+  }
+
+  .strength-table th,
+  .strength-table td {
+    padding: 8px 10px;
+  }
+
+  /* Body check-in: shorter inputs, notes box, and photo dropzones. */
+  .checkin-input {
+    font-size: 15px;
+    min-height: 42px;
+  }
+
+  .checkin-textarea {
+    min-height: 60px;
+  }
+
+  .checkin-form__grid,
+  .photo-upload-grid {
+    gap: 10px;
+  }
+
+  .image-upload__dropzone {
+    min-height: 72px;
+    padding: 10px;
+  }
+
+  /* Nutrition: foods list flows in two columns. */
+  .foods-list {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .foods-row {
+    padding: 8px 10px;
+  }
+
+  .nutrition-form__grid {
+    gap: 10px;
+  }
+
+  /* Chart galleries: much shorter "no data yet" placeholders. */
+  .chart-empty-state {
+    min-height: 56px;
+  }
+}
+
+@media (min-width: 1220px) {
+  /* Nutrition: all five target tiles in one row. */
+  .nutrition-target-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+/* --- Per-page compaction, round 3 (desktop) -------------------------------- */
+@media (min-width: 920px) {
+  /* Exercise library card internals. */
+  .exercise-card__button {
+    min-height: 36px;
+  }
+
+  .exercise-card__cue {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  /* Plan editor: tighter exercise editors, shorter textareas. */
+  .settings-textarea {
+    min-height: 56px;
+  }
+
+  .plan-exercise-editor {
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .plan-exercise-editor-list {
+    gap: 10px;
+  }
+
+  /* Weekly review: muscle volume bars in two columns. */
+  .muscle-volume-list {
+    column-gap: 20px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1220px) {
+  /* Chart galleries (Progress, Body Check-in, Nutrition trends): 4 across. */
+  .chart-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* Plan editor: exercise editors flow two across. */
+  .plan-exercise-editor-list {
+    align-items: start;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* --- Per-page compaction, round 4 (desktop) -------------------------------- */
+@media (min-width: 920px) {
+  /* Export / Print: shorter action cards. */
+  .export-section {
+    gap: 10px;
+  }
+
+  .export-action-grid {
+    gap: 10px;
+  }
+
+  .export-action-card {
+    min-height: 0;
+  }
+
+  .export-action-card > div {
+    gap: 6px;
+  }
+
+  .export-action-card h3 {
+    font-size: 16px;
+  }
+
+  .export-action-card p {
+    font-size: 13px;
+  }
+
+  /* Data health: slimmer metric tiles. */
+  .data-health-grid,
+  .data-health-summary-grid,
+  .data-health-issue-grid,
+  .data-health-action-grid {
+    gap: 8px;
+  }
+
+  .data-health-metric {
+    gap: 2px;
+    min-height: 0;
+    padding: 8px 10px;
+  }
+}
+
+@media (min-width: 1220px) {
+  /* Export / Print: four cards per row. */
+  .export-action-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* --- Per-page compaction, round 5: shorter controls (desktop) -------------- */
+@media (min-width: 920px) {
+  /* Exercise library search + filter dropdowns. */
+  .exercise-filters {
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .exercise-search {
+    min-height: 40px;
+    padding: 0 12px;
+  }
+
+  .exercise-search input {
+    font-size: 14px;
+  }
+
+  .exercise-filter-field select {
+    background-position:
+      calc(100% - 20px) 17px,
+      calc(100% - 14px) 17px;
+    font-size: 14px;
+    min-height: 40px;
+    padding: 0 36px 0 10px;
+  }
+
+  .exercise-demo-link {
+    min-height: 38px;
+  }
+
+  /* Nutrition checklist + inputs. */
+  .nutrition-toggle {
+    min-height: 38px;
+  }
+
+  .nutrition-input {
+    font-size: 15px;
+    min-height: 42px;
+  }
+
+  /* Weekly review header controls. */
+  .week-nav-button,
+  .week-range-pill {
+    min-height: 38px;
+  }
+
+  /* Settings / plan editor tabs, checkboxes, library list. */
+  .settings-tab {
+    min-height: 38px;
+  }
+
+  .settings-check {
+    min-height: 0;
+    padding: 8px 10px;
+  }
+
+  .library-result-button {
+    min-height: 42px;
+  }
+
+  /* Misc: day picker, modal delete, set rows, auth. */
+  .day-picker__button {
+    min-height: 42px;
+  }
+
+  .confirm-delete-button {
+    min-height: 42px;
+  }
+
+  .set-row input {
+    font-size: 16px;
+    min-height: 42px;
+  }
+
+  .icon-control-button {
+    min-height: 40px;
+  }
+
+  .auth-field input {
+    min-height: 42px;
+  }
+}
+
+@media (min-width: 1220px) {
+  /* All four library filters on one row. */
+  .exercise-filter-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
