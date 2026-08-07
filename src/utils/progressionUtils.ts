@@ -1,5 +1,15 @@
 import { weeklyPlan, type Exercise, type WorkoutDay } from '../data/workoutPlan'
 import type { WorkoutSession } from '../data/workoutSessions'
+import {
+  exerciseIdentitiesMatch,
+  normalizeExerciseName,
+  type ExerciseIdentityOptions,
+  type ExerciseIdentityInput,
+} from '../data/exerciseIdentity'
+import {
+  formatDuration,
+  getExerciseLoggingMode,
+} from './exerciseLoggingUtils'
 
 /**
  * Step 7 - Automatic Progression Suggestions.
@@ -9,9 +19,7 @@ import type { WorkoutSession } from '../data/workoutSessions'
  * keep the same load, reduce load, or flag a form / pain warning. Tuned for
  * hypertrophy + body recomposition with a strong bias toward safe posture.
  *
- * The logged data model (see data/workoutSessions.ts) does not yet capture
- * painLevel or timeSeconds, so those are read optionally and default to absent.
- * This keeps the rules future-proof without crashing on today's data.
+ * Optional set fields are read defensively so legacy records keep working.
  */
 
 export type SuggestionType =
@@ -52,6 +60,7 @@ export interface FlexibleSet {
   reps?: number | null
   weightKg?: number | null
   rpe?: number | null
+  rir?: number | null
   timeSeconds?: number | null
   painLevel?: number | null
   setNumber?: number
@@ -59,9 +68,11 @@ export interface FlexibleSet {
 }
 
 export interface FlexibleExerciseResult {
+  exerciseId?: string | null
   exerciseName?: string
   sets?: FlexibleSet[]
   targetReps?: string
+  targetDuration?: string
   targetSets?: number
 }
 
@@ -72,6 +83,7 @@ export interface ExerciseHistoryEntry {
 
 /** Exercise shape we can classify + read a target range from. */
 export interface ProgressionExercise {
+  id?: string
   name: string
   repRange?: string
   duration?: string
@@ -79,6 +91,7 @@ export interface ProgressionExercise {
   category?: string
   equipment?: string | string[]
   sets?: number
+  targetRir?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -88,14 +101,18 @@ export interface ProgressionExercise {
 /** All past logged results for one exercise, oldest first. */
 export function getExerciseHistory(
   sessions: WorkoutSession[],
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ExerciseHistoryEntry[] {
   const entries: ExerciseHistoryEntry[] = []
+  const target = typeof exercise === 'string'
+    ? { exerciseName: exercise }
+    : exercise
 
   for (const session of sessions ?? []) {
     const exercises = getSessionExercises(session)
     for (const exercise of exercises) {
-      if (exercise.exerciseName === exerciseName) {
+      if (exerciseIdentitiesMatch(exercise, target, options)) {
         entries.push({ date: sessionDateKey(session), result: exercise })
       }
     }
@@ -109,9 +126,10 @@ export function getExerciseHistory(
 /** The most recent logged result for one exercise, or null. */
 export function getLatestExerciseResult(
   sessions: WorkoutSession[],
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): FlexibleExerciseResult | null {
-  const history = getExerciseHistory(sessions, exerciseName)
+  const history = getExerciseHistory(sessions, exercise, options)
   return history.length > 0 ? history[history.length - 1].result : null
 }
 
@@ -226,12 +244,20 @@ export function classifyExercise(exercise: ProgressionExercise): ExerciseType {
 
   const hasBarbell = equipment.includes('barbell')
   const hasDumbbell = equipment.includes('dumbbell')
+  const hasExternalLoad = [
+    'cable',
+    'machine',
+    'smith',
+    'band',
+    'plate',
+    'weighted',
+  ].some((term) => equipment.includes(term))
 
   if (hasDumbbell && !hasBarbell) {
     return 'dumbbell'
   }
 
-  if (hasBarbell || hasDumbbell) {
+  if (hasBarbell || hasDumbbell || hasExternalLoad) {
     return 'weighted'
   }
 
@@ -256,15 +282,30 @@ export function shouldIncreaseLoad(
   }
 
   const completed = getCompletedSets(latestResult)
-  if (completed.length === 0) {
+  const requiredSets = getRequiredSetCount(exercise, latestResult)
+  if (completed.length < requiredSets) {
     return false
   }
 
-  const reachedTop = completed.every((set) => toNumber(set.reps) >= range.max)
+  const workSets = completed.slice(0, requiredSets)
+  const reachedTop = workSets.every((set) => toNumber(set.reps) >= range.max)
   const averageRpe = getAverageRPE(latestResult)
   const pain = getMaxPainLevel(latestResult)
+  const requiredRir = getRequiredRir(exercise)
+  const rirValues = workSets
+    .map((set) => nullableNumber(set.rir))
+    .filter((value): value is number => value !== null)
+  const rirSatisfied = requiredRir === null
+    ? true
+    : rirValues.length === workSets.length &&
+      rirValues.every((rir) => rir >= requiredRir)
 
-  return reachedTop && (averageRpe === null || averageRpe <= 9) && pain === 0
+  return (
+    reachedTop &&
+    rirSatisfied &&
+    (averageRpe === null || averageRpe <= 9) &&
+    pain === 0
+  )
 }
 
 /**
@@ -286,9 +327,35 @@ export function shouldKeepSameLoad(
   }
 
   const inRange = completed.every((set) => toNumber(set.reps) >= range.min)
-  const reachedTop = completed.every((set) => toNumber(set.reps) >= range.max)
+  const requiredSets = getRequiredSetCount(exercise, latestResult)
+  const reachedTop =
+    completed.length >= requiredSets &&
+    completed
+      .slice(0, requiredSets)
+      .every((set) => toNumber(set.reps) >= range.max)
 
   return inRange && !reachedTop
+}
+
+function getRequiredSetCount(
+  exercise: ProgressionExercise,
+  latestResult: FlexibleExerciseResult | null,
+): number {
+  const value = Number(exercise.sets ?? latestResult?.targetSets ?? 1)
+  return Number.isFinite(value) ? Math.max(1, Math.round(value)) : 1
+}
+
+function getRequiredRir(exercise: ProgressionExercise): number | null {
+  const match = exercise.targetRir?.match(/\d+(?:\.\d+)?/)
+  if (!match) return null
+  const parsed = Number(match[0])
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function nullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 /**
@@ -324,8 +391,25 @@ export function shouldReduceLoad(
 export function getProgressionSuggestion(
   exercise: ProgressionExercise,
   sessions: WorkoutSession[],
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion {
-  const latest = getLatestExerciseResult(sessions, exercise.name)
+  const identity = {
+    exerciseId: exercise.id,
+    exerciseName: exercise.name,
+  }
+  const latestAny = getLatestExerciseResult(sessions, identity, options)
+
+  // Pain from a re-entry or recovery session remains safety-relevant even
+  // though its deliberately reduced performance is not a progression baseline.
+  if (latestAny && getMaxPainLevel(latestAny) >= 4) {
+    return withMeta(formWarningSuggestion(), exercise.name, latestAny)
+  }
+
+  const latest = getLatestExerciseResult(
+    (sessions ?? []).filter(isProgressionBaselineSession),
+    identity,
+    options,
+  )
 
   if (!latest) {
     return withMeta(noDataSuggestion(), exercise.name, null)
@@ -338,6 +422,17 @@ export function getProgressionSuggestion(
   // 1. Pain always wins - never progress through pain.
   if (pain >= 4) {
     return withMeta(formWarningSuggestion(), exercise.name, latest)
+  }
+
+  if (
+    getExerciseLoggingMode({
+      duration: exercise.duration,
+      repRange: exercise.repRange,
+      targetDuration: latest.targetDuration,
+      targetReps: latest.targetReps,
+    }) === 'duration'
+  ) {
+    return withMeta(durationSuggestion(), exercise.name, latest)
   }
 
   // 2. Posture work is never heavily loaded - progress by control.
@@ -371,14 +466,26 @@ export function getProgressionSuggestion(
   return withMeta(keepSuggestion(type), exercise.name, latest)
 }
 
+function isProgressionBaselineSession(session: WorkoutSession): boolean {
+  return (
+    session?.progressionMode !== 'reentry' &&
+    session?.progressionMode !== 'recovery'
+  )
+}
+
 /** Convenience for pages that only know an exercise name. */
 export function getSuggestionForExerciseName(
   exerciseName: string,
   sessions: WorkoutSession[],
   plan: WorkoutDay[] = weeklyPlan,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion {
   const planExercise = findPlanExercise(exerciseName, plan)
-  return getProgressionSuggestion(planExercise ?? { name: exerciseName }, sessions)
+  return getProgressionSuggestion(
+    planExercise ?? { name: exerciseName },
+    sessions,
+    options,
+  )
 }
 
 /** The most actionable suggestions for today's workout (for the dashboard). */
@@ -386,6 +493,7 @@ export function getTodayProgressionFocus(
   sessions: WorkoutSession[],
   todayExercises: Exercise[],
   limit = 3,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion[] {
   const priority: Record<SuggestionType, number> = {
     'form-warning': 0,
@@ -396,7 +504,7 @@ export function getTodayProgressionFocus(
   }
 
   return todayExercises
-    .map((exercise) => getProgressionSuggestion(exercise, sessions))
+    .map((exercise) => getProgressionSuggestion(exercise, sessions, options))
     .sort((a, b) => priority[a.type] - priority[b.type])
     .slice(0, limit)
 }
@@ -408,6 +516,15 @@ export function getTodayProgressionFocus(
 export function getGeneralProgressionAdvice(
   exercise: ProgressionExercise,
 ): string[] {
+  if (getExerciseLoggingMode(exercise) === 'duration') {
+    return [
+      'Maintain the target duration with controlled effort',
+      'Keep the movement or pace consistent before adding difficulty',
+      'Use RPE and pain notes to guide the next session',
+      'Reduce duration or load if form deteriorates',
+    ]
+  }
+
   const type = classifyExercise(exercise)
 
   switch (type) {
@@ -421,7 +538,7 @@ export function getGeneralProgressionAdvice(
     case 'weighted':
       return [
         'Reach the top of your rep range on every set first',
-        'Then add about 2.5 kg and rebuild your reps',
+        'Then add the smallest practical load increment and rebuild your reps',
         'Keep RPE around 8-9 - do not grind to failure',
         'Keep ribs down and brace; reduce load if the back arches',
       ]
@@ -481,6 +598,16 @@ function unknownTargetSuggestion(): ProgressionSuggestion {
   }
 }
 
+function durationSuggestion(): ProgressionSuggestion {
+  return {
+    type: 'keep',
+    title: 'Maintain Duration',
+    message: 'Maintain the target duration with controlled effort.',
+    nextTarget: 'Repeat the target duration',
+    reason: 'Timed exercises are kept separate from repetition-based progression.',
+  }
+}
+
 function formWarningSuggestion(): ProgressionSuggestion {
   return {
     type: 'form-warning',
@@ -532,8 +659,8 @@ function increaseSuggestion(type: ExerciseType): ProgressionSuggestion {
     type: 'increase',
     title: 'Increase Load',
     message:
-      'You reached the top of the rep range for all sets. Add 2.5 kg next time.',
-    nextTarget: 'Add 2.5 kg total',
+      'You reached the top of the rep range for all sets. Use the smallest practical load increase next time.',
+    nextTarget: 'Add the smallest practical increment',
     reason,
   }
 }
@@ -707,7 +834,7 @@ function summarizeResult(result: FlexibleExerciseResult): string {
   if (reps.length > 0) {
     parts.push(`${reps.join(', ')} reps`)
   } else if (times.length > 0) {
-    parts.push(`${times.join(', ')} sec`)
+    parts.push(times.map(formatDuration).join(', '))
   }
 
   if (weights.length > 0) {
@@ -725,7 +852,11 @@ function getTargetRange(
   latest: FlexibleExerciseResult | null,
 ): RepRange | null {
   const target =
-    exercise.repRange ?? exercise.duration ?? latest?.targetReps ?? null
+    exercise.repRange ??
+    exercise.duration ??
+    latest?.targetDuration ??
+    latest?.targetReps ??
+    null
   return parseRepRange(target)
 }
 
@@ -733,12 +864,27 @@ export function findPlanExercise(
   exerciseName: string,
   plan: WorkoutDay[] = weeklyPlan,
 ): Exercise | undefined {
+  const normalizedTarget = normalizeExerciseName(exerciseName)
+
   for (const day of plan) {
-    const match = day.exercises.find(
-      (exercise) => exercise.name === exerciseName,
+    const exactNameMatch = day.exercises.find(
+      (exercise) => normalizeExerciseName(exercise.name) === normalizedTarget,
     )
-    if (match) {
-      return match
+    if (exactNameMatch) {
+      return exactNameMatch
+    }
+  }
+
+  for (const day of plan) {
+    const aliasMatch = day.exercises.find(
+      (exercise) =>
+        exerciseIdentitiesMatch(
+          { exerciseId: exercise.id, exerciseName: exercise.name },
+          { exerciseName },
+        ),
+    )
+    if (aliasMatch) {
+      return aliasMatch
     }
   }
 

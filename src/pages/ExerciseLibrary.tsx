@@ -11,7 +11,8 @@ import {
 } from '../data/exerciseLibrary'
 import { getExerciseVideo } from '../utils/mediaUtils'
 import {
-  getCustomExerciseLibrary,
+  getCustomExerciseLibraryOverrides,
+  getEffectiveExerciseLibrary,
   saveCustomExerciseLibrary,
 } from '../utils/settingsUtils'
 
@@ -31,18 +32,26 @@ export function ExerciseLibrary() {
     null,
   )
   const [library, setLibrary] = useState<LibraryExercise[]>(() =>
-    getCustomExerciseLibrary(),
+    getEffectiveExerciseLibrary(),
   )
 
   function handleExerciseUpdate(updated: LibraryExercise) {
-    const saved: LibraryExercise[] = saveCustomExerciseLibrary(
-      library.map((exercise) =>
-        exercise.id === updated.id ? updated : exercise,
-      ),
+    const currentOverrides = getCustomExerciseLibraryOverrides() as LibraryExercise[]
+    const nextOverrides = currentOverrides.some(
+      (exercise) => exercise.id === updated.id,
     )
-    setLibrary(saved)
+      ? currentOverrides.map((exercise) =>
+          exercise.id === updated.id ? updated : exercise,
+        )
+      : [...currentOverrides, updated]
+
+    saveCustomExerciseLibrary(
+      getCustomExerciseLibraryOverrides(nextOverrides),
+    )
+    const effectiveLibrary = getEffectiveExerciseLibrary() as LibraryExercise[]
+    setLibrary(effectiveLibrary)
     setViewingExercise(
-      saved.find((exercise) => exercise.id === updated.id) ?? null,
+      effectiveLibrary.find((exercise) => exercise.id === updated.id) ?? null,
     )
   }
 

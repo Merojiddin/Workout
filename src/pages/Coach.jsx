@@ -22,10 +22,16 @@ import { getWorkoutSessions, isWorkoutCompleted } from '../utils/progressUtils'
 import { getTodayProgressionFocus } from '../utils/progressionUtils'
 import { getReminderSettings } from '../utils/reminderUtils'
 import {
-  getCustomWorkoutPlan,
+  getEffectiveExerciseLibrary,
   getUserProfileSettings,
   getWorkoutForDate,
 } from '../utils/settingsUtils'
+import {
+  getActiveWorkoutProgram,
+  getProgramBenchmarkExercises,
+  getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 import {
   calculateWeeklyScore,
   getBodyProgressSummary,
@@ -37,12 +43,26 @@ import {
   getStrengthComparison,
   getWeekRange,
   getWorkoutCompletionSummary,
-  weeklyReviewExerciseNames,
 } from '../utils/weeklyReviewUtils'
 
 export function Coach() {
   const settings = getUserProfileSettings()
-  const activePlan = getCustomWorkoutPlan()
+  const activeProgram = getActiveWorkoutProgram()
+  const programNutritionTargets = getProgramNutritionTargets(activeProgram)
+  const activePlan = activeProgram.days
+  const effectiveExerciseLibrary = getEffectiveExerciseLibrary()
+  const explicitBenchmarkExercises = getProgramBenchmarkExercises(
+    activeProgram,
+    effectiveExerciseLibrary,
+  )
+  const benchmarkExercises =
+    explicitBenchmarkExercises.length > 0 ||
+    activeProgram.benchmarkExerciseIds.length > 0
+      ? explicitBenchmarkExercises
+      : getProgramBenchmarkExercisesWithFallback(
+          activeProgram,
+          effectiveExerciseLibrary,
+        )
   const reminderSettings = getReminderSettings()
   const todayWorkout = getWorkoutForDate(new Date(), activePlan)
   const sessions = getWorkoutSessions()
@@ -51,6 +71,8 @@ export function Coach() {
   const progressionSuggestions = getTodayProgressionFocus(
     sessions,
     todayWorkout.exercises,
+    3,
+    { library: effectiveExerciseLibrary },
   )
   const weekRange = getWeekRange(new Date())
   const previousWeekAnchor = new Date(weekRange.start)
@@ -62,10 +84,13 @@ export function Coach() {
     previousWeekRange.start,
     previousWeekRange.end,
   )
-  const workoutSummary = getWorkoutCompletionSummary(weekSessions, activePlan)
-  const muscleVolume = getMuscleVolumeSummary(weekSessions, activePlan)
+  const workoutSummary = getWorkoutCompletionSummary(weekSessions, activeProgram)
+  const muscleVolume = getMuscleVolumeSummary(weekSessions, activeProgram, {
+    library: effectiveExerciseLibrary,
+  })
   const nutritionSummary = getNutritionSummary(
     getNutritionForWeek(nutritionLogs, weekRange.start, weekRange.end),
+    programNutritionTargets,
   )
   const bodySummary = getBodyProgressSummary(
     getCheckInsForWeek(bodyCheckIns, weekRange.start, weekRange.end),
@@ -74,7 +99,8 @@ export function Coach() {
   const strengthComparison = getStrengthComparison(
     weekSessions,
     previousWeekSessions,
-    weeklyReviewExerciseNames,
+    benchmarkExercises,
+    { library: effectiveExerciseLibrary },
   )
   const weeklyScore = calculateWeeklyScore({
     workoutSummary,
@@ -87,21 +113,34 @@ export function Coach() {
     todayWorkout,
     sessions,
     progressionSuggestions,
+    activeProgram,
+    library: effectiveExerciseLibrary,
   })
   const readiness = calculateReadinessScore({
+    activeProgram,
     sessions,
     nutritionLogs,
     bodyCheckIns,
+    targets: programNutritionTargets,
   })
-  const nutritionAdvice = getNutritionCoachAdvice(nutritionLogs)
-  const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions)
-  const absPostureAdvice = getAbsPostureAdvice(sessions, activePlan)
+  const nutritionAdvice = getNutritionCoachAdvice(
+    nutritionLogs,
+    programNutritionTargets,
+  )
+  const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions, {
+    library: effectiveExerciseLibrary,
+  })
+  const absPostureAdvice = getAbsPostureAdvice(sessions, activeProgram, {
+    library: effectiveExerciseLibrary,
+  })
   const warnings = getCoachWarnings({
     sessions,
     nutritionLogs,
     bodyCheckIns,
     muscleVolume,
     warningSensitivity: settings.coach.warningSensitivity,
+    activeProgram,
+    targets: programNutritionTargets,
   })
   const actionPlan = generateTodayActionPlan({
     todayWorkout,
@@ -110,6 +149,7 @@ export function Coach() {
     bodyAdvice,
     absPostureAdvice,
     warnings,
+    targets: programNutritionTargets,
   })
   const motivationalMessage = getMotivationalCoachMessage(readiness, weeklyScore)
   const reminderAdvice = buildReminderAdvice({
@@ -129,8 +169,13 @@ export function Coach() {
         </div>
         <div className="hero-target coach-hero__target">
           <Brain size={22} strokeWidth={2.4} aria-hidden="true" />
-          <span>Coach Priority</span>
-          <strong>{settings.coach.mainPriority}</strong>
+          <span>Active program</span>
+          <strong>
+            {activeProgram.programName}
+            {activeProgram.programVersion
+              ? ` ${activeProgram.programVersion}`
+              : ''}
+          </strong>
           <CoachBadge type="info">{settings.coach.coachingStyle}</CoachBadge>
         </div>
       </header>
@@ -183,8 +228,8 @@ export function Coach() {
         />
         <CoachAdviceSection
           items={[
-            `Abs sessions this week: ${absPostureAdvice.absSessionsThisWeek}/3`,
-            `Posture sessions this week: ${absPostureAdvice.postureSessionsThisWeek}/4`,
+            `Abs sessions this week: ${absPostureAdvice.absSessionsThisWeek}/${absPostureAdvice.absTargetSessions}`,
+            `Posture sessions this week: ${absPostureAdvice.postureSessionsThisWeek}/${absPostureAdvice.postureTargetSessions}`,
             ...absPostureAdvice.advice,
             absPostureAdvice.recommendedExercises.length
               ? `Recommended: ${absPostureAdvice.recommendedExercises.join(', ')}`
@@ -202,6 +247,7 @@ export function Coach() {
 
 function buildWorkoutAdviceItems(advice) {
   return [
+    advice.programLabel ? `Program: ${advice.programLabel}` : '',
     `Today workout: ${advice.title}`,
     advice.pushExercises.length
       ? `Push: ${advice.pushExercises.join(', ')}`
@@ -212,6 +258,7 @@ function buildWorkoutAdviceItems(advice) {
     advice.postureCautionExercises.length
       ? `Posture caution: ${advice.postureCautionExercises.join(', ')}`
       : '',
+    advice.programRule ? `Program rule: ${advice.programRule}` : '',
     `Suggested intensity: ${advice.intensityRecommendation}`,
   ].filter(Boolean)
 }

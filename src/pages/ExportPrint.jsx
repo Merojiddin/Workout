@@ -19,6 +19,7 @@ import {
   exportAllDataJSON,
   exportBodyCheckInsCSV,
   exportNutritionLogsCSV,
+  exportWorkoutPlanJSON,
   exportWeeklySummaryCSV,
   exportWorkoutSessionsCSV,
 } from '../utils/exportUtils'
@@ -31,7 +32,14 @@ import {
   printElement,
 } from '../utils/printUtils'
 import { getWorkoutSessions } from '../utils/progressUtils'
-import { getCustomWorkoutPlan, getUserProfileSettings } from '../utils/settingsUtils'
+import {
+  getEffectiveExerciseLibrary,
+  getUserProfileSettings,
+} from '../utils/settingsUtils'
+import {
+  getActiveWorkoutProgram,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 
 const printableActions = [
   {
@@ -74,7 +82,17 @@ const printableActions = [
 export function ExportPrint() {
   const [notice, setNotice] = useState('')
   const settings = useMemo(() => getUserProfileSettings(), [])
-  const workoutPlan = useMemo(() => getCustomWorkoutPlan(), [])
+  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const proteinTargets = useMemo(
+    () => getProgramNutritionTargets(activeProgram),
+    [activeProgram],
+  )
+  const workoutPlan = activeProgram.days
+  const identityExerciseContainers = useMemo(
+    () => [...workoutPlan, ...activeProgram.standaloneWorkouts],
+    [activeProgram.standaloneWorkouts, workoutPlan],
+  )
+  const exerciseLibrary = useMemo(() => getEffectiveExerciseLibrary(), [])
   const sessions = useMemo(() => getWorkoutSessions(), [])
   const checkIns = useMemo(() => getBodyCheckIns(), [])
   const nutritionLogs = useMemo(() => getNutritionLogs(), [])
@@ -87,19 +105,21 @@ export function ExportPrint() {
     () =>
       buildWeeklyReviewPrintData({
         checkIns,
+        activeProgram,
+        exerciseLibrary,
         nutritionLogs,
         sessions,
         workoutPlan,
       }),
-    [checkIns, nutritionLogs, sessions, workoutPlan],
+    [activeProgram, checkIns, exerciseLibrary, nutritionLogs, sessions, workoutPlan],
   )
   const weeklyPlanPrintData = useMemo(
-    () => prepareWeeklyPlanPrintData(workoutPlan, settings),
-    [settings, workoutPlan],
+    () => prepareWeeklyPlanPrintData(workoutPlan, settings, activeProgram),
+    [activeProgram, settings, workoutPlan],
   )
   const nutritionSummary = useMemo(
-    () => getWeeklyNutritionSummary(nutritionLogs),
-    [nutritionLogs],
+    () => getWeeklyNutritionSummary(nutritionLogs, proteinTargets.proteinMin),
+    [nutritionLogs, proteinTargets.proteinMin],
   )
 
   function handlePrint(elementId, label) {
@@ -208,6 +228,17 @@ export function ExportPrint() {
             }
           />
           <ActionCard
+            description="Active program metadata and the current saved workout days."
+            icon={FileJson}
+            label="Export Workout Plan JSON"
+            onClick={() =>
+              handleExport(
+                () => exportWorkoutPlanJSON(activeProgram),
+                'Workout plan JSON',
+              )
+            }
+          />
+          <ActionCard
             description="Complete app backup with settings, plan, library, and logs."
             icon={FileJson}
             label="Export All Data JSON"
@@ -238,10 +269,18 @@ export function ExportPrint() {
           <PrintableBlankWorkoutLog workout={todayWorkout} />
         </div>
         <div id="print-today-workout">
-          <PrintableTodayWorkout workout={todayWorkout} />
+          <PrintableTodayWorkout
+            generatedAt={new Date().toISOString()}
+            program={activeProgram}
+            workout={todayWorkout}
+          />
         </div>
         <div id="print-latest-session">
-          <PrintableWorkoutSession session={latestSession} />
+          <PrintableWorkoutSession
+            exerciseLibrary={exerciseLibrary}
+            session={latestSession}
+            workoutPlan={identityExerciseContainers}
+          />
         </div>
         <div id="print-weekly-review">
           <PrintableWeeklyReview review={weeklyReview} />

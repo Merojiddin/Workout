@@ -11,7 +11,9 @@ import {
 } from 'recharts'
 
 interface ProgressChartProps {
+  badges?: string[]
   data: object[]
+  description?: string
   dataKey: string
   emptyMessage: string
   maxValue?: number
@@ -22,8 +24,10 @@ interface ProgressChartProps {
 }
 
 export function ProgressChart({
+  badges = [],
   data,
   dataKey,
+  description,
   emptyMessage,
   maxValue,
   title,
@@ -38,6 +42,16 @@ export function ProgressChart({
       <div>
         <p className="eyebrow">{valueLabel}</p>
         <h2>{title}</h2>
+        {badges.length > 0 ? (
+          <div className="tag-row">
+            {badges.map((badge) => (
+              <span className="tag tag--category" key={badge}>
+                {badge}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        {description ? <p>{description}</p> : null}
       </div>
 
       {hasData ? (

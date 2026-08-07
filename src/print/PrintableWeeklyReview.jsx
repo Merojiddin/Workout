@@ -8,23 +8,50 @@ export function PrintableWeeklyReview({ review }) {
     )
   }
 
+  const workoutSummary = review.workoutSummary ?? {}
+  const scheduledCompletedWorkouts =
+    workoutSummary.scheduledCompletedWorkouts ??
+    workoutSummary.completedWorkouts ??
+    0
+  const standaloneWorkoutsCompleted =
+    workoutSummary.standaloneWorkoutsCompleted ?? 0
+
   return (
     <article className="print-page">
       <h1>Weekly Review</h1>
       <p className="print-small">{review.weekLabel}</p>
 
+      <div className="print-meta-grid">
+        <div className="print-meta">
+          <span className="print-label">Program</span>
+          <strong>{review.program?.programName ?? 'Custom Workout Plan'}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Version</span>
+          <strong>{review.program?.programVersion ?? '-'}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Printed</span>
+          <strong>{formatDate(review.generatedAt)}</strong>
+        </div>
+      </div>
+
       <div className="print-summary-grid">
         <Summary label="Weekly score" value={`${review.weeklyScore?.score ?? 0}/100`} />
         <Summary
-          label="Workouts completed"
-          value={`${review.workoutSummary?.completedWorkouts ?? 0}/${
-            review.workoutSummary?.targetWorkouts ?? 0
+          label="Scheduled workouts"
+          value={`${scheduledCompletedWorkouts}/${
+            workoutSummary.targetWorkouts ?? 0
           }`}
         />
-        <Summary label="Total sets" value={review.workoutSummary?.totalSets ?? 0} />
+        <Summary
+          label="Standalone workouts"
+          value={formatStandaloneWorkoutCount(standaloneWorkoutsCompleted)}
+        />
+        <Summary label="Total sets" value={workoutSummary.totalSets ?? 0} />
         <Summary
           label="Workout duration"
-          value={review.workoutSummary?.totalDurationLabel ?? '-'}
+          value={workoutSummary.totalDurationLabel ?? '-'}
         />
       </div>
 
@@ -147,4 +174,20 @@ function Summary({ label, value }) {
 
 function safeArray(value) {
   return Array.isArray(value) ? value : []
+}
+
+function formatStandaloneWorkoutCount(count) {
+  const total = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0
+  return `${total} standalone workout${total === 1 ? '' : 's'} completed`
+}
+
+function formatDate(value) {
+  const date = new Date(value ?? '')
+  return Number.isNaN(date.getTime())
+    ? '-'
+    : new Intl.DateTimeFormat('en', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(date)
 }

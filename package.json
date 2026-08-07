@@ -9,7 +9,9 @@
     "build:prod": "vite build",
     "lint": "oxlint",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "verify:plan-reset": "node scripts/verify-plan-editor-reset.mjs",
+    "verify:v2.1": "node scripts/verify-workout-program-v2.1.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",

@@ -12,6 +12,12 @@ import {
 } from 'lucide-react'
 import { useEffect } from 'react'
 import type { Difficulty, LibraryExercise } from '../data/exerciseLibrary'
+import {
+  findProgramDay,
+  getActiveWorkoutProgram,
+  getDayLabel,
+  type ActiveWorkoutProgram,
+} from '../utils/activeWorkoutProgram'
 import { getGeneralProgressionAdvice } from '../utils/progressionUtils'
 import { ExerciseMedia } from './ExerciseMedia'
 import { ExerciseMediaEditor } from './ExerciseMediaEditor'
@@ -34,21 +40,12 @@ function difficultyVariant(difficulty: Difficulty): TagVariant {
   return 'difficulty-intermediate'
 }
 
-const dayNames: Record<number, string> = {
-  1: 'Day 1 · Chest Heavy',
-  2: 'Day 2 · Back + Biceps',
-  3: 'Day 3 · Legs + Abs',
-  4: 'Day 4 · Chest Volume',
-  5: 'Day 5 · Back + Arms',
-  6: 'Day 6 · Fat Control + Abs',
-  7: 'Day 7 · Rest',
-}
-
 export function ExerciseDetailModal({
   exercise,
   onClose,
   onUpdateExercise,
 }: ExerciseDetailModalProps) {
+  const activeProgram = getActiveWorkoutProgram()
   const progressionAdvice = getGeneralProgressionAdvice({
     name: exercise.name,
     category: exercise.category,
@@ -262,7 +259,7 @@ export function ExerciseDetailModal({
               <div className="tag-row">
                 {exercise.relatedWorkoutDays.map((day) => (
                   <Tag key={day} variant="neutral">
-                    {dayNames[day] ?? `Day ${day}`}
+                    {getRelatedDayLabel(activeProgram, day)}
                   </Tag>
                 ))}
               </div>
@@ -274,4 +271,12 @@ export function ExerciseDetailModal({
       </section>
     </div>
   )
+}
+
+function getRelatedDayLabel(
+  program: ActiveWorkoutProgram,
+  dayNumber: number,
+): string {
+  const day = findProgramDay(program, dayNumber)
+  return day ? getDayLabel(day) : `Day ${dayNumber}`
 }

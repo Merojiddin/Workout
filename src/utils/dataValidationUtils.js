@@ -82,8 +82,14 @@ export function validateWorkoutSessions(sessions) {
         if (isNegativeNumber(set.weightKg)) {
           issues.push(issue(setLabel, 'Negative weight.'))
         }
+        if (isNegativeNumber(set.timeSeconds)) {
+          issues.push(issue(setLabel, 'Negative duration.'))
+        }
         if (hasNumber(set.rpe) && !isBetween(set.rpe, 1, 10)) {
           issues.push(issue(setLabel, 'Invalid RPE.'))
+        }
+        if (hasNumber(set.rir) && !isBetween(set.rir, 0, 10)) {
+          issues.push(issue(setLabel, 'Invalid RIR.'))
         }
         if (hasNumber(set.painLevel) && !isBetween(set.painLevel, 0, 10)) {
           issues.push(issue(setLabel, 'Invalid pain level.'))
@@ -320,8 +326,10 @@ function repairSet(set, index) {
         ? Math.round(Number(set.setNumber))
         : index + 1,
     reps: nonNegativeOrNull(set.reps),
+    timeSeconds: nonNegativeOrNull(set.timeSeconds),
     weightKg: nonNegativeOrNull(set.weightKg),
     rpe: hasNumber(set.rpe) ? clamp(Number(set.rpe), 1, 10) : null,
+    rir: hasNumber(set.rir) ? clamp(Number(set.rir), 0, 10) : null,
     painLevel: hasNumber(set.painLevel)
       ? clamp(Number(set.painLevel), 0, 10)
       : null,
@@ -395,9 +403,9 @@ function hasCompletedSetValue(set) {
     return false
   }
 
-  return [set.reps, set.weightKg, set.timeSeconds].some(
+  return [set.reps, set.timeSeconds].some(
     (value) => Number.isFinite(Number(value)) && Number(value) > 0,
-  ) || hasText(set.completedAt)
+  )
 }
 
 function isLargeBase64Photo(value) {

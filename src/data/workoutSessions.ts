@@ -1,4 +1,9 @@
 import type { Exercise, WorkoutDay } from './workoutPlan'
+import {
+  exerciseIdentitiesMatch,
+  type ExerciseIdentityOptions,
+  type ExerciseIdentityInput,
+} from './exerciseIdentity'
 import { safeGetJSON, safeSetJSON } from '../utils/storageUtils'
 
 export const WORKOUT_SESSIONS_KEY = 'workoutSessions'
@@ -6,7 +11,9 @@ export const WORKOUT_SESSIONS_KEY = 'workoutSessions'
 export interface LoggedSet {
   notes: string
   reps: number | null
+  timeSeconds?: number | null
   rpe: number | null
+  rir?: number | null
   setNumber: number
   weightKg: number | null
   /** Optional live-workout fields (Step 11) - read defensively everywhere. */
@@ -15,11 +22,17 @@ export interface LoggedSet {
 }
 
 export interface LoggedExercise {
+  exerciseId?: string
   exerciseName: string
+  muscleGroup?: string
   sets: LoggedSet[]
   targetReps: string
+  targetDuration?: string
+  targetRir?: string
   targetSets: number
 }
+
+export type WorkoutSessionType = 'scheduled' | 'standalone'
 
 export interface WorkoutSession {
   completed: boolean
@@ -27,17 +40,26 @@ export interface WorkoutSession {
   exercises: LoggedExercise[]
   finishedAt: string
   id: string
+  programId?: string | null
+  programVersion?: string | null
+  programWeek?: number | null
+  progressionMode?: 'standard' | 'reentry' | 'recovery'
+  workoutGuidance?: string[]
   startedAt: string
   syncStatus?: 'local-only' | 'synced' | 'pending-sync'
+  sessionType?: WorkoutSessionType
+  standaloneWorkoutId?: string | null
   updatedAt?: string
-  workoutDayId: number
+  workoutDayId: number | null
   workoutName: string
 }
 
 export type DraftSet = {
   notes: string
   reps: string
+  timeSeconds: string
   rpe: string
+  rir: string
   weightKg: string
 }
 
@@ -48,7 +70,9 @@ export function createWorkoutDraft(workout: WorkoutDay): WorkoutDraft {
     draft[exercise.id] = Array.from({ length: exercise.sets }, () => ({
       notes: '',
       reps: '',
+      timeSeconds: '',
       rpe: '',
+      rir: '',
       weightKg: '',
     }))
 
@@ -71,7 +95,7 @@ export function saveWorkoutSession(session: WorkoutSession) {
 }
 
 export function getTargetReps(exercise: Exercise) {
-  return exercise.repRange ?? exercise.duration ?? 'timed work'
+  return exercise.repRange ?? ''
 }
 
 export function buildWorkoutSession({
@@ -89,19 +113,27 @@ export function buildWorkoutSession({
     completed: true,
     date: finishedAt.toISOString().slice(0, 10),
     exercises: workout.exercises.map((exercise) => ({
+      exerciseId: exercise.id,
       exerciseName: exercise.name,
+      muscleGroup: exercise.muscleGroup,
       sets: (draft[exercise.id] ?? []).map((set, index) => ({
         notes: set.notes.trim(),
-        reps: parseNullableNumber(set.reps),
+        reps: parseNonNegativeNullableNumber(set.reps),
+        timeSeconds: parseNonNegativeNullableNumber(set.timeSeconds),
         rpe: parseNullableNumber(set.rpe),
+        rir: parseNullableNumber(set.rir),
         setNumber: index + 1,
         weightKg: parseNullableNumber(set.weightKg),
       })),
       targetReps: getTargetReps(exercise),
+      targetDuration: exercise.duration,
+      targetRir: exercise.targetRir,
       targetSets: exercise.sets,
     })),
     finishedAt: finishedAt.toISOString(),
     id: `${finishedAt.getTime()}-${workout.day}`,
+    sessionType: 'scheduled',
+    standaloneWorkoutId: null,
     startedAt: startedAt.toISOString(),
     workoutDayId: workout.day,
     workoutName: workout.name,
@@ -109,12 +141,18 @@ export function buildWorkoutSession({
 }
 
 export function findPreviousExercisePerformance(
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
   sessions = getWorkoutSessions(),
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ) {
+  const target = typeof exercise === 'string'
+    ? { exerciseName: exercise }
+    : exercise
+
   for (const session of sessions) {
     const exercise = session.exercises.find(
-      (loggedExercise) => loggedExercise.exerciseName === exerciseName,
+      (loggedExercise) =>
+        exerciseIdentitiesMatch(loggedExercise, target, options),
     )
 
     if (exercise) {
@@ -138,7 +176,7 @@ export function getWeeklyCompletedWorkouts(
   end.setDate(start.getDate() + 7)
 
   return sessions.filter((session) => {
-    if (!session.completed) {
+    if (!session.completed || session.sessionType === 'standalone') {
       return false
     }
 
@@ -176,6 +214,11 @@ function parseNullableNumber(value: string) {
 
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : null
+}
+
+function parseNonNegativeNullableNumber(value: string) {
+  const parsed = parseNullableNumber(value)
+  return parsed !== null && parsed >= 0 ? parsed : null
 }
 
 function getStartOfWeek(date: Date) {

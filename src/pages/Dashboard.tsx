@@ -33,7 +33,14 @@ import {
   getWorkoutSessions,
   isWorkoutCompleted,
 } from '../utils/progressUtils'
-import { getTodayProgressionFocus } from '../utils/progressionUtils'
+import {
+  findPlanExercise,
+  getLatestExerciseResult,
+  getProgressionSuggestion,
+  getTodayProgressionFocus,
+  type FlexibleExerciseResult,
+} from '../utils/progressionUtils'
+import { formatDuration } from '../utils/exerciseLoggingUtils'
 import {
   getActiveWorkoutSession,
   getCompletedSetsCount,
@@ -56,16 +63,24 @@ import {
 import {
   getNutritionLogs,
   getTodayNutritionLog,
+  nutritionTargets,
 } from '../utils/nutritionUtils'
 import { userProfile } from '../data/userProfile'
 import { useAuth } from '../context/AuthContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useReminders } from '../hooks/useReminders'
 import {
-  getCustomWorkoutPlan,
+  getEffectiveExerciseLibrary,
   getUserProfileSettings,
   getWorkoutForDate,
 } from '../utils/settingsUtils'
+import {
+  getActiveWorkoutProgram,
+  getProgramBenchmarkExercises,
+  getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
+  getWeeklyWorkoutTarget,
+} from '../utils/activeWorkoutProgram'
 import { getPendingSyncCount } from '../utils/offlineSyncQueue'
 import type { PageId } from '../types/navigation'
 import {
@@ -79,7 +94,6 @@ import {
   getStrengthComparison,
   getWeekRange,
   getWorkoutCompletionSummary,
-  weeklyReviewExerciseNames,
 } from '../utils/weeklyReviewUtils'
 
 interface DashboardProps {
@@ -104,16 +118,60 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const cloudActive = isSupabaseConfigured && Boolean(user)
   const pendingSyncCount = getPendingSyncCount()
   const settings = getUserProfileSettings()
-  const activePlan = getCustomWorkoutPlan()
+  const activeProgram = getActiveWorkoutProgram()
+  const programNutritionTargets = {
+    ...nutritionTargets,
+    ...getProgramNutritionTargets(activeProgram),
+  }
+  const activePlan = activeProgram.days
+  const effectiveExerciseLibrary = getEffectiveExerciseLibrary()
   const todayWorkout = getWorkoutForDate(new Date(), activePlan)
   const sessions = getWorkoutSessions()
   const latestSession = getLatestWorkoutSession(sessions)
   const activeWorkout = getActiveWorkoutSession()
   const activeWorkoutHasSession = Boolean(activeWorkout && !activeWorkout.completed)
-  const weeklyTarget = userProfile.weeklyCompletion.target
-  const weeklyCompleted = getThisWeekSessions(sessions).filter(
-    isWorkoutCompleted,
-  ).length
+  const weeklyTarget = getWeeklyWorkoutTarget(activeProgram)
+  const weeklyCompleted = getWorkoutCompletionSummary(
+    getThisWeekSessions(sessions).filter(isWorkoutCompleted),
+    activeProgram,
+  ).scheduledCompletedWorkouts
+  const weeklyProgressPercent =
+    weeklyTarget > 0
+      ? Math.round((weeklyCompleted / weeklyTarget) * 100)
+      : 0
+  const benchmarkExercises = activeProgram.benchmarkExerciseIds.length
+    ? getProgramBenchmarkExercises(activeProgram, effectiveExerciseLibrary)
+    : getProgramBenchmarkExercisesWithFallback(
+        activeProgram,
+        effectiveExerciseLibrary,
+        3,
+      )
+  const benchmarkPerformance = benchmarkExercises.map((benchmark) => {
+    const planExercise = findPlanExercise(benchmark.name, activePlan)
+    const progressionExercise = planExercise ?? {
+      category: benchmark.category,
+      equipment: benchmark.equipment,
+      id: benchmark.id,
+      name: benchmark.name,
+    }
+    const latestResult = getLatestExerciseResult(
+      sessions,
+      { exerciseId: benchmark.id, exerciseName: benchmark.name },
+      { library: effectiveExerciseLibrary },
+    )
+    const suggestion = getProgressionSuggestion(
+      progressionExercise,
+      sessions,
+      { library: effectiveExerciseLibrary },
+    )
+
+    return {
+      id: benchmark.id,
+      movement: benchmark.name,
+      result: formatBenchmarkResult(latestResult),
+      target: suggestion.nextTarget,
+    }
+  })
   const bodyCheckIns = getBodyCheckIns()
   const latestCheckIn = getLatestCheckIn(bodyCheckIns)
   const bodyStatItems = latestCheckIn
@@ -152,20 +210,26 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   )
   const reviewWorkoutSummary = getWorkoutCompletionSummary(
     reviewWeekSessions,
-    activePlan,
+    activeProgram,
   )
   const reviewNutritionSummary = getNutritionSummary(
     getNutritionForWeek(nutritionLogs, weekRange.start, weekRange.end),
+    programNutritionTargets,
   )
   const reviewBodySummary = getBodyProgressSummary(
     getCheckInsForWeek(bodyCheckIns, weekRange.start, weekRange.end),
     bodyCheckIns,
   )
-  const reviewMuscleVolume = getMuscleVolumeSummary(reviewWeekSessions, activePlan)
+  const reviewMuscleVolume = getMuscleVolumeSummary(
+    reviewWeekSessions,
+    activeProgram,
+    { library: effectiveExerciseLibrary },
+  )
   const reviewStrengthComparison = getStrengthComparison(
     reviewWeekSessions,
     previousWeekSessions,
-    weeklyReviewExerciseNames,
+    benchmarkExercises,
+    { library: effectiveExerciseLibrary },
   )
   const weeklyReviewScore = calculateWeeklyScore({
     workoutSummary: reviewWorkoutSummary,
@@ -179,29 +243,44 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const progressionFocus = getTodayProgressionFocus(
     sessions,
     todayWorkout.exercises,
+    3,
+    { library: effectiveExerciseLibrary },
   )
   const hasProgressionData = progressionFocus.some(
     (suggestion) => suggestion.type !== 'no-data',
   )
   const todayCoachAdvice = getTodayWorkoutAdvice({
+    activeProgram,
+    library: effectiveExerciseLibrary,
     todayWorkout,
     sessions,
     progressionSuggestions: progressionFocus,
   })
   const readiness = calculateReadinessScore({
+    activeProgram,
     sessions,
     nutritionLogs,
     bodyCheckIns,
+    targets: programNutritionTargets,
   })
-  const nutritionAdvice = getNutritionCoachAdvice(nutritionLogs)
-  const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions)
-  const absPostureAdvice = getAbsPostureAdvice(sessions, activePlan)
+  const nutritionAdvice = getNutritionCoachAdvice(
+    nutritionLogs,
+    programNutritionTargets,
+  )
+  const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions, {
+    library: effectiveExerciseLibrary,
+  })
+  const absPostureAdvice = getAbsPostureAdvice(sessions, activeProgram, {
+    library: effectiveExerciseLibrary,
+  })
   const coachWarnings = getCoachWarnings({
+    activeProgram,
     sessions,
     nutritionLogs,
     bodyCheckIns,
     muscleVolume: reviewMuscleVolume,
     warningSensitivity: settings.coach.warningSensitivity,
+    targets: programNutritionTargets,
   })
   const coachActionPlan = generateTodayActionPlan({
     todayWorkout,
@@ -210,6 +289,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     bodyAdvice,
     absPostureAdvice,
     warnings: coachWarnings,
+    targets: programNutritionTargets,
   })
   const reminderStatus = getDashboardReminderStatus(
     reminderSettings,
@@ -244,8 +324,13 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             Today: Day {todayWorkout.day} - {todayWorkout.name}
           </h1>
           <p>
-            Track training, last lifts, body changes, and posture without
-            turning the app into a messy workout list.
+            Active program: {activeProgram.programName}
+            {activeProgram.programVersion
+              ? ` · Version ${activeProgram.programVersion}`
+              : ''}
+            {activeProgram.modifiedAfterInstallation ? ' · Modified' : ''}.
+            {' '}Today&apos;s focus:{' '}
+            {todayWorkout.focus.join(', ') || 'General training'}.
           </p>
         </div>
         <div className="dashboard-hero__aside">
@@ -369,7 +454,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           detail={`${weeklyCompleted}/${weeklyTarget} completed this week`}
           icon={Trophy}
           label="Weekly Progress"
-          value={`${Math.round((weeklyCompleted / weeklyTarget) * 100)}%`}
+          value={`${weeklyProgressPercent}%`}
         />
       </div>
 
@@ -494,19 +579,23 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             </div>
             <BarChart3 size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
-          <ProgressBar
-            label="Workouts completed"
-            max={weeklyTarget}
-            value={weeklyCompleted}
-          />
+          {weeklyTarget > 0 ? (
+            <ProgressBar
+              label="Workouts completed"
+              max={weeklyTarget}
+              value={weeklyCompleted}
+            />
+          ) : (
+            <p className="card-copy">
+              This program has no scheduled training sessions this week.
+            </p>
+          )}
           <p className="card-copy">
             {weeklyCompleted > 0
               ? `Latest: ${latestSession?.workoutName ?? 'Workout'} on ${
                   latestSession ? formatSessionDate(latestSession.date) : 'today'
                 }.`
-              : 'No saved workouts yet this week.'}{' '}
-            Keep shin-friendly conditioning low impact until running feels
-            better.
+              : 'No scheduled workouts completed yet this week.'}
           </p>
         </article>
 
@@ -528,7 +617,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 <div className="mini-stat">
                   <span>Workouts</span>
                   <strong>
-                    {reviewWorkoutSummary.completedWorkouts}/
+                    {reviewWorkoutSummary.scheduledCompletedWorkouts}/
                     {reviewWorkoutSummary.targetWorkouts}
                   </strong>
                 </div>
@@ -698,7 +787,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <p className="eyebrow">Posture Reminder</p>
             <h2>Arched-back correction</h2>
           </div>
-          <p>{userProfile.postureReminder}</p>
+          <p>{activeProgram.rules.postureCue ?? userProfile.postureReminder}</p>
         </article>
 
         <article className="dashboard-card form-reminder-card">
@@ -710,8 +799,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
             <BookOpen size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
           <p className="card-copy">
-            Before heavy sets: ribs down, abs tight, glutes slightly squeezed.
-            Do not over-arch your lower back.
+            {activeProgram.rules.postureCue ?? userProfile.postureReminder}
           </p>
           <QuickActionButton
             icon={Library}
@@ -725,20 +813,26 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       <div className="lower-grid">
         <article className="dashboard-card">
           <div>
-            <p className="eyebrow">Last Time</p>
-            <h2>Lift / Ability Targets</h2>
+            <p className="eyebrow">Program Benchmarks</p>
+            <h2>Last performance / next target</h2>
           </div>
-          <div className="performance-list">
-            {userProfile.lastPerformance.map((item) => (
-              <div className="performance-row" key={item.movement}>
-                <div>
-                  <strong>{item.movement}</strong>
-                  <span>Last: {item.result}</span>
+          {benchmarkPerformance.length > 0 ? (
+            <div className="performance-list">
+              {benchmarkPerformance.map((item) => (
+                <div className="performance-row" key={item.id}>
+                  <div>
+                    <strong>{item.movement}</strong>
+                    <span>Last: {item.result}</span>
+                  </div>
+                  <p>{item.target}</p>
                 </div>
-                <p>{item.target}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="card-copy">
+              No benchmark exercises are configured for this program.
+            </p>
+          )}
         </article>
 
         <article className="dashboard-card">
@@ -759,6 +853,40 @@ export function Dashboard({ onNavigate }: DashboardProps) {
       </div>
     </section>
   )
+}
+
+function formatBenchmarkResult(result: FlexibleExerciseResult | null) {
+  const completedSets = (result?.sets ?? []).filter((set) => {
+    const reps = Number(set.reps)
+    const duration = Number(set.timeSeconds)
+    return (
+      (Number.isFinite(reps) && reps > 0) ||
+      (Number.isFinite(duration) && duration > 0)
+    )
+  })
+  if (completedSets.length === 0) {
+    return 'No history yet'
+  }
+
+  const repetitionSets = completedSets.filter(
+    (set) => Number.isFinite(Number(set.reps)) && Number(set.reps) > 0,
+  )
+  if (repetitionSets.length > 0) {
+    const best = [...repetitionSets].sort((left, right) => {
+      const weightDifference = Number(right.weightKg ?? 0) - Number(left.weightKg ?? 0)
+      return weightDifference || Number(right.reps ?? 0) - Number(left.reps ?? 0)
+    })[0]
+    const weight = Number(best.weightKg)
+    const reps = Number(best.reps)
+    return Number.isFinite(weight) && weight > 0
+      ? `${weight} kg × ${reps}`
+      : `${reps} reps`
+  }
+
+  const longestDuration = Math.max(
+    ...completedSets.map((set) => Number(set.timeSeconds) || 0),
+  )
+  return longestDuration > 0 ? formatDuration(longestDuration) : 'Logged'
 }
 
 function formatSessionDate(date: string) {

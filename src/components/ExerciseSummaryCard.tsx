@@ -4,6 +4,10 @@ import {
   isLoggedSet,
   type ActiveExercise,
 } from '../utils/liveWorkoutUtils'
+import {
+  formatDuration,
+  isTimedExercise,
+} from '../utils/exerciseLoggingUtils'
 
 interface ExerciseSummaryCardProps {
   exerciseResult: ActiveExercise
@@ -20,6 +24,7 @@ export function ExerciseSummaryCard({
   onAddExtraSet,
   onRepeatExercise,
 }: ExerciseSummaryCardProps) {
+  const timed = isTimedExercise(exerciseResult)
   const loggedSets = exerciseResult.sets.filter(isLoggedSet)
   const rpes = loggedSets
     .map((set) => (set.rpe === null ? 0 : set.rpe))
@@ -55,7 +60,9 @@ export function ExerciseSummaryCard({
             <li key={set.setNumber}>
               <strong>Set {set.setNumber}</strong>
               <span>
-                {formatValue(set.reps, 'reps')}
+                {timed
+                  ? formatTimedValue(set.timeSeconds)
+                  : formatValue(set.reps, 'reps')}
                 {set.weightKg !== null && set.weightKg > 0
                   ? ` , ${set.weightKg} kg`
                   : ''}
@@ -80,7 +87,9 @@ export function ExerciseSummaryCard({
 
       {averageRpe === 10 ? (
         <p className="safety-warning safety-warning--warn">
-          Too close to max effort. Keep 1-2 reps in reserve for muscle growth.
+          {timed
+            ? 'Too close to max effort. Reduce the duration, pace, or load to keep the effort controlled.'
+            : 'Too close to max effort. Keep 1-2 reps in reserve for muscle growth.'}
         </p>
       ) : null}
 
@@ -131,4 +140,11 @@ export function ExerciseSummaryCard({
 
 function formatValue(value: number | null, suffix: string) {
   return value === null ? `- ${suffix}` : `${value} ${suffix}`
+}
+
+function formatTimedValue(value: number | null | undefined) {
+  const seconds = Number(value)
+  return Number.isFinite(seconds) && seconds > 0
+    ? formatDuration(seconds)
+    : '- duration'
 }

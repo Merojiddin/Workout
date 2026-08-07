@@ -34,6 +34,12 @@ import {
   setLastOfflineSyncAt,
   updateSyncQueueItem,
 } from '../utils/offlineSyncQueue'
+import {
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+} from '../utils/storageUtils'
+import { hydrateWorkoutProgramManagerFromCloudSettings } from './workoutProgramService'
 
 /**
  * Step 12 - sync service.
@@ -212,7 +218,22 @@ export async function syncCloudToLocal(user) {
     const settings = await fetchSingleValue('user_settings', user, 'settings')
     if (settings) {
       backupLocalKey(USER_SETTINGS_KEY)
+      backupLocalKey(INSTALLED_WORKOUT_PROGRAM_KEY)
+      backupLocalKey(DISMISSED_WORKOUT_PROGRAMS_KEY)
+      backupLocalKey(CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY)
       writeJsonKey(USER_SETTINGS_KEY, settings)
+      const hydration = hydrateWorkoutProgramManagerFromCloudSettings(
+        settings,
+        user.id,
+      )
+      if (!hydration.success) {
+        summary.errors.push(
+          describe(
+            'workout program metadata',
+            new Error([hydration.message, ...hydration.details].join(' ')),
+          ),
+        )
+      }
       summary.settings = 1
     }
   } catch (error) {

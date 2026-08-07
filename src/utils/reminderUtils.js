@@ -3,6 +3,10 @@ import { getActiveWorkoutSession } from './liveWorkoutUtils'
 import { getNutritionLogs } from './nutritionUtils'
 import { getWorkoutSessions } from './progressUtils'
 import {
+  getActiveWorkoutProgram,
+  getProgramNutritionTargets,
+} from './activeWorkoutProgram'
+import {
   getCustomWorkoutPlan,
   getUserProfileSettings,
   getWorkoutForDate,
@@ -274,18 +278,20 @@ export function getInAppReminders() {
       createReminderCandidate({
         type: 'creatine',
         title: 'Creatine Reminder',
-        message: 'Creatine not logged today. Take 3-5 g if you have not taken it.',
+        message:
+          'Creatine monohydrate not logged today. Take 3-5 g if you have not taken it.',
         logKey: `creatine-${today}`,
       }),
     )
   }
 
   if (shouldSendProteinReminder(settings, now, nutritionLogs)) {
+    const proteinTargets = getReminderProteinTargets()
     reminders.push(
       createReminderCandidate({
         type: 'protein',
         title: 'Protein Reminder',
-        message: 'Protein is below target. Aim for 120-160 g today.',
+        message: `Protein is below target. Aim for ${proteinTargets.proteinMin}-${proteinTargets.proteinMax} g today.`,
         logKey: `protein-${today}`,
       }),
     )
@@ -489,10 +495,7 @@ function hasCompletedWorkoutOn(sessions, dateKey) {
 
 function isCompletedSet(set) {
   return (
-    toNumber(set?.reps, 0) > 0 ||
-    toNumber(set?.timeSeconds, 0) > 0 ||
-    Boolean(set?.duration) ||
-    Boolean(set?.completedAt)
+    toNumber(set?.reps, 0) > 0 || toNumber(set?.timeSeconds, 0) > 0
   )
 }
 
@@ -520,15 +523,32 @@ function getActiveWorkoutTimestamp(session) {
 }
 
 function getProteinTargetMin() {
+  return getReminderProteinTargets().proteinMin
+}
+
+function getReminderProteinTargets() {
   try {
-    return clampNumber(
-      getUserProfileSettings()?.supplements?.proteinTargetMin,
+    const activeProgram = getActiveWorkoutProgram()
+    if (Number.isFinite(Number(activeProgram?.coaching?.proteinMinGrams))) {
+      return getProgramNutritionTargets(activeProgram)
+    }
+
+    const supplements = getUserProfileSettings()?.supplements
+    const proteinMin = clampNumber(
+      supplements?.proteinTargetMin,
       120,
       1,
       500,
     )
+    return {
+      proteinMin,
+      proteinMax: Math.max(
+        proteinMin,
+        clampNumber(supplements?.proteinTargetMax, 160, 1, 500),
+      ),
+    }
   } catch {
-    return 120
+    return { proteinMin: 120, proteinMax: 160 }
   }
 }
 

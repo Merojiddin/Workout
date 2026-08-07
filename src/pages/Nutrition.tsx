@@ -38,6 +38,10 @@ import {
   getWeeklyNutritionSummary,
 } from '../utils/nutritionUtils'
 import { printElement } from '../utils/printUtils'
+import {
+  getActiveWorkoutProgram,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 
 const supportFoods = [
   { food: 'Eggs', benefit: 'Protein, healthy fats, vitamin D' },
@@ -51,6 +55,11 @@ const supportFoods = [
 
 export function Nutrition() {
   const { user } = useAuth()
+  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const proteinTargets = useMemo(
+    () => getProgramNutritionTargets(activeProgram),
+    [activeProgram],
+  )
   const [logs, setLogs] = useState<NutritionLog[]>(() => getNutritionLogs())
   const [today, setToday] = useState<NutritionLog>(
     () => getTodayNutritionLog(getNutritionLogs()) ?? createEmptyNutritionLog(),
@@ -63,7 +72,10 @@ export function Nutrition() {
 
   const hasLogs = logs.length > 0
   const storedTodayLog = useMemo(() => getTodayNutritionLog(logs), [logs])
-  const weekly = useMemo(() => getWeeklyNutritionSummary(logs), [logs])
+  const weekly = useMemo(
+    () => getWeeklyNutritionSummary(logs, proteinTargets.proteinMin),
+    [logs, proteinTargets.proteinMin],
+  )
   const weekLogCount = useMemo(() => getThisWeekNutritionLogs(logs).length, [logs])
   const proteinChart = useMemo(
     () => getNutritionChartData(logs, 'proteinGrams'),
@@ -183,7 +195,7 @@ export function Nutrition() {
           status="protein"
           subtitle="Muscle gain fuel"
           title="Protein target"
-          value="120–160 g/day"
+          value={`${proteinTargets.proteinMin}–${proteinTargets.proteinMax} g/day`}
         />
         <NutritionTargetCard
           icon={Droplets}
@@ -197,21 +209,21 @@ export function Nutrition() {
           status="creatine"
           subtitle="Daily, any time"
           title="Creatine"
-          value="3–5 g/day"
+          value={activeProgram.coaching.creatineDailyGrams ?? '3–5 g/day'}
         />
         <NutritionTargetCard
           icon={Utensils}
           status="neutral"
-          subtitle="Body recomposition"
+          subtitle="Adjust from actual trends"
           title="Calories"
-          value="Maintenance / slight surplus"
+          value="No fixed universal target"
         />
         <NutritionTargetCard
           icon={Target}
           status="goal"
-          subtitle="Lean muscle, controlled waist"
+          subtitle="Gradual fat loss + strength"
           title="Goal"
-          value="Bigger body, no belly fat"
+          value={activeProgram.coaching.targetWeightLossKgPerWeek ?? 'Sustainable recomposition'}
         />
       </section>
 
@@ -255,10 +267,17 @@ export function Nutrition() {
         </article>
       </div>
 
-      <SupplementChecklist log={today} onChange={handleChecklistChange} />
+      <SupplementChecklist
+        log={today}
+        onChange={handleChecklistChange}
+        proteinTargets={proteinTargets}
+      />
 
       {storedTodayLog ? (
-        <NutritionSummaryCard log={storedTodayLog} />
+        <NutritionSummaryCard
+          log={storedTodayLog}
+          proteinTargets={proteinTargets}
+        />
       ) : (
         <article className="progress-empty-card">
           <Utensils size={26} strokeWidth={2.4} aria-hidden="true" />
@@ -318,7 +337,7 @@ export function Nutrition() {
               value={String(weekly.wheyDays)}
             />
             <OverviewCard
-              subtitle="Protein ≥ 120 g"
+              subtitle={`Protein ≥ ${proteinTargets.proteinMin} g`}
               title="Target days"
               value={String(weekly.proteinTargetDays)}
             />

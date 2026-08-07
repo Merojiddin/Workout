@@ -9,7 +9,15 @@ import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { userProfile } from '../data/userProfile'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
 import { weeklyPlan } from '../data/workoutPlan'
-import { safeGetJSON, safeRemove, safeSetJSON } from './storageUtils'
+import {
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+  WORKOUT_PLAN_BACKUPS_KEY,
+  safeGetJSON,
+  safeRemove,
+  safeSetJSON,
+} from './storageUtils'
 
 export const USER_PROFILE_SETTINGS_KEY = 'userProfileSettings'
 export const CUSTOM_WORKOUT_PLAN_KEY = 'customWorkoutPlan'
@@ -73,6 +81,10 @@ const appStorageKeys = [
   USER_PROFILE_SETTINGS_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  WORKOUT_PLAN_BACKUPS_KEY,
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   WORKOUT_SESSIONS_KEY,
   BODY_CHECK_INS_KEY,
   NUTRITION_LOGS_KEY,
@@ -100,9 +112,21 @@ export function getWorkoutDisplaySettings() {
 }
 
 export function saveUserProfileSettings(settings) {
+  return saveUserProfileSettingsSafely(settings).settings
+}
+
+/**
+ * Saves normalized settings while exposing whether localStorage accepted the
+ * write. Transactional cloud callers can use this to avoid treating an
+ * in-memory normalized value as a successful local mirror.
+ */
+export function saveUserProfileSettingsSafely(settings) {
   const normalized = normalizeUserProfileSettings(settings)
-  writeJson(USER_PROFILE_SETTINGS_KEY, normalized)
-  return normalized
+  const success =
+    typeof window !== 'undefined' &&
+    safeSetJSON(USER_PROFILE_SETTINGS_KEY, normalized)
+
+  return { success, settings: normalized }
 }
 
 export function resetUserProfileSettings() {
@@ -121,6 +145,25 @@ export function saveCustomWorkoutPlan(plan) {
   return normalized
 }
 
+/**
+ * Saves through the same plan normalizer while exposing the storage result.
+ * Transactional callers must use this instead of assuming a returned plan
+ * means localStorage accepted the write.
+ */
+export function saveCustomWorkoutPlanSafely(plan) {
+  const normalized = normalizeWorkoutPlan(plan)
+  const success =
+    typeof window !== 'undefined' &&
+    safeSetJSON(CUSTOM_WORKOUT_PLAN_KEY, normalized)
+
+  return { success, plan: normalized }
+}
+
+/** Canonical plan shape used for storage comparisons without writing. */
+export function normalizeCustomWorkoutPlan(plan) {
+  return normalizeWorkoutPlan(plan)
+}
+
 export function resetCustomWorkoutPlan() {
   removeStorageItem(CUSTOM_WORKOUT_PLAN_KEY)
   return clone(weeklyPlan)
@@ -133,6 +176,78 @@ export function hasCustomWorkoutPlan() {
 export function getCustomExerciseLibrary() {
   const stored = readJson(CUSTOM_EXERCISE_LIBRARY_KEY)
   return normalizeExerciseLibrary(stored)
+}
+
+/**
+ * Returns only records actually stored under customExerciseLibrary.
+ * Unlike getCustomExerciseLibrary(), a missing key produces an empty array
+ * instead of the bundled fallback. This keeps raw custom data separate from
+ * the effective read-only library used by the UI.
+ */
+export function getStoredCustomExerciseLibrary() {
+  const stored = readJson(CUSTOM_EXERCISE_LIBRARY_KEY)
+  return Array.isArray(stored) ? stored.map(normalizeLibraryExercise) : []
+}
+
+/**
+ * Removes bundled records that were copied unchanged into an older full
+ * custom-library snapshot. The operation is read-only; callers choose when
+ * to persist the compact override list after an explicit user edit.
+ */
+export function getCustomExerciseLibraryOverrides(library) {
+  const source =
+    library === undefined ? getStoredCustomExerciseLibrary() : library
+  const bundledById = new Map(
+    exerciseLibrary.map((exercise) => [
+      exercise.id,
+      normalizeLibraryExercise(exercise),
+    ]),
+  )
+  const overrides = []
+  const overrideIndexById = new Map()
+
+  normalizeExerciseLibraryEntries(source).forEach((exercise) => {
+    const bundled = bundledById.get(exercise.id)
+    if (bundled && libraryExercisesEqual(exercise, bundled)) {
+      return
+    }
+
+    const existingIndex = overrideIndexById.get(exercise.id)
+    if (existingIndex === undefined) {
+      overrideIndexById.set(exercise.id, overrides.length)
+      overrides.push(clone(exercise))
+    } else {
+      overrides[existingIndex] = clone(exercise)
+    }
+  })
+
+  return overrides
+}
+
+/**
+ * Read-only library used for display and lookup. Bundled order is stable;
+ * stored custom entries replace matching IDs in place and custom-only IDs
+ * are appended in stored order.
+ */
+export function getEffectiveExerciseLibrary() {
+  const merged = exerciseLibrary.map((exercise) => clone(exercise))
+  const indexById = new Map(
+    merged.map((exercise, index) => [exercise.id, index]),
+  )
+
+  getStoredCustomExerciseLibrary().forEach((exercise) => {
+    const copy = clone(exercise)
+    const existingIndex = indexById.get(copy.id)
+
+    if (existingIndex === undefined) {
+      indexById.set(copy.id, merged.length)
+      merged.push(copy)
+    } else {
+      merged[existingIndex] = copy
+    }
+  })
+
+  return merged
 }
 
 export function saveCustomExerciseLibrary(library) {
@@ -156,6 +271,12 @@ export function exportAllData() {
     userProfileSettings: getUserProfileSettings(),
     customWorkoutPlan: readJson(CUSTOM_WORKOUT_PLAN_KEY),
     customExerciseLibrary: readJson(CUSTOM_EXERCISE_LIBRARY_KEY),
+    installedWorkoutProgram: readJson(INSTALLED_WORKOUT_PROGRAM_KEY),
+    dismissedWorkoutPrograms: readJson(DISMISSED_WORKOUT_PROGRAMS_KEY),
+    workoutPlanBackups: readJson(WORKOUT_PLAN_BACKUPS_KEY),
+    cloudWorkoutProgramManagerCache: readJson(
+      CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+    ),
     workoutSessions: readArray(WORKOUT_SESSIONS_KEY),
     bodyCheckIns: readArray(BODY_CHECK_INS_KEY),
     nutritionLogs: readArray(NUTRITION_LOGS_KEY),
@@ -209,6 +330,38 @@ export function importAllData(jsonData) {
       }
     }
 
+    if ('installedWorkoutProgram' in data) {
+      if (data.installedWorkoutProgram === null) {
+        safeRemove(INSTALLED_WORKOUT_PROGRAM_KEY)
+      } else {
+        writeJson(INSTALLED_WORKOUT_PROGRAM_KEY, data.installedWorkoutProgram)
+      }
+    }
+    if ('dismissedWorkoutPrograms' in data) {
+      writeJson(
+        DISMISSED_WORKOUT_PROGRAMS_KEY,
+        Array.isArray(data.dismissedWorkoutPrograms)
+          ? data.dismissedWorkoutPrograms
+          : [],
+      )
+    }
+    if ('workoutPlanBackups' in data) {
+      writeJson(
+        WORKOUT_PLAN_BACKUPS_KEY,
+        Array.isArray(data.workoutPlanBackups) ? data.workoutPlanBackups : [],
+      )
+    }
+    if ('cloudWorkoutProgramManagerCache' in data) {
+      if (data.cloudWorkoutProgramManagerCache === null) {
+        safeRemove(CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY)
+      } else {
+        writeJson(
+          CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+          data.cloudWorkoutProgramManagerCache,
+        )
+      }
+    }
+
     if ('workoutSessions' in data) {
       writeJson(WORKOUT_SESSIONS_KEY, Array.isArray(data.workoutSessions) ? data.workoutSessions : [])
     }
@@ -252,7 +405,10 @@ export function getExerciseTargetLabel(exercise) {
   return `${sets} sets x rep range unknown`
 }
 
-export function findLibraryExerciseForWorkout(workout, library = getCustomExerciseLibrary()) {
+export function findLibraryExerciseForWorkout(
+  workout,
+  library = getEffectiveExerciseLibrary(),
+) {
   const customMatch = findExerciseInLibrary(workout, library)
   if (customMatch) {
     return customMatch
@@ -327,7 +483,9 @@ function normalizeUserProfileSettings(value) {
     : {}
 
   return {
+    ...clone(settings),
     profile: {
+      ...clone(profile),
       name: toText(profile.name, defaultUserProfileSettings.profile.name),
       heightCm: toPositiveNumber(
         profile.heightCm,
@@ -365,6 +523,7 @@ function normalizeUserProfileSettings(value) {
     },
     equipment: toStringArray(settings.equipment, defaultUserProfileSettings.equipment),
     goals: {
+      ...clone(goals),
       primaryGoal: toText(
         goals.primaryGoal,
         defaultUserProfileSettings.goals.primaryGoal,
@@ -385,6 +544,7 @@ function normalizeUserProfileSettings(value) {
       ),
     },
     supplements: {
+      ...clone(supplements),
       creatineMonohydrate: toBoolean(
         supplements.creatineMonohydrate,
         defaultUserProfileSettings.supplements.creatineMonohydrate,
@@ -411,6 +571,7 @@ function normalizeUserProfileSettings(value) {
       ),
     },
     coach: {
+      ...clone(coach),
       coachingStyle: toChoice(
         coach.coachingStyle,
         ['Direct', 'Balanced', 'Detailed'],
@@ -434,6 +595,7 @@ function normalizeUserProfileSettings(value) {
       ),
     },
     workoutDisplay: {
+      ...clone(workoutDisplay),
       showExerciseImages: toBoolean(
         workoutDisplay.showExerciseImages,
         defaultUserProfileSettings.workoutDisplay.showExerciseImages,
@@ -495,8 +657,35 @@ function normalizePlanExercise(value, fallback, suffix) {
   const exercise = isPlainObject(value) ? value : {}
   const defaultExercise = isPlainObject(fallback) ? fallback : {}
   const name = toText(exercise.name, defaultExercise.name ?? 'Custom Exercise')
-  const repRange = toText(exercise.repRange, defaultExercise.repRange ?? '')
-  const duration = toText(exercise.duration, defaultExercise.duration ?? '')
+  const explicitRepRange = toText(exercise.repRange, '')
+  const explicitDuration = toText(exercise.duration, '')
+  const fallbackRepRange = toText(defaultExercise.repRange, '')
+  const fallbackDuration = toText(defaultExercise.duration, '')
+  const repRange = explicitRepRange
+    ? explicitRepRange
+    : explicitDuration
+      ? ''
+      : fallbackRepRange
+  const duration = explicitRepRange
+    ? ''
+    : explicitDuration || (fallbackRepRange ? '' : fallbackDuration)
+
+  const alternatives = normalizeExerciseAlternatives(
+    exercise.alternatives,
+    defaultExercise.alternatives,
+  )
+  const phaseTargets = normalizeExercisePhaseTargets(
+    exercise.phaseTargets,
+    defaultExercise.phaseTargets,
+  )
+  const guidance = toStringArray(
+    exercise.guidance,
+    defaultExercise.guidance ?? [],
+  )
+  const defaultVariantIds = toStringArray(
+    exercise.defaultVariantIds,
+    defaultExercise.defaultVariantIds ?? [],
+  )
 
   return removeEmptyFields({
     id: toText(exercise.id, defaultExercise.id ?? `custom-${slugify(name)}-${suffix}`),
@@ -518,12 +707,127 @@ function normalizePlanExercise(value, fallback, suffix) {
       defaultExercise.formTips ?? ['Keep control'],
     ),
     notes: toText(exercise.notes, defaultExercise.notes ?? ''),
+    ...(alternatives ? { alternatives } : {}),
+    ...(phaseTargets.length > 0 ? { phaseTargets } : {}),
+    ...(guidance.length > 0 ? { guidance } : {}),
+    ...(defaultVariantIds.length > 0 ? { defaultVariantIds } : {}),
+    ...(exercise.optional !== undefined || defaultExercise.optional !== undefined
+      ? { optional: toBoolean(exercise.optional, Boolean(defaultExercise.optional)) }
+      : {}),
+    ...(exercise.selectionMode !== undefined || defaultExercise.selectionMode !== undefined
+      ? {
+          selectionMode: toChoice(
+            exercise.selectionMode,
+            ['single', 'multiple'],
+            defaultExercise.selectionMode ?? 'single',
+          ),
+        }
+      : {}),
+    ...(exercise.minSelections !== undefined || defaultExercise.minSelections !== undefined
+      ? {
+          minSelections: Math.max(
+            1,
+            Math.round(
+              toPositiveNumber(
+                exercise.minSelections,
+                defaultExercise.minSelections ?? 1,
+              ),
+            ),
+          ),
+        }
+      : {}),
+    ...(exercise.maxSelections !== undefined || defaultExercise.maxSelections !== undefined
+      ? {
+          maxSelections: Math.max(
+            1,
+            Math.round(
+              toPositiveNumber(
+                exercise.maxSelections,
+                defaultExercise.maxSelections ?? 1,
+              ),
+            ),
+          ),
+        }
+      : {}),
+    ...(toText(exercise.targetRir, defaultExercise.targetRir ?? '')
+      ? { targetRir: toText(exercise.targetRir, defaultExercise.targetRir ?? '') }
+      : {}),
+  })
+}
+
+function normalizeExerciseAlternatives(value, fallback) {
+  const source = isPlainObject(value)
+    ? value
+    : isPlainObject(fallback)
+      ? fallback
+      : null
+  if (!source) return undefined
+
+  const result = {}
+  for (const location of ['home', 'gym']) {
+    const variants = Array.isArray(source[location]) ? source[location] : []
+    const normalized = variants
+      .filter(isPlainObject)
+      .map((variant) => {
+        const id = toText(variant.id, '')
+        const name = toText(variant.name, '')
+        const equipment = toText(variant.equipment, '')
+        const repRange = toText(variant.repRange, '')
+        const duration = repRange ? '' : toText(variant.duration, '')
+        const formTips = toStringArray(variant.formTips, [])
+        return removeEmptyFields({
+          id,
+          name,
+          equipment,
+          repRange,
+          duration,
+          ...(formTips.length > 0 ? { formTips } : {}),
+        })
+      })
+      .filter((variant) => variant.id && variant.name && variant.equipment)
+    if (normalized.length > 0) result[location] = normalized
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
+function normalizeExercisePhaseTargets(value, fallback) {
+  const source = Array.isArray(value)
+    ? value
+    : Array.isArray(fallback)
+      ? fallback
+      : []
+
+  return source.filter(isPlainObject).flatMap((target) => {
+    const weeks = toNumberArray(target.weeks)
+      .map((week) => Math.round(week))
+      .filter((week) => week > 0)
+    if (weeks.length === 0) return []
+
+    const repRange = toText(target.repRange, '')
+    const duration = repRange ? '' : toText(target.duration, '')
+    const guidance = toStringArray(target.guidance, [])
+    return [
+      removeEmptyFields({
+        weeks,
+        ...(target.sets !== undefined
+          ? { sets: Math.max(1, Math.round(toPositiveNumber(target.sets, 1))) }
+          : {}),
+        repRange,
+        duration,
+        ...(guidance.length > 0 ? { guidance } : {}),
+      }),
+    ]
   })
 }
 
 function normalizeExerciseLibrary(value) {
   const source = Array.isArray(value) ? value : exerciseLibrary
   return source.map(normalizeLibraryExercise)
+}
+
+function normalizeExerciseLibraryEntries(value) {
+  return Array.isArray(value) ? value.map(normalizeLibraryExercise) : []
 }
 
 function normalizeLibraryExercise(value) {
@@ -540,6 +844,10 @@ function normalizeLibraryExercise(value) {
   // have no media, so fall back to the default library entry with the same id.
   const defaultExercise = defaultExercisesById.get(id)
   const videoUrl = toText(exercise.videoUrl, defaultExercise?.videoUrl ?? '')
+  const savedImageUrl = toText(exercise.imageUrl, '')
+  const imageUrl = savedImageUrl.startsWith('/exercise-placeholders/')
+    ? (defaultExercise?.imageUrl ?? savedImageUrl)
+    : savedImageUrl || (defaultExercise?.imageUrl ?? '')
 
   return {
     id,
@@ -556,7 +864,7 @@ function normalizeLibraryExercise(value) {
     progression: toStringArray(exercise.progression, []),
     regression: toStringArray(exercise.regression, []),
     postureNotes: toText(exercise.postureNotes, ''),
-    imageUrl: toText(exercise.imageUrl, defaultExercise?.imageUrl ?? ''),
+    imageUrl,
     imageAlt: toText(exercise.imageAlt, defaultExercise?.imageAlt ?? ''),
     videoUrl,
     videoType: toChoice(
@@ -641,6 +949,10 @@ function removeStorageItem(key) {
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value))
+}
+
+function libraryExercisesEqual(left, right) {
+  return JSON.stringify(left) === JSON.stringify(right)
 }
 
 function isPlainObject(value) {

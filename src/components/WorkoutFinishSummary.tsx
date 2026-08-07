@@ -20,17 +20,14 @@ export function WorkoutFinishSummary({
   onProgress,
   onWeeklyReview,
 }: WorkoutFinishSummaryProps) {
+  const standalone = session?.sessionType === 'standalone'
   const exercises = Array.isArray(session?.exercises) ? session.exercises : []
   const allSets: LoggedSet[] = exercises.flatMap((exercise) =>
     Array.isArray(exercise?.sets) ? exercise.sets : [],
   )
-  const loggedSets = allSets.filter(
-    (set) => num(set?.reps) > 0 || num(set?.weightKg) > 0 || num(set?.rpe) > 0,
-  )
+  const loggedSets = allSets.filter(isCompletedSet)
   const completedExercises = exercises.filter((exercise) =>
-    (Array.isArray(exercise?.sets) ? exercise.sets : []).some(
-      (set) => num(set?.reps) > 0 || num(set?.weightKg) > 0 || num(set?.rpe) > 0,
-    ),
+    (Array.isArray(exercise?.sets) ? exercise.sets : []).some(isCompletedSet),
   ).length
 
   const totalVolume = loggedSets.reduce((sum, set) => {
@@ -63,6 +60,7 @@ export function WorkoutFinishSummary({
       </div>
       <p className="eyebrow">Workout completed</p>
       <h1>{session?.workoutName ?? 'Workout'}</h1>
+      {standalone ? <p className="card-copy">Standalone workout</p> : null}
       <p>Saved safely to your workout history.</p>
 
       <div className="finish-summary-grid">
@@ -144,6 +142,10 @@ export function WorkoutFinishSummary({
 function num(value: number | null | undefined): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
+}
+
+function isCompletedSet(set: LoggedSet | null | undefined): boolean {
+  return num(set?.reps) > 0 || num(set?.timeSeconds) > 0
 }
 
 function roundHalf(value: number): number {

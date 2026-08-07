@@ -50,6 +50,7 @@ export function PrintableBlankWorkoutLog({ workout }) {
             <th>Set 5</th>
             <th>Weight</th>
             <th>RPE</th>
+            <th>RIR</th>
             <th>Notes</th>
           </tr>
         </thead>
@@ -58,6 +59,7 @@ export function PrintableBlankWorkoutLog({ workout }) {
             <tr key={exercise.id ?? index}>
               <td>{exercise.name}</td>
               <td>{targetLabel(exercise)}</td>
+              <td>&nbsp;</td>
               <td>&nbsp;</td>
               <td>&nbsp;</td>
               <td>&nbsp;</td>

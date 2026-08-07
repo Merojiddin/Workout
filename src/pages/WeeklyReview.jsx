@@ -9,13 +9,19 @@ import { WarningsCard } from '../components/WarningsCard'
 import { WeeklyScoreCard } from '../components/WeeklyScoreCard'
 import { WeeklySummaryCard } from '../components/WeeklySummaryCard'
 import { PrintableWeeklyReview } from '../print/PrintableWeeklyReview'
-import { getSuggestionForExerciseName } from '../utils/progressionUtils'
+import { getProgressionSuggestion } from '../utils/progressionUtils'
 import { getWeeklyCoachConclusion } from '../utils/coachUtils'
 import { printElement } from '../utils/printUtils'
 import { addDemoCheckIns, getBodyCheckIns } from '../utils/bodyCheckInUtils'
 import { addDemoNutritionLogs, getNutritionLogs } from '../utils/nutritionUtils'
 import { addDemoSessions, getWorkoutSessions } from '../utils/progressUtils'
-import { getCustomWorkoutPlan } from '../utils/settingsUtils'
+import { getEffectiveExerciseLibrary } from '../utils/settingsUtils'
+import {
+  getActiveWorkoutProgram,
+  getProgramBenchmarkExercises,
+  getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 import {
   calculateWeeklyScore,
   formatWeekRange,
@@ -30,7 +36,6 @@ import {
   getStrengthComparison,
   getWeekRange,
   getWorkoutCompletionSummary,
-  weeklyReviewExerciseNames,
 } from '../utils/weeklyReviewUtils'
 
 export function WeeklyReview() {
@@ -38,11 +43,48 @@ export function WeeklyReview() {
   const [sessions, setSessions] = useState(() => getWorkoutSessions())
   const [checkIns, setCheckIns] = useState(() => getBodyCheckIns())
   const [nutritionLogs, setNutritionLogs] = useState(() => getNutritionLogs())
-  const activePlan = useMemo(() => getCustomWorkoutPlan(), [])
+  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const activePlan = activeProgram.days
+  const effectiveExerciseLibrary = useMemo(
+    () => getEffectiveExerciseLibrary(),
+    [],
+  )
+  const benchmarkExercises = useMemo(
+    () => {
+      const explicit = getProgramBenchmarkExercises(
+        activeProgram,
+        effectiveExerciseLibrary,
+      )
+      return explicit.length > 0 || activeProgram.benchmarkExerciseIds.length > 0
+        ? explicit
+        : getProgramBenchmarkExercisesWithFallback(
+            activeProgram,
+            effectiveExerciseLibrary,
+          )
+    },
+    [activeProgram, effectiveExerciseLibrary],
+  )
 
   const review = useMemo(
-    () => buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan),
-    [activePlan, selectedDate, sessions, checkIns, nutritionLogs],
+    () =>
+      buildReview(
+        selectedDate,
+        sessions,
+        checkIns,
+        nutritionLogs,
+        activeProgram,
+        benchmarkExercises,
+        effectiveExerciseLibrary,
+      ),
+    [
+      activeProgram,
+      benchmarkExercises,
+      checkIns,
+      effectiveExerciseLibrary,
+      nutritionLogs,
+      selectedDate,
+      sessions,
+    ],
   )
   const hasAllReviewData =
     sessions.length > 0 && checkIns.length > 0 && nutritionLogs.length > 0
@@ -73,7 +115,14 @@ export function WeeklyReview() {
         <div>
           <p className="eyebrow">Weekly Review</p>
           <h1>Weekly Review</h1>
-          <p>Review training, body changes, nutrition, and next-week focus.</p>
+          <p>
+            Review training, body changes, nutrition, and next-week focus for{' '}
+            {activeProgram.programName}
+            {activeProgram.programVersion
+              ? ` ${activeProgram.programVersion}`
+              : ''}
+            .
+          </p>
         </div>
         <div className="weekly-review-hero-controls">
           <button
@@ -156,10 +205,17 @@ export function WeeklyReview() {
 
       <section className="weekly-summary-grid" aria-label="Workout completion summary">
         <WeeklySummaryCard
-          status={review.workoutSummary.completedWorkouts >= 5 ? 'good' : 'warn'}
-          subtitle={`Target workouts: ${review.workoutSummary.targetWorkouts}`}
-          title="Workouts completed"
-          value={`${review.workoutSummary.completedWorkouts}/${review.workoutSummary.targetWorkouts}`}
+          status={
+            review.workoutSummary.scheduledCompletedWorkouts >=
+            review.workoutSummary.targetWorkouts
+              ? 'good'
+              : 'warn'
+          }
+          subtitle={`Target workouts: ${review.workoutSummary.targetWorkouts} · ${formatStandaloneWorkoutCount(
+            review.workoutSummary.standaloneWorkoutsCompleted,
+          )}`}
+          title="Scheduled workouts"
+          value={`${review.workoutSummary.scheduledCompletedWorkouts}/${review.workoutSummary.targetWorkouts}`}
         />
         <WeeklySummaryCard
           status={review.workoutSummary.totalSets > 0 ? 'good' : 'neutral'}
@@ -226,7 +282,16 @@ export function WeeklyReview() {
   )
 }
 
-function buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan) {
+function buildReview(
+  selectedDate,
+  sessions,
+  checkIns,
+  nutritionLogs,
+  activeProgram,
+  benchmarkExercises,
+  effectiveExerciseLibrary,
+) {
+  const activePlan = activeProgram.days
   const week = getWeekRange(selectedDate)
   const previousAnchor = new Date(week.start)
   previousAnchor.setDate(week.start.getDate() - 7)
@@ -239,18 +304,33 @@ function buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan
   )
   const weekNutrition = getNutritionForWeek(nutritionLogs, week.start, week.end)
   const weekCheckIns = getCheckInsForWeek(checkIns, week.start, week.end)
-  const workoutSummary = getWorkoutCompletionSummary(weekSessions, activePlan)
-  const muscleVolume = getMuscleVolumeSummary(weekSessions, activePlan)
+  const workoutSummary = getWorkoutCompletionSummary(weekSessions, activeProgram)
+  const muscleVolume = getMuscleVolumeSummary(weekSessions, activeProgram, {
+    library: effectiveExerciseLibrary,
+  })
   const strengthComparison = getStrengthComparison(
     weekSessions,
     previousWeekSessions,
-    weeklyReviewExerciseNames,
+    benchmarkExercises,
+    { library: effectiveExerciseLibrary },
   )
   const bodySummary = getBodyProgressSummary(weekCheckIns, checkIns)
-  const nutritionSummary = getNutritionSummary(weekNutrition)
-  const progressionSuggestions = weeklyReviewExerciseNames.map((exerciseName) =>
-    getSuggestionForExerciseName(exerciseName, sessions, activePlan),
+  const nutritionSummary = getNutritionSummary(
+    weekNutrition,
+    getProgramNutritionTargets(activeProgram),
   )
+  const progressionSuggestions = benchmarkExercises
+    .map((benchmark) =>
+      activePlan
+        .flatMap((day) => day.exercises)
+        .find((exercise) => exercise.id === benchmark.id),
+    )
+    .filter(Boolean)
+    .map((exercise) =>
+      getProgressionSuggestion(exercise, sessions, {
+        library: effectiveExerciseLibrary,
+      }),
+    )
   const weeklyScore = calculateWeeklyScore({
     workoutSummary,
     nutritionSummary,
@@ -265,6 +345,7 @@ function buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan
     muscleVolume,
     strengthComparison,
     progressionSuggestions,
+    activeProgram,
   })
   const warnings = generateWarnings({
     workoutSummary,
@@ -273,9 +354,12 @@ function buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan
     muscleVolume,
     strengthComparison,
     weekSessions,
+    activeProgram,
   })
 
   return {
+    program: activeProgram,
+    generatedAt: new Date().toISOString(),
     week,
     workoutSummary,
     muscleVolume,
@@ -286,4 +370,9 @@ function buildReview(selectedDate, sessions, checkIns, nutritionLogs, activePlan
     focusItems,
     warnings,
   }
+}
+
+function formatStandaloneWorkoutCount(count) {
+  const total = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0
+  return `${total} standalone workout${total === 1 ? '' : 's'} completed`
 }

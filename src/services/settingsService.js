@@ -46,6 +46,160 @@ async function fetchSingle(table, user, payloadKey) {
   return data ? data[payloadKey] : null
 }
 
+/**
+ * Cloud-only single-document helpers used by transactional program changes.
+ * Unlike the existing offline-first service methods below, these helpers do
+ * not read or write the local mirror and never add work to the offline queue.
+ */
+async function fetchCloudSingleSnapshot(table, user, payloadKey, label) {
+  requireOnlineCloudUser(user)
+
+  try {
+    const { data, error } = await supabase
+      .from(table)
+      .select(payloadKey)
+      .eq('user_id', user.id)
+      .maybeSingle()
+
+    if (error) {
+      throw error
+    }
+
+    return data
+      ? { exists: true, value: cloneJsonValue(data[payloadKey]) }
+      : { exists: false, value: null }
+  } catch (error) {
+    throw cloudPersistenceError(`fetch ${label}`, error)
+  }
+}
+
+async function writeCloudSingle(table, user, payloadKey, value, label) {
+  requireOnlineCloudUser(user)
+
+  try {
+    const { error } = await supabase
+      .from(table)
+      .upsert(
+        { user_id: user.id, [payloadKey]: value },
+        { onConflict: 'user_id' },
+      )
+
+    if (error) {
+      throw error
+    }
+
+    return { exists: true, value: cloneJsonValue(value) }
+  } catch (error) {
+    throw cloudPersistenceError(`save ${label}`, error)
+  }
+}
+
+async function deleteCloudSingle(table, user, label) {
+  requireOnlineCloudUser(user)
+
+  try {
+    const { error } = await supabase
+      .from(table)
+      .delete()
+      .eq('user_id', user.id)
+
+    if (error) {
+      throw error
+    }
+
+    return { exists: false, value: null }
+  } catch (error) {
+    throw cloudPersistenceError(`delete ${label}`, error)
+  }
+}
+
+function requireOnlineCloudUser(user) {
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Running in local mode.')
+  }
+  if (!user || typeof user.id !== 'string' || user.id.trim() === '') {
+    throw new Error('Sign in with a cloud account to change workout programs.')
+  }
+  if (!isCloudMode(user)) {
+    throw new Error('Cloud mode is unavailable for this account.')
+  }
+  if (!isBrowserOnline()) {
+    throw new Error(
+      'Connect to the internet before changing a cloud workout program.',
+    )
+  }
+}
+
+function cloudPersistenceError(action, error) {
+  const wrapped = new Error(`Could not ${action}: ${describeError(error)}`)
+  wrapped.cause = error
+  return wrapped
+}
+
+function cloneJsonValue(value) {
+  return JSON.parse(JSON.stringify(value))
+}
+
+// --- cloud-only Program Manager documents ---------------------------------
+
+export async function fetchCloudUserSettingsSnapshot(user) {
+  return fetchCloudSingleSnapshot(
+    'user_settings',
+    user,
+    'settings',
+    'cloud user settings',
+  )
+}
+
+export async function writeCloudUserSettings(user, settings) {
+  requireOnlineCloudUser(user)
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+    throw new Error('Cloud user settings must be an object.')
+  }
+  return writeCloudSingle(
+    'user_settings',
+    user,
+    'settings',
+    settings,
+    'cloud user settings',
+  )
+}
+
+export async function deleteCloudUserSettings(user) {
+  return deleteCloudSingle('user_settings', user, 'cloud user settings')
+}
+
+export async function fetchCloudWorkoutPlanSnapshot(user) {
+  return fetchCloudSingleSnapshot(
+    'custom_workout_plans',
+    user,
+    'plan',
+    'cloud workout plan',
+  )
+}
+
+export async function writeCloudWorkoutPlan(user, plan) {
+  requireOnlineCloudUser(user)
+  if (!Array.isArray(plan)) {
+    throw new Error('Cloud workout plan must be an array.')
+  }
+  return writeCloudSingle(
+    'custom_workout_plans',
+    user,
+    'plan',
+    plan,
+    'cloud workout plan',
+  )
+}
+
+export async function deleteCloudWorkoutPlan(user) {
+  return deleteCloudSingle(
+    'custom_workout_plans',
+    user,
+    'cloud workout plan',
+  )
+}
+
 // --- user settings ---------------------------------------------------------
 
 export async function getUserSettings(user) {

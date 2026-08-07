@@ -22,6 +22,15 @@ export type EquipmentTag =
   | 'Skipping rope'
   | 'VR Quest 2'
   | 'Mat'
+  | 'Resistance bands'
+  | 'Cable machine'
+  | 'Smith machine'
+  | 'Weight machine'
+  | 'Plyometric box'
+  | 'Medicine ball'
+  | 'Heavy bag'
+  | 'Landmine'
+  | "Captain's chair"
 
 export interface DemoLink {
   label: string
@@ -84,6 +93,15 @@ export const equipmentOptions: EquipmentTag[] = [
   'Treadmill',
   'Skipping rope',
   'VR Quest 2',
+  'Resistance bands',
+  'Cable machine',
+  'Smith machine',
+  'Weight machine',
+  'Plyometric box',
+  'Medicine ball',
+  'Heavy bag',
+  'Landmine',
+  "Captain's chair",
 ]
 
 export const difficultyOptions: Difficulty[] = [
@@ -120,6 +138,1450 @@ function ytMistakes(query: string): DemoLink {
 function demos(query: string): DemoLink[] {
   return [ytForm(query), ytMistakes(query)]
 }
+
+type V21ProgressionMode = 'load' | 'skill' | 'control'
+
+interface V21ExerciseSeed {
+  id: string
+  name: string
+  category: ExerciseCategory
+  primaryMuscles: string[]
+  secondaryMuscles?: string[]
+  equipment: EquipmentTag[]
+  difficulty?: Difficulty
+  formCue: string
+  setup: string
+  execution: string
+  safety?: string
+  relatedWorkoutDays: number[]
+  progressionMode?: V21ProgressionMode
+  progression?: string[]
+  regression?: string[]
+  postureNotes?: string
+  postureFocus?: boolean
+}
+
+const categoryPlaceholder: Record<ExerciseCategory, string> = {
+  Chest: '/exercise-placeholders/chest.svg',
+  Back: '/exercise-placeholders/back.svg',
+  Shoulders: '/exercise-placeholders/shoulders.svg',
+  Arms: '/exercise-placeholders/arms.svg',
+  Legs: '/exercise-placeholders/legs.svg',
+  Abs: '/exercise-placeholders/abs.svg',
+  Posture: '/exercise-placeholders/posture.svg',
+  Conditioning: '/exercise-placeholders/conditioning.svg',
+}
+
+/**
+ * V2.1 adds many equipment-specific variants. Keeping the shared guide copy in
+ * one factory makes each variant a complete LibraryExercise without pretending
+ * that machine, cable, Smith, band, and free-weight loads are interchangeable.
+ */
+function createV21Exercise(seed: V21ExerciseSeed): LibraryExercise {
+  const progressionMode = seed.progressionMode ?? 'load'
+  const progression =
+    seed.progression ??
+    (progressionMode === 'load'
+      ? [
+          `Learn ${seed.name} with a clearly manageable load`,
+          'Add clean repetitions within the programmed range',
+          'Reach the top of the range at the required RIR',
+          'Increase by the smallest practical load increment',
+        ]
+      : progressionMode === 'skill'
+        ? [
+            `Practice ${seed.name} slowly with consistent technique`,
+            'Build repeatable rounds or repetitions',
+            'Increase duration or complexity only while quality stays high',
+          ]
+        : [
+            `Learn ${seed.name} in a small comfortable range`,
+            'Build smooth, repeatable control',
+            'Add range or light resistance without creating fatigue',
+          ])
+
+  return {
+    id: seed.id,
+    name: seed.name,
+    category: seed.category,
+    primaryMuscles: seed.primaryMuscles,
+    secondaryMuscles: seed.secondaryMuscles ?? [],
+    equipment: seed.equipment,
+    difficulty: seed.difficulty ?? 'Intermediate',
+    formCue: seed.formCue,
+    instructions: [
+      seed.setup,
+      seed.execution,
+      'Use a smooth, controlled return to the start position.',
+      seed.safety ?? 'Stop the set before technique changes or pain appears.',
+    ],
+    formTips: [
+      seed.formCue,
+      'Use the full range that you can control comfortably',
+      'Keep each repetition consistent',
+      'Leave the programmed repetitions in reserve',
+    ],
+    commonMistakes: [
+      'Using momentum instead of the target muscles',
+      'Changing the range from repetition to repetition',
+      'Using more load than can be controlled',
+      'Continuing through sharp or unusual pain',
+    ],
+    progression,
+    regression: seed.regression ?? [
+      `Use a lighter ${seed.name} variation`,
+      'Reduce the range to a comfortable controlled range',
+      'Choose the simpler equipment alternative from the same workout slot',
+    ],
+    postureNotes:
+      seed.postureNotes ??
+      'Keep the neck comfortable, ribs controlled, and spine neutral. Do not gain range by jutting the chin or over-arching the lower back.',
+    demoLinks: demos(seed.name),
+    relatedWorkoutDays: seed.relatedWorkoutDays,
+    imageUrl: categoryPlaceholder[seed.category],
+    imageAlt: `${seed.name} exercise category placeholder`,
+    videoType: 'none',
+    postureFocus: seed.postureFocus,
+  }
+}
+
+const v21ExerciseLibrary: LibraryExercise[] = [
+  // ----------------------------------------------------------------- Back
+  createV21Exercise({
+    id: 'assisted-pull-up',
+    name: 'Assisted Pull-Up',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Forearms'],
+    equipment: ['Weight machine', 'Pull-up bar'],
+    difficulty: 'Beginner',
+    formCue:
+      'Use only enough assistance for controlled full-range repetitions.',
+    setup:
+      'Set the assistance and take a secure overhand grip on the pull-up handles.',
+    execution:
+      'Drive the elbows down, lift without swinging, and lower to a controlled hang.',
+    safety: 'Keep the neck long; do not reach the chin toward the handles.',
+    relatedWorkoutDays: [1],
+  }),
+  createV21Exercise({
+    id: 'neutral-grip-lat-pulldown',
+    name: 'Neutral-Grip Lat Pulldown',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Forearms'],
+    equipment: ['Cable machine'],
+    formCue:
+      'Pull the neutral handles toward the upper chest without leaning back.',
+    setup:
+      'Secure the thighs under the pad and take a palms-facing neutral grip.',
+    execution:
+      'Set the shoulders down and pull the elbows toward the ribs, then reach up under control.',
+    safety:
+      'Finish with the arms and shoulder blades rather than extending the neck.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'neutral-grip-pull-up',
+    name: 'Neutral-Grip Pull-Up',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Forearms', 'Core'],
+    equipment: ['Pull-up bar', 'Bodyweight'],
+    formCue:
+      'Keep the palms facing and drive the elbows down without swinging.',
+    setup:
+      'Take a secure palms-facing grip and begin from a quiet controlled hang.',
+    execution:
+      'Pull the chest toward the handles and lower through a comfortable full range.',
+    safety: 'Keep the ribs controlled and do not finish by craning the neck.',
+    relatedWorkoutDays: [6],
+  }),
+  createV21Exercise({
+    id: 'chest-supported-machine-row',
+    name: 'Chest-Supported Machine Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the chest on the pad while the shoulder blades move naturally.',
+    setup:
+      'Adjust the seat and chest pad so the handles begin just beyond arm length.',
+    execution:
+      'Row the elbows toward the torso without lifting the chest from the pad.',
+    safety: 'Do not jerk the load or poke the chin forward to finish.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'chest-supported-t-bar-row',
+    name: 'Chest-Supported T-Bar Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps'],
+    equipment: ['Weight machine'],
+    formCue: 'Stay supported and row the handles without bouncing off the pad.',
+    setup: 'Lie securely on the chest pad and take the selected T-bar handles.',
+    execution:
+      'Pull toward the lower ribs, pause briefly, and lower until the shoulder blades spread.',
+    safety:
+      'Keep the neck relaxed and stop before the shoulders roll forward uncontrollably.',
+    relatedWorkoutDays: [1],
+  }),
+  createV21Exercise({
+    id: 'cable-row',
+    name: 'Seated Cable Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps'],
+    equipment: ['Cable machine'],
+    formCue: 'Hold a stable torso and row without rocking backward.',
+    setup:
+      'Sit tall with the feet braced and take the selected cable attachment.',
+    execution:
+      'Row toward the lower ribs, allow a controlled reach, and keep the torso angle steady.',
+    safety: 'Do not create range by rounding or overextending the spine.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'machine-row',
+    name: 'Seated Machine Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the torso supported and pull the elbows back without shrugging.',
+    setup:
+      'Adjust the seat and handles so the shoulders can reach forward comfortably.',
+    execution:
+      'Row through the elbows, pause without leaning, and return under control.',
+    safety:
+      'Keep the head over the ribs rather than reaching the chin toward the pad.',
+    relatedWorkoutDays: [6],
+  }),
+  createV21Exercise({
+    id: 'one-arm-cable-row',
+    name: 'One-Arm Cable Row',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Core'],
+    equipment: ['Cable machine'],
+    formCue: 'Brace the torso and row one side without rotating.',
+    setup:
+      'Take one cable handle with the shoulders and hips square to the machine.',
+    execution:
+      'Pull the elbow toward the hip while resisting trunk rotation, then reach forward slowly.',
+    safety: 'Reduce the load if the torso twists or the shoulder shrugs.',
+    relatedWorkoutDays: [1],
+  }),
+  createV21Exercise({
+    id: 'one-arm-machine-row',
+    name: 'One-Arm Machine Row',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Core'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Stay square against the support and row one arm without twisting.',
+    setup:
+      'Adjust the seat or chest pad and take one handle with the free hand braced.',
+    execution:
+      'Drive the working elbow back and return until the shoulder blade reaches naturally.',
+    safety:
+      'Keep the chest supported and avoid rotating to move a heavier load.',
+    relatedWorkoutDays: [1],
+  }),
+
+  // ------------------------------------------------------------ Shoulders
+  createV21Exercise({
+    id: 'incline-bench-rear-delt-raise',
+    name: 'Incline-Bench Rear-Delt Dumbbell Raise',
+    category: 'Shoulders',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'Traps'],
+    equipment: ['Dumbbells', 'Bench'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the chest supported and sweep light dumbbells out without shrugging.',
+    setup:
+      'Lie face down on a low incline bench with light dumbbells hanging freely.',
+    execution:
+      'Raise the arms out to the sides with a fixed elbow bend, then lower slowly.',
+    safety: 'Use a load that lets the neck and upper traps stay relaxed.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'reverse-pec-deck',
+    name: 'Reverse Pec Deck',
+    category: 'Shoulders',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'Traps'],
+    equipment: ['Weight machine'],
+    formCue: 'Keep the chest supported and open the arms without shrugging.',
+    setup:
+      'Adjust the seat so the handles align near shoulder height and brace the chest on the pad.',
+    execution:
+      'Sweep the arms back through a comfortable arc and return without letting the stack slam.',
+    safety: 'Avoid forcing the handles behind a comfortable shoulder range.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-rear-delt-fly',
+    name: 'Cable Rear-Delt Fly',
+    category: 'Shoulders',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'Traps'],
+    equipment: ['Cable machine'],
+    formCue:
+      'Open the arms with the rear delts while the ribs and torso stay quiet.',
+    setup:
+      'Set the cables near shoulder height and take the opposite handle in each hand.',
+    execution:
+      'Sweep the arms outward with soft elbows and return until the rear delts lengthen.',
+    safety:
+      'Keep the shoulders away from the ears and avoid a forceful end range.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-lateral-raise',
+    name: 'Cable Lateral Raise',
+    category: 'Shoulders',
+    primaryMuscles: ['Side Shoulders'],
+    secondaryMuscles: ['Traps'],
+    equipment: ['Cable machine'],
+    formCue: 'Lead with the elbow and keep cable tension without leaning back.',
+    setup:
+      'Set a low cable, stand side-on, and hold the handle with the outside hand.',
+    execution:
+      'Raise the arm toward shoulder height, then lower slowly across the body.',
+    safety: 'Reduce the load if the torso sways or the shoulder shrugs.',
+    relatedWorkoutDays: [1, 4, 6],
+  }),
+  createV21Exercise({
+    id: 'lateral-raise-machine',
+    name: 'Lateral Raise Machine',
+    category: 'Shoulders',
+    primaryMuscles: ['Side Shoulders'],
+    secondaryMuscles: ['Traps'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the torso on the pad and lift through the elbows without shrugging.',
+    setup: 'Adjust the seat so the machine pivot aligns with the shoulders.',
+    execution:
+      'Drive the pads outward to a controlled height and lower without dropping the stack.',
+    safety: 'Use a pain-free arc and keep the neck relaxed.',
+    relatedWorkoutDays: [1, 4, 6],
+  }),
+  createV21Exercise({
+    id: 'supported-seated-dumbbell-press',
+    name: 'Supported Seated Dumbbell Press',
+    category: 'Shoulders',
+    primaryMuscles: ['Front Shoulders', 'Side Shoulders'],
+    secondaryMuscles: ['Triceps', 'Upper Chest'],
+    equipment: ['Dumbbells', 'Bench'],
+    formCue: 'Stay against the backrest and press without flaring the ribs.',
+    setup:
+      'Set the bench upright, sit with the upper back supported, and bring the dumbbells to shoulder height.',
+    execution:
+      'Press through a symptom-free overhead arc and lower with the wrists stacked over the elbows.',
+    safety:
+      'Do not gain range by jutting the chin or arching away from the backrest.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'high-incline-one-arm-dumbbell-press',
+    name: 'High-Incline One-Arm Dumbbell Press',
+    category: 'Shoulders',
+    primaryMuscles: ['Front Shoulders', 'Upper Chest'],
+    secondaryMuscles: ['Triceps', 'Core'],
+    equipment: ['Dumbbells', 'Bench'],
+    formCue:
+      'Stay square on the high incline and resist rotating as one arm presses.',
+    setup:
+      'Set a high incline, brace both feet, and hold one dumbbell at shoulder height.',
+    execution:
+      'Press upward while keeping both shoulders against the bench, then lower under control.',
+    safety:
+      'Use only symptom-free range and keep the ribs stacked over the pelvis.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'landmine-press',
+    name: 'Landmine Press',
+    category: 'Shoulders',
+    primaryMuscles: ['Front Shoulders', 'Upper Chest'],
+    secondaryMuscles: ['Triceps', 'Serratus', 'Core'],
+    equipment: ['Landmine', 'Barbell'],
+    formCue: 'Press up and forward while keeping the ribs and pelvis stacked.',
+    setup:
+      'Secure the bar in a landmine, face the sleeve, and hold it at shoulder height.',
+    execution:
+      'Press along the bar path while allowing the shoulder blade to rotate naturally.',
+    safety: 'Do not lean back or twist to finish the press.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'machine-shoulder-press',
+    name: 'Machine Shoulder Press',
+    category: 'Shoulders',
+    primaryMuscles: ['Front Shoulders', 'Side Shoulders'],
+    secondaryMuscles: ['Triceps'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the back supported and press through a comfortable shoulder path.',
+    setup:
+      'Adjust the seat so the handles begin around shoulder height with the back supported.',
+    execution:
+      'Press without locking forcefully and lower until the shoulders remain comfortable.',
+    safety: 'Keep the ribs down and avoid forcing a deep bottom position.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'push-up-plus',
+    name: 'Push-Up Plus',
+    category: 'Posture',
+    primaryMuscles: ['Serratus'],
+    secondaryMuscles: ['Chest', 'Triceps', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Finish by gently spreading the shoulder blades without rounding the whole spine.',
+    setup:
+      'Take a stable push-up position with the ribs controlled and elbows comfortably angled.',
+    execution:
+      'Complete the push-up, then push the floor away slightly farther as the shoulder blades wrap forward.',
+    safety:
+      'Keep this light, stop well before failure, and avoid jutting the head forward.',
+    relatedWorkoutDays: [4],
+    progressionMode: 'control',
+    postureFocus: true,
+  }),
+  createV21Exercise({
+    id: 'band-face-pull',
+    name: 'Light Band Face Pull',
+    category: 'Posture',
+    primaryMuscles: ['Upper Back', 'Rear Shoulders'],
+    secondaryMuscles: ['External Rotators'],
+    equipment: ['Resistance bands'],
+    difficulty: 'Beginner',
+    formCue:
+      'Pull lightly toward the face while keeping the neck long and ribs quiet.',
+    setup:
+      'Anchor a light band around face height and step back until it is gently tensioned.',
+    execution:
+      'Pull toward the eyebrows with the elbows open, then return until the shoulder blades reach.',
+    safety:
+      'Use light resistance; this recovery drill should not create fatigue.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    postureFocus: true,
+  }),
+  createV21Exercise({
+    id: 'band-pull-apart',
+    name: 'Band Pull-Apart',
+    category: 'Posture',
+    primaryMuscles: ['Upper Back', 'Rear Shoulders'],
+    secondaryMuscles: ['External Rotators'],
+    equipment: ['Resistance bands'],
+    difficulty: 'Beginner',
+    formCue: 'Pull the light band apart without flaring the ribs or shrugging.',
+    setup:
+      'Hold a light band at chest height with soft elbows and relaxed shoulders.',
+    execution:
+      'Separate the hands until the band nears the chest, then return slowly.',
+    safety:
+      'Shorten the range if the shoulders roll forward or the neck tightens.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    postureFocus: true,
+  }),
+  createV21Exercise({
+    id: 'wall-slide',
+    name: 'Wall Slide',
+    category: 'Posture',
+    primaryMuscles: ['Serratus', 'Lower Traps'],
+    secondaryMuscles: ['Shoulders', 'Upper Back'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Reach upward smoothly while the ribs stay stacked and the neck stays relaxed.',
+    setup:
+      'Stand facing a wall with the forearms supported and the feet in a comfortable stance.',
+    execution:
+      'Slide the forearms upward while reaching gently into the wall, then return slowly.',
+    safety:
+      'Use only the range that does not cause pinching or lower-back arching.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    postureFocus: true,
+  }),
+
+  // ----------------------------------------------------------------- Arms
+  createV21Exercise({
+    id: 'bayesian-cable-curl',
+    name: 'Bayesian Cable Curl',
+    category: 'Arms',
+    primaryMuscles: ['Biceps'],
+    secondaryMuscles: ['Forearms'],
+    equipment: ['Cable machine'],
+    formCue:
+      'Keep the upper arm behind the torso while curling without shoulder movement.',
+    setup:
+      'Set a low cable, face away, and step forward with the working arm extended behind the torso.',
+    execution:
+      'Curl the handle while keeping the upper arm quiet, then lower to a comfortable long-muscle position.',
+    safety:
+      'Do not force the shoulder farther behind the body than feels comfortable.',
+    relatedWorkoutDays: [1],
+  }),
+  createV21Exercise({
+    id: 'preacher-curl',
+    name: 'Preacher Curl',
+    category: 'Arms',
+    primaryMuscles: ['Biceps'],
+    secondaryMuscles: ['Forearms'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the upper arms on the pad and control the lengthened bottom position.',
+    setup:
+      'Adjust the preacher seat so the armpits rest comfortably near the top of the pad.',
+    execution:
+      'Curl without lifting the upper arms, then lower slowly before the elbows lock forcefully.',
+    safety: 'Avoid bouncing or relaxing suddenly at the bottom of the curl.',
+    relatedWorkoutDays: [1, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-curl',
+    name: 'Cable Curl',
+    category: 'Arms',
+    primaryMuscles: ['Biceps'],
+    secondaryMuscles: ['Forearms'],
+    equipment: ['Cable machine'],
+    formCue: 'Keep the elbows still and curl without rocking the torso.',
+    setup:
+      'Attach the selected handle to a low cable and stand tall with the arms extended.',
+    execution:
+      'Curl the handle toward the shoulders and lower until the elbows straighten under control.',
+    safety:
+      'Reduce the load if the shoulders roll forward or the torso leans back.',
+    relatedWorkoutDays: [6],
+  }),
+  createV21Exercise({
+    id: 'rope-hammer-curl',
+    name: 'Rope Hammer Curl',
+    category: 'Arms',
+    primaryMuscles: ['Biceps', 'Brachialis'],
+    secondaryMuscles: ['Forearms'],
+    equipment: ['Cable machine'],
+    formCue:
+      'Keep a neutral grip and curl the rope without moving the elbows forward.',
+    setup:
+      'Attach a rope to a low cable and hold it with the palms facing each other.',
+    execution:
+      'Curl the rope ends toward the shoulders, then extend the elbows slowly.',
+    safety: 'Keep the wrists neutral and do not lean back to finish.',
+    relatedWorkoutDays: [1],
+  }),
+  createV21Exercise({
+    id: 'resistance-band-overhead-triceps-extension',
+    name: 'Resistance-Band Overhead Triceps Extension',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: ['Core'],
+    equipment: ['Resistance bands'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the upper arms steady and ribs down as the elbows straighten.',
+    setup:
+      'Secure the band low behind the body and bring the hands overhead with the elbows bent.',
+    execution:
+      'Straighten the elbows without moving the upper arms, then return slowly.',
+    safety:
+      'Use a band and range that do not irritate the elbows or shoulders.',
+    relatedWorkoutDays: [4, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-overhead-triceps-extension',
+    name: 'Cable Overhead Triceps Extension',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: ['Core'],
+    equipment: ['Cable machine'],
+    formCue:
+      'Hold the upper arms still and extend without arching the lower back.',
+    setup:
+      'Face away from a cable with a rope held behind the head and take a stable staggered stance.',
+    execution:
+      'Straighten the elbows along the cable path, then return to a comfortable stretch.',
+    safety: 'Keep the ribs controlled and use symptom-free shoulder range.',
+    relatedWorkoutDays: [4, 6],
+  }),
+  createV21Exercise({
+    id: 'resistance-band-triceps-pressdown',
+    name: 'Resistance-Band Triceps Pressdown',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: [],
+    equipment: ['Resistance bands'],
+    difficulty: 'Beginner',
+    formCue: 'Pin the elbows near the ribs and press down without rocking.',
+    setup:
+      'Anchor the band securely overhead and hold it with the elbows bent beside the torso.',
+    execution:
+      'Straighten the elbows until the hands pass the hips, then return under control.',
+    safety:
+      'Check the anchor before every set and keep the band away from the face.',
+    relatedWorkoutDays: [4, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-triceps-pressdown',
+    name: 'Cable Triceps Pressdown',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: [],
+    equipment: ['Cable machine'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the elbows fixed beside the torso and press without shoulder movement.',
+    setup:
+      'Attach a bar or rope to a high cable and stand with the elbows close to the ribs.',
+    execution:
+      'Extend the elbows fully under control, then return without letting them drift forward.',
+    safety:
+      'Use a load that does not require leaning body weight onto the handle.',
+    relatedWorkoutDays: [4, 6],
+  }),
+
+  // ----------------------------------------------------------------- Legs
+  createV21Exercise({
+    id: 'countermovement-jump',
+    name: 'Countermovement Jump',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Calves', 'Hamstrings'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Jump crisply and land quietly in balance; every rep is a fresh effort.',
+    setup:
+      'Stand in an athletic stance with clear space and knees tracking over the toes.',
+    execution:
+      'Dip quickly, jump vertically, and absorb the landing before fully resetting.',
+    safety:
+      'Use only when the knees and ankles feel good; stop as soon as jump quality drops.',
+    relatedWorkoutDays: [2],
+    progressionMode: 'skill',
+    progression: [
+      'Practice low submaximal jumps and quiet landings',
+      'Build consistent sets of three crisp repetitions',
+      'Increase jump intent without adding fatigue',
+    ],
+  }),
+  createV21Exercise({
+    id: 'box-jump',
+    name: 'Box Jump',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Calves', 'Hamstrings'],
+    equipment: ['Plyometric box'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Use a conservative box, land fully on top, and step down between reps.',
+    setup:
+      'Choose a stable non-slip box that does not require an extreme knee tuck.',
+    execution:
+      'Jump onto the center of the box, stand under control, and step down carefully.',
+    safety:
+      'Never chase box height when tired, and do not jump down from the box.',
+    relatedWorkoutDays: [2],
+    progressionMode: 'skill',
+    progression: [
+      'Practice low-box landings',
+      'Build consistent sets of three clean jumps',
+      'Use a slightly higher box only if landing mechanics stay identical',
+    ],
+  }),
+  createV21Exercise({
+    id: 'goblet-squat',
+    name: 'Heavy Goblet Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Adductors', 'Core'],
+    equipment: ['Dumbbells'],
+    formCue:
+      'Hold the dumbbell close, brace, and keep the knees tracking with the toes.',
+    setup:
+      'Cup one dumbbell vertically at the chest and set a stable squat stance.',
+    execution:
+      'Squat between the hips to a controlled depth and drive through the whole foot.',
+    safety:
+      'Stop before the pelvis or lower back loses a comfortable neutral position.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'double-dumbbell-squat',
+    name: 'Double-Dumbbell Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Adductors', 'Core'],
+    equipment: ['Dumbbells'],
+    formCue: 'Keep both dumbbells stable and descend with even foot pressure.',
+    setup:
+      'Hold two dumbbells securely at the sides or shoulders and set a balanced stance.',
+    execution:
+      'Descend under control with the knees tracking, then stand without shifting side to side.',
+    safety:
+      'Choose the loading position that keeps the wrists, shoulders, and back comfortable.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'hack-squat',
+    name: 'Hack Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Glutes', 'Adductors'],
+    equipment: ['Weight machine'],
+    formCue: 'Keep the back on the pad and track the knees over the toes.',
+    setup:
+      'Set the feet securely on the platform and place the shoulders beneath the pads.',
+    execution:
+      'Lower to a controlled depth and drive the platform away without locking the knees forcefully.',
+    safety:
+      'Do not descend farther than the pelvis and lower back can remain supported.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'pendulum-squat',
+    name: 'Pendulum Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Glutes', 'Adductors'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Stay against the pad and follow the machine arc with controlled knee tracking.',
+    setup:
+      'Adjust the machine and place the feet where the full foot stays planted through the arc.',
+    execution:
+      'Descend smoothly, pause before position changes, and drive back without bouncing.',
+    safety:
+      'Use the safety stops and a depth that remains comfortable for knees and hips.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'leg-press',
+    name: 'Leg Press',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Adductors', 'Hamstrings'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the pelvis on the pad and lower only as far as the back stays controlled.',
+    setup:
+      'Set both feet securely on the platform and release the safeties only after bracing.',
+    execution:
+      'Lower the platform smoothly and press through the whole foot without hard knee lockout.',
+    safety:
+      'Stop the descent before the pelvis tucks or the lower back lifts from the pad.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'smith-machine-squat',
+    name: 'Smith Machine Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Adductors', 'Core'],
+    equipment: ['Smith machine'],
+    formCue:
+      'Choose a foot position that fits the fixed bar path and keep pressure even.',
+    setup:
+      'Set the safeties, place the bar comfortably across the upper back, and position the feet.',
+    execution:
+      'Squat along the fixed path to a controlled depth and stand without snapping the knees.',
+    safety: 'Test the rack hooks and safeties before loading working weight.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'smith-machine-bulgarian-split-squat',
+    name: 'Smith Machine Bulgarian Split Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Adductors'],
+    equipment: ['Smith machine', 'Bench'],
+    formCue:
+      'Stay balanced under the bar and drive through the entire front foot.',
+    setup:
+      'Set the safeties, place the rear foot on a bench, and center the front stance beneath the bar.',
+    execution:
+      'Lower vertically with the front knee tracking and rise without pushing off the rear leg.',
+    safety: 'Confirm the hooks can be engaged safely from the split stance.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'leg-extension',
+    name: 'Leg Extension',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: [],
+    equipment: ['Weight machine'],
+    difficulty: 'Beginner',
+    formCue: 'Keep the hips on the seat and extend the knees without swinging.',
+    setup:
+      'Align the machine pivot with the knee and place the shin pad above the ankles.',
+    execution:
+      'Extend to a comfortable top position, squeeze briefly, and lower slowly.',
+    safety: 'Use a pain-free range and avoid kicking the pad with momentum.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'resistance-band-leg-curl',
+    name: 'Resistance-Band Leg Curl',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Calves'],
+    equipment: ['Resistance bands', 'Mat'],
+    difficulty: 'Beginner',
+    formCue: 'Keep the hips quiet and curl the heels without arching the back.',
+    setup:
+      'Anchor the band securely and attach it around the ankles in a stable lying position.',
+    execution:
+      'Bend the knees against the band, pause, and extend slowly without losing tension.',
+    safety: 'Check the band and anchor for damage before every set.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'seated-leg-curl',
+    name: 'Seated Leg Curl',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Calves'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the thighs secured and curl through a controlled full range.',
+    setup:
+      'Align the knees with the machine pivot and secure the thigh pad comfortably.',
+    execution:
+      'Curl the heels down and back, pause, and return until the hamstrings lengthen.',
+    safety:
+      'Do not let the weight pull the knees into a forceful locked position.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'lying-leg-curl',
+    name: 'Lying Leg Curl',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Calves'],
+    equipment: ['Weight machine'],
+    formCue: 'Keep the hips on the pad and curl without lifting the pelvis.',
+    setup:
+      'Lie face down with the knees aligned to the pivot and the roller above the heels.',
+    execution:
+      'Curl toward the glutes, pause before the hips lift, and lower slowly.',
+    safety:
+      'Reduce the load if the lower back arches or the pelvis leaves the pad.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'weighted-single-leg-calf-raise',
+    name: 'Weighted Single-Leg Calf Raise',
+    category: 'Legs',
+    primaryMuscles: ['Calves'],
+    secondaryMuscles: ['Foot Stabilizers'],
+    equipment: ['Dumbbells'],
+    formCue:
+      'Use support for balance and move one ankle through a full controlled range.',
+    setup:
+      'Stand on one foot near a stable support and hold a dumbbell in the other hand.',
+    execution:
+      'Rise onto the ball of the foot, pause, and lower into a comfortable calf stretch.',
+    safety:
+      'Keep the ankle aligned and stop if the Achilles tendon or foot feels painful.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'standing-calf-machine-raise',
+    name: 'Standing Calf Machine Raise',
+    category: 'Legs',
+    primaryMuscles: ['Calves'],
+    secondaryMuscles: ['Foot Stabilizers'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the knees softly straight and pause at both ends of the ankle range.',
+    setup:
+      'Set the shoulder pads comfortably and place the balls of the feet securely on the platform.',
+    execution:
+      'Rise as high as controlled, pause, and lower the heels into a comfortable stretch.',
+    safety:
+      'Keep the machine safeties engaged and avoid bouncing out of the bottom.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'seated-calf-machine-raise',
+    name: 'Seated Calf Machine Raise',
+    category: 'Legs',
+    primaryMuscles: ['Calves', 'Soleus'],
+    secondaryMuscles: [],
+    equipment: ['Weight machine'],
+    formCue: 'Keep the knees under the pad and move only through the ankles.',
+    setup:
+      'Sit with the knee pad secured above the knees and the balls of the feet on the platform.',
+    execution:
+      'Raise the heels, pause, and lower slowly into a comfortable stretch.',
+    safety:
+      'Release and engage the machine stop only while the heels are supported.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'leg-press-calf-raise',
+    name: 'Leg-Press Calf Raise',
+    category: 'Legs',
+    primaryMuscles: ['Calves'],
+    secondaryMuscles: ['Foot Stabilizers'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the knees stable and move the platform only through the ankles.',
+    setup:
+      'On a secured leg press, place the balls of the feet on the lower platform with the knees softly bent.',
+    execution:
+      'Press through the toes, pause, and lower the heels without letting the feet slip.',
+    safety:
+      'Use safeties and never place the feet so low that they can slide off the platform.',
+    relatedWorkoutDays: [2, 5],
+  }),
+  createV21Exercise({
+    id: 'dumbbell-romanian-deadlift',
+    name: 'Dumbbell Romanian Deadlift',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings', 'Glutes'],
+    secondaryMuscles: ['Lower Back', 'Core', 'Forearms'],
+    equipment: ['Dumbbells'],
+    formCue: 'Push the hips back and keep the dumbbells close to the legs.',
+    setup:
+      'Stand with two dumbbells at the thighs, feet hip-width, and knees softly bent.',
+    execution:
+      'Hinge until the hamstrings limit the range, then stand by driving the hips forward.',
+    safety:
+      'Stop before lumbar position changes and keep the neck neutral throughout.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'smith-machine-romanian-deadlift',
+    name: 'Smith Machine Romanian Deadlift',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings', 'Glutes'],
+    secondaryMuscles: ['Lower Back', 'Core', 'Forearms'],
+    equipment: ['Smith machine'],
+    formCue:
+      'Hinge along the fixed bar path while keeping the bar close and spine neutral.',
+    setup:
+      'Set the Smith safeties and begin with the bar at the thighs in a stable hip-width stance.',
+    execution:
+      'Push the hips back along the bar path, then stand once the hamstrings reach their controlled limit.',
+    safety: 'Stop before the lower back rounds or the neck changes position.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'front-foot-elevated-dumbbell-reverse-lunge',
+    name: 'Front-Foot-Elevated Dumbbell Reverse Lunge',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Adductors', 'Core'],
+    equipment: ['Dumbbells'],
+    formCue:
+      'Keep the entire front foot on the platform and step back under control.',
+    setup:
+      'Stand on a stable low platform with dumbbells at the sides and clear space behind.',
+    execution:
+      'Step back, lower through the front hip and knee, and drive through the elevated front foot.',
+    safety:
+      'Use a low non-slip elevation and stop before balance or pelvic control changes.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'front-foot-elevated-smith-reverse-lunge',
+    name: 'Front-Foot-Elevated Smith Reverse Lunge',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Adductors'],
+    equipment: ['Smith machine'],
+    formCue:
+      'Stay centered under the bar and drive through the elevated front foot.',
+    setup:
+      'Set the safeties and a stable low front platform, then center beneath the Smith bar.',
+    execution:
+      'Step one foot back, descend on the front leg, and return without pushing from the rear foot.',
+    safety:
+      'Confirm the hooks and safety height can be reached from the lunge stance.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'dumbbell-hip-thrust',
+    name: 'Dumbbell Hip Thrust',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core'],
+    equipment: ['Dumbbells', 'Bench'],
+    formCue:
+      'Secure the dumbbell at the hips and finish with the glutes, not the lower back.',
+    setup:
+      'Brace the upper back on a bench and hold a padded dumbbell securely across the hips.',
+    execution:
+      'Drive through the feet to a level hip position and lower without losing rib control.',
+    safety:
+      'Do not hyperextend the lower back or let the dumbbell roll toward the abdomen.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'smith-machine-hip-thrust',
+    name: 'Smith Machine Hip Thrust',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core'],
+    equipment: ['Smith machine', 'Bench'],
+    formCue:
+      'Keep the bar padded and finish with level hips without over-arching.',
+    setup:
+      'Position a stable bench, pad the Smith bar over the hips, and set the machine safeties.',
+    execution:
+      'Drive the bar up with the glutes, pause at level hips, and lower under control.',
+    safety:
+      'Check bench stability and do not finish by extending the neck or lower back.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'hip-thrust-machine',
+    name: 'Hip-Thrust Machine',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core'],
+    equipment: ['Weight machine'],
+    formCue: 'Keep the ribs down and drive to level hips using the glutes.',
+    setup:
+      'Adjust the machine belt or pad securely across the hips and plant both feet.',
+    execution:
+      'Extend the hips to a controlled level position, pause, and lower smoothly.',
+    safety:
+      'Do not chase range by arching the lower back or throwing the head back.',
+    relatedWorkoutDays: [5],
+  }),
+  createV21Exercise({
+    id: 'suitcase-hold',
+    name: 'Suitcase Hold',
+    category: 'Abs',
+    primaryMuscles: ['Obliques', 'Core'],
+    secondaryMuscles: ['Forearms', 'Shoulders'],
+    equipment: ['Dumbbells'],
+    formCue: 'Stand tall and resist leaning toward or away from the load.',
+    setup:
+      'Stand with one dumbbell held at the side and both feet planted evenly.',
+    execution:
+      'Hold the stacked position while breathing normally, then switch sides.',
+    safety: 'End the hold when posture shifts or grip becomes unreliable.',
+    relatedWorkoutDays: [5],
+    progressionMode: 'control',
+    progression: [
+      'Use a short light suitcase hold',
+      'Build toward the programmed hold duration',
+      'Increase load only while the torso stays level',
+    ],
+  }),
+  createV21Exercise({
+    id: 'captains-chair-knee-raise',
+    name: "Captain's Chair Knee Raise",
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Obliques'],
+    equipment: ["Captain's chair"],
+    difficulty: 'Intermediate',
+    formCue: 'Curl the pelvis toward the ribs and lower without swinging.',
+    setup:
+      'Support the forearms on the chair pads, brace the back, and let the legs hang quietly.',
+    execution:
+      'Raise the knees by curling the pelvis, pause, and lower without losing control.',
+    safety: 'Stop before shoulder support fails or the legs begin to swing.',
+    relatedWorkoutDays: [5],
+  }),
+
+  // ---------------------------------------------------------------- Chest
+  createV21Exercise({
+    id: 'high-incline-dumbbell-press',
+    name: 'High-Incline Dumbbell Press',
+    category: 'Chest',
+    primaryMuscles: ['Upper Chest', 'Front Shoulders'],
+    secondaryMuscles: ['Triceps'],
+    equipment: ['Dumbbells', 'Bench'],
+    formCue:
+      'Stay supported on the high incline and press without flaring the ribs.',
+    setup:
+      'Set a high incline, plant the feet, and bring both dumbbells to a stable shoulder position.',
+    execution:
+      'Press upward along a comfortable arc and lower with the wrists stacked over the elbows.',
+    safety:
+      'Do not gain range by jutting the chin or excessively arching the lower back.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'incline-smith-machine-press',
+    name: 'Incline Smith Machine Press',
+    category: 'Chest',
+    primaryMuscles: ['Upper Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    equipment: ['Smith machine', 'Bench'],
+    formCue:
+      'Set the bench to match the fixed bar path and lower with control.',
+    setup:
+      'Center an incline bench beneath the Smith bar and set the safeties above the chest.',
+    execution:
+      'Lower toward the upper chest through comfortable range and press without lifting the hips.',
+    safety: 'Test the hooks and safety stops before the working set.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'incline-chest-press-machine',
+    name: 'Incline Chest Press Machine',
+    category: 'Chest',
+    primaryMuscles: ['Upper Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the torso on the pad and press through a comfortable incline path.',
+    setup:
+      'Adjust the seat so the handles begin around the upper chest with the back fully supported.',
+    execution:
+      'Press without forceful lockout and return until the shoulders remain comfortable.',
+    safety: 'Avoid lifting the chest or head from the pad to gain range.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'dumbbell-bench-press',
+    name: 'Dumbbell Bench Press',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    equipment: ['Dumbbells', 'Bench'],
+    formCue:
+      'Keep the shoulder blades controlled and press the dumbbells evenly.',
+    setup:
+      'Lie on a flat bench with the feet planted and dumbbells stable beside the chest.',
+    execution:
+      'Press over the chest and lower until the shoulders remain comfortable and controlled.',
+    safety: 'Do not use lower-back arch or chin reach to create extra range.',
+    relatedWorkoutDays: [4, 6],
+  }),
+  createV21Exercise({
+    id: 'chest-press-machine',
+    name: 'Chest Press Machine',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    equipment: ['Weight machine'],
+    formCue: 'Stay against the pad and press without shrugging or bouncing.',
+    setup:
+      'Adjust the seat so the handles align around mid-chest and the feet are stable.',
+    execution:
+      'Press along the machine path and return to a comfortable chest stretch.',
+    safety:
+      'Avoid forcing a deep start position that rolls the shoulders forward.',
+    relatedWorkoutDays: [4, 6],
+  }),
+  createV21Exercise({
+    id: 'cable-chest-fly',
+    name: 'Cable Fly',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders'],
+    equipment: ['Cable machine'],
+    formCue: 'Bring the arms together in an arc while the torso stays still.',
+    setup:
+      'Set both cables to the selected height and take a stable staggered stance between them.',
+    execution:
+      'Sweep the hands together with soft elbows, then open to a comfortable chest stretch.',
+    safety:
+      'Do not let the cables pull the shoulders into an uncontrolled end range.',
+    relatedWorkoutDays: [4],
+  }),
+  createV21Exercise({
+    id: 'pec-deck',
+    name: 'Pec Deck',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders'],
+    equipment: ['Weight machine'],
+    formCue:
+      'Keep the torso supported and bring the pads together without shoulder roll.',
+    setup:
+      'Adjust the seat and start position so the upper arms are supported comfortably.',
+    execution:
+      'Bring the arms together, squeeze briefly, and return to a controlled stretch.',
+    safety:
+      'Use a start position that does not force the shoulders too far behind the torso.',
+    relatedWorkoutDays: [4],
+  }),
+
+  // ------------------------------------------------------------------ Abs
+  createV21Exercise({
+    id: 'resistance-band-kneeling-crunch',
+    name: 'Resistance-Band Kneeling Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Obliques'],
+    equipment: ['Resistance bands', 'Mat'],
+    difficulty: 'Beginner',
+    formCue: 'Curl the ribs toward the pelvis instead of hinging at the hips.',
+    setup:
+      'Anchor a band securely overhead and kneel while holding it beside the head.',
+    execution:
+      'Shorten the trunk by curling the ribs down, then return without shifting the hips.',
+    safety: 'Check the anchor and keep the band clear of the face.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'cable-kneeling-crunch',
+    name: 'Cable Kneeling Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Obliques'],
+    equipment: ['Cable machine', 'Mat'],
+    formCue:
+      'Curl the ribs toward the pelvis while the hips stay nearly fixed.',
+    setup:
+      'Kneel facing a high cable and hold the rope beside the head with a stable base.',
+    execution:
+      'Flex the trunk to bring the ribs toward the pelvis, then uncurl slowly.',
+    safety: 'Do not use a heavy load that turns the movement into a hip hinge.',
+    relatedWorkoutDays: [2],
+  }),
+  createV21Exercise({
+    id: 'resistance-band-pallof-press',
+    name: 'Resistance-Band Pallof Press',
+    category: 'Abs',
+    primaryMuscles: ['Obliques', 'Core'],
+    secondaryMuscles: ['Glutes', 'Shoulders'],
+    equipment: ['Resistance bands'],
+    difficulty: 'Beginner',
+    formCue: 'Press straight out while resisting rotation toward the anchor.',
+    setup:
+      'Anchor the band near chest height and stand side-on in a balanced stance.',
+    execution:
+      'Press the hands away from the sternum, pause without rotating, and return slowly.',
+    safety:
+      'Use light tension that allows normal breathing and a level pelvis.',
+    relatedWorkoutDays: [2],
+    progressionMode: 'control',
+  }),
+  createV21Exercise({
+    id: 'cable-pallof-press',
+    name: 'Cable Pallof Press',
+    category: 'Abs',
+    primaryMuscles: ['Obliques', 'Core'],
+    secondaryMuscles: ['Glutes', 'Shoulders'],
+    equipment: ['Cable machine'],
+    formCue: 'Stay square while pressing the cable away from the chest.',
+    setup:
+      'Set the cable near chest height and stand side-on with the feet planted.',
+    execution:
+      'Press the handle straight out, resist the cable rotation, and return under control.',
+    safety:
+      'Choose a load that does not pull the hips or shoulders out of alignment.',
+    relatedWorkoutDays: [2],
+    progressionMode: 'control',
+  }),
+
+  // --------------------------------------------------------- Conditioning
+  createV21Exercise({
+    id: 'boxing-footwork-drill',
+    name: 'Boxing Footwork Drill',
+    category: 'Conditioning',
+    primaryMuscles: ['Boxing Skill', 'Legs'],
+    secondaryMuscles: ['Calves', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the stance balanced, move without crossing the feet, and reset after angles.',
+    setup:
+      'Take a relaxed boxing stance in clear space with the guard in a comfortable position.',
+    execution:
+      'Practice forward, backward, lateral, pivot, and angle-exit steps while maintaining stance width.',
+    safety:
+      'Keep the rounds technical and stop if balance or foot placement becomes careless.',
+    relatedWorkoutDays: [3],
+    progressionMode: 'skill',
+  }),
+  createV21Exercise({
+    id: 'shadowboxing',
+    name: 'Shadowboxing',
+    category: 'Conditioning',
+    primaryMuscles: ['Boxing Skill', 'Shoulders'],
+    secondaryMuscles: ['Core', 'Legs', 'Cardiovascular System'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Punch smoothly, recover the guard quickly, and stay balanced after combinations.',
+    setup:
+      'Take a relaxed stance with clear space and choose a technical focus for the round.',
+    execution:
+      'Link controlled punches, defense, pivots, and exits without chasing maximal speed.',
+    safety: 'Avoid snapping the elbows or exaggerating neck and head movement.',
+    relatedWorkoutDays: [3],
+    progressionMode: 'skill',
+  }),
+  createV21Exercise({
+    id: 'boxing-defense-drill',
+    name: 'Boxing Defense Drill',
+    category: 'Conditioning',
+    primaryMuscles: ['Boxing Skill', 'Core'],
+    secondaryMuscles: ['Legs', 'Shoulders'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Use small controlled slips, rolls, pivots, and exits while staying in stance.',
+    setup:
+      'Begin in a balanced guard and select one defensive response to practice at a time.',
+    execution:
+      'Practice slips, rolls, pivots, and exits with immediate guard and stance recovery.',
+    safety:
+      'Avoid exaggerated head or neck motion and keep the drills submaximal.',
+    relatedWorkoutDays: [3],
+    progressionMode: 'skill',
+  }),
+  createV21Exercise({
+    id: 'heavy-bag-boxing',
+    name: 'Heavy-Bag Boxing',
+    category: 'Conditioning',
+    primaryMuscles: ['Boxing Skill', 'Cardiovascular System'],
+    secondaryMuscles: ['Shoulders', 'Core', 'Legs'],
+    equipment: ['Heavy bag'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Keep the wrist stacked, recover the hands quickly, and prioritize clean mechanics.',
+    setup:
+      'Wrap the hands, wear appropriate gloves, and begin at a balanced distance from the bag.',
+    execution:
+      'Deliver planned combinations with stance recovery, defense, and controlled power.',
+    safety:
+      'Do not make every round maximal; stop if wrist alignment or technique deteriorates.',
+    relatedWorkoutDays: [3, 6],
+    progressionMode: 'skill',
+  }),
+  createV21Exercise({
+    id: 'rotational-medicine-ball-throw',
+    name: 'Rotational Medicine-Ball Throw',
+    category: 'Conditioning',
+    primaryMuscles: ['Core', 'Hips'],
+    secondaryMuscles: ['Shoulders', 'Chest'],
+    equipment: ['Medicine ball'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Rotate through the hips and trunk, release crisply, and reset every repetition.',
+    setup:
+      'Stand side-on to a solid throwing wall with a light medicine ball and clear rebound space.',
+    execution:
+      'Load the hips, rotate, and throw into the wall before collecting the rebound and resetting.',
+    safety:
+      'Use a ball and wall rated for throwing and keep bystanders outside the rebound path.',
+    relatedWorkoutDays: [3],
+    progressionMode: 'skill',
+    progression: [
+      'Learn the throw with a light ball',
+      'Build repeatable sets of four to six crisp throws per side',
+      'Increase intent before considering a heavier medicine ball',
+    ],
+  }),
+  createV21Exercise({
+    id: 'brisk-walking',
+    name: 'Brisk Walking',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Legs'],
+    secondaryMuscles: ['Calves', 'Glutes'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Walk tall at a sustainable conversational pace with a natural stride.',
+    setup:
+      'Choose a safe route or flat walking surface and begin at an easy pace.',
+    execution:
+      'Build to a brisk but controlled rhythm while keeping the shoulders relaxed.',
+    safety:
+      'Slow down if breathing is no longer conversational or recovery is worsened.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    progression: [
+      'Begin with a short easy walk',
+      'Build toward thirty minutes at a conversational pace',
+      'Extend gradually toward forty-five minutes when recovery stays good',
+    ],
+  }),
+
+  // -------------------------------------------------------------- Posture
+  createV21Exercise({
+    id: 'chin-tuck',
+    name: 'Chin Tuck',
+    category: 'Posture',
+    primaryMuscles: ['Deep Neck Flexors'],
+    secondaryMuscles: ['Upper Back'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue: 'Glide the head straight back gently without looking down.',
+    setup: 'Sit or stand tall with the eyes level and the jaw relaxed.',
+    execution:
+      'Draw the chin straight backward into a small double-chin position, pause, and release.',
+    safety:
+      'Use very light effort and stop for dizziness, radiating symptoms, or neck pain.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    postureNotes:
+      'This is a light movement-control drill, not a structural correction. Keep it symptom-free and avoid pressing the head forcefully backward.',
+    postureFocus: true,
+  }),
+  createV21Exercise({
+    id: 'thoracic-extension-reach',
+    name: 'Thoracic Extension / Reach',
+    category: 'Posture',
+    primaryMuscles: ['Upper Back'],
+    secondaryMuscles: ['Shoulders', 'Serratus'],
+    equipment: ['Bodyweight', 'Bench'],
+    difficulty: 'Beginner',
+    formCue:
+      'Reach through the upper back while the ribs and pelvis remain controlled.',
+    setup:
+      'Kneel in front of a bench or wall with the elbows or hands supported comfortably.',
+    execution:
+      'Sit the hips back and let the upper chest reach down through a comfortable thoracic range.',
+    safety:
+      'Do not force range through the neck, shoulders, or lower-back arch.',
+    relatedWorkoutDays: [7],
+    progressionMode: 'control',
+    postureFocus: true,
+  }),
+  createV21Exercise({
+    id: 'four-way-neck-isometric',
+    name: 'Four-Way Neck Isometric',
+    category: 'Posture',
+    primaryMuscles: ['Neck Flexors', 'Neck Extensors'],
+    secondaryMuscles: ['Lateral Neck Flexors'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Use easy hand resistance and keep the head still in every direction.',
+    setup:
+      'Sit tall and place a hand on the forehead, back, or side of the head for the selected direction.',
+    execution:
+      'Press gently into the hand without moving the neck, breathe normally, then change directions.',
+    safety:
+      'Use easy to moderate effort only; no maximal effort, harness loading, or painful holds.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+    progression: [
+      'Begin with brief ten-second easy holds',
+      'Build toward two controlled twenty-second holds per direction',
+      'Keep effort moderate rather than adding heavy resistance',
+    ],
+    postureNotes:
+      'Optional only when completely symptom-free, no more than twice weekly. Stop for pain, dizziness, weakness, numbness, or radiating symptoms.',
+    postureFocus: true,
+  }),
+]
 
 const baseExerciseLibrary: LibraryExercise[] = [
   // ---------------------------------------------------------------- Chest
@@ -451,6 +1913,224 @@ const baseExerciseLibrary: LibraryExercise[] = [
     demoLinks: demos('diamond push up'),
     relatedWorkoutDays: [1],
   },
+  {
+    id: 'paused-barbell-bench-press',
+    name: 'Paused Barbell Bench Press',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Front Shoulders'],
+    equipment: ['Barbell', 'Bench'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Pause softly on the chest, stay tight, then press without bouncing.',
+    instructions: [
+      'Plant the feet and set the shoulder blades back and down.',
+      'Unrack with the wrists stacked over the elbows.',
+      'Lower the bar under control to the lower chest.',
+      'Pause motionless without relaxing into the chest.',
+      'Press up while keeping the hips on the bench.',
+    ],
+    formTips: [
+      'Stay braced during the pause',
+      'Keep wrists stacked over elbows',
+      'Touch the chest softly',
+      'Keep feet and hips planted',
+      'Use a consistent touch point',
+    ],
+    commonMistakes: [
+      'Bouncing instead of pausing',
+      'Relaxing the upper back at the chest',
+      'Letting the wrists bend backward',
+      'Lifting the hips to start the press',
+      'Flaring the elbows abruptly',
+    ],
+    progression: [
+      'Barbell bench press',
+      'Paused barbell bench press',
+      'Longer paused bench press',
+      'Heavier paused bench press',
+    ],
+    regression: ['Dumbbell floor press', 'Barbell bench press', 'Push-up'],
+    postureNotes: `Keep the ribcage controlled and use only a small natural bench arch. ${archSafety}`,
+    demoLinks: demos('paused barbell bench press'),
+    relatedWorkoutDays: [1],
+  },
+  {
+    id: 'one-arm-dumbbell-floor-press',
+    name: 'One-Arm Dumbbell Floor Press',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Front Shoulders', 'Core'],
+    equipment: ['Dumbbells', 'Mat'],
+    difficulty: 'Intermediate',
+    formCue: 'Brace against rotation and press with the wrist over the elbow.',
+    instructions: [
+      'Lie square on the floor with the knees bent and feet planted.',
+      'Hold one dumbbell over the shoulder and brace the abdomen.',
+      'Lower until the upper arm touches the floor softly.',
+      'Pause without letting the torso rotate.',
+      'Press the dumbbell up with the wrist stacked over the elbow.',
+    ],
+    formTips: [
+      'Keep both shoulders grounded',
+      'Brace before each repetition',
+      'Touch the upper arm down softly',
+      'Keep the forearm vertical',
+      'Press without twisting',
+    ],
+    commonMistakes: [
+      'Rolling toward the working side',
+      'Crashing the upper arm into the floor',
+      'Letting the wrist fold backward',
+      'Flaring the ribs to finish the press',
+      'Using a range the shoulder cannot control',
+    ],
+    progression: [
+      'Two-arm dumbbell floor press',
+      'One-arm dumbbell floor press',
+      'One-arm floor press with pause',
+      'Heavier one-arm floor press',
+    ],
+    regression: ['Two-arm dumbbell floor press', 'Push-up', 'Incline push-up'],
+    postureNotes:
+      'Keep the ribs down and pelvis level so the single-sided load does not rotate or arch the torso.',
+    demoLinks: demos('one arm dumbbell floor press'),
+    relatedWorkoutDays: [1],
+  },
+  {
+    id: 'close-grip-push-up',
+    name: 'Close-Grip Push-Up',
+    category: 'Chest',
+    primaryMuscles: ['Triceps', 'Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Hands just inside shoulder width, elbows track close to the ribs.',
+    instructions: [
+      'Place the hands just inside shoulder width.',
+      'Brace into a straight line from head to heels.',
+      'Lower the chest while the elbows track close to the ribs.',
+      'Reach a comfortable full range without rolling the shoulders forward.',
+      'Press the floor away while keeping the hips level.',
+    ],
+    formTips: [
+      'Keep elbows near the ribs',
+      'Use a firm whole-hand contact',
+      'Keep ribs and hips aligned',
+      'Move the chest and hips together',
+      'Control the lowering',
+    ],
+    commonMistakes: [
+      'Placing the hands so close that the wrists hurt',
+      'Flaring the elbows wide',
+      'Letting the hips sag',
+      'Leading with the head',
+      'Cutting the range short',
+    ],
+    progression: [
+      'Incline close-grip push-up',
+      'Close-grip push-up',
+      'Feet-elevated close-grip push-up',
+      'Weighted close-grip push-up',
+    ],
+    regression: [
+      'Incline close-grip push-up',
+      'Knee close-grip push-up',
+      'Push-up',
+    ],
+    postureNotes: archSafety,
+    demoLinks: demos('close grip push up'),
+    relatedWorkoutDays: [3],
+  },
+  {
+    id: 'incline-barbell-press',
+    name: 'Incline Barbell Press',
+    category: 'Chest',
+    primaryMuscles: ['Upper Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    equipment: ['Barbell', 'Bench'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Use a modest incline and lower the bar to the upper chest under control.',
+    instructions: [
+      'Set the bench to a low or moderate incline.',
+      'Plant the feet and set the shoulder blades back and down.',
+      'Unrack with the wrists stacked over the elbows.',
+      'Lower the bar toward the upper chest under control.',
+      'Press up without lifting the hips or shrugging.',
+    ],
+    formTips: [
+      'Use a modest bench angle',
+      'Keep shoulder blades anchored',
+      'Keep wrists over elbows',
+      'Touch the upper chest gently',
+      'Control the ribcage',
+    ],
+    commonMistakes: [
+      'Setting the bench too steep',
+      'Flaring the elbows straight out',
+      'Bouncing the bar off the chest',
+      'Lifting the hips from the bench',
+      'Shrugging at lockout',
+    ],
+    progression: [
+      'Incline dumbbell press',
+      'Incline barbell press',
+      'Paused incline barbell press',
+      'Heavier incline barbell press',
+    ],
+    regression: [
+      'Incline dumbbell press',
+      'Flat barbell bench press',
+      'Incline push-up',
+    ],
+    postureNotes: `Keep the ribs controlled and avoid turning the incline press into a large lower-back arch. ${archSafety}`,
+    demoLinks: demos('incline barbell bench press'),
+    relatedWorkoutDays: [5],
+  },
+  {
+    id: 'deficit-push-up',
+    name: 'Deficit Push-Up',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Front Shoulders', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Use stable supports and lower between the hands only as far as controlled.',
+    instructions: [
+      'Set two equal, non-rolling supports and confirm they cannot move.',
+      'Grip the supports and brace into a straight body line.',
+      'Lower the chest between the hands through a comfortable range.',
+      'Pause before the shoulders roll forward or feel strained.',
+      'Press evenly through both hands to the start.',
+    ],
+    formTips: [
+      'Check support stability first',
+      'Keep the body rigid',
+      'Use only pain-free depth',
+      'Press evenly through both hands',
+      'Keep ribs down',
+    ],
+    commonMistakes: [
+      'Using unstable or rolling supports',
+      'Dropping deeper than the shoulders can control',
+      'Letting the hips sag',
+      'Flaring the elbows wide',
+      'Pressing unevenly from side to side',
+    ],
+    progression: [
+      'Push-up',
+      'Shallow deficit push-up',
+      'Full deficit push-up',
+      'Weighted deficit push-up',
+    ],
+    regression: ['Push-up', 'Incline push-up', 'Knee push-up'],
+    postureNotes: archSafety,
+    demoLinks: demos('deficit push up on handles'),
+    relatedWorkoutDays: [5],
+  },
 
   // ----------------------------------------------------------------- Back
   {
@@ -698,7 +2378,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Feet-elevated inverted row',
       'Weighted inverted row',
     ],
-    regression: ['Bar higher (more upright)', 'Bent-knee inverted row', 'Band row'],
+    regression: [
+      'Bar higher (more upright)',
+      'Bent-knee inverted row',
+      'Band row',
+    ],
     postureNotes:
       'Keep ribs down and glutes squeezed so the body stays in one line instead of sagging at the hips.',
     demoLinks: demos('inverted row bodyweight'),
@@ -740,10 +2424,230 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Heavier dumbbell pullover',
       'Pullover with slow eccentric',
     ],
-    regression: ['Band pullover', 'Light dumbbell pullover', 'Lat prayer/stretch'],
+    regression: [
+      'Band pullover',
+      'Light dumbbell pullover',
+      'Lat prayer/stretch',
+    ],
     postureNotes:
       'The most common fault is flaring the ribs and arching the lower back. Keep ribs down and abs tight through the stretch.',
     demoLinks: demos('dumbbell pullover'),
+    relatedWorkoutDays: [5],
+  },
+  {
+    id: 'shoulder-width-pull-up',
+    name: 'Shoulder-Width Pull-Up',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Upper Back'],
+    secondaryMuscles: ['Biceps', 'Forearms', 'Core'],
+    equipment: ['Pull-up bar', 'Bodyweight'],
+    difficulty: 'Intermediate',
+    formCue: 'Set the shoulders, then drive the elbows down without swinging.',
+    instructions: [
+      'Take an overhand grip at about shoulder width.',
+      'Begin from a controlled hang and set the shoulders down.',
+      'Drive the elbows toward the ribs to lift the chest.',
+      'Reach the highest clean position without craning the neck.',
+      'Lower under control to full elbow extension.',
+    ],
+    formTips: [
+      'Engage the shoulders before pulling',
+      'Drive elbows toward the ribs',
+      'Keep the legs quiet',
+      'Use a full controlled range',
+      'Keep the neck neutral',
+    ],
+    commonMistakes: [
+      'Swinging or kipping',
+      'Starting with the shoulders shrugged',
+      'Cutting off the bottom range',
+      'Poking the chin toward the bar',
+      'Dropping quickly from the top',
+    ],
+    progression: [
+      'Assisted shoulder-width pull-up',
+      'Shoulder-width pull-up',
+      'Paused shoulder-width pull-up',
+      'Weighted pull-up',
+    ],
+    regression: ['Band-assisted pull-up', 'Negative pull-up', 'Inverted row'],
+    postureNotes:
+      'Keep the ribs down and abdomen braced so the torso stays quiet instead of swinging or over-arching.',
+    demoLinks: demos('shoulder width pull up'),
+    relatedWorkoutDays: [1],
+  },
+  {
+    id: 'chest-supported-dumbbell-row',
+    name: 'Chest-Supported Dumbbell Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps'],
+    equipment: ['Dumbbells', 'Bench'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the chest supported and row the elbows toward the hips without shrugging.',
+    instructions: [
+      'Set an incline bench and lie face down with the chest supported.',
+      'Let the dumbbells hang with the neck relaxed.',
+      'Pull the elbows toward the hips without lifting the chest.',
+      'Pause briefly as the dumbbells reach the torso.',
+      'Lower until the shoulder blades spread under control.',
+    ],
+    formTips: [
+      'Keep the chest on the bench',
+      'Pull elbows toward the hips',
+      'Keep shoulders away from the ears',
+      'Pause at the top',
+      'Reach fully at the bottom',
+    ],
+    commonMistakes: [
+      'Lifting the chest to create momentum',
+      'Shrugging while rowing',
+      'Pulling only with the hands',
+      'Cutting the bottom range short',
+      'Using a load that prevents control',
+    ],
+    progression: [
+      'Light chest-supported row',
+      'Chest-supported dumbbell row',
+      'Row with a top pause',
+      'Heavier chest-supported row',
+    ],
+    regression: ['Light chest-supported row', 'Band row', 'Inverted row'],
+    postureNotes:
+      'Let the bench support a neutral torso and keep the neck long; do not lift or over-arch the chest to finish a rep.',
+    demoLinks: demos('chest supported dumbbell row'),
+    relatedWorkoutDays: [1],
+  },
+  {
+    id: 'weighted-chin-up',
+    name: 'Weighted Chin-Up',
+    category: 'Back',
+    primaryMuscles: ['Lats', 'Biceps'],
+    secondaryMuscles: ['Upper Back', 'Forearms', 'Core'],
+    equipment: ['Pull-up bar', 'Backpack'],
+    difficulty: 'Advanced',
+    formCue:
+      'Secure the load, pull the chest up, and lower to a controlled full hang.',
+    instructions: [
+      'Secure a light added load so it cannot swing.',
+      'Take a shoulder-width underhand grip and begin from a controlled hang.',
+      'Set the shoulders and drive the elbows down.',
+      'Pull the chest toward the bar without kicking.',
+      'Lower under control to full elbow extension.',
+    ],
+    formTips: [
+      'Earn clean chin-ups before adding load',
+      'Secure the load close to the body',
+      'Keep wrists neutral',
+      'Keep the legs quiet',
+      'Control the full descent',
+    ],
+    commonMistakes: [
+      'Adding load before bodyweight reps are solid',
+      'Letting the load swing',
+      'Kipping to clear the bar',
+      'Stopping short of full extension',
+      'Dropping into the shoulders',
+    ],
+    progression: [
+      'Chin-up',
+      'Light weighted chin-up',
+      'Weighted chin-up with pause',
+      'Heavier weighted chin-up',
+    ],
+    regression: ['Chin-up', 'Band-assisted chin-up', 'Negative chin-up'],
+    postureNotes:
+      'Brace the abdomen and keep the load still so it does not pull the ribs forward or swing the lower back.',
+    demoLinks: demos('weighted chin up'),
+    relatedWorkoutDays: [3],
+  },
+  {
+    id: 'pendlay-row',
+    name: 'Pendlay Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Lats'],
+    secondaryMuscles: ['Rear Shoulders', 'Biceps', 'Lower Back'],
+    equipment: ['Barbell'],
+    difficulty: 'Advanced',
+    formCue:
+      'Brace nearly parallel to the floor and pull each dead-stop rep without rising.',
+    instructions: [
+      'Set the bar over the mid-foot and hinge until the torso is nearly parallel.',
+      'Brace with a neutral spine while the bar rests motionless.',
+      'Pull the bar quickly toward the lower chest.',
+      'Keep the torso angle fixed throughout the pull.',
+      'Return the bar under control and reset before the next rep.',
+    ],
+    formTips: [
+      'Reset the brace every rep',
+      'Keep the bar over mid-foot',
+      'Hold a fixed torso angle',
+      'Pull toward the lower chest',
+      'Start from a true dead stop',
+    ],
+    commonMistakes: [
+      'Rounding the lower back',
+      'Raising the torso as the bar leaves the floor',
+      'Bouncing the bar between reps',
+      'Jerking before the brace is set',
+      'Using a load that changes the movement',
+    ],
+    progression: [
+      'Chest-supported row',
+      'Barbell row',
+      'Pendlay row',
+      'Heavier Pendlay row',
+    ],
+    regression: ['Barbell row', 'Chest-supported row', 'One-arm dumbbell row'],
+    postureNotes: `Maintain a rigid neutral spine and reset the brace from the floor before every repetition. ${archSafety}`,
+    demoLinks: demos('Pendlay row'),
+    relatedWorkoutDays: [3],
+  },
+  {
+    id: 'elbows-out-dumbbell-row',
+    name: 'Elbows-Out Dumbbell Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back', 'Rear Shoulders'],
+    secondaryMuscles: ['Traps', 'Biceps'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Hold the hinge and row toward the upper ribs with the elbows wide.',
+    instructions: [
+      'Hinge at the hips with soft knees and a neutral spine.',
+      'Brace the torso and let the dumbbells hang below the shoulders.',
+      'Row toward the upper ribs with the elbows angled out.',
+      'Pause as the shoulder blades draw together.',
+      'Lower slowly without changing the torso angle.',
+    ],
+    formTips: [
+      'Keep the torso still',
+      'Aim toward the upper ribs',
+      'Let the elbows travel wide',
+      'Keep the neck relaxed',
+      'Lower under control',
+    ],
+    commonMistakes: [
+      'Standing up during each row',
+      'Rounding the back',
+      'Shrugging toward the ears',
+      'Yanking the dumbbells with momentum',
+      'Pulling toward the hips with tucked elbows',
+    ],
+    progression: [
+      'Chest-supported elbows-out row',
+      'Elbows-out dumbbell row',
+      'Row with a top pause',
+      'Heavier elbows-out row',
+    ],
+    regression: [
+      'Chest-supported dumbbell row',
+      'Rear delt raise',
+      'Light dumbbell row',
+    ],
+    postureNotes: `Brace the hinge with a long neutral spine; do not round or over-arch to move the dumbbells. ${archSafety}`,
+    demoLinks: demos('elbows out dumbbell row'),
     relatedWorkoutDays: [5],
   },
 
@@ -784,7 +2688,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Standing dumbbell shoulder press',
       'Heavier standing press',
     ],
-    regression: ['Seated press with back support', 'Pike push-up', 'Band press'],
+    regression: [
+      'Seated press with back support',
+      'Pike push-up',
+      'Band press',
+    ],
     postureNotes: `Overhead pressing tempts the ribs to flare. ${archSafety}`,
     demoLinks: demos('dumbbell shoulder press'),
     relatedWorkoutDays: [4],
@@ -825,7 +2733,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Feet-elevated pike push-up',
       'Wall handstand push-up',
     ],
-    regression: ['Wall/box pike hold', 'Incline pike push-up', 'Dumbbell press'],
+    regression: [
+      'Wall/box pike hold',
+      'Incline pike push-up',
+      'Dumbbell press',
+    ],
     postureNotes:
       'Keep the core braced and ribs down as you invert so the load stays on the shoulders, not the lower back.',
     demoLinks: demos('pike push up'),
@@ -867,7 +2779,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Slow-tempo lateral raise',
       'Lateral raise with pause at top',
     ],
-    regression: ['Seated lateral raise', 'Leaning cable/band raise', 'Partial raise'],
+    regression: [
+      'Seated lateral raise',
+      'Leaning cable/band raise',
+      'Partial raise',
+    ],
     postureNotes:
       'Keep the torso still and ribs down; do not lean back or swing from the lower back to lift the weight.',
     demoLinks: demos('dumbbell lateral raise'),
@@ -914,6 +2830,188 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Keep a neutral, flat spine while hinged. Do not round or over-arch the lower back to move the weight.',
     demoLinks: demos('rear delt raise'),
     relatedWorkoutDays: [2],
+  },
+  {
+    id: 'lean-away-dumbbell-lateral-raise',
+    name: 'Lean-Away Dumbbell Lateral Raise',
+    category: 'Shoulders',
+    primaryMuscles: ['Side Shoulders'],
+    secondaryMuscles: ['Traps'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue: 'Lean away as one rigid line and lead the raise with the elbow.',
+    instructions: [
+      'Hold a stable support with one hand and keep both feet planted.',
+      'Lean away slightly while keeping the body in one straight line.',
+      'Hold a light dumbbell at the outside thigh.',
+      'Lead with the elbow and raise the arm near shoulder height.',
+      'Lower slowly through the stretched bottom position.',
+    ],
+    formTips: [
+      'Use a secure support',
+      'Keep the lean fixed',
+      'Lead with the elbow',
+      'Keep the shoulder away from the ear',
+      'Lower slowly',
+    ],
+    commonMistakes: [
+      'Changing the body angle to swing the weight',
+      'Shrugging at the top',
+      'Leading with the hand',
+      'Raising far above shoulder height',
+      'Using a load that shortens the range',
+    ],
+    progression: [
+      'Dumbbell lateral raise',
+      'Lean-away lateral raise',
+      'Lean-away raise with pause',
+      'Heavier lean-away lateral raise',
+    ],
+    regression: [
+      'Dumbbell lateral raise',
+      'Seated lateral raise',
+      'Partial lateral raise',
+    ],
+    postureNotes:
+      'Keep the ribs stacked over the pelvis and lean as one unit; do not side-bend or arch to lift the dumbbell.',
+    demoLinks: demos('lean away dumbbell lateral raise'),
+    relatedWorkoutDays: [1],
+  },
+  {
+    id: 'prone-y-raise',
+    name: 'Prone Y-Raise',
+    category: 'Shoulders',
+    primaryMuscles: ['Lower Traps'],
+    secondaryMuscles: ['Rear Shoulders', 'Upper Back'],
+    equipment: ['Bodyweight', 'Dumbbells', 'Bench', 'Mat'],
+    difficulty: 'Beginner',
+    formCue:
+      'Reach into a wide Y with thumbs up and lift from the shoulder blades.',
+    instructions: [
+      'Lie face down on an incline bench or mat.',
+      'Reach the arms into a wide Y with the thumbs pointing up.',
+      'Keep the forehead supported or the neck long.',
+      'Lift the arms a small distance by moving the shoulder blades.',
+      'Pause briefly, then lower without swinging.',
+    ],
+    formTips: [
+      'Use bodyweight or very light dumbbells',
+      'Keep thumbs pointing up',
+      'Reach long through the arms',
+      'Keep shoulders away from the ears',
+      'Use a small controlled range',
+    ],
+    commonMistakes: [
+      'Using weight that forces momentum',
+      'Shrugging instead of using the lower traps',
+      'Lifting the head to gain range',
+      'Bending the elbows into a row',
+      'Arching the lower back',
+    ],
+    progression: [
+      'Prone Y hold',
+      'Prone Y-raise',
+      'Light dumbbell Y-raise',
+      'Y-raise with a longer pause',
+    ],
+    regression: ['Prone Y hold', 'Wall slide', 'One arm at a time'],
+    postureNotes:
+      'Keep the neck long, ribs supported, and shoulders away from the ears while the lower traps guide the shoulder blades.',
+    demoLinks: demos('prone Y raise lower trap'),
+    relatedWorkoutDays: [3],
+    postureFocus: true,
+  },
+  {
+    id: 'one-arm-dumbbell-overhead-press',
+    name: 'Standing One-Arm Dumbbell Overhead Press',
+    category: 'Shoulders',
+    primaryMuscles: ['Front Shoulders', 'Side Shoulders'],
+    secondaryMuscles: ['Triceps', 'Core'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue: 'Brace before pressing and finish overhead without leaning away.',
+    instructions: [
+      'Stand with both feet planted and hold one dumbbell at shoulder height.',
+      'Brace the abdomen and stack the wrist over the elbow.',
+      'Press overhead while keeping the torso centered.',
+      'Finish with the arm beside the ear and ribs controlled.',
+      'Lower to the shoulder under control before changing sides.',
+    ],
+    formTips: [
+      'Brace before every press',
+      'Keep the wrist stacked',
+      'Stay centered over both feet',
+      'Keep ribs down',
+      'Finish beside the ear',
+    ],
+    commonMistakes: [
+      'Leaning away from the dumbbell',
+      'Flaring the ribs to finish overhead',
+      'Pressing forward instead of overhead',
+      'Bending the wrist backward',
+      'Rushing the lowering phase',
+    ],
+    progression: [
+      'Seated one-arm dumbbell press',
+      'Standing one-arm dumbbell press',
+      'Press with a top pause',
+      'Heavier one-arm dumbbell press',
+    ],
+    regression: [
+      'Seated one-arm dumbbell press',
+      'Two-arm dumbbell press',
+      'Pike push-up',
+    ],
+    postureNotes: `Resist side-bending and keep the ribs stacked over the pelvis throughout the single-arm press. ${archSafety}`,
+    demoLinks: demos('standing one arm dumbbell overhead press'),
+    relatedWorkoutDays: [5],
+  },
+  {
+    id: 'rear-delt-dumbbell-row',
+    name: 'Rear-Delt Dumbbell Row',
+    category: 'Shoulders',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'Traps', 'Biceps'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Use a light load and row wide toward the upper ribs without shrugging.',
+    instructions: [
+      'Hinge forward with soft knees and a neutral spine.',
+      'Let light dumbbells hang below the shoulders.',
+      'Drive the elbows out and back toward the upper ribs.',
+      'Pause briefly without shrugging the shoulders.',
+      'Lower slowly until the rear shoulders lengthen.',
+    ],
+    formTips: [
+      'Use a light controlled load',
+      'Keep the elbows wide',
+      'Pull toward the upper ribs',
+      'Keep the neck relaxed',
+      'Hold the torso still',
+    ],
+    commonMistakes: [
+      'Using too much weight',
+      'Tucking the elbows toward the hips',
+      'Shrugging at the top',
+      'Rounding the back',
+      'Swinging the torso for momentum',
+    ],
+    progression: [
+      'Rear delt raise',
+      'Rear-delt dumbbell row',
+      'Rear-delt row with pause',
+      'Heavier rear-delt row',
+    ],
+    regression: [
+      'Chest-supported rear-delt row',
+      'Rear delt raise',
+      'Band pull-apart',
+    ],
+    postureNotes:
+      'Hold a neutral hip hinge and a long neck; do not round, over-arch, or shrug to complete the row.',
+    demoLinks: demos('rear delt dumbbell row'),
+    relatedWorkoutDays: [5],
   },
 
   // ----------------------------------------------------------------- Arms
@@ -1127,6 +3225,99 @@ const baseExerciseLibrary: LibraryExercise[] = [
     demoLinks: demos('skull crusher triceps'),
     relatedWorkoutDays: [5],
   },
+  {
+    id: 'incline-dumbbell-curl',
+    name: 'Incline Dumbbell Curl',
+    category: 'Arms',
+    primaryMuscles: ['Biceps'],
+    secondaryMuscles: ['Forearms'],
+    equipment: ['Dumbbells', 'Bench'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Keep the upper arms behind the torso and curl without moving the elbows forward.',
+    instructions: [
+      'Set an incline bench and sit with the upper back supported.',
+      'Let the arms hang behind the torso with palms facing forward.',
+      'Curl the dumbbells while keeping the upper arms still.',
+      'Squeeze at the top without rolling the shoulders forward.',
+      'Lower slowly to a comfortable full stretch.',
+    ],
+    formTips: [
+      'Keep the back supported',
+      'Let the arms hang naturally',
+      'Keep upper arms still',
+      'Keep wrists straight',
+      'Lower slowly to full length',
+    ],
+    commonMistakes: [
+      'Moving the elbows forward during the curl',
+      'Lifting the shoulders from the bench',
+      'Swinging out of the bottom',
+      'Bending the wrists',
+      'Lowering beyond a comfortable shoulder position',
+    ],
+    progression: [
+      'Seated dumbbell curl',
+      'Incline dumbbell curl',
+      'Incline curl with slow lowering',
+      'Heavier incline dumbbell curl',
+    ],
+    regression: [
+      'Seated dumbbell curl',
+      'Standing dumbbell curl',
+      'Alternating curl',
+    ],
+    postureNotes:
+      'Keep the upper back against the bench and ribs controlled; do not arch or roll the shoulders forward to finish the curl.',
+    demoLinks: demos('incline dumbbell curl'),
+    relatedWorkoutDays: [3],
+  },
+  {
+    id: 'overhead-dumbbell-triceps-extension',
+    name: 'Overhead Dumbbell Triceps Extension',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: ['Shoulders', 'Core'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep the ribs down and upper arms still while the elbows bend and straighten.',
+    instructions: [
+      'Hold one dumbbell securely with both hands overhead.',
+      'Brace the abdomen and point the elbows forward.',
+      'Lower the dumbbell behind the head by bending the elbows.',
+      'Keep the upper arms close to the head and still.',
+      'Straighten the elbows without flaring the ribs.',
+    ],
+    formTips: [
+      'Secure the dumbbell before starting',
+      'Keep elbows near the head',
+      'Keep upper arms still',
+      'Keep ribs down',
+      'Use a controlled stretch',
+    ],
+    commonMistakes: [
+      'Flaring the elbows wide',
+      'Arching the lower back',
+      'Moving the upper arms with each rep',
+      'Lowering too far for the shoulders',
+      'Using a loose grip on the dumbbell',
+    ],
+    progression: [
+      'Light overhead dumbbell extension',
+      'Overhead dumbbell triceps extension',
+      'Extension with slow lowering',
+      'Heavier overhead extension',
+    ],
+    regression: [
+      'Single light dumbbell extension',
+      'Dumbbell kickback',
+      'Close-grip push-up',
+    ],
+    postureNotes: `Overhead extensions can flare the ribs and arch the back. ${archSafety}`,
+    demoLinks: demos('overhead dumbbell triceps extension'),
+    relatedWorkoutDays: [3],
+  },
 
   // ----------------------------------------------------------------- Legs
   {
@@ -1289,7 +3480,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Weighted glute bridge',
       'Hip thrust',
     ],
-    regression: ['Short-range bridge', 'Glute squeeze (no lift)', 'Wall bridge'],
+    regression: [
+      'Short-range bridge',
+      'Glute squeeze (no lift)',
+      'Wall bridge',
+    ],
     postureNotes:
       'A great arched-back drill: keep ribs down and lift with the glutes, not the lower back. Do not hyperextend at the top.',
     demoLinks: demos('glute bridge'),
@@ -1375,11 +3570,463 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Single-leg calf raise',
       'Deficit single-leg calf raise',
     ],
-    regression: ['Flat-floor calf raise', 'Supported calf raise', 'Seated calf raise'],
+    regression: [
+      'Flat-floor calf raise',
+      'Supported calf raise',
+      'Seated calf raise',
+    ],
     postureNotes:
       'Stand tall with ribs down and a neutral spine; keep the core lightly braced for balance.',
     demoLinks: demos('calf raise'),
     relatedWorkoutDays: [3],
+  },
+  {
+    id: 'front-squat',
+    name: 'Front Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Core', 'Upper Back', 'Adductors'],
+    equipment: ['Barbell'],
+    difficulty: 'Intermediate',
+    formCue: 'Elbows high, brace hard, and drive through the whole foot.',
+    instructions: [
+      'Rest the bar across the front shoulders and set the feet about shoulder-width.',
+      'Lift the elbows, brace the core, and keep the whole foot planted.',
+      'Descend between the hips with the knees tracking the toes.',
+      'Squat only as deep as you can keep the torso and pelvis controlled.',
+      'Push the floor away to stand while keeping the elbows high.',
+    ],
+    formTips: [
+      'Keep the elbows high',
+      'Brace before descending',
+      'Track the knees with the toes',
+      'Stay balanced over the whole foot',
+      'Keep the torso tall',
+    ],
+    commonMistakes: [
+      'Letting the elbows drop',
+      'Knees collapsing inward',
+      'Heels lifting from the floor',
+      'Losing the brace at the bottom',
+      'Loading more weight than the rack position allows',
+    ],
+    progression: [
+      'Goblet squat',
+      'Front squat',
+      'Paused front squat',
+      'Heavier front squat',
+    ],
+    regression: [
+      'Bodyweight squat',
+      'Heels-elevated goblet squat',
+      'Light goblet squat',
+    ],
+    postureNotes:
+      'Keep the ribs stacked over the pelvis and the upper back tall. Brace instead of leaning back or rounding to hold the bar.',
+    demoLinks: demos('barbell front squat'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'single-leg-romanian-deadlift',
+    name: 'Single-Leg Romanian Deadlift',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings', 'Glutes'],
+    secondaryMuscles: ['Core', 'Lower Back', 'Adductors'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Reach the free leg back, keep the hips square, and hinge as one unit.',
+    instructions: [
+      'Stand on one leg with a soft knee and hold the dumbbells by the thighs.',
+      'Brace, then reach the free leg back as the torso hinges forward.',
+      'Keep both hips square and the dumbbells close to the standing leg.',
+      'Stop when the hamstring is loaded or the pelvis starts to rotate.',
+      'Drive the standing foot down and squeeze the glute to return upright.',
+    ],
+    formTips: [
+      'Keep a soft bend in the standing knee',
+      'Reach the free leg straight back',
+      'Keep both hips square',
+      'Hold the dumbbells close to the leg',
+      'Return without twisting',
+    ],
+    commonMistakes: [
+      'Opening the free-leg hip outward',
+      'Rounding the lower back',
+      'Squatting instead of hinging',
+      'Reaching the weights toward the floor',
+      'Rushing and losing balance',
+    ],
+    progression: [
+      'Supported single-leg hip hinge',
+      'Single-leg Romanian deadlift',
+      'Heavier dumbbell single-leg Romanian deadlift',
+      'Paused single-leg Romanian deadlift',
+    ],
+    regression: [
+      'Romanian deadlift',
+      'Kickstand Romanian deadlift',
+      'Supported bodyweight single-leg hinge',
+    ],
+    postureNotes:
+      'Move the torso and free leg together around the hip. Keep the spine long and the pelvis level rather than twisting or reaching lower.',
+    demoLinks: demos('dumbbell single leg Romanian deadlift'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'dumbbell-step-up',
+    name: 'Dumbbell Step-Up',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Calves', 'Core'],
+    equipment: ['Dumbbells', 'Bench'],
+    difficulty: 'Intermediate',
+    formCue: 'Plant the whole foot and let the elevated leg do the work.',
+    instructions: [
+      'Stand close to a stable step or bench with a dumbbell in each hand.',
+      'Place the entire working foot on the elevated surface.',
+      'Drive through that foot to rise without pushing off the floor leg.',
+      'Finish tall with the hips level and the working knee controlled.',
+      'Lower slowly to the floor before the next repetition.',
+    ],
+    formTips: [
+      'Place the whole foot on the step',
+      'Drive through the elevated leg',
+      'Keep the knee aligned with the toes',
+      'Keep the hips level',
+      'Lower under control',
+    ],
+    commonMistakes: [
+      'Pushing hard from the trailing foot',
+      'Using a surface that is too high or unstable',
+      'Letting the working knee cave inward',
+      'Only placing the toes on the step',
+      'Dropping quickly back to the floor',
+    ],
+    progression: [
+      'Bodyweight step-up',
+      'Dumbbell step-up',
+      'Heavier dumbbell step-up',
+      'Step-up with a controlled knee drive',
+    ],
+    regression: ['Low step-up', 'Supported step-up', 'Reverse lunge'],
+    postureNotes:
+      'Stay tall with the ribs stacked over the pelvis. Choose a height that lets you keep the knee aligned and the pelvis level.',
+    demoLinks: demos('dumbbell step up'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'sliding-hamstring-curl',
+    name: 'Sliding Hamstring Curl',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Glutes', 'Core', 'Calves'],
+    equipment: ['Bodyweight', 'Mat'],
+    difficulty: 'Intermediate',
+    formCue: 'Keep the hips lifted and pelvis level as the heels slide.',
+    instructions: [
+      'Lie on your back with the heels on sliders or towels over a smooth floor.',
+      'Brace the core and lift the hips into a low bridge.',
+      'Slowly slide the heels away while keeping the pelvis level.',
+      'Stop before the hips drop or the lower back arches.',
+      'Pull the heels back with the hamstrings, then reset under control.',
+    ],
+    formTips: [
+      'Lift the hips before sliding',
+      'Keep the pelvis level',
+      'Pull with the hamstrings',
+      'Control both directions',
+      'Shorten the range before the back arches',
+    ],
+    commonMistakes: [
+      'Letting the hips sag',
+      'Arching the lower back',
+      'Moving too quickly on the slide out',
+      'Pulling unevenly through the feet',
+      'Using more range than the hamstrings can control',
+    ],
+    progression: [
+      'Short-range sliding hamstring curl',
+      'Full sliding hamstring curl',
+      'Slow-eccentric sliding hamstring curl',
+      'Single-leg sliding hamstring curl',
+    ],
+    regression: ['Glute bridge', 'Heel walkout', 'Eccentric-only sliding curl'],
+    postureNotes:
+      'Keep the ribs down and pelvis level so the hamstrings and glutes move the legs without the lower back taking over.',
+    demoLinks: demos('sliding hamstring curl towels'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'seated-dumbbell-calf-raise',
+    name: 'Seated Dumbbell Calf Raise',
+    category: 'Legs',
+    primaryMuscles: ['Calves'],
+    secondaryMuscles: [],
+    equipment: ['Dumbbells', 'Bench'],
+    difficulty: 'Beginner',
+    formCue: 'Use full ankle range, pause at the top, and lower slowly.',
+    instructions: [
+      'Sit tall on a bench with the knees bent and feet about hip-width.',
+      'Place the balls of the feet on a stable edge and secure dumbbells on the thighs.',
+      'Lower the heels slowly into a comfortable calf stretch.',
+      'Press through the balls of the feet to raise the heels fully.',
+      'Pause at the top, then lower without bouncing.',
+    ],
+    formTips: [
+      'Keep the dumbbells secure on the thighs',
+      'Use a controlled calf stretch',
+      'Rise through full range',
+      'Pause at the top',
+      'Keep pressure even across the forefoot',
+    ],
+    commonMistakes: [
+      'Bouncing out of the bottom',
+      'Using partial range of motion',
+      'Rolling the ankles outward',
+      'Letting the dumbbells slide toward the knees',
+      'Rushing the lowering phase',
+    ],
+    progression: [
+      'Bodyweight seated calf raise',
+      'Seated dumbbell calf raise',
+      'Heavier seated dumbbell calf raise',
+      'Single-leg seated dumbbell calf raise',
+    ],
+    regression: [
+      'Flat-floor seated calf raise',
+      'Bodyweight calf raise',
+      'Supported calf raise',
+    ],
+    postureNotes:
+      'Sit tall with the ribs over the pelvis and keep the feet and knees aligned while the ankles move through their full range.',
+    demoLinks: demos('seated dumbbell calf raise'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'wall-tibialis-raise',
+    name: 'Wall Tibialis Raise',
+    category: 'Legs',
+    primaryMuscles: ['Tibialis Anterior'],
+    secondaryMuscles: ['Ankle Dorsiflexors'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue: 'Keep the heels planted and pull the toes toward the shins.',
+    instructions: [
+      'Lean the upper back against a wall and walk the feet slightly forward.',
+      'Stand evenly on both heels with the knees softly bent.',
+      'Lift the toes and forefeet toward the shins as high as possible.',
+      'Pause briefly without shifting the hips away from the wall.',
+      'Lower the forefeet slowly while the heels remain planted.',
+    ],
+    formTips: [
+      'Keep both heels planted',
+      'Lift the toes toward the shins',
+      'Keep pressure even between sides',
+      'Pause at the top',
+      'Lower the forefeet slowly',
+    ],
+    commonMistakes: [
+      'Rocking forward and lifting the heels',
+      'Using momentum instead of ankle motion',
+      'Turning the feet outward',
+      'Shifting the hips during each repetition',
+      'Dropping the toes quickly',
+    ],
+    progression: [
+      'Wall tibialis raise close to the wall',
+      'Wall tibialis raise with feet farther forward',
+      'Single-leg wall tibialis raise',
+      'Paused wall tibialis raise',
+    ],
+    regression: [
+      'Seated toe raise',
+      'Standing toe raise with support',
+      'Short-range wall tibialis raise',
+    ],
+    postureNotes:
+      'Keep the head, ribs, and pelvis stacked against the wall. The movement should come from the ankles rather than rocking the body.',
+    demoLinks: demos('wall tibialis raise'),
+    relatedWorkoutDays: [2],
+  },
+  {
+    id: 'sumo-deadlift',
+    name: 'Sumo Deadlift',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Hamstrings', 'Adductors'],
+    secondaryMuscles: ['Quads', 'Lower Back', 'Core', 'Forearms'],
+    equipment: ['Barbell'],
+    difficulty: 'Intermediate',
+    formCue: 'Brace, push the knees out, and drive the floor away.',
+    instructions: [
+      'Take a comfortable wide stance with the toes turned out and the bar over mid-foot.',
+      'Grip the bar inside the knees, brace, and pull the slack from it.',
+      'Keep the knees tracking the toes as you push the floor away.',
+      'Keep the bar close and rise with the hips and shoulders together.',
+      'Stand tall without leaning back, then lower the bar under control.',
+    ],
+    formTips: [
+      'Use a comfortable wide stance',
+      'Brace before the bar leaves the floor',
+      'Pull the slack from the bar',
+      'Drive the knees with the toes',
+      'Finish tall without leaning back',
+    ],
+    commonMistakes: [
+      'Setting the stance wider than the hips can control',
+      'Knees collapsing inward',
+      'Rounding the lower back off the floor',
+      'Letting the hips shoot up first',
+      'Hyperextending at lockout',
+    ],
+    progression: [
+      'Kettlebell or dumbbell sumo deadlift',
+      'Barbell sumo deadlift',
+      'Paused sumo deadlift',
+      'Heavier barbell sumo deadlift',
+    ],
+    regression: [
+      'Dumbbell sumo deadlift',
+      'Block sumo deadlift',
+      'Hip hinge with dowel',
+    ],
+    postureNotes:
+      'Brace before lifting and keep the spine neutral as the hips and shoulders rise together. Lock out with the glutes, not a backward lean.',
+    demoLinks: demos('barbell sumo deadlift'),
+    relatedWorkoutDays: [6],
+  },
+  {
+    id: 'dumbbell-reverse-lunge',
+    name: 'Dumbbell Reverse Lunge',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Adductors', 'Core'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue: 'Step back with control and drive through the planted front foot.',
+    instructions: [
+      'Stand tall with a dumbbell at each side and the feet hip-width.',
+      'Step one foot back far enough to keep the front foot planted.',
+      'Lower both knees while keeping the hips square and torso controlled.',
+      'Track the front knee in line with the toes.',
+      'Drive through the front foot to return, then repeat on the other side.',
+    ],
+    formTips: [
+      'Take a controlled step back',
+      'Keep the front foot planted',
+      'Track the front knee with the toes',
+      'Keep the hips square',
+      'Drive through the front foot',
+    ],
+    commonMistakes: [
+      'Using a step that is too short',
+      'Letting the front knee cave inward',
+      'Pushing mainly from the back foot',
+      'Twisting the pelvis',
+      'Rushing the return to standing',
+    ],
+    progression: [
+      'Bodyweight reverse lunge',
+      'Dumbbell reverse lunge',
+      'Heavier dumbbell reverse lunge',
+      'Deficit dumbbell reverse lunge',
+    ],
+    regression: [
+      'Supported reverse lunge',
+      'Static split squat',
+      'Low step-up',
+    ],
+    postureNotes:
+      'Keep the ribs stacked, hips square, and front knee aligned. A slight forward torso angle is fine if the spine stays neutral.',
+    demoLinks: demos('dumbbell reverse lunge'),
+    relatedWorkoutDays: [6],
+  },
+  {
+    id: 'heels-elevated-goblet-squat',
+    name: 'Heels-Elevated Goblet Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Glutes', 'Adductors', 'Core'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Hold the weight close, stay tall, and let the knees track forward.',
+    instructions: [
+      'Place both heels evenly on a stable low support with the feet about shoulder-width.',
+      'Hold one dumbbell close to the chest and brace the core.',
+      'Descend between the hips as the knees travel forward with the toes.',
+      'Use only the depth where the feet, knees, and pelvis stay controlled.',
+      'Push through the whole supported foot to stand tall.',
+    ],
+    formTips: [
+      'Elevate both heels evenly',
+      'Keep the dumbbell close to the chest',
+      'Brace before descending',
+      'Track the knees with the toes',
+      'Maintain pelvic control at depth',
+    ],
+    commonMistakes: [
+      'Using an unstable heel support',
+      'Letting the knees collapse inward',
+      'Holding the dumbbell away from the body',
+      'Losing foot pressure at the bottom',
+      'Descending past controlled pelvic range',
+    ],
+    progression: [
+      'Bodyweight heels-elevated squat',
+      'Heels-elevated goblet squat',
+      'Paused heels-elevated goblet squat',
+      'Heavier heels-elevated goblet squat',
+    ],
+    regression: ['Goblet box squat', 'Bodyweight squat', 'Supported squat'],
+    postureNotes:
+      'Stay tall with the ribs over the pelvis and keep the dumbbell close. Stop the descent before the lower back rounds or arches.',
+    demoLinks: demos('heels elevated goblet squat'),
+    relatedWorkoutDays: [6],
+  },
+  {
+    id: 'single-leg-hip-thrust',
+    name: 'Single-Leg Hip Thrust',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core'],
+    equipment: ['Bodyweight', 'Dumbbells', 'Bench'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Keep the pelvis level and finish with the glute, not the lower back.',
+    instructions: [
+      'Set the upper back securely on a bench and plant one foot beneath its knee.',
+      'Lift the other foot and keep the pelvis level before starting.',
+      'Brace the core and drive through the planted foot to raise the hips.',
+      'Squeeze the working glute at the top without arching the lower back.',
+      'Lower under control while keeping both sides of the pelvis even.',
+    ],
+    formTips: [
+      'Secure the upper back on the bench',
+      'Plant the working foot beneath the knee',
+      'Keep the pelvis level',
+      'Drive through the whole foot',
+      'Finish without arching the back',
+    ],
+    commonMistakes: [
+      'Rotating or dropping one side of the pelvis',
+      'Over-arching at the top',
+      'Pushing mostly through the toes',
+      'Placing the working foot too far away',
+      'Rushing the lowering phase',
+    ],
+    progression: [
+      'Bodyweight single-leg hip thrust',
+      'Paused single-leg hip thrust',
+      'Dumbbell single-leg hip thrust',
+      'Heavier single-leg hip thrust',
+    ],
+    regression: ['Glute bridge', 'Hip thrust', 'Single-leg glute bridge'],
+    postureNotes:
+      'Keep the ribs down and pelvis level throughout. Stop at a straight hip line and use the glute instead of hyperextending the lower back.',
+    demoLinks: demos('single leg hip thrust'),
+    relatedWorkoutDays: [6],
+    postureFocus: true,
   },
 
   // ------------------------------------------------------------------ Abs
@@ -1419,7 +4066,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Hanging straight-leg raise',
       'Toes-to-bar',
     ],
-    regression: ['Lying leg raise', 'Reverse crunch', 'Captain-chair knee raise'],
+    regression: [
+      'Lying leg raise',
+      'Reverse crunch',
+      'Captain-chair knee raise',
+    ],
     postureNotes:
       'Curling the pelvis up (posterior tilt) trains the exact control that fixes an arched back. Keep ribs down and avoid swinging.',
     demoLinks: demos('hanging knee raise'),
@@ -1434,7 +4085,8 @@ const baseExerciseLibrary: LibraryExercise[] = [
     secondaryMuscles: ['Hip Flexors'],
     equipment: ['Bodyweight', 'Mat'],
     difficulty: 'Beginner',
-    formCue: 'Press the lower back to the floor, lower legs only as far as you can hold it.',
+    formCue:
+      'Press the lower back to the floor, lower legs only as far as you can hold it.',
     instructions: [
       'Lie on your back with the legs straight.',
       'Press the lower back gently into the floor.',
@@ -1683,6 +4335,140 @@ const baseExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [1, 6],
     postureFocus: true,
   },
+  {
+    id: 'side-plank-reach-through',
+    name: 'Side-Plank Reach-Through',
+    category: 'Abs',
+    primaryMuscles: ['Obliques', 'Core'],
+    secondaryMuscles: ['Shoulders', 'Glutes'],
+    equipment: ['Bodyweight', 'Mat'],
+    difficulty: 'Intermediate',
+    formCue:
+      'Keep the hips lifted while the upper torso rotates under control.',
+    instructions: [
+      'Set the supporting elbow directly under the shoulder.',
+      'Lift the hips into a straight side-plank position.',
+      'Reach the top arm under the ribs by rotating the upper torso.',
+      'Return to a stable open position without dropping the hips.',
+      'Complete the repetitions, then switch sides.',
+    ],
+    formTips: [
+      'Press the floor away through the forearm',
+      'Keep the hips high and stacked',
+      'Rotate through the upper torso',
+      'Move slowly in both directions',
+      'Breathe out during the reach',
+    ],
+    commonMistakes: [
+      'Letting the hips sag',
+      'Collapsing into the supporting shoulder',
+      'Twisting only from the reaching arm',
+      'Rushing through the rotation',
+      'Rolling the pelvis toward the floor',
+    ],
+    progression: [
+      'Knee side-plank reach-through',
+      'Side-plank reach-through',
+      'Feet-stacked reach-through',
+      'Slow reach-through with a pause',
+    ],
+    regression: [
+      'Knee side plank',
+      'Static side plank',
+      'Short-range reach-through',
+    ],
+    postureNotes:
+      'Keep the ribs stacked over the pelvis and rotate through the upper torso while the waist stays lifted. This builds lateral core control without side-bending the lower back.',
+    demoLinks: demos('side plank reach through'),
+    relatedWorkoutDays: [4],
+    postureFocus: true,
+  },
+  {
+    id: 'hanging-leg-raise',
+    name: 'Hanging Leg Raise',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Forearms', 'Lats'],
+    equipment: ['Pull-up bar', 'Bodyweight'],
+    difficulty: 'Advanced',
+    formCue: 'Start from a still hang, curl the pelvis up, and never swing.',
+    instructions: [
+      'Take a secure overhand grip and begin from a still active hang.',
+      'Brace the abs and gently tuck the pelvis before lifting.',
+      'Raise the straight legs only as high as the torso stays controlled.',
+      'Pause briefly without leaning back or swinging.',
+      'Lower slowly to a still hang before the next repetition.',
+    ],
+    formTips: [
+      'Curl the pelvis toward the ribs',
+      'Keep the shoulders active',
+      'Use a controlled range',
+      'Lower more slowly than you lift',
+      'Reset any swing between reps',
+    ],
+    commonMistakes: [
+      'Swinging for momentum',
+      'Lifting only from the hip flexors',
+      'Arching and flaring the ribs',
+      'Dropping the legs quickly',
+      'Continuing after the grip fails',
+    ],
+    progression: [
+      'Hanging knee raise',
+      'Bent-leg hanging raise',
+      'Hanging straight-leg raise',
+      'Toes-to-bar',
+    ],
+    regression: ['Hanging knee raise', 'Lying leg raise', 'Reverse crunch'],
+    postureNotes:
+      'Lead with a pelvic curl and keep the ribs down. If the lower back arches or the body swings, bend the knees or shorten the range.',
+    demoLinks: demos('hanging straight leg raise'),
+    relatedWorkoutDays: [5],
+    postureFocus: true,
+  },
+  {
+    id: 'kneeling-barbell-rollout',
+    name: 'Kneeling Barbell Rollout',
+    category: 'Abs',
+    primaryMuscles: ['Core', 'Abs'],
+    secondaryMuscles: ['Lats', 'Shoulders', 'Triceps'],
+    equipment: ['Barbell', 'Mat'],
+    difficulty: 'Intermediate',
+    formCue: 'Roll only as far as the ribs and pelvis stay stacked.',
+    instructions: [
+      'Confirm the barbell plates roll securely and kneel on a mat.',
+      'Grip the bar, tuck the pelvis slightly, and brace the abs.',
+      'Roll forward slowly while keeping the hips and ribs connected.',
+      'Stop before the lower back begins to arch.',
+      'Tighten the abs and lats to pull the bar back to the start.',
+    ],
+    formTips: [
+      'Test the bar and plates before starting',
+      'Keep the ribs down',
+      'Use a slight pelvic tuck',
+      'Reach only within your control',
+      'Pull back with the abs and lats',
+    ],
+    commonMistakes: [
+      'Using unsecured or non-rolling plates',
+      'Letting the lower back sag',
+      'Pushing the hips forward without the shoulders',
+      'Rolling farther than the core can control',
+      'Jerking the bar back with momentum',
+    ],
+    progression: [
+      'Short-range kneeling rollout',
+      'Kneeling barbell rollout',
+      'Longer-range rollout with a pause',
+      'Standing partial rollout',
+    ],
+    regression: ['Long-lever plank', 'Short-range barbell rollout', 'Dead bug'],
+    postureNotes:
+      'This is an anti-extension drill: keep the ribs down and pelvis lightly tucked. End the rollout as soon as the lower back starts to arch.',
+    demoLinks: demos('kneeling barbell rollout'),
+    relatedWorkoutDays: [6],
+    postureFocus: true,
+  },
 
   // -------------------------------------------------------------- Posture
   {
@@ -1764,7 +4550,11 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'Elevated back foot (couch stretch)',
       'Add overhead reach',
     ],
-    regression: ['Standing hip flexor stretch', 'Shorter hold', 'Supported stretch'],
+    regression: [
+      'Standing hip flexor stretch',
+      'Shorter hold',
+      'Supported stretch',
+    ],
     postureNotes:
       'Tight hip flexors pull the pelvis into an arch. Squeezing the glute and tucking the pelvis is what opens the front of the hip — do not just lean forward and arch.',
     demoLinks: demos('kneeling hip flexor stretch'),
@@ -1812,6 +4602,192 @@ const baseExerciseLibrary: LibraryExercise[] = [
       'This is the plank tuned for arched-back correction: the glute squeeze drives a posterior tilt so the lower back stays flat. Ribs down, abs tight, glutes squeezed.',
     demoLinks: demos('plank with posterior pelvic tilt glute squeeze'),
     relatedWorkoutDays: [6],
+    postureFocus: true,
+  },
+  {
+    id: 'ninety-ninety-hip-lift',
+    name: '90/90 Hip Lift with Full Exhale',
+    category: 'Posture',
+    primaryMuscles: ['Hamstrings', 'Lower Abs'],
+    secondaryMuscles: ['Glutes', 'Breathing Muscles'],
+    equipment: ['Bodyweight', 'Bench', 'Mat'],
+    difficulty: 'Beginner',
+    formCue:
+      'Dig the heels down, tip the pelvis back, and fully exhale the ribs down.',
+    instructions: [
+      'Lie on your back with the hips and knees bent to 90 degrees.',
+      'Support both feet on a wall or bench and gently pull the heels down.',
+      'Tip the pelvis back until the lower back rests softly on the mat.',
+      'Exhale fully until the lower ribs settle, then pause briefly.',
+      'Inhale quietly without losing the rib and pelvic position.',
+    ],
+    formTips: [
+      'Keep light pressure through the heels',
+      'Feel the hamstrings, not the lower back',
+      'Use a long complete exhale',
+      'Keep the neck and jaw relaxed',
+      'Maintain the pelvic position as you inhale',
+    ],
+    commonMistakes: [
+      'Pushing into a high bridge',
+      'Flaring the ribs during the inhale',
+      'Pressing through the toes instead of the heels',
+      'Tensing the neck and shoulders',
+      'Losing the pelvic tuck between breaths',
+    ],
+    progression: [
+      'Supine full-exhale breathing',
+      '90/90 hip lift',
+      '90/90 hip lift with reach',
+      'Alternating 90/90 heel pressure',
+    ],
+    regression: [
+      'Posterior pelvic tilt',
+      'Feet-on-bench breathing',
+      'Shorter exhales',
+    ],
+    postureNotes:
+      'The heel pull and full exhale bring the pelvis and lower ribs toward a stacked position. Keep the movement gentle; this is a breathing and control drill, not a high bridge.',
+    demoLinks: demos('90 90 hip lift full exhale'),
+    relatedWorkoutDays: [1, 4],
+    postureFocus: true,
+  },
+  {
+    id: 'bird-dog-with-pause',
+    name: 'Bird Dog with Pause',
+    category: 'Posture',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Glutes', 'Back', 'Shoulders'],
+    equipment: ['Bodyweight', 'Mat'],
+    difficulty: 'Beginner',
+    formCue: 'Reach long, pause, and keep the pelvis square to the floor.',
+    instructions: [
+      'Set the hands under the shoulders and knees under the hips.',
+      'Brace lightly with the spine in a neutral position.',
+      'Reach one arm and the opposite leg away from the body.',
+      'Pause without rotating the pelvis or arching the lower back.',
+      'Return slowly and alternate sides.',
+    ],
+    formTips: [
+      'Reach long instead of lifting high',
+      'Keep both hip bones facing the floor',
+      'Press the supporting hand into the mat',
+      'Keep the ribs down',
+      'Own the pause before returning',
+    ],
+    commonMistakes: [
+      'Opening the pelvis to the side',
+      'Arching to lift the leg higher',
+      'Shrugging into the supporting shoulder',
+      'Moving too quickly to control the pause',
+      'Shifting all the weight to one side',
+    ],
+    progression: [
+      'Arm-only or leg-only bird dog',
+      'Bird dog',
+      'Bird dog with pause',
+      'Bird dog with elbow-to-knee return',
+    ],
+    regression: ['Quadruped brace', 'Arm-only bird dog', 'Leg-only bird dog'],
+    postureNotes:
+      'Keep the ribs and pelvis quiet while the limbs move. Reach lower and longer if lifting the leg makes the back arch.',
+    demoLinks: demos('bird dog exercise with pause'),
+    relatedWorkoutDays: [2],
+    postureFocus: true,
+  },
+  {
+    id: 'glute-bridge-march',
+    name: 'Glute Bridge March',
+    category: 'Posture',
+    primaryMuscles: ['Glutes', 'Core'],
+    secondaryMuscles: ['Hamstrings', 'Hip Flexors'],
+    equipment: ['Bodyweight', 'Mat'],
+    difficulty: 'Intermediate',
+    formCue: 'Hold the bridge level while one foot lifts at a time.',
+    instructions: [
+      'Lie on your back with the knees bent and feet planted.',
+      'Exhale, keep the ribs down, and lift into a glute bridge.',
+      'Brace before lifting one foot a few centimetres from the floor.',
+      'Set it down softly, then alternate without shifting the pelvis.',
+      'Lower the hips when you can no longer keep them level.',
+    ],
+    formTips: [
+      'Squeeze the glutes before marching',
+      'Keep both hip bones level',
+      'Use a small controlled foot lift',
+      'Keep the ribs down',
+      'Reset the bridge height as needed',
+    ],
+    commonMistakes: [
+      'Letting one hip drop',
+      'Arching the lower back at the top',
+      'Lifting the knee too far toward the chest',
+      'Pushing through the toes',
+      'Marching faster than the pelvis can stay steady',
+    ],
+    progression: [
+      'Glute bridge',
+      'Bridge weight shift',
+      'Glute bridge march',
+      'Long-pause bridge march',
+    ],
+    regression: [
+      'Posterior pelvic tilt',
+      'Glute bridge',
+      'Alternating heel lift',
+    ],
+    postureNotes:
+      'Keep the ribs down and pelvis level so the glutes and core control the march. Reduce the foot lift if the lower back arches or the hips twist.',
+    demoLinks: demos('glute bridge march'),
+    relatedWorkoutDays: [4],
+    postureFocus: true,
+  },
+  {
+    id: 'couch-hip-flexor-stretch',
+    name: 'Couch Hip-Flexor Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Hip Flexors', 'Quads'],
+    secondaryMuscles: ['Glutes', 'Core'],
+    equipment: ['Bodyweight', 'Bench', 'Mat'],
+    difficulty: 'Beginner',
+    formCue:
+      'Tuck the pelvis and squeeze the rear glute before moving upright.',
+    instructions: [
+      'Pad the back knee and place the rear foot against a wall or bench.',
+      'Set the front foot far enough forward to feel stable.',
+      'Gently tuck the pelvis and squeeze the rear-leg glute.',
+      'Move the torso upright only until the front hip and thigh stretch.',
+      'Breathe slowly, then change sides.',
+    ],
+    formTips: [
+      'Use generous padding under the knee',
+      'Tuck the pelvis before moving upright',
+      'Squeeze the rear-leg glute',
+      'Keep the ribs down',
+      'Use support if balance is limiting',
+    ],
+    commonMistakes: [
+      'Arching the lower back for more range',
+      'Placing the front foot too close',
+      'Forcing the rear knee into discomfort',
+      'Letting the ribs flare',
+      'Bouncing deeper into the stretch',
+    ],
+    progression: [
+      'Half-kneeling hip-flexor stretch',
+      'Supported couch stretch',
+      'Upright couch stretch',
+      'Couch stretch with overhead reach',
+    ],
+    regression: [
+      'Standing hip-flexor stretch',
+      'Half-kneeling stretch',
+      'Rear foot kept lower',
+    ],
+    postureNotes:
+      'The pelvic tuck, not a lower-back arch, creates the useful hip-flexor stretch. Stay tall only within the range where the ribs remain stacked.',
+    demoLinks: demos('couch hip flexor stretch'),
+    relatedWorkoutDays: [4],
     postureFocus: true,
   },
 
@@ -1942,45 +4918,221 @@ const baseExerciseLibrary: LibraryExercise[] = [
     demoLinks: demos('VR boxing workout quest 2'),
     relatedWorkoutDays: [6],
   },
+  {
+    id: 'suitcase-carry',
+    name: 'Suitcase Carry',
+    category: 'Conditioning',
+    primaryMuscles: ['Obliques', 'Grip'],
+    secondaryMuscles: ['Traps', 'Forearms', 'Glutes'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue: 'Walk tall and resist leaning toward or away from the load.',
+    instructions: [
+      'Lift one dumbbell safely and hold it beside one thigh.',
+      'Stand tall with level shoulders and the ribs over the pelvis.',
+      'Walk with short controlled steps without leaning or swaying.',
+      'Turn carefully while keeping the dumbbell close and still.',
+      'Set the weight down safely and repeat on the other side.',
+    ],
+    formTips: [
+      'Choose a load you can control without leaning',
+      'Keep both shoulders level',
+      'Take quiet, deliberate steps',
+      'Keep the free hand relaxed',
+      'Use equal time on both sides',
+    ],
+    commonMistakes: [
+      'Leaning toward the dumbbell',
+      'Leaning away to compensate',
+      'Letting the weight swing',
+      'Taking rushed or uneven steps',
+      'Shrugging the loaded shoulder',
+    ],
+    progression: [
+      'Static suitcase hold',
+      'Light suitcase carry',
+      'Heavier suitcase carry',
+      'Longer suitcase carry',
+    ],
+    regression: ['Lighter dumbbell', 'Shorter carry', 'Static suitcase hold'],
+    postureNotes:
+      'The torso should remain vertical with the ribs stacked over the pelvis. Reduce the load if you cannot resist side-bending in either direction.',
+    demoLinks: demos('dumbbell suitcase carry'),
+    relatedWorkoutDays: [3],
+    postureFocus: true,
+  },
+  {
+    id: 'easy-indoor-swimming',
+    name: 'Easy Indoor Swimming',
+    category: 'Conditioning',
+    primaryMuscles: ['Heart & Lungs', 'Back'],
+    secondaryMuscles: ['Shoulders', 'Legs', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue: 'Use smooth strokes and an easy pace with relaxed breathing.',
+    instructions: [
+      'Enter the pool safely and begin with a few easy lengths.',
+      'Choose a comfortable stroke and a conversational effort.',
+      'Exhale steadily in the water and keep the neck relaxed.',
+      'Rest or change strokes before technique becomes strained.',
+      'Finish with easy lengths and exit the pool carefully.',
+    ],
+    formTips: [
+      'Keep the effort easy and repeatable',
+      'Use smooth unhurried strokes',
+      'Exhale steadily underwater',
+      'Relax the neck and shoulders',
+      'Take rests whenever needed',
+    ],
+    commonMistakes: [
+      'Turning a recovery swim into hard intervals',
+      'Holding the breath underwater',
+      'Craning the neck to look forward',
+      'Forcing a painful shoulder range',
+      'Continuing after technique breaks down',
+    ],
+    progression: [
+      'Short easy swim with frequent rests',
+      'Continuous easy swimming',
+      'Longer easy swimming',
+      'Brief moderate intervals on a training day',
+    ],
+    regression: [
+      'Shorter pool session',
+      'More rest between lengths',
+      'Easy water walking',
+    ],
+    postureNotes:
+      'Keep the head aligned with the torso and let the body stay long in the water. Change stroke or stop if the neck, shoulders, or lower back become uncomfortable.',
+    demoLinks: demos('easy swimming technique recovery workout'),
+    relatedWorkoutDays: [4],
+  },
+  {
+    id: 'farmer-carry',
+    name: 'Farmer Carry',
+    category: 'Conditioning',
+    primaryMuscles: ['Grip', 'Traps'],
+    secondaryMuscles: ['Forearms', 'Core', 'Glutes'],
+    equipment: ['Dumbbells'],
+    difficulty: 'Intermediate',
+    formCue: 'Carry equal loads with level shoulders and short steady steps.',
+    instructions: [
+      'Place equal dumbbells beside the feet and lift them with a safe hinge.',
+      'Stand tall with the weights beside the thighs.',
+      'Brace lightly and walk with short steady steps.',
+      'Keep the shoulders level and the weights from hitting the legs.',
+      'Stop under control and set both weights down safely.',
+    ],
+    formTips: [
+      'Use equal controllable loads',
+      'Keep the ribs stacked over the pelvis',
+      'Walk tall without swaying',
+      'Keep the weights close and quiet',
+      'Maintain a strong full-hand grip',
+    ],
+    commonMistakes: [
+      'Using a load that shortens posture',
+      'Shrugging or rounding the shoulders',
+      'Taking long unstable steps',
+      'Letting the dumbbells swing into the legs',
+      'Dropping the weights at the finish',
+    ],
+    progression: [
+      'Light farmer hold',
+      'Light farmer carry',
+      'Heavier farmer carry',
+      'Longer farmer carry',
+    ],
+    regression: ['Lighter dumbbells', 'Shorter carry', 'Static farmer hold'],
+    postureNotes:
+      'Stay tall with the ribs stacked and shoulders level. The load is too heavy if it pulls the torso forward or makes each step sway.',
+    demoLinks: demos('dumbbell farmer carry'),
+    relatedWorkoutDays: [6],
+    postureFocus: true,
+  },
+  {
+    id: 'light-walking-only',
+    name: 'Light Walking',
+    category: 'Conditioning',
+    primaryMuscles: ['Heart & Lungs', 'Legs'],
+    secondaryMuscles: ['Calves', 'Glutes'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue: 'Keep the pace easy, posture relaxed, and stride natural.',
+    instructions: [
+      'Choose a flat, comfortable route or walking surface.',
+      'Start at an easy pace that supports relaxed breathing.',
+      'Walk tall with the shoulders loose and arms swinging naturally.',
+      'Keep the stride comfortable rather than reaching forward.',
+      'Shorten or skip the walk if full rest would aid recovery more.',
+    ],
+    formTips: [
+      'Keep the pace conversational',
+      'Use a relaxed natural stride',
+      'Let the shoulders stay loose',
+      'Choose a flat route when fatigued',
+      'Treat the walk as recovery',
+    ],
+    commonMistakes: [
+      'Walking hard enough to add fatigue',
+      'Over-striding',
+      'Hunching over a phone',
+      'Ignoring foot, shin, or joint pain',
+      'Walking when complete rest is needed',
+    ],
+    progression: [
+      'Five-minute easy stroll',
+      'Short recovery walk',
+      'Twenty-to-forty-minute easy walk',
+      'Longer easy walk when well recovered',
+    ],
+    regression: ['Shorter walk', 'Slower flat walk', 'Full rest day'],
+    postureNotes:
+      'Walk tall without forcing a rigid posture. Keep the ribs comfortably over the pelvis and avoid looking down at a phone for long periods.',
+    demoLinks: demos('easy recovery walking posture'),
+    relatedWorkoutDays: [7],
+  },
+  ...v21ExerciseLibrary,
 ]
 
 // ---------------------------------------------------------------------------
 // Exercise media (Step 18)
 //
 // One place to add or replace images and videos. Keyed by exercise id.
-//  - imageUrl: local placeholder now ("/exercise-placeholders/*.svg" works
-//    offline); swap in your own photo URL later.
+//  - Every bundled exercise has a matching PNG at
+//    "/exercise-images/<exercise-id>.png" so the full library works offline.
+//    An explicit non-placeholder imageUrl below can still override it.
 //  - videoUrl: MUST be an embeddable URL (https://www.youtube.com/embed/ID).
 //    Normal watch/youtu.be/shorts URLs are auto-converted by mediaUtils, but
 //    never put a search/results URL here.
-// Exercises without an entry fall back to their category placeholder image
-// and show "Video guide not added yet".
+// Exercises without an entry still receive their matching bundled image and
+// show "Video guide not added yet".
 // ---------------------------------------------------------------------------
 const exerciseMedia: Record<string, ExerciseMedia> = {
   // ---------------------------------------------------------------- Chest
   'bench-press': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/bench-press.png',
     imageAlt: 'Barbell bench press setup on a flat bench',
     videoUrl: 'https://www.youtube.com/embed/4Y2ZdHCOXok',
     videoType: 'youtube',
     videoTitle: 'Bench Press Form Guide',
   },
   'weighted-push-up': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/weighted-push-up.png',
     imageAlt: 'Push-up with a weighted backpack on the upper back',
     videoUrl: 'https://www.youtube.com/embed/_M0YXeKNB5s',
     videoType: 'youtube',
     videoTitle: 'Weighted Push-up (Backpack) Form Guide',
   },
   'feet-elevated-push-up': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/feet-elevated-push-up.png',
     imageAlt: 'Decline push-up with feet elevated on a bench',
     videoUrl: 'https://www.youtube.com/embed/SKPab2YC8BE',
     videoType: 'youtube',
     videoTitle: 'Feet-elevated (Decline) Push-up Form Guide',
   },
   dips: {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/dips.png',
     imageAlt: 'Chest dips on parallel bars with a slight forward lean',
     videoUrl: 'https://www.youtube.com/embed/yN6Q1UI_xkE',
     videoType: 'youtube',
@@ -2217,65 +5369,110 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
   },
 }
 
-/** Default library with media merged in. */
+/** Default library with its bundled image plus any richer media metadata. */
 export const exerciseLibrary: LibraryExercise[] = baseExerciseLibrary.map(
-  (exercise) => ({
-    ...exercise,
-    videoType: 'none',
-    ...exerciseMedia[exercise.id],
-  }),
+  (exercise) => {
+    const media = exerciseMedia[exercise.id]
+    const exerciseImageUrl = exercise.imageUrl?.trim()
+    const configuredImageUrl = media?.imageUrl?.trim() || exerciseImageUrl
+    const usesLegacyPlaceholder = configuredImageUrl?.startsWith(
+      '/exercise-placeholders/',
+    )
+    const hasExerciseLevelPlaceholder =
+      Boolean(exerciseImageUrl) && configuredImageUrl === exerciseImageUrl
+
+    return {
+      ...exercise,
+      videoType: 'none',
+      ...media,
+      imageUrl:
+        configuredImageUrl &&
+        (!usesLegacyPlaceholder || hasExerciseLevelPlaceholder)
+          ? configuredImageUrl
+          : `/exercise-images/${exercise.id}.png`,
+      imageAlt:
+        media?.imageAlt?.trim() ||
+        exercise.imageAlt?.trim() ||
+        `${exercise.name} exercise form demonstration`,
+    }
+  },
 )
+
+/**
+ * Conservative legacy IDs approved for historical performance identity.
+ * Guide-only compatibility mappings stay in workoutIdToLibraryId below and
+ * must not automatically combine strength records.
+ */
+export const historicalExerciseIdAliases: Readonly<Record<string, string>> =
+  Object.freeze({
+    'pull-ups': 'pull-up',
+    'chin-ups': 'chin-up',
+    'barbell-row-volume': 'barbell-row',
+    'dead-bug-rounds': 'dead-bug',
+    'side-plank-rounds': 'side-plank',
+    'lateral-raise': 'dumbbell-lateral-raise',
+    'hanging-knee-raise-leg-raise': 'hanging-knee-raise',
+    'dumbbell-fly-squeeze-press': 'dumbbell-fly',
+    'triceps-extension-skull-crusher': 'triceps-extension',
+    'optional-vr-boxing-skipping-rope': 'vr-boxing',
+    'pike-push-up-dumbbell-shoulder-press': 'pike-push-up',
+    'weighted-glute-bridge-hip-thrust': 'hip-thrust',
+  })
 
 // Map from workoutPlan.ts exercise ids to library exercise ids. Some workout
 // entries pair two movements (e.g. "Triceps Extension / Skull Crusher"); those
 // point at the primary library exercise for the guide.
 const workoutIdToLibraryId: Record<string, string> = {
+  ...historicalExerciseIdAliases,
   'bench-press': 'bench-press',
   'weighted-push-up': 'weighted-push-up',
   dips: 'dips',
   'incline-dumbbell-press': 'incline-dumbbell-press',
   'dumbbell-lateral-raise': 'dumbbell-lateral-raise',
-  'lateral-raise': 'dumbbell-lateral-raise',
   'diamond-push-up': 'diamond-push-up',
   'dead-bug': 'dead-bug',
-  'dead-bug-rounds': 'dead-bug',
-  'pull-ups': 'pull-up',
   'barbell-row': 'barbell-row',
-  'barbell-row-volume': 'barbell-row',
   'one-arm-dumbbell-row': 'one-arm-dumbbell-row',
-  'chin-ups': 'chin-up',
   'rear-delt-raise': 'rear-delt-raise',
   'barbell-dumbbell-curl': 'barbell-curl',
   'hollow-body-hold': 'hollow-body-hold',
   squat: 'squat',
   'romanian-deadlift': 'romanian-deadlift',
   'bulgarian-split-squat': 'bulgarian-split-squat',
-  'weighted-glute-bridge-hip-thrust': 'hip-thrust',
   'glute-bridge': 'glute-bridge',
   'calf-raise': 'calf-raise',
   'hanging-knee-raise': 'hanging-knee-raise',
-  'hanging-knee-raise-leg-raise': 'hanging-knee-raise',
   'side-plank': 'side-plank',
-  'side-plank-rounds': 'side-plank',
   'hip-flexor-stretch': 'hip-flexor-stretch',
   'feet-elevated-push-up': 'feet-elevated-push-up',
-  'dumbbell-fly-squeeze-press': 'dumbbell-fly',
-  'pike-push-up-dumbbell-shoulder-press': 'pike-push-up',
   'posterior-pelvic-tilt': 'posterior-pelvic-tilt',
   'weighted-pull-up': 'weighted-pull-up',
   'dumbbell-pullover': 'dumbbell-pullover',
   'inverted-row': 'inverted-row',
   'hammer-curl': 'hammer-curl',
-  'triceps-extension-skull-crusher': 'triceps-extension',
   'reverse-crunch': 'reverse-crunch',
   'plank-with-glute-squeeze': 'plank-with-glute-squeeze',
   'treadmill-incline-walk': 'treadmill-incline-walk',
-  'optional-vr-boxing-skipping-rope': 'vr-boxing',
 }
 
-const exerciseById = new Map(exerciseLibrary.map((exercise) => [exercise.id, exercise]))
+/**
+ * Defensive copy of the explicit workout-plan ID compatibility map.
+ *
+ * Historical identity resolution reuses this list so legacy plan IDs have one
+ * source of truth. Callers receive a new object and cannot mutate library
+ * lookup behavior.
+ */
+export function getHistoricalExerciseIdAliases(): Record<string, string> {
+  return { ...historicalExerciseIdAliases }
+}
 
-export function getLibraryExerciseById(id: string): LibraryExercise | undefined {
+const exerciseById = new Map(
+  exerciseLibrary.map((exercise) => [exercise.id, exercise]),
+)
+
+export function getLibraryExerciseById(
+  id: string,
+): LibraryExercise | undefined {
   return exerciseById.get(id)
 }
 
