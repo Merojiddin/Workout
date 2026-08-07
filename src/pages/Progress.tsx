@@ -13,6 +13,7 @@ import { ProgressPhotosCard } from '../components/ProgressPhotosCard'
 import { ProgressionSuggestionCard } from '../components/ProgressionSuggestionCard'
 import { WorkoutDetailModal } from '../components/WorkoutDetailModal'
 import { WorkoutHistoryTable } from '../components/WorkoutHistoryTable'
+import { getHistoricalExerciseCatalog } from '../data/exerciseIdentity'
 import type { WorkoutSession } from '../data/workoutSessions'
 import { exportWorkoutSessionsCSV } from '../utils/exportUtils'
 import {
@@ -30,7 +31,7 @@ import {
   isWorkoutCompleted,
 } from '../utils/progressUtils'
 import {
-  getCustomWorkoutPlan,
+  getEffectiveExerciseLibrary,
   getUserProfileSettings,
 } from '../utils/settingsUtils'
 import {
@@ -45,7 +46,9 @@ import {
   getNutritionLogs,
   getWeeklyNutritionSummary,
 } from '../utils/nutritionUtils'
-import { getSuggestionForExerciseName } from '../utils/progressionUtils'
+import { getProgressionSuggestion } from '../utils/progressionUtils'
+import { getExerciseLoggingMode } from '../utils/exerciseLoggingUtils'
+import { getActiveWorkoutProgram } from '../utils/activeWorkoutProgram'
 import { NutritionChart } from '../components/NutritionChart'
 import type { PageId } from '../types/navigation'
 
@@ -65,19 +68,48 @@ export function Progress({ onNavigate }: ProgressProps) {
   const [selectedSession, setSelectedSession] = useState<WorkoutSession | null>(
     null,
   )
-  const activePlan = useMemo(() => getCustomWorkoutPlan(), [])
-  const settings = useMemo(() => getUserProfileSettings(), [])
-  const trackedExercises = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          activePlan.flatMap((day: any) =>
-            day.exercises.map((exercise: any) => exercise.name),
-          ),
-        ),
-      ),
-    [activePlan],
+  const [selectedExerciseKey, setSelectedExerciseKey] = useState('')
+  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const activePlan = activeProgram.days
+  const identityExerciseContainers = useMemo(
+    () => [...activePlan, ...activeProgram.standaloneWorkouts],
+    [activePlan, activeProgram.standaloneWorkouts],
   )
+  const effectiveExerciseLibrary = useMemo(
+    () => getEffectiveExerciseLibrary(),
+    [],
+  )
+  const settings = useMemo(() => getUserProfileSettings(), [])
+  const exerciseCatalog = useMemo(
+    () =>
+      getHistoricalExerciseCatalog(sessions, activePlan, {
+        library: effectiveExerciseLibrary,
+      }),
+    [activePlan, effectiveExerciseLibrary, sessions],
+  )
+  const activeExerciseCatalog = useMemo(
+    () => exerciseCatalog.filter((exercise) => exercise.active),
+    [exerciseCatalog],
+  )
+  const selectedExercise = useMemo(() => {
+    const selected = exerciseCatalog.find(
+      (exercise) => exercise.key === selectedExerciseKey,
+    )
+    if (selected) {
+      return selected
+    }
+
+    return (
+      exerciseCatalog.find(
+        (exercise) =>
+          exercise.active &&
+          getExerciseLoggingMode({
+            targetDuration: exercise.targetDuration,
+            targetReps: exercise.targetReps,
+          }) === 'reps',
+      ) ?? exerciseCatalog[0] ?? null
+    )
+  }, [exerciseCatalog, selectedExerciseKey])
 
   const completedSessions = useMemo(
     () => sessions.filter(isWorkoutCompleted),
@@ -101,8 +133,14 @@ export function Progress({ onNavigate }: ProgressProps) {
     [sessions],
   )
   const muscleVolume = useMemo(
-    () => getWeeklyMuscleVolume(sessions, activePlan),
-    [activePlan, sessions],
+    () =>
+      getWeeklyMuscleVolume(
+        sessions,
+        activePlan,
+        new Date(),
+        effectiveExerciseLibrary,
+      ),
+    [activePlan, effectiveExerciseLibrary, sessions],
   )
   const latestWorkout = getLatestWorkoutSession(sessions)
   const hasWorkoutData = completedSessions.length > 0
@@ -131,10 +169,31 @@ export function Progress({ onNavigate }: ProgressProps) {
   )
   const progressionSuggestions = useMemo(
     () =>
-      trackedExercises.map((exerciseName) =>
-        getSuggestionForExerciseName(exerciseName, sessions, activePlan),
-      ),
-    [activePlan, sessions, trackedExercises],
+      activeExerciseCatalog.map((catalogExercise) => {
+        const planExercise = activePlan
+          .flatMap((day) => day.exercises)
+          .find((exercise) => exercise.id === catalogExercise.exerciseId)
+
+        return {
+          key: catalogExercise.key,
+          suggestion: getProgressionSuggestion(
+            planExercise ?? {
+              duration: catalogExercise.targetDuration,
+              id:
+                catalogExercise.exerciseId ??
+                catalogExercise.canonicalId ??
+                undefined,
+              muscleGroup: catalogExercise.muscleGroup,
+              name: catalogExercise.displayName,
+              repRange: catalogExercise.targetReps,
+              sets: catalogExercise.targetSets,
+            },
+            sessions,
+            { library: effectiveExerciseLibrary },
+          ),
+        }
+      }),
+    [activeExerciseCatalog, activePlan, effectiveExerciseLibrary, sessions],
   )
 
   function handleAddDemoData() {
@@ -239,9 +298,9 @@ export function Progress({ onNavigate }: ProgressProps) {
         </div>
         {hasWorkoutData ? (
           <div className="progression-grid">
-            {progressionSuggestions.map((suggestion) => (
+            {progressionSuggestions.map(({ key, suggestion }) => (
               <ProgressionSuggestionCard
-                key={suggestion.exerciseName}
+                key={key}
                 suggestion={suggestion}
               />
             ))}
@@ -257,21 +316,58 @@ export function Progress({ onNavigate }: ProgressProps) {
         <div className="section-title-row">
           <div>
             <p className="eyebrow">Strength Progress</p>
-            <h2>Important exercises</h2>
+            <h2>Exercise history</h2>
           </div>
         </div>
-        <div className="chart-grid">
-          {trackedExercises.map((exerciseName) => (
-            <ProgressChart
-              data={getExerciseProgress(sessions, exerciseName)}
-              dataKey="value"
-              emptyMessage={`No ${exerciseName} data yet.`}
-              key={exerciseName}
-              title={exerciseName}
-              valueLabel="Best result"
-            />
-          ))}
-        </div>
+        {selectedExercise ? (
+          <>
+            <label className="settings-field settings-field--wide">
+              Exercise
+              <select
+                className="settings-input"
+                onChange={(event) => setSelectedExerciseKey(event.target.value)}
+                value={selectedExercise.key}
+              >
+                {exerciseCatalog.map((exercise) => (
+                  <option key={exercise.key} value={exercise.key}>
+                    {exercise.displayName}
+                    {exercise.archived ? ' — Archived' : ''}
+                    {exercise.unknown ? ' — Unknown exercise' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="chart-grid">
+              <ProgressChart
+                badges={[
+                  ...(selectedExercise.archived ? ['Archived'] : []),
+                  ...(selectedExercise.unknown ? ['Unknown exercise'] : []),
+                ]}
+                data={getExerciseProgress(
+                  sessions,
+                  selectedExercise,
+                  effectiveExerciseLibrary,
+                )}
+                dataKey="value"
+                description={
+                  selectedExercise.archived
+                    ? 'Not in the current program. Historical data remains available.'
+                    : selectedExercise.unknown
+                      ? 'No shared Exercise Library or explicit alias match was found.'
+                      : undefined
+                }
+                emptyMessage={`No repetition-based ${selectedExercise.displayName} data yet.`}
+                key={selectedExercise.key}
+                title={selectedExercise.displayName}
+                valueLabel="Best result"
+              />
+            </div>
+          </>
+        ) : (
+          <div className="chart-empty-state">
+            No active or historical exercises found yet.
+          </div>
+        )}
       </section>
 
       <section className="progress-section progress-two-column">
@@ -381,12 +477,16 @@ export function Progress({ onNavigate }: ProgressProps) {
       ) : null}
 
       <WorkoutHistoryTable
+        activePlan={identityExerciseContainers}
+        exerciseLibrary={effectiveExerciseLibrary}
         onSelectSession={setSelectedSession}
         sessions={sortedSessions}
       />
 
       {selectedSession ? (
         <WorkoutDetailModal
+          activePlan={identityExerciseContainers}
+          exerciseLibrary={effectiveExerciseLibrary}
           onClose={() => setSelectedSession(null)}
           session={selectedSession}
         />

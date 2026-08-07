@@ -1,5 +1,14 @@
-import { getWorkoutForDate } from './settingsUtils'
-import { getSuggestionForExerciseName } from './progressionUtils'
+import {
+  getEffectiveExerciseLibrary,
+  getWorkoutForDate,
+} from './settingsUtils'
+import { getProgressionSuggestion } from './progressionUtils'
+import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
+import {
+  getActiveWorkoutProgram,
+  getProgramBenchmarkExercises,
+  getProgramBenchmarkExercisesWithFallback,
+} from './activeWorkoutProgram'
 import {
   calculateWeeklyScore,
   formatWeekRange,
@@ -14,7 +23,6 @@ import {
   getStrengthComparison,
   getWeekRange,
   getWorkoutCompletionSummary,
-  weeklyReviewExerciseNames,
 } from './weeklyReviewUtils'
 
 export function printElement(elementId) {
@@ -82,11 +90,12 @@ export function getLatestWorkoutSession(sessions = []) {
     .sort((a, b) => sessionTime(b) - sessionTime(a))[0] ?? null
 }
 
-export function prepareWeeklyPlanPrintData(workoutPlan, profile) {
+export function prepareWeeklyPlanPrintData(workoutPlan, profile, activeProgram) {
   return {
     generatedAt: new Date().toISOString(),
     plan: safeArray(workoutPlan),
     profile,
+    program: activeProgram ?? getActiveWorkoutProgram(),
   }
 }
 
@@ -96,6 +105,8 @@ export function buildWeeklyReviewPrintData({
   checkIns = [],
   nutritionLogs = [],
   workoutPlan = [],
+  activeProgram = getActiveWorkoutProgram(),
+  exerciseLibrary = getEffectiveExerciseLibrary(),
 } = {}) {
   const week = getWeekRange(date)
   const previousAnchor = new Date(week.start)
@@ -109,18 +120,51 @@ export function buildWeeklyReviewPrintData({
   )
   const weekNutrition = getNutritionForWeek(nutritionLogs, week.start, week.end)
   const weekCheckIns = getCheckInsForWeek(checkIns, week.start, week.end)
-  const workoutSummary = getWorkoutCompletionSummary(weekSessions, workoutPlan)
-  const muscleVolume = getMuscleVolumeSummary(weekSessions, workoutPlan)
+  const program = {
+    ...activeProgram,
+    days: safeArray(activeProgram?.days).length
+      ? activeProgram.days
+      : safeArray(workoutPlan),
+  }
+  const explicitBenchmarkExercises = getProgramBenchmarkExercises(
+    program,
+    exerciseLibrary,
+  )
+  const benchmarkExercises =
+    explicitBenchmarkExercises.length > 0 ||
+    safeArray(program.benchmarkExerciseIds).length > 0
+      ? explicitBenchmarkExercises
+      : getProgramBenchmarkExercisesWithFallback(program, exerciseLibrary)
+  const workoutSummary = getWorkoutCompletionSummary(weekSessions, program)
+  const muscleVolume = getMuscleVolumeSummary(weekSessions, program, {
+    library: exerciseLibrary,
+  })
   const strengthComparison = getStrengthComparison(
     weekSessions,
     previousWeekSessions,
-    weeklyReviewExerciseNames,
+    benchmarkExercises,
+    { library: exerciseLibrary },
   )
   const bodySummary = getBodyProgressSummary(weekCheckIns, checkIns)
   const nutritionSummary = getNutritionSummary(weekNutrition)
-  const progressionSuggestions = weeklyReviewExerciseNames.map((exerciseName) =>
-    getSuggestionForExerciseName(exerciseName, sessions, workoutPlan),
-  )
+  const progressionSuggestions = benchmarkExercises
+    .map((benchmark) =>
+      safeArray(program.days)
+        .flatMap((day) => safeArray(day?.exercises))
+        .find((exercise) =>
+          exerciseIdentitiesMatch(
+            { exerciseId: exercise?.id, exerciseName: exercise?.name },
+            { exerciseId: benchmark.id, exerciseName: benchmark.name },
+            { library: exerciseLibrary },
+          ),
+        ),
+    )
+    .filter(Boolean)
+    .map((exercise) =>
+      getProgressionSuggestion(exercise, sessions, {
+        library: exerciseLibrary,
+      }),
+    )
   const weeklyScore = calculateWeeklyScore({
     workoutSummary,
     nutritionSummary,
@@ -135,6 +179,7 @@ export function buildWeeklyReviewPrintData({
     muscleVolume,
     strengthComparison,
     progressionSuggestions,
+    activeProgram: program,
   })
   const warnings = generateWarnings({
     workoutSummary,
@@ -143,6 +188,7 @@ export function buildWeeklyReviewPrintData({
     muscleVolume,
     strengthComparison,
     weekSessions,
+    activeProgram: program,
   })
 
   return {
@@ -158,6 +204,8 @@ export function buildWeeklyReviewPrintData({
     weeklyScore,
     focusItems,
     warnings,
+    program,
+    generatedAt: new Date().toISOString(),
   }
 }
 
@@ -280,6 +328,14 @@ const printDocumentCss = `
     display: block;
     font-size: 10px;
     font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .print-exercise-status {
+    color: #7a3f00;
+    font-size: 9px;
+    font-weight: 700;
+    margin-top: 2px;
     text-transform: uppercase;
   }
 

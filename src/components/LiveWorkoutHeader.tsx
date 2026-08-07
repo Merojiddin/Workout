@@ -1,7 +1,9 @@
 import { ArrowRight, CheckCircle2, Clock3, Dumbbell } from 'lucide-react'
+import type { WorkoutSessionType } from '../data/workoutSessions'
 
 interface LiveWorkoutHeaderProps {
   workoutName: string
+  sessionType?: WorkoutSessionType
   currentExerciseIndex: number
   totalExercises: number
   completedSets: number
@@ -13,6 +15,7 @@ interface LiveWorkoutHeaderProps {
 
 export function LiveWorkoutHeader({
   workoutName,
+  sessionType,
   currentExerciseIndex,
   totalExercises,
   completedSets,
@@ -27,7 +30,9 @@ export function LiveWorkoutHeader({
     <header className="live-header">
       <div className="live-header__top">
         <div className="live-header__title">
-          <p className="eyebrow">Live Workout</p>
+          <p className="eyebrow">
+            {sessionType === 'standalone' ? 'Standalone workout' : 'Live Workout'}
+          </p>
           <h1>{workoutName}</h1>
         </div>
         <div className="live-header__badges">

@@ -1,5 +1,15 @@
 import { weeklyPlan, type Exercise, type WorkoutDay } from '../data/workoutPlan'
 import type { WorkoutSession } from '../data/workoutSessions'
+import {
+  exerciseIdentitiesMatch,
+  normalizeExerciseName,
+  type ExerciseIdentityOptions,
+  type ExerciseIdentityInput,
+} from '../data/exerciseIdentity'
+import {
+  formatDuration,
+  getExerciseLoggingMode,
+} from './exerciseLoggingUtils'
 
 /**
  * Step 7 - Automatic Progression Suggestions.
@@ -9,9 +19,7 @@ import type { WorkoutSession } from '../data/workoutSessions'
  * keep the same load, reduce load, or flag a form / pain warning. Tuned for
  * hypertrophy + body recomposition with a strong bias toward safe posture.
  *
- * The logged data model (see data/workoutSessions.ts) does not yet capture
- * painLevel or timeSeconds, so those are read optionally and default to absent.
- * This keeps the rules future-proof without crashing on today's data.
+ * Optional set fields are read defensively so legacy records keep working.
  */
 
 export type SuggestionType =
@@ -59,9 +67,11 @@ export interface FlexibleSet {
 }
 
 export interface FlexibleExerciseResult {
+  exerciseId?: string | null
   exerciseName?: string
   sets?: FlexibleSet[]
   targetReps?: string
+  targetDuration?: string
   targetSets?: number
 }
 
@@ -72,6 +82,7 @@ export interface ExerciseHistoryEntry {
 
 /** Exercise shape we can classify + read a target range from. */
 export interface ProgressionExercise {
+  id?: string
   name: string
   repRange?: string
   duration?: string
@@ -88,14 +99,18 @@ export interface ProgressionExercise {
 /** All past logged results for one exercise, oldest first. */
 export function getExerciseHistory(
   sessions: WorkoutSession[],
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ExerciseHistoryEntry[] {
   const entries: ExerciseHistoryEntry[] = []
+  const target = typeof exercise === 'string'
+    ? { exerciseName: exercise }
+    : exercise
 
   for (const session of sessions ?? []) {
     const exercises = getSessionExercises(session)
     for (const exercise of exercises) {
-      if (exercise.exerciseName === exerciseName) {
+      if (exerciseIdentitiesMatch(exercise, target, options)) {
         entries.push({ date: sessionDateKey(session), result: exercise })
       }
     }
@@ -109,9 +124,10 @@ export function getExerciseHistory(
 /** The most recent logged result for one exercise, or null. */
 export function getLatestExerciseResult(
   sessions: WorkoutSession[],
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): FlexibleExerciseResult | null {
-  const history = getExerciseHistory(sessions, exerciseName)
+  const history = getExerciseHistory(sessions, exercise, options)
   return history.length > 0 ? history[history.length - 1].result : null
 }
 
@@ -324,8 +340,12 @@ export function shouldReduceLoad(
 export function getProgressionSuggestion(
   exercise: ProgressionExercise,
   sessions: WorkoutSession[],
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion {
-  const latest = getLatestExerciseResult(sessions, exercise.name)
+  const latest = getLatestExerciseResult(sessions, {
+    exerciseId: exercise.id,
+    exerciseName: exercise.name,
+  }, options)
 
   if (!latest) {
     return withMeta(noDataSuggestion(), exercise.name, null)
@@ -338,6 +358,17 @@ export function getProgressionSuggestion(
   // 1. Pain always wins - never progress through pain.
   if (pain >= 4) {
     return withMeta(formWarningSuggestion(), exercise.name, latest)
+  }
+
+  if (
+    getExerciseLoggingMode({
+      duration: exercise.duration,
+      repRange: exercise.repRange,
+      targetDuration: latest.targetDuration,
+      targetReps: latest.targetReps,
+    }) === 'duration'
+  ) {
+    return withMeta(durationSuggestion(), exercise.name, latest)
   }
 
   // 2. Posture work is never heavily loaded - progress by control.
@@ -376,9 +407,14 @@ export function getSuggestionForExerciseName(
   exerciseName: string,
   sessions: WorkoutSession[],
   plan: WorkoutDay[] = weeklyPlan,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion {
   const planExercise = findPlanExercise(exerciseName, plan)
-  return getProgressionSuggestion(planExercise ?? { name: exerciseName }, sessions)
+  return getProgressionSuggestion(
+    planExercise ?? { name: exerciseName },
+    sessions,
+    options,
+  )
 }
 
 /** The most actionable suggestions for today's workout (for the dashboard). */
@@ -386,6 +422,7 @@ export function getTodayProgressionFocus(
   sessions: WorkoutSession[],
   todayExercises: Exercise[],
   limit = 3,
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion[] {
   const priority: Record<SuggestionType, number> = {
     'form-warning': 0,
@@ -396,7 +433,7 @@ export function getTodayProgressionFocus(
   }
 
   return todayExercises
-    .map((exercise) => getProgressionSuggestion(exercise, sessions))
+    .map((exercise) => getProgressionSuggestion(exercise, sessions, options))
     .sort((a, b) => priority[a.type] - priority[b.type])
     .slice(0, limit)
 }
@@ -408,6 +445,15 @@ export function getTodayProgressionFocus(
 export function getGeneralProgressionAdvice(
   exercise: ProgressionExercise,
 ): string[] {
+  if (getExerciseLoggingMode(exercise) === 'duration') {
+    return [
+      'Maintain the target duration with controlled effort',
+      'Keep the movement or pace consistent before adding difficulty',
+      'Use RPE and pain notes to guide the next session',
+      'Reduce duration or load if form deteriorates',
+    ]
+  }
+
   const type = classifyExercise(exercise)
 
   switch (type) {
@@ -478,6 +524,16 @@ function unknownTargetSuggestion(): ProgressionSuggestion {
       'Add a rep range or duration to this exercise before using progression advice.',
     nextTarget: 'Set reps or duration in Plan Editor',
     reason: 'Target data is missing, so load progression is paused.',
+  }
+}
+
+function durationSuggestion(): ProgressionSuggestion {
+  return {
+    type: 'keep',
+    title: 'Maintain Duration',
+    message: 'Maintain the target duration with controlled effort.',
+    nextTarget: 'Repeat the target duration',
+    reason: 'Timed exercises are kept separate from repetition-based progression.',
   }
 }
 
@@ -707,7 +763,7 @@ function summarizeResult(result: FlexibleExerciseResult): string {
   if (reps.length > 0) {
     parts.push(`${reps.join(', ')} reps`)
   } else if (times.length > 0) {
-    parts.push(`${times.join(', ')} sec`)
+    parts.push(times.map(formatDuration).join(', '))
   }
 
   if (weights.length > 0) {
@@ -725,7 +781,11 @@ function getTargetRange(
   latest: FlexibleExerciseResult | null,
 ): RepRange | null {
   const target =
-    exercise.repRange ?? exercise.duration ?? latest?.targetReps ?? null
+    exercise.repRange ??
+    exercise.duration ??
+    latest?.targetDuration ??
+    latest?.targetReps ??
+    null
   return parseRepRange(target)
 }
 
@@ -733,12 +793,27 @@ export function findPlanExercise(
   exerciseName: string,
   plan: WorkoutDay[] = weeklyPlan,
 ): Exercise | undefined {
+  const normalizedTarget = normalizeExerciseName(exerciseName)
+
   for (const day of plan) {
-    const match = day.exercises.find(
-      (exercise) => exercise.name === exerciseName,
+    const exactNameMatch = day.exercises.find(
+      (exercise) => normalizeExerciseName(exercise.name) === normalizedTarget,
     )
-    if (match) {
-      return match
+    if (exactNameMatch) {
+      return exactNameMatch
+    }
+  }
+
+  for (const day of plan) {
+    const aliasMatch = day.exercises.find(
+      (exercise) =>
+        exerciseIdentitiesMatch(
+          { exerciseId: exercise.id, exerciseName: exercise.name },
+          { exerciseName },
+        ),
+    )
+    if (aliasMatch) {
+      return aliasMatch
     }
   }
 

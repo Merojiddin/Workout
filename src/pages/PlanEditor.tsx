@@ -12,24 +12,38 @@ import {
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
+import { useAuth } from '../context/AuthContext'
 import {
   difficultyOptions,
   exerciseCategories,
   type LibraryExercise,
 } from '../data/exerciseLibrary'
-import { weeklyPlan, type Exercise, type WorkoutDay } from '../data/workoutPlan'
+import type { Exercise, WorkoutDay } from '../data/workoutPlan'
+import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import {
+  CLOUD_PROGRAM_OPERATION_STATUS,
+  resetCloudPlanToCurrentDefault,
+} from '../services/workoutProgramService'
 import {
   createPlanExerciseFromLibrary,
-  getCustomExerciseLibrary,
+  getCustomExerciseLibraryOverrides,
   getCustomWorkoutPlan,
+  getEffectiveExerciseLibrary,
   getExerciseTargetLabel,
   isDefaultLibraryExercise,
   resetCustomExerciseLibrary,
   resetCustomWorkoutPlan,
   saveCustomExerciseLibrary,
-  saveCustomWorkoutPlan,
+  saveCustomWorkoutPlanSafely,
 } from '../utils/settingsUtils'
+import {
+  findProgramDay,
+  resetWorkoutPlanDayToActiveProgram,
+  resolveActiveWorkoutProgramBaseline,
+} from '../utils/activeWorkoutProgram'
+import { getWorkoutProgramChangeProtection } from '../utils/workoutProgramManager'
 
 type PlanEditorTab = 'weekly' | 'library' | 'reset'
 type AddMode = 'library' | 'manual'
@@ -65,18 +79,32 @@ const blankManualExercise = {
   sets: 3,
 }
 
-export function PlanEditor() {
+interface PlanEditorProps {
+  dataVersion?: number
+  onDataChanged?: () => void
+}
+
+export function PlanEditor({
+  dataVersion = 0,
+  onDataChanged,
+}: PlanEditorProps = {}) {
+  const { isSupabaseConfigured, user } = useAuth()
+  const { isOnline } = useOnlineStatus()
+  const cloudActive = isSupabaseConfigured && Boolean(user)
   const [activeTab, setActiveTab] = useState<PlanEditorTab>('weekly')
   const [plan, setPlan] = useState<EditableWorkoutDay[]>(() =>
     getCustomWorkoutPlan(),
   )
   const [library, setLibrary] = useState<LibraryExercise[]>(() =>
-    getCustomExerciseLibrary(),
+    getEffectiveExerciseLibrary(),
+  )
+  const [customLibrary, setCustomLibrary] = useState<LibraryExercise[]>(() =>
+    getCustomExerciseLibraryOverrides(),
   )
   const [selectedDayNumber, setSelectedDayNumber] = useState(1)
   const [addMode, setAddMode] = useState<AddMode>('library')
   const [selectedLibraryId, setSelectedLibraryId] = useState(
-    () => getCustomExerciseLibrary()[0]?.id ?? '',
+    () => getEffectiveExerciseLibrary()[0]?.id ?? '',
   )
   const [manualExercise, setManualExercise] = useState(blankManualExercise)
   const [librarySearch, setLibrarySearch] = useState('')
@@ -84,14 +112,38 @@ export function PlanEditor() {
     LibraryExercise
   >(() => createBlankLibraryExercise())
   const [notice, setNotice] = useState('')
+  const [planDirty, setPlanDirty] = useState(false)
+  const [resetBusy, setResetBusy] = useState(false)
+  const activeWorkoutBlocked = getWorkoutProgramChangeProtection().data.blocked
 
-  const selectedDay = useMemo(
-    () =>
-      plan.find((day) => day.day === selectedDayNumber) ??
-      plan[0] ??
-      (weeklyPlan[0] as EditableWorkoutDay),
-    [plan, selectedDayNumber],
-  )
+  useEffect(() => {
+    setPlan(getCustomWorkoutPlan())
+    setPlanDirty(false)
+  }, [dataVersion])
+
+  const activeProgramBaseline = resolveActiveWorkoutProgramBaseline()
+  const selectedDay: EditableWorkoutDay | null = (() => {
+    const savedDay = plan.find((day) => day.day === selectedDayNumber)
+    if (savedDay) {
+      return savedDay
+    }
+
+    const canonicalDay = activeProgramBaseline.program
+      ? findProgramDay(activeProgramBaseline.program.days, selectedDayNumber)
+      : undefined
+    if (canonicalDay) {
+      return clone(canonicalDay) as EditableWorkoutDay
+    }
+
+    if (activeProgramBaseline.managed) {
+      return null
+    }
+
+    const compatibilityDay = plan[0] ?? activeProgramBaseline.program?.days[0]
+    return compatibilityDay
+      ? (clone(compatibilityDay) as EditableWorkoutDay)
+      : null
+  })()
 
   const selectedLibraryExercise = useMemo(
     () => library.find((exercise) => exercise.id === selectedLibraryId) ?? library[0],
@@ -118,7 +170,13 @@ export function PlanEditor() {
     )
   }, [library, librarySearch])
 
+  const editingIsBundled = isDefaultLibraryExercise(editingLibraryExercise.id)
+  const editingHasCustomOverride = customLibrary.some(
+    (exercise) => exercise.id === editingLibraryExercise.id,
+  )
+
   function updateDay(dayNumber: number, updates: Partial<EditableWorkoutDay>) {
+    setPlanDirty(true)
     setPlan((current) =>
       current.map((day) => (day.day === dayNumber ? { ...day, ...updates } : day)),
     )
@@ -129,6 +187,7 @@ export function PlanEditor() {
     exerciseIndex: number,
     updates: Partial<EditableExercise>,
   ) {
+    setPlanDirty(true)
     setPlan((current) =>
       current.map((day) =>
         day.day === dayNumber
@@ -144,14 +203,24 @@ export function PlanEditor() {
   }
 
   function savePlan(message = 'Plan saved.') {
-    const saved = saveCustomWorkoutPlan(plan)
-    setPlan(saved)
+    const result = saveCustomWorkoutPlanSafely(plan)
+    if (!result.success) {
+      setNotice('Plan could not be saved to local storage.')
+      return
+    }
+    setPlan(result.plan)
+    setPlanDirty(false)
     setNotice(message)
   }
 
   function commitPlan(nextPlan: EditableWorkoutDay[], message: string) {
-    const saved = saveCustomWorkoutPlan(nextPlan)
-    setPlan(saved)
+    const result = saveCustomWorkoutPlanSafely(nextPlan)
+    if (!result.success) {
+      setNotice('Plan could not be saved to local storage.')
+      return
+    }
+    setPlan(result.plan)
+    setPlanDirty(false)
     setNotice(message)
   }
 
@@ -170,18 +239,15 @@ export function PlanEditor() {
   }
 
   function resetDay(dayNumber: number) {
-    const defaultDay = weeklyPlan.find((day) => day.day === dayNumber)
-    if (!defaultDay) {
+    const result = resetWorkoutPlanDayToActiveProgram(plan, dayNumber)
+    if (!result.success) {
+      setNotice(result.message)
       return
     }
 
     commitPlan(
-      plan.map((day) =>
-        day.day === dayNumber
-          ? (clone(defaultDay) as EditableWorkoutDay)
-          : day,
-      ),
-      `Day ${dayNumber} reset to default.`,
+      result.plan as EditableWorkoutDay[],
+      result.message,
     )
   }
 
@@ -228,6 +294,10 @@ export function PlanEditor() {
       setNotice('Choose an exercise first.')
       return
     }
+    if (!selectedDay) {
+      setNotice('The selected active-program day is unavailable.')
+      return
+    }
 
     const exercise = createPlanExerciseFromLibrary(selectedLibraryExercise)
     addExerciseToDay(selectedDay.day, {
@@ -237,6 +307,10 @@ export function PlanEditor() {
   }
 
   function addManualExerciseToDay() {
+    if (!selectedDay) {
+      setNotice('The selected active-program day is unavailable.')
+      return
+    }
     if (!manualExercise.name.trim()) {
       setNotice('Exercise name is required.')
       return
@@ -272,15 +346,55 @@ export function PlanEditor() {
     )
   }
 
-  function resetEntirePlan() {
+  async function resetEntirePlan() {
     const confirmed = window.confirm(
-      'Are you sure? This will remove your custom workout plan.',
+      cloudActive
+        ? 'Reset the cloud workout plan to the current registry default? The current local and cloud plans will be backed up first.'
+        : 'Are you sure? This will remove your custom workout plan.',
     )
     if (!confirmed) {
       return
     }
 
+    if (cloudActive) {
+      if (!isOnline) {
+        setNotice(
+          'Connect to the internet before changing a cloud workout program.',
+        )
+        return
+      }
+
+      setResetBusy(true)
+      setNotice(CLOUD_PROGRAM_OPERATION_STATUS.saving)
+      try {
+        const result = await resetCloudPlanToCurrentDefault(user, {
+          onStatus: setNotice,
+        })
+        setNotice(
+          result.success
+            ? result.message
+            : [result.message, ...result.details].join(' '),
+        )
+        if (result.success && result.data.plan) {
+          setPlan(result.data.plan as EditableWorkoutDay[])
+          setPlanDirty(false)
+          setSelectedDayNumber(result.data.plan[0]?.day ?? 1)
+          onDataChanged?.()
+        }
+      } catch (error) {
+        setNotice(
+          error instanceof Error
+            ? error.message
+            : 'The cloud workout plan could not be reset.',
+        )
+      } finally {
+        setResetBusy(false)
+      }
+      return
+    }
+
     setPlan(resetCustomWorkoutPlan())
+    setPlanDirty(false)
     setNotice('Workout plan reset to default.')
   }
 
@@ -292,39 +406,62 @@ export function PlanEditor() {
         : editingLibraryExercise.id,
       name: editingLibraryExercise.name.trim() || 'Custom Exercise',
     }
-    const existing = library.some((exercise) => exercise.id === draft.id)
-    const next = existing
-      ? library.map((exercise) => (exercise.id === draft.id ? draft : exercise))
-      : [...library, draft]
-    const saved = saveCustomExerciseLibrary(next)
+    const nextOverrides = customLibrary.some(
+      (exercise) => exercise.id === draft.id,
+    )
+      ? customLibrary.map((exercise) =>
+          exercise.id === draft.id ? draft : exercise,
+        )
+      : [...customLibrary, draft]
+    const savedOverrides = saveCustomExerciseLibrary(
+      getCustomExerciseLibraryOverrides(nextOverrides),
+    ) as LibraryExercise[]
+    const effectiveLibrary = getEffectiveExerciseLibrary() as LibraryExercise[]
 
-    setLibrary(saved)
+    setCustomLibrary(savedOverrides)
+    setLibrary(effectiveLibrary)
     setEditingLibraryExercise(
-      saved.find((exercise) => exercise.id === draft.id) ?? draft,
+      effectiveLibrary.find((exercise) => exercise.id === draft.id) ?? draft,
     )
     setSelectedLibraryId(draft.id)
     setNotice('Exercise library saved.')
   }
 
   function deleteCustomLibraryExercise() {
-    if (isDefaultLibraryExercise(editingLibraryExercise.id)) {
-      setNotice('Default exercises can be reset, not deleted from source.')
+    if (!editingHasCustomOverride) {
+      setNotice('This exercise has no custom override to remove.')
       return
     }
 
-    const confirmed = window.confirm('Delete this custom exercise?')
+    const confirmed = window.confirm(
+      editingIsBundled
+        ? 'Reset this exercise to the bundled version?'
+        : 'Delete this custom exercise?',
+    )
     if (!confirmed) {
       return
     }
 
-    const next = library.filter(
+    const nextOverrides = customLibrary.filter(
       (exercise) => exercise.id !== editingLibraryExercise.id,
     )
-    const saved = saveCustomExerciseLibrary(next)
-    setLibrary(saved)
-    setEditingLibraryExercise(createBlankLibraryExercise())
-    setSelectedLibraryId(saved[0]?.id ?? '')
-    setNotice('Custom exercise deleted.')
+    const savedOverrides = saveCustomExerciseLibrary(nextOverrides) as LibraryExercise[]
+    const effectiveLibrary = getEffectiveExerciseLibrary() as LibraryExercise[]
+    const restored = effectiveLibrary.find(
+      (exercise) => exercise.id === editingLibraryExercise.id,
+    )
+
+    setCustomLibrary(savedOverrides)
+    setLibrary(effectiveLibrary)
+    setEditingLibraryExercise(
+      restored ? clone(restored) : createBlankLibraryExercise(),
+    )
+    setSelectedLibraryId(restored?.id ?? effectiveLibrary[0]?.id ?? '')
+    setNotice(
+      editingIsBundled
+        ? 'Exercise reset to the bundled version.'
+        : 'Custom exercise deleted.',
+    )
   }
 
   function resetLibrary() {
@@ -333,9 +470,11 @@ export function PlanEditor() {
       return
     }
 
-    const defaults = resetCustomExerciseLibrary()
-    setLibrary(defaults)
-    setSelectedLibraryId(defaults[0]?.id ?? '')
+    resetCustomExerciseLibrary()
+    const effectiveLibrary = getEffectiveExerciseLibrary() as LibraryExercise[]
+    setCustomLibrary([])
+    setLibrary(effectiveLibrary)
+    setSelectedLibraryId(effectiveLibrary[0]?.id ?? '')
     setEditingLibraryExercise(createBlankLibraryExercise())
     setNotice('Exercise library reset to default.')
   }
@@ -357,6 +496,25 @@ export function PlanEditor() {
           <strong>localStorage override</strong>
         </div>
       </header>
+
+      <WorkoutProgramManager
+        hasUnsavedPlanChanges={planDirty}
+        onDataChanged={onDataChanged}
+        onPlanChanged={(nextPlan) => {
+          setPlan(nextPlan as EditableWorkoutDay[])
+          setPlanDirty(false)
+          setSelectedDayNumber(nextPlan[0]?.day ?? 1)
+        }}
+        plan={plan}
+      />
+
+      <div className="custom-plan-editor-heading">
+        <div>
+          <p className="eyebrow">Manual editing</p>
+          <h2>Custom Plan Editor</h2>
+        </div>
+        <SlidersHorizontal size={22} strokeWidth={2.4} aria-hidden="true" />
+      </div>
 
       <div className="settings-tabs" role="tablist" aria-label="Plan editor sections">
         {tabs.map((tab) => {
@@ -462,7 +620,9 @@ export function PlanEditor() {
             ))}
           </div>
 
-          <article className="dashboard-card plan-edit-panel">
+          {selectedDay ? (
+            <>
+              <article className="dashboard-card plan-edit-panel">
             <div className="card-heading">
               <div>
                 <p className="eyebrow">Edit Workout Day</p>
@@ -531,9 +691,9 @@ export function PlanEditor() {
                 Save Day
               </button>
             </div>
-          </article>
+              </article>
 
-          <article className="dashboard-card plan-edit-panel">
+              <article className="dashboard-card plan-edit-panel">
             <div className="card-heading">
               <div>
                 <p className="eyebrow">Edit Exercises in Plan</p>
@@ -714,9 +874,9 @@ export function PlanEditor() {
                 </section>
               ))}
             </div>
-          </article>
+              </article>
 
-          <article className="dashboard-card plan-edit-panel">
+              <article className="dashboard-card plan-edit-panel">
             <div className="card-heading">
               <div>
                 <p className="eyebrow">Add Exercise to Day</p>
@@ -928,7 +1088,24 @@ export function PlanEditor() {
                 </div>
               </>
             )}
-          </article>
+              </article>
+            </>
+          ) : (
+            <article className="dashboard-card plan-edit-panel" role="alert">
+              <div className="card-heading">
+                <div>
+                  <p className="eyebrow">Active program unavailable</p>
+                  <h2>Day {selectedDayNumber} cannot be resolved</h2>
+                </div>
+                <CalendarDays size={22} strokeWidth={2.4} aria-hidden="true" />
+              </div>
+              <p className="card-copy">
+                {activeProgramBaseline.error ??
+                  'This day is missing from the installed program.'}{' '}
+                No legacy fallback was loaded and no plan changes were saved.
+              </p>
+            </article>
+          )}
         </>
       ) : null}
 
@@ -1187,12 +1364,14 @@ export function PlanEditor() {
               </button>
               <button
                 className="workout-secondary-button workout-secondary-button--danger"
-                disabled={isDefaultLibraryExercise(editingLibraryExercise.id)}
+                disabled={!editingHasCustomOverride}
                 onClick={deleteCustomLibraryExercise}
                 type="button"
               >
                 <Trash2 size={19} strokeWidth={2.4} aria-hidden="true" />
-                Delete Custom Exercise
+                {editingIsBundled
+                  ? 'Reset Exercise Override'
+                  : 'Delete Custom Exercise'}
               </button>
               <button
                 className="workout-secondary-button"
@@ -1220,11 +1399,19 @@ export function PlanEditor() {
           <div className="backup-action-grid">
             <button
               className="workout-secondary-button workout-secondary-button--danger"
+              disabled={
+                resetBusy ||
+                (cloudActive && (!isOnline || activeWorkoutBlocked))
+              }
               onClick={resetEntirePlan}
               type="button"
             >
               <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-              Reset Entire Plan to Default
+              {resetBusy
+                ? 'Resetting Cloud Plan…'
+                : cloudActive
+                  ? 'Reset Cloud Plan to Default'
+                  : 'Reset Entire Plan to Default'}
             </button>
             <button
               className="workout-secondary-button"

@@ -1,3 +1,6 @@
+import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
+import { isTimedExercise } from './exerciseLoggingUtils'
+import { getTrainingDays, isRestDay } from './activeWorkoutProgram'
 import { nutritionTargets } from './nutritionUtils'
 
 const postureCue =
@@ -5,18 +8,6 @@ const postureCue =
 
 const absReminder =
   'Visible abs come from lower overall body fat and stronger abs. You cannot spot-reduce lower-back fat.'
-
-const postureKeywords = [
-  'posture',
-  'mobility',
-  'dead bug',
-  'glute bridge',
-  'posterior pelvic',
-  'hip flexor',
-  'bird dog',
-  'plank',
-  'stretch',
-]
 
 const postureCautionKeywords = [
   'push-up',
@@ -33,18 +24,48 @@ const postureCautionKeywords = [
   'hinge',
 ]
 
-const absKeywords = ['abs', 'core', 'oblique', 'plank', 'knee raise', 'leg raise']
-
 export function getTodayWorkoutAdvice({
   todayWorkout,
   sessions,
   progressionSuggestions,
+  activeProgram,
+  library,
 }) {
   const exercises = safeArray(todayWorkout?.exercises)
-  const suggestions = safeArray(progressionSuggestions)
+  const suggestions = safeArray(progressionSuggestions).filter((suggestion) =>
+    exercises.some((exercise) =>
+      exerciseIdentitiesMatch(
+        { exerciseName: suggestion?.exerciseName },
+        { exerciseId: exercise?.id, exerciseName: exercise?.name },
+        { library },
+      ),
+    ),
+  )
   const title = todayWorkout
     ? `Day ${todayWorkout.day ?? '-'} - ${todayWorkout.name ?? 'Workout'}`
     : 'Today workout'
+  const focusAreas = safeArray(todayWorkout?.focus).filter(Boolean)
+  const programLabel = activeProgram?.programName
+    ? `${activeProgram.programName}${activeProgram.programVersion ? ` ${activeProgram.programVersion}` : ''}`
+    : ''
+  const effortRule = safeArray(activeProgram?.rules?.effort)[0] ?? ''
+  const activePostureCue = activeProgram?.rules?.postureCue || postureCue
+
+  if (todayWorkout && isRestDay(todayWorkout)) {
+    return {
+      title,
+      message: `${todayWorkout.name} is the scheduled rest day${programLabel ? ` in ${programLabel}` : ''}. Recover and resume the next prescribed training day.`,
+      pushExercises: [],
+      controlExercises: [],
+      postureCautionExercises: [],
+      focusAreas,
+      programLabel,
+      programRule: effortRule,
+      restDay: true,
+      intensityRecommendation:
+        'Rest today. Optional easy mobility or walking should stay comfortable.',
+    }
+  }
 
   if (exercises.length === 0) {
     return {
@@ -53,17 +74,21 @@ export function getTodayWorkoutAdvice({
       pushExercises: [],
       controlExercises: [],
       postureCautionExercises: [],
+      focusAreas,
+      programLabel,
+      programRule: effortRule,
+      restDay: false,
       intensityRecommendation: 'Keep the day light and log what you complete.',
     }
   }
 
+  const repetitionExercises = exercises.filter((exercise) => !isTimedExercise(exercise))
+  const timedExercises = exercises.filter(isTimedExercise)
   const pushExercises = uniqueNames([
     ...suggestions
       .filter((suggestion) => ['increase', 'keep'].includes(suggestion?.type))
       .map((suggestion) => suggestion.exerciseName),
-    ...exercises
-      .filter(isUpperBodyGoalExercise)
-      .map((exercise) => exercise.name),
+    ...repetitionExercises.map((exercise) => exercise.name),
   ]).slice(0, 3)
 
   const controlExercises = uniqueNames([
@@ -72,6 +97,7 @@ export function getTodayWorkoutAdvice({
         ['reduce', 'form-warning'].includes(suggestion?.type),
       )
       .map((suggestion) => suggestion.exerciseName),
+    ...timedExercises.map((exercise) => exercise.name),
     ...exercises
       .filter((exercise) => needsControl(exercise) && !pushExercises.includes(exercise.name))
       .map((exercise) => exercise.name),
@@ -88,7 +114,8 @@ export function getTodayWorkoutAdvice({
     ['reduce', 'form-warning'].includes(suggestion?.type),
   )
 
-  let intensityRecommendation = 'Normal training. Keep most sets at RPE 8-9.'
+  let intensityRecommendation =
+    effortRule || 'Normal training. Keep most sets controlled with reps in reserve.'
   if (recentPain >= 4) {
     intensityRecommendation =
       'Reduce intensity. Stop any exercise that keeps hurting.'
@@ -98,20 +125,30 @@ export function getTodayWorkoutAdvice({
   } else if (suggestions.some((suggestion) => suggestion?.type === 'increase')) {
     intensityRecommendation =
       'Good day to progress, but keep 1-2 reps in reserve.'
+  } else if (timedExercises.length === exercises.length) {
+    intensityRecommendation =
+      'Use the prescribed durations at controlled effort; do not chase extra time or load.'
   }
 
-  const focus = safeArray(todayWorkout?.focus).join(', ') || "today's main lifts"
+  const focus = focusAreas.join(', ') || "today's prescribed work"
+  const postureSuffix = postureCautionExercises.length > 0
+    ? ` ${activePostureCue}`
+    : ''
   const message =
     recentPain >= 4
       ? 'Pain was logged recently. Reduce intensity or stop the exercise. If pain continues, get checked by a professional.'
-      : `Focus on ${focus}. Push the main work, keep form controlled, and protect your lower back position.`
+      : `Focus on ${focus}. Follow the prescribed exercises and keep every set controlled.${postureSuffix}`
 
   return {
     title,
     message,
-    pushExercises: pushExercises.length > 0 ? pushExercises : exercises.slice(0, 2).map((exercise) => exercise.name),
+    pushExercises,
     controlExercises,
     postureCautionExercises,
+    focusAreas,
+    programLabel,
+    programRule: effortRule,
+    restDay: false,
     intensityRecommendation,
   }
 }
@@ -246,7 +283,11 @@ export function getNutritionCoachAdvice(nutritionLogs) {
   return advice
 }
 
-export function getBodyRecompositionAdvice(bodyCheckIns, workoutSessions) {
+export function getBodyRecompositionAdvice(
+  bodyCheckIns,
+  workoutSessions,
+  options = {},
+) {
   const checkIns = sortByDate(safeArray(bodyCheckIns))
   const latest = checkIns.at(-1)
   const previous = checkIns.length > 1 ? checkIns.at(-2) : null
@@ -272,7 +313,10 @@ export function getBodyRecompositionAdvice(bodyCheckIns, workoutSessions) {
   const waistChange = diff(latest.waistCm, previous.waistCm)
   const bellyChange = diff(latest.bellyCm, previous.bellyCm)
   const weightChange = diff(latest.bodyWeightKg, previous.bodyWeightKg)
-  const strengthDecreased = hasRecentStrengthDecrease(workoutSessions)
+  const strengthDecreased = hasRecentStrengthDecrease(
+    workoutSessions,
+    options.library,
+  )
 
   if ((chestChange > 0 || shoulderChange > 0) && waistChange <= 0.3) {
     advice.push('Good recomposition signal.')
@@ -293,45 +337,76 @@ export function getBodyRecompositionAdvice(bodyCheckIns, workoutSessions) {
   return advice
 }
 
-export function getAbsPostureAdvice(sessions, workoutPlan) {
+export function getAbsPostureAdvice(
+  sessions,
+  programOrPlan,
+  options = {},
+) {
   const weekSessions = getThisWeekCompletedSessions(sessions)
-  const muscleMap = buildPlanMuscleMap(workoutPlan)
+  const trainingDays = getProgramTrainingDays(programOrPlan)
+  const planExercises = trainingDays.flatMap((day) => safeArray(day?.exercises))
+  const muscleTargets = buildProgramMuscleFrequencyTargets(programOrPlan)
   const absSessionsThisWeek = countSessionsMatching(weekSessions, (exercise) =>
-    isAbsExercise(exercise, muscleMap),
+    loggedExerciseMatchesMuscle(
+      exercise,
+      planExercises,
+      'Abs',
+      options.library,
+    ),
   )
   const postureSessionsThisWeek = countSessionsMatching(weekSessions, (exercise) =>
-    isPostureExercise(exercise, muscleMap),
+    loggedExerciseMatchesMuscle(
+      exercise,
+      planExercises,
+      'Posture',
+      options.library,
+    ),
   )
+  const absTargetSessions = muscleTargets.Abs
+  const postureTargetSessions = muscleTargets.Posture
   const advice = []
   const recommendedExercises = []
+  const scheduledAbsExercises = getExercisesForMuscles(
+    trainingDays,
+    ['Abs'],
+  )
+  const scheduledPostureExercises = getExercisesForMuscles(
+    trainingDays,
+    ['Posture'],
+  )
 
-  if (absSessionsThisWeek < 3) {
-    advice.push('Add abs work today: hanging knee raises, dead bug, side plank.')
-    recommendedExercises.push('Hanging knee raises', 'Dead bug', 'Side plank')
+  if (absTargetSessions === 0) {
+    advice.push('No dedicated abs frequency is prescribed by the active program.')
+  } else if (absSessionsThisWeek < absTargetSessions) {
+    advice.push(
+      `Complete the active program’s scheduled abs work (${absSessionsThisWeek}/${absTargetSessions} sessions logged).`,
+    )
+    recommendedExercises.push(...scheduledAbsExercises)
   } else {
     advice.push('Abs frequency is on target. Keep every rep controlled.')
   }
 
-  if (postureSessionsThisWeek < 4) {
-    advice.push('Add 10 minutes posture work: dead bug, glute bridge, posterior pelvic tilt, hip flexor stretch.')
-    recommendedExercises.push(
-      'Dead bug',
-      'Glute bridge',
-      'Posterior pelvic tilt',
-      'Hip flexor stretch',
+  if (postureTargetSessions === 0) {
+    advice.push('No dedicated posture frequency is prescribed by the active program.')
+  } else if (postureSessionsThisWeek < postureTargetSessions) {
+    advice.push(
+      `Complete the active program’s scheduled posture work (${postureSessionsThisWeek}/${postureTargetSessions} sessions logged).`,
     )
+    recommendedExercises.push(...scheduledPostureExercises)
   } else {
     advice.push('Posture frequency is on target.')
   }
 
-  advice.push(postureCue)
+  advice.push(programOrPlan?.rules?.postureCue || postureCue)
   advice.push(absReminder)
 
   return {
     absSessionsThisWeek,
+    absTargetSessions,
     postureSessionsThisWeek,
+    postureTargetSessions,
     advice,
-    recommendedExercises: uniqueNames(recommendedExercises),
+    recommendedExercises: uniqueNames(recommendedExercises).slice(0, 5),
   }
 }
 
@@ -341,6 +416,7 @@ export function getCoachWarnings({
   bodyCheckIns,
   muscleVolume,
   warningSensitivity = 'Normal',
+  activeProgram,
 }) {
   const warnings = []
   const add = (warning) => {
@@ -371,15 +447,28 @@ export function getCoachWarnings({
     add('RPE 10 is showing up too often. Do not force extra reps next set.')
   }
 
-  if (chest.sets >= 18 && back.sets < 12) {
+  if (
+    getMuscleTargetRatio(chest) >= 1 &&
+    getMuscleTargetRatio(back) < 0.7 &&
+    back.targetSets > 0
+  ) {
     add('You trained chest heavily but back volume is low. Keep back training strong to protect shoulders.')
   }
 
   if (hasNoRestDayInLastSevenDays(sessions)) {
-    add('No rest day logged in the last 7 days. Keep one recovery day.')
+    const restDay = getProgramRestDayLabel(activeProgram)
+    add(
+      restDay
+        ? `No rest day found in the last 7 days. Keep the scheduled ${restDay}.`
+        : 'No rest or light day found in the last 7 days. Protect recovery.',
+    )
   }
 
-  if (getThisWeekCompletedSessions(sessions).length > 0 && legs.sets === 0) {
+  if (
+    getThisWeekCompletedSessions(sessions).length > 0 &&
+    legs.targetSessions > 0 &&
+    legs.sets === 0
+  ) {
     add('No legs this week. Do not skip legs; they support posture and balance.')
   }
 
@@ -403,8 +492,16 @@ export function getCoachWarnings({
     }
   }
 
-  if (posture.sessions === 0) {
-    add('No posture work logged. Add dead bug, glute bridge, and hip flexor stretch.')
+  if (posture.targetSessions > 0 && posture.sessions === 0) {
+    const postureExercises = getExercisesForMuscles(
+      getProgramTrainingDays(activeProgram),
+      ['Posture'],
+    ).slice(0, 3)
+    add(
+      postureExercises.length > 0
+        ? `No posture work logged. Complete the scheduled work: ${postureExercises.join(', ')}.`
+        : 'No scheduled posture work was logged this week.',
+    )
   }
 
   return warnings
@@ -425,14 +522,19 @@ export function generateTodayActionPlan({
     }
   }
   const workoutName = todayWorkout?.name ? `Day ${todayWorkout.day} workout` : 'today workout'
+  const restDay = todayWorkout ? isRestDay(todayWorkout) : false
 
-  if (safeArray(todayWorkout?.exercises).length > 0) {
+  if (restDay) {
+    add(`Follow the scheduled ${todayWorkout.name || 'rest day'}.`)
+  } else if (safeArray(todayWorkout?.exercises).length > 0) {
     add(`Complete ${workoutName}.`)
   } else {
     add('Set up today workout or complete a light recovery session.')
   }
 
-  if ((readiness?.score ?? 0) >= 85) {
+  if (restDay) {
+    add('Keep optional recovery activity easy and comfortable.')
+  } else if ((readiness?.score ?? 0) >= 85) {
     add('Push key lifts while keeping 1-2 reps in reserve.')
   } else if ((readiness?.score ?? 0) >= 70) {
     add('Keep most sets at RPE 8-9.')
@@ -454,10 +556,25 @@ export function generateTodayActionPlan({
     add('Drink at least 2 L water.')
   }
 
-  if (absPostureAdvice?.absSessionsThisWeek < 3) {
-    add('Add dead bug, side plank, or hanging knee raises.')
-  } else if (absPostureAdvice?.postureSessionsThisWeek < 4) {
-    add('Add 10 minutes posture work after training.')
+  if (
+    absPostureAdvice?.absTargetSessions > 0 &&
+    absPostureAdvice.absSessionsThisWeek < absPostureAdvice.absTargetSessions
+  ) {
+    add(
+      absPostureAdvice.recommendedExercises?.length
+        ? `Complete scheduled core work: ${absPostureAdvice.recommendedExercises.slice(0, 3).join(', ')}.`
+        : 'Complete the active program’s scheduled core work.',
+    )
+  } else if (
+    absPostureAdvice?.postureTargetSessions > 0 &&
+    absPostureAdvice.postureSessionsThisWeek <
+      absPostureAdvice.postureTargetSessions
+  ) {
+    add(
+      absPostureAdvice.recommendedExercises?.length
+        ? `Complete scheduled posture work: ${absPostureAdvice.recommendedExercises.slice(0, 3).join(', ')}.`
+        : 'Complete the active program’s scheduled posture work.',
+    )
   }
 
   if (bodyText.includes('surplus')) {
@@ -504,18 +621,24 @@ export function getWeeklyCoachConclusion({
   focusItems,
   muscleVolume,
 }) {
+  const targetWorkouts = workoutSummary?.targetWorkouts ?? 0
+  const scheduledCompletedWorkouts =
+    workoutSummary?.scheduledCompletedWorkouts ??
+    workoutSummary?.completedWorkouts ??
+    0
   const training =
-    (workoutSummary?.completedWorkouts ?? 0) >= (workoutSummary?.targetWorkouts ?? 6)
+    targetWorkouts > 0 &&
+    scheduledCompletedWorkouts >= targetWorkouts
       ? 'Training consistency was strong.'
-      : `Training consistency was ${workoutSummary?.completedWorkouts ?? 0}/${workoutSummary?.targetWorkouts ?? 6} workouts.`
+      : `Training consistency was ${scheduledCompletedWorkouts}/${targetWorkouts} workouts.`
   const chest = findMuscle(muscleVolume, 'Chest')
   const back = findMuscle(muscleVolume, 'Back')
   const volume =
-    chest.sets >= 18 && back.sets >= 12
+    isMuscleTargetMet(chest) && isMuscleTargetMet(back)
       ? 'Chest and back volume were balanced.'
-      : chest.sets >= 18
+      : isMuscleTargetMet(chest)
         ? 'Chest volume was strong; keep back volume high too.'
-        : 'Keep building upper-body volume next week.'
+        : 'Complete the active program’s scheduled training volume next week.'
   const nutrition =
     (nutritionSummary?.proteinTargetDays ?? 0) >= 5
       ? 'Protein consistency was good.'
@@ -563,21 +686,14 @@ export function getCoachPriorityItems(advice) {
   }
 
   safeArray(advice?.pushExercises).slice(0, 2).forEach((exercise) => add(`${exercise} strength`))
-  add('Abs control')
-  add('No lower-back arching')
-  return items
-}
-
-function isUpperBodyGoalExercise(exercise) {
-  const text = getExerciseText(exercise)
-  return (
-    text.includes('chest') ||
-    text.includes('shoulder') ||
-    text.includes('triceps') ||
-    text.includes('bench') ||
-    text.includes('push') ||
-    text.includes('dip')
+  safeArray(advice?.controlExercises).slice(0, 1).forEach((exercise) =>
+    add(`${exercise} control`),
   )
+  safeArray(advice?.focusAreas).slice(0, 2).forEach(add)
+  if (advice?.restDay) {
+    add('Scheduled recovery')
+  }
+  return items
 }
 
 function needsControl(exercise) {
@@ -616,32 +732,108 @@ function countSessionsMatching(sessions, predicate) {
   ).length
 }
 
-function isAbsExercise(exercise, muscleMap) {
-  const text = getLoggedExerciseText(exercise, muscleMap)
-  return absKeywords.some((keyword) => text.includes(keyword))
+function getProgramTrainingDays(programOrPlan) {
+  return Array.isArray(programOrPlan)
+    ? programOrPlan.filter((day) => !isRestDay(day))
+    : safeArray(getTrainingDays(programOrPlan))
 }
 
-function isPostureExercise(exercise, muscleMap) {
-  const text = getLoggedExerciseText(exercise, muscleMap)
-  return postureKeywords.some((keyword) => text.includes(keyword))
-}
+function buildProgramMuscleFrequencyTargets(programOrPlan) {
+  const targets = { Abs: 0, Posture: 0 }
 
-function getLoggedExerciseText(exercise, muscleMap) {
-  const name = String(exercise?.exerciseName ?? exercise?.name ?? '')
-  return [name, muscleMap.get(normalize(name)) ?? '', exercise?.muscleGroup]
-    .filter(Boolean)
-    .join(' ')
-    .toLowerCase()
-}
-
-function buildPlanMuscleMap(workoutPlan) {
-  const map = new Map()
-  safeArray(workoutPlan).forEach((day) => {
+  getProgramTrainingDays(programOrPlan).forEach((day) => {
+    const muscles = new Set(
+      normalizeMuscleGroups(safeArray(day?.focus).join(' ')),
+    )
     safeArray(day?.exercises).forEach((exercise) => {
-      map.set(normalize(exercise?.name), String(exercise?.muscleGroup ?? ''))
+      normalizeMuscleGroups(exercise?.muscleGroup).forEach((muscle) =>
+        muscles.add(muscle),
+      )
+    })
+    Object.keys(targets).forEach((muscle) => {
+      if (muscles.has(muscle)) {
+        targets[muscle] += 1
+      }
     })
   })
-  return map
+
+  return targets
+}
+
+function loggedExerciseMatchesMuscle(exercise, planExercises, muscle, library) {
+  const storedGroups = normalizeMuscleGroups(exercise?.muscleGroup)
+  if (storedGroups.length > 0) {
+    return storedGroups.includes(muscle)
+  }
+
+  const planExercise = safeArray(planExercises).find((candidate) =>
+    exerciseIdentitiesMatch(
+      {
+        exerciseId: exercise?.exerciseId,
+        exerciseName: exercise?.exerciseName,
+      },
+      {
+        exerciseId: candidate?.id,
+        exerciseName: candidate?.name,
+      },
+      { library },
+    ),
+  )
+  return normalizeMuscleGroups(planExercise?.muscleGroup).includes(muscle)
+}
+
+function getExercisesForMuscles(days, muscles) {
+  const wanted = new Set(safeArray(muscles))
+  return uniqueNames(
+    safeArray(days).flatMap((day) =>
+      safeArray(day?.exercises)
+        .filter((exercise) =>
+          normalizeMuscleGroups(exercise?.muscleGroup).some((muscle) =>
+            wanted.has(muscle),
+          ),
+        )
+        .map((exercise) => exercise?.name),
+    ),
+  )
+}
+
+function normalizeMuscleGroups(value) {
+  const text = String(value ?? '').toLowerCase()
+  const groups = []
+
+  if (text.includes('chest')) groups.push('Chest')
+  if (text.includes('back') || text.includes('lat')) groups.push('Back')
+  if (text.includes('shoulder') || text.includes('delt')) groups.push('Shoulders')
+  if (
+    text.includes('biceps') ||
+    text.includes('triceps') ||
+    text.includes('forearm') ||
+    text.includes('arm')
+  ) groups.push('Arms')
+  if (
+    text.includes('leg') ||
+    text.includes('glute') ||
+    text.includes('hamstring') ||
+    text.includes('calf') ||
+    text.includes('quad')
+  ) groups.push('Legs')
+  if (
+    text.includes('abs') ||
+    text.includes('oblique') ||
+    text.includes('core')
+  ) groups.push('Abs')
+  if (text.includes('posture') || text.includes('mobility')) {
+    groups.push('Posture')
+  }
+  if (
+    text.includes('conditioning') ||
+    text.includes('cardio') ||
+    text.includes('recovery') ||
+    text.includes('walking') ||
+    text.includes('swimming')
+  ) groups.push('Cardio')
+
+  return [...new Set(groups)]
 }
 
 function getLatestCompletedSession(sessions) {
@@ -711,7 +903,7 @@ function isHardSessionYesterday(session) {
   return getDateKey(new Date(getSessionTime(session))) === yesterday && getSessionAverageRpe(session) >= 9
 }
 
-function hasRecentStrengthDecrease(sessions) {
+function hasRecentStrengthDecrease(sessions, library) {
   const completed = safeArray(sessions)
     .filter(isCompletedSession)
     .sort((a, b) => getSessionTime(b) - getSessionTime(a))
@@ -724,7 +916,18 @@ function hasRecentStrengthDecrease(sessions) {
 
   return safeArray(latest.exercises).some((exercise) => {
     const previousExercise = safeArray(previous.exercises).find(
-      (candidate) => normalize(candidate?.exerciseName) === normalize(exercise?.exerciseName),
+      (candidate) =>
+        exerciseIdentitiesMatch(
+          {
+            exerciseId: candidate?.exerciseId,
+            exerciseName: candidate?.exerciseName,
+          },
+          {
+            exerciseId: exercise?.exerciseId,
+            exerciseName: exercise?.exerciseName,
+          },
+          { library },
+        ),
     )
     if (!previousExercise) {
       return false
@@ -742,8 +945,7 @@ function getBestSetScore(exercise) {
     ...safeArray(exercise?.sets).map((set) => {
       const reps = toNumber(set?.reps)
       const weight = toNumber(set?.weightKg)
-      const time = toNumber(set?.timeSeconds)
-      return weight > 0 ? weight * 1000 + reps : reps || time
+      return reps > 0 ? (weight > 0 ? weight * 1000 + reps : reps) : 0
     }),
   )
 }
@@ -791,8 +993,41 @@ function findMuscle(muscleVolume, muscle) {
       muscle,
       sets: 0,
       sessions: 0,
+      targetSets: 0,
+      targetSessions: 0,
     }
   )
+}
+
+function getMuscleTargetRatio(summary) {
+  if (summary?.targetSets > 0) {
+    return toNumber(summary.sets) / summary.targetSets
+  }
+  if (summary?.targetSessions > 0) {
+    return toNumber(summary.sessions) / summary.targetSessions
+  }
+  return 0
+}
+
+function isMuscleTargetMet(summary) {
+  if ((summary?.targetSets ?? 0) <= 0 && (summary?.targetSessions ?? 0) <= 0) {
+    return false
+  }
+  return (
+    ((summary?.targetSets ?? 0) <= 0 || summary.sets >= summary.targetSets) &&
+    ((summary?.targetSessions ?? 0) <= 0 ||
+      summary.sessions >= summary.targetSessions)
+  )
+}
+
+function getProgramRestDayLabel(programOrPlan) {
+  const days = Array.isArray(programOrPlan)
+    ? programOrPlan
+    : safeArray(programOrPlan?.days)
+  const restDay = days.find(isRestDay)
+  return restDay
+    ? `Day ${restDay.day ?? '-'} — ${restDay.name || 'Rest'}`
+    : ''
 }
 
 function diff(current, previous) {
@@ -868,10 +1103,6 @@ function toNumber(value) {
 
 function uniqueNames(items) {
   return [...new Set(safeArray(items).map((item) => String(item ?? '').trim()).filter(Boolean))]
-}
-
-function normalize(value) {
-  return String(value ?? '').trim().toLowerCase()
 }
 
 function clamp(value, min, max) {

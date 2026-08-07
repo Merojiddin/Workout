@@ -1,13 +1,19 @@
 import { BODY_CHECK_INS_KEY } from '../data/bodyCheckIns'
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
+import { resolveExerciseIdentity } from '../data/exerciseIdentity'
 import {
   CUSTOM_EXERCISE_LIBRARY_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
   USER_PROFILE_SETTINGS_KEY,
+  getEffectiveExerciseLibrary,
   getUserProfileSettings,
 } from './settingsUtils'
+import {
+  formatDuration,
+} from './exerciseLoggingUtils'
 import { safeGetJSON } from './storageUtils'
+import { getActiveWorkoutProgram } from './activeWorkoutProgram'
 
 export function downloadCSV(filename, rows) {
   const csv = safeRows(rows)
@@ -18,14 +24,52 @@ export function downloadCSV(filename, rows) {
   return csv
 }
 
+export function buildWorkoutPlanExportData(
+  activeProgram = getActiveWorkoutProgram(),
+  exportedAt = new Date().toISOString(),
+) {
+  const standaloneWorkouts = safeArray(activeProgram?.standaloneWorkouts)
+
+  return {
+    exportedAt,
+    program: {
+      id: activeProgram?.programId ?? null,
+      version: activeProgram?.programVersion ?? null,
+      name: activeProgram?.programName ?? 'Custom Workout Plan',
+      modifiedAfterInstallation: Boolean(
+        activeProgram?.modifiedAfterInstallation,
+      ),
+    },
+    days: safeArray(activeProgram?.days),
+    ...(standaloneWorkouts.length > 0 ? { standaloneWorkouts } : {}),
+  }
+}
+
+export function exportWorkoutPlanJSON(activeProgram = getActiveWorkoutProgram()) {
+  const data = buildWorkoutPlanExportData(activeProgram)
+  downloadText(
+    `current-workout-plan-${fileDate(new Date(data.exportedAt))}.json`,
+    JSON.stringify(data, null, 2),
+    'application/json;charset=utf-8;',
+  )
+  return data
+}
+
 export function exportWorkoutSessionsCSV(sessions = []) {
   const rows = [
     [
       'Date',
       'Workout Name',
+      'Session Type',
+      'Standalone Workout ID',
       'Exercise',
+      'Exercise ID',
+      'Resolved Canonical ID',
+      'Archived',
       'Set Number',
       'Reps',
+      'Duration Seconds',
+      'Formatted Duration',
       'Weight Kg',
       'RPE',
       'Pain Level',
@@ -33,13 +77,27 @@ export function exportWorkoutSessionsCSV(sessions = []) {
       'Completed',
     ],
   ]
+  const activeProgram = getActiveWorkoutProgram()
+  const activePlan = [
+    ...safeArray(activeProgram?.days),
+    ...safeArray(activeProgram?.standaloneWorkouts),
+  ]
+  const library = getEffectiveExerciseLibrary()
 
   safeArray(sessions).forEach((session) => {
+    const sessionIdentity = getSessionExportIdentity(session)
     const exercises = safeArray(session?.exercises)
     if (exercises.length === 0) {
       rows.push([
         session?.date ?? '',
         session?.workoutName ?? '',
+        sessionIdentity.label,
+        sessionIdentity.standaloneWorkoutId,
+        '',
+        '',
+        '',
+        '',
+        '',
         '',
         '',
         '',
@@ -53,12 +111,23 @@ export function exportWorkoutSessionsCSV(sessions = []) {
     }
 
     exercises.forEach((exercise) => {
+      const identity = resolveExerciseIdentity(exercise, {
+        activePlan,
+        library,
+      })
       const sets = safeArray(exercise?.sets)
       if (sets.length === 0) {
         rows.push([
           session?.date ?? '',
           session?.workoutName ?? '',
+          sessionIdentity.label,
+          sessionIdentity.standaloneWorkoutId,
           exercise?.exerciseName ?? '',
+          exercise?.exerciseId ?? '',
+          identity.canonicalId ?? '',
+          yesNo(identity.archived),
+          '',
+          '',
           '',
           '',
           '',
@@ -71,12 +140,21 @@ export function exportWorkoutSessionsCSV(sessions = []) {
       }
 
       sets.forEach((set, index) => {
+        const durationSeconds = nonNegativeNumber(set?.timeSeconds)
+
         rows.push([
           session?.date ?? '',
           session?.workoutName ?? '',
+          sessionIdentity.label,
+          sessionIdentity.standaloneWorkoutId,
           exercise?.exerciseName ?? '',
+          exercise?.exerciseId ?? '',
+          identity.canonicalId ?? '',
+          yesNo(identity.archived),
           set?.setNumber ?? index + 1,
           set?.reps ?? '',
+          durationSeconds ?? '',
+          durationSeconds === null ? '' : formatDuration(durationSeconds),
           set?.weightKg ?? '',
           set?.rpe ?? '',
           set?.painLevel ?? '',
@@ -190,6 +268,9 @@ export function exportWeeklySummaryCSV(data = {}) {
       'Week End',
       'Weekly Score',
       'Workouts Completed',
+      'Scheduled Workouts Completed',
+      'Standalone Workouts Completed',
+      'Target Workouts',
       'Total Sets',
       'Chest Sets',
       'Back Sets',
@@ -207,6 +288,11 @@ export function exportWeeklySummaryCSV(data = {}) {
       data.weekEnd ?? dateKey(data.week?.end),
       data.weeklyScore?.score ?? '',
       data.workoutSummary?.completedWorkouts ?? 0,
+      data.workoutSummary?.scheduledCompletedWorkouts ??
+        data.workoutSummary?.completedWorkouts ??
+        0,
+      data.workoutSummary?.standaloneWorkoutsCompleted ?? 0,
+      data.workoutSummary?.targetWorkouts ?? 0,
       data.workoutSummary?.totalSets ?? 0,
       muscleSets(data.muscleVolume, 'Chest'),
       muscleSets(data.muscleVolume, 'Back'),
@@ -251,6 +337,28 @@ function safeRows(rows) {
 
 function safeArray(value) {
   return Array.isArray(value) ? value : []
+}
+
+function nonNegativeNumber(value) {
+  if (value === null || value === undefined || value === '') {
+    return null
+  }
+
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
+}
+
+function getSessionExportIdentity(session) {
+  const standalone = session?.sessionType === 'standalone'
+  const standaloneWorkoutId =
+    standalone && typeof session?.standaloneWorkoutId === 'string'
+      ? session.standaloneWorkoutId.trim()
+      : ''
+
+  return {
+    label: standalone ? 'Standalone workout' : 'Scheduled workout',
+    standaloneWorkoutId,
+  }
 }
 
 function escapeCsvCell(value) {

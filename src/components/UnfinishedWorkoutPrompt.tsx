@@ -27,6 +27,9 @@ export function UnfinishedWorkoutPrompt({
       </span>
       <p className="eyebrow">Unfinished workout</p>
       <h1>You have an unfinished workout.</h1>
+      {session?.sessionType === 'standalone' ? (
+        <p className="card-copy">Standalone workout</p>
+      ) : null}
       <p>
         {session?.workoutName ?? 'Workout'} - {completedSets} of {totalSets} sets
         logged{startedLabel ? ` , started ${startedLabel}` : ''}.

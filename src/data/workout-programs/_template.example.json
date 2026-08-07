@@ -1,0 +1,217 @@
+{
+  "id": "example-only-workout-program",
+  "name": "Example Workout Program — Documentation Only",
+  "version": "0.0.0-example",
+  "updatedAt": "2099-01-01",
+  "description": "Documentation-only example. Copy and replace every example value before using this file as a workout program.",
+  "goals": [
+    "Example goal — replace before use",
+    "Example secondary goal — replace before use"
+  ],
+  "benchmarkExerciseIds": [
+    "example-only-repetition-exercise",
+    "example-only-duration-exercise"
+  ],
+  "rules": {
+    "effort": [
+      "Example effort rule — replace before use",
+      "Stop the example set before form breaks"
+    ],
+    "progression": [
+      "Example progression rule — replace before use",
+      "Change only one example variable at a time"
+    ],
+    "postureCue": "Example posture cue — replace before use",
+    "returnAfterBreak": [
+      "Example return rule — replace before use",
+      "Use an easier example target during the first week back"
+    ]
+  },
+  "days": [
+    {
+      "day": 1,
+      "name": "Example Day 1 — Repetition Training",
+      "estimatedTime": "30-45 min",
+      "focus": [
+        "Example muscle group"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-repetition-exercise",
+          "name": "Example Repetition Exercise — Do Not Use",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 90,
+          "muscleGroup": "Example muscle group",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example form cue — replace before use",
+            "Move through the example range with control"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "name": "Example Day 2 — Timed Training",
+      "estimatedTime": "20-30 min",
+      "focus": [
+        "Example conditioning focus"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-duration-exercise",
+          "name": "Example Duration Exercise — Do Not Use",
+          "sets": 3,
+          "duration": "30 sec",
+          "restSeconds": 45,
+          "muscleGroup": "Example conditioning group",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example timed-exercise cue — replace before use",
+            "Stop the example interval if form breaks"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "name": "Example Day 3 — Replace Before Use",
+      "estimatedTime": "30-45 min",
+      "focus": [
+        "Example focus 3"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-day-3-exercise",
+          "name": "Example Day 3 Exercise — Do Not Use",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 60,
+          "muscleGroup": "Example muscle group 3",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example form cue — replace before use"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "name": "Example Day 4 — Replace Before Use",
+      "estimatedTime": "30-45 min",
+      "focus": [
+        "Example focus 4"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-day-4-exercise",
+          "name": "Example Day 4 Exercise — Do Not Use",
+          "sets": 2,
+          "duration": "45 sec",
+          "restSeconds": 60,
+          "muscleGroup": "Example muscle group 4",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example form cue — replace before use"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "name": "Example Day 5 — Replace Before Use",
+      "estimatedTime": "30-45 min",
+      "focus": [
+        "Example focus 5"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-day-5-exercise",
+          "name": "Example Day 5 Exercise — Do Not Use",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 90,
+          "muscleGroup": "Example muscle group 5",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example form cue — replace before use"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 6,
+      "name": "Example Day 6 — Replace Before Use",
+      "estimatedTime": "20-30 min",
+      "focus": [
+        "Example focus 6"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-day-6-exercise",
+          "name": "Example Day 6 Exercise — Do Not Use",
+          "sets": 4,
+          "duration": "20 sec",
+          "restSeconds": 40,
+          "muscleGroup": "Example muscle group 6",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example form cue — replace before use"
+          ]
+        }
+      ]
+    },
+    {
+      "day": 7,
+      "name": "Example Day 7 — Replace Before Use",
+      "estimatedTime": "15-25 min",
+      "focus": [
+        "Example recovery focus"
+      ],
+      "exercises": [
+        {
+          "id": "example-only-day-7-exercise",
+          "name": "Example Day 7 Exercise — Do Not Use",
+          "sets": 1,
+          "duration": "15-20 min",
+          "restSeconds": 0,
+          "muscleGroup": "Example recovery group",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example recovery cue — replace before use"
+          ]
+        }
+      ]
+    }
+  ],
+  "standaloneWorkouts": [
+    {
+      "id": "example-only-travel-workout",
+      "name": "Example Travel Workout — Do Not Use",
+      "description": "A documentation-only standalone workout example.",
+      "recommendedUse": "Replace this text with guidance for when to choose the workout.",
+      "estimatedTime": "15-20 min",
+      "focus": [
+        "Example full-body focus"
+      ],
+      "rules": [
+        "Replace this example rule before use."
+      ],
+      "exercises": [
+        {
+          "id": "example-only-standalone-exercise",
+          "name": "Example Standalone Exercise — Do Not Use",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 60,
+          "muscleGroup": "Example muscle group",
+          "equipment": "Example equipment",
+          "formTips": [
+            "Example standalone form cue — replace before use."
+          ]
+        }
+      ]
+    }
+  ]
+}

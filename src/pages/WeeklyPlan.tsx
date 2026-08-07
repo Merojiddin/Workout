@@ -5,13 +5,16 @@ import { PrintableWeeklyPlan } from '../print/PrintableWeeklyPlan'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import {
   findLibraryExerciseForWorkout,
-  getCustomWorkoutPlan,
   getExerciseTargetLabel,
   getUserProfileSettings,
 } from '../utils/settingsUtils'
 import { prepareWeeklyPlanPrintData, printElement } from '../utils/printUtils'
 import type { PageId } from '../types/navigation'
-import type { WorkoutDay } from '../data/workoutPlan'
+import {
+  getActiveWorkoutProgram,
+  getRestDays,
+  getTrainingDays,
+} from '../utils/activeWorkoutProgram'
 
 interface WeeklyPlanProps {
   onNavigate: (page: PageId) => void
@@ -21,10 +24,14 @@ export function WeeklyPlan({ onNavigate }: WeeklyPlanProps) {
   const [viewingExercise, setViewingExercise] = useState<LibraryExercise | null>(
     null,
   )
-  const plan = getCustomWorkoutPlan() as WorkoutDay[]
+  const activeProgram = getActiveWorkoutProgram()
+  const plan = activeProgram.days
+  const trainingDayCount = getTrainingDays(activeProgram).length
+  const restDayCount = getRestDays(activeProgram).length
   const weeklyPlanPrintData = prepareWeeklyPlanPrintData(
     plan,
     getUserProfileSettings(),
+    activeProgram,
   )
 
   return (
@@ -32,11 +39,28 @@ export function WeeklyPlan({ onNavigate }: WeeklyPlanProps) {
       <header className="progress-hero">
         <div>
           <p className="eyebrow">Weekly Plan</p>
-          <h1>7-Day Training Split</h1>
-          <p>
-            Your full week at a glance. Tap Guide on any exercise to open its
-            form, muscles worked, mistakes, and progressions.
-          </p>
+          <h1>{activeProgram.programName}</h1>
+          <p>{activeProgram.description}</p>
+          <div className="tag-row">
+            <span className="tag tag--category">
+              {plan.length}-day training split
+            </span>
+            {activeProgram.programVersion ? (
+              <span className="tag tag--secondary-muscle">
+                Version {activeProgram.programVersion}
+              </span>
+            ) : null}
+            {activeProgram.modifiedAfterInstallation ? (
+              <span className="tag tag--secondary-muscle">
+                Modified after installation
+              </span>
+            ) : null}
+          </div>
+          {activeProgram.goals.length > 0 ? (
+            <p>
+              <strong>Goals:</strong> {activeProgram.goals.join(' · ')}
+            </p>
+          ) : null}
         </div>
         <div className="progress-hero-actions">
           <button
@@ -58,8 +82,11 @@ export function WeeklyPlan({ onNavigate }: WeeklyPlanProps) {
         </div>
         <div className="hero-target">
           <CalendarDays size={22} strokeWidth={2.4} aria-hidden="true" />
-          <span>Training days</span>
-          <strong>6 on · 1 recovery</strong>
+          <span>Training schedule</span>
+          <strong>
+            {trainingDayCount} scheduled {pluralize(trainingDayCount, 'session')} ·{' '}
+            {restDayCount} {pluralize(restDayCount, 'rest day')}
+          </strong>
         </div>
       </header>
 
@@ -145,4 +172,8 @@ export function WeeklyPlan({ onNavigate }: WeeklyPlanProps) {
       ) : null}
     </section>
   )
+}
+
+function pluralize(count: number, singular: string): string {
+  return count === 1 ? singular : `${singular}s`
 }

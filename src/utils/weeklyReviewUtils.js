@@ -1,3 +1,10 @@
+import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
+import {
+  getRestDays,
+  getTrainingDays,
+  getWeeklyWorkoutTarget,
+  isRestDay,
+} from './activeWorkoutProgram'
 import { nutritionTargets } from './nutritionUtils'
 
 const targetMuscles = [
@@ -9,17 +16,6 @@ const targetMuscles = [
   'Abs',
   'Posture',
   'Cardio',
-]
-
-export const weeklyReviewExerciseNames = [
-  'Bench Press',
-  'Weighted Push-up',
-  'Pull-ups',
-  'Dips',
-  'Incline Dumbbell Press',
-  'Squat',
-  'Romanian Deadlift',
-  'Hanging Knee Raise',
 ]
 
 export function getWeekRange(date) {
@@ -49,14 +45,21 @@ export function getCheckInsForWeek(checkIns, weekStart, weekEnd) {
   return filterByWeek(checkIns, weekStart, weekEnd, getDatedItemDate)
 }
 
-export function getWorkoutCompletionSummary(weekSessions, workoutPlan) {
+export function getWorkoutCompletionSummary(weekSessions, programOrPlan) {
   const completedSessions = safeArray(weekSessions).filter(isWorkoutCompleted)
-  const targetDays = getTargetWorkoutDays(workoutPlan)
+  const standaloneSessions = completedSessions.filter(isStandaloneWorkoutSession)
+  const scheduledSessions = completedSessions.filter(
+    (session) => !isStandaloneWorkoutSession(session),
+  )
+  const targetDays = getTargetWorkoutDays(programOrPlan)
   const completedDayIds = new Set(
-    completedSessions.flatMap((session) => {
+    scheduledSessions.flatMap((session) => {
       const dayId = toNumber(session?.workoutDayId)
+      const matchedById = targetDays.find(
+        (day) => toNumber(day?.day) === dayId,
+      )
       if (dayId > 0) {
-        return [dayId]
+        return matchedById ? [matchedById.day] : []
       }
 
       const matchedDay = targetDays.find(
@@ -69,6 +72,13 @@ export function getWorkoutCompletionSummary(weekSessions, workoutPlan) {
   const missedWorkoutDays = targetDays
     .filter((day) => !completedDayIds.has(day.day))
     .map((day) => `Day ${day.day} ${day.name}`)
+  const missedWorkoutDayDetails = targetDays
+    .filter((day) => !completedDayIds.has(day.day))
+    .map((day) => ({
+      day: day.day,
+      name: day.name,
+      focus: safeArray(day.focus).filter(Boolean),
+    }))
 
   const totalExercises = completedSessions.reduce(
     (total, session) =>
@@ -97,8 +107,11 @@ export function getWorkoutCompletionSummary(weekSessions, workoutPlan) {
 
   return {
     completedWorkouts: completedSessions.length,
-    targetWorkouts: targetDays.length || 6,
+    scheduledCompletedWorkouts: completedDayIds.size,
+    standaloneWorkoutsCompleted: standaloneSessions.length,
+    targetWorkouts: getProgramWeeklyTarget(programOrPlan, targetDays),
     missedWorkoutDays,
+    missedWorkoutDayDetails,
     totalSets,
     totalExercises,
     totalDuration,
@@ -106,12 +119,22 @@ export function getWorkoutCompletionSummary(weekSessions, workoutPlan) {
   }
 }
 
-export function getMuscleVolumeSummary(weekSessions, workoutPlan) {
-  const exerciseMuscleMap = buildExerciseMuscleMap(workoutPlan)
+export function getMuscleVolumeSummary(weekSessions, programOrPlan, options = {}) {
+  const workoutPlan = getProgramDays(programOrPlan)
+  const exerciseMuscleMap = buildExerciseMuscleMap(workoutPlan, options.library)
+  const programTargets = buildProgramMuscleTargets(programOrPlan)
   const volume = Object.fromEntries(
     targetMuscles.map((muscle) => [
       muscle,
-      { muscle, sets: 0, sessions: 0, message: '', status: 'neutral' },
+      {
+        muscle,
+        sets: 0,
+        sessions: 0,
+        targetSets: programTargets[muscle].sets,
+        targetSessions: programTargets[muscle].sessions,
+        message: '',
+        status: 'neutral',
+      },
     ]),
   )
 
@@ -126,9 +149,11 @@ export function getMuscleVolumeSummary(weekSessions, workoutPlan) {
           return
         }
 
-        const groups =
-          exerciseMuscleMap.get(normalizeText(exercise?.exerciseName)) ??
-          normalizeMuscleGroups(exercise?.muscleGroup)
+        const groups = resolveLoggedExerciseMuscles(
+          exercise,
+          exerciseMuscleMap,
+          options.library,
+        )
 
         groups.forEach((muscle) => {
           if (!volume[muscle]) {
@@ -144,32 +169,23 @@ export function getMuscleVolumeSummary(weekSessions, workoutPlan) {
       })
     })
 
-  volume.Chest.message =
-    volume.Chest.sets >= 18
-      ? 'Chest volume strong.'
-      : volume.Chest.sets < 12
-        ? 'Chest volume too low for your goal.'
-        : 'Chest volume is on track.'
-  volume.Chest.status =
-    volume.Chest.sets >= 18 ? 'good' : volume.Chest.sets < 12 ? 'warn' : 'neutral'
+  targetMuscles.forEach((muscle) => {
+    const summary = volume[muscle]
+    if (summary.targetSessions === 0 && summary.targetSets === 0) {
+      summary.message = `${muscle} is not specifically scheduled in this program.`
+      summary.status = 'neutral'
+      return
+    }
 
-  volume.Abs.message =
-    volume.Abs.sessions >= 3
-      ? 'Abs consistency good.'
-      : 'Abs needs 3-4 sessions per week.'
-  volume.Abs.status = volume.Abs.sessions >= 3 ? 'good' : 'warn'
-
-  volume.Posture.message =
-    volume.Posture.sessions < 4
-      ? 'Posture work needs more consistency.'
-      : 'Posture consistency good.'
-  volume.Posture.status = volume.Posture.sessions < 4 ? 'warn' : 'good'
-
-  volume.Legs.message =
-    volume.Legs.sets === 0
-      ? 'Do not skip legs. It supports hormones, posture, and balance.'
-      : 'Leg work completed.'
-  volume.Legs.status = volume.Legs.sets === 0 ? 'warn' : 'good'
+    const sessionsMet =
+      summary.targetSessions === 0 || summary.sessions >= summary.targetSessions
+    const setsMet = summary.targetSets === 0 || summary.sets >= summary.targetSets
+    summary.message =
+      sessionsMet && setsMet
+        ? `${muscle} work is on target for the active program.`
+        : `${muscle} work is below the active program schedule.`
+    summary.status = sessionsMet && setsMet ? 'good' : 'warn'
+  })
 
   return targetMuscles.map((muscle) => volume[muscle])
 }
@@ -177,14 +193,25 @@ export function getMuscleVolumeSummary(weekSessions, workoutPlan) {
 export function getStrengthComparison(
   currentWeekSessions,
   previousWeekSessions,
-  exerciseNames,
+  benchmarkExercises,
+  options = {},
 ) {
-  return safeArray(exerciseNames).map((exerciseName) => {
-    const current = getBestExercisePerformance(currentWeekSessions, exerciseName)
-    const previous = getBestExercisePerformance(previousWeekSessions, exerciseName)
+  return normalizeBenchmarkExercises(benchmarkExercises).map((benchmark) => {
+    const current = getBestExercisePerformance(
+      currentWeekSessions,
+      benchmark,
+      options,
+    )
+    const previous = getBestExercisePerformance(
+      previousWeekSessions,
+      benchmark,
+      options,
+    )
+    const exerciseName = benchmark.displayName
 
     if (!current && !previous) {
       return {
+        exerciseId: benchmark.exerciseId,
         exerciseName,
         currentBest: 'No data',
         previousBest: 'No data',
@@ -195,6 +222,7 @@ export function getStrengthComparison(
 
     if (!current) {
       return {
+        exerciseId: benchmark.exerciseId,
         exerciseName,
         currentBest: 'No data',
         previousBest: formatBest(previous),
@@ -205,6 +233,7 @@ export function getStrengthComparison(
 
     if (!previous) {
       return {
+        exerciseId: benchmark.exerciseId,
         exerciseName,
         currentBest: formatBest(current),
         previousBest: 'No data',
@@ -216,6 +245,7 @@ export function getStrengthComparison(
     const comparison = compareBestPerformances(current, previous)
 
     return {
+      exerciseId: benchmark.exerciseId,
       exerciseName,
       currentBest: formatBest(current),
       previousBest: formatBest(previous),
@@ -335,10 +365,14 @@ export function calculateWeeklyScore({
   muscleVolume,
   strengthComparison,
 }) {
+  const scheduledCompletedWorkouts =
+    workoutSummary?.scheduledCompletedWorkouts ??
+    workoutSummary?.completedWorkouts ??
+    0
   const workoutPoints =
     getRatio(
-      workoutSummary?.completedWorkouts ?? 0,
-      workoutSummary?.targetWorkouts || 6,
+      scheduledCompletedWorkouts,
+      workoutSummary?.targetWorkouts ?? 0,
     ) * 40
 
   const nutritionPoints = calculateNutritionPoints(nutritionSummary)
@@ -381,6 +415,7 @@ export function generateNextWeekFocus({
   muscleVolume,
   strengthComparison,
   progressionSuggestions,
+  activeProgram,
 }) {
   const items = []
   const add = (item) => {
@@ -392,9 +427,12 @@ export function generateNextWeekFocus({
   const posture = findMuscle(muscleVolume, 'Posture')
   const chest = findMuscle(muscleVolume, 'Chest')
   const legs = findMuscle(muscleVolume, 'Legs')
-  const daySixMissed = safeArray(workoutSummary?.missedWorkoutDays).some((day) =>
-    day.includes('Day 6'),
-  )
+  const missedProgramDays = safeArray(workoutSummary?.missedWorkoutDayDetails)
+  const missedCoreOrPostureDay = missedProgramDays.find((day) => {
+    const text = [day?.name, ...safeArray(day?.focus)].join(' ')
+    const groups = normalizeMuscleGroups(text)
+    return groups.includes('Abs') || groups.includes('Posture')
+  })
   const increaseSuggestion = safeArray(progressionSuggestions).find(
     (suggestion) => suggestion?.type === 'increase',
   )
@@ -402,14 +440,25 @@ export function generateNextWeekFocus({
     (item) => item?.status === 'decreased',
   )
 
-  if (daySixMissed || abs.sessions < 3 || posture.sessions < 4) {
-    add('Complete Day 6 abs/posture session.')
+  if (missedCoreOrPostureDay) {
+    const focus = safeArray(missedCoreOrPostureDay.focus).join(', ')
+    add(
+      `Complete Day ${missedCoreOrPostureDay.day} — ${missedCoreOrPostureDay.name}${focus ? ` (${focus})` : ''}.`,
+    )
+  } else if (isBelowScheduledFrequency(abs) || isBelowScheduledFrequency(posture)) {
+    const scheduledNames = getScheduledExerciseNames(activeProgram, [
+      'Abs',
+      'Posture',
+    ]).slice(0, 3)
+    add(
+      scheduledNames.length > 0
+        ? `Complete the scheduled core/posture work: ${scheduledNames.join(', ')}.`
+        : 'Complete the active program’s scheduled core and posture work.',
+    )
   }
 
-  if (chest.sets >= 18) {
-    add('Keep chest volume high but do not increase dips if shoulders feel tired.')
-  } else {
-    add('Bring chest volume up with clean pressing sets.')
+  if (chest.targetSets > 0 && chest.sets < chest.targetSets) {
+    add('Complete the active program’s remaining chest work with clean sets.')
   }
 
   if (nutritionSummary?.proteinTargetDays < 5) {
@@ -420,7 +469,7 @@ export function generateNextWeekFocus({
     add('Take creatine daily.')
   }
 
-  if (legs.sets === 0) {
+  if (legs.targetSessions > 0 && legs.sessions === 0) {
     add('Do not skip legs next week.')
   }
 
@@ -431,7 +480,7 @@ export function generateNextWeekFocus({
       `Progress ${increaseSuggestion.exerciseName}: ${increaseSuggestion.nextTarget}.`,
     )
   } else {
-    add('Add 1 rep to pull-ups or increase backpack weight if reps are maxed.')
+    add('Progress only after every prescribed set is completed with clean form.')
   }
 
   if (!bodySummary?.hasCurrent) {
@@ -447,12 +496,12 @@ export function generateNextWeekFocus({
 }
 
 export function generateWarnings({
-  workoutSummary,
   nutritionSummary,
   bodySummary,
   muscleVolume,
   weekSessions,
   strengthComparison,
+  activeProgram,
 }) {
   const warnings = []
   const add = (warning) => {
@@ -473,19 +522,27 @@ export function generateWarnings({
     add('RPE too high too often. Leave 1-2 reps in reserve.')
   }
 
-  if (chest.sets > 28) {
+  if (chest.targetSets > 0 && chest.sets > chest.targetSets * 1.4) {
     add('Chest volume is very high. Watch shoulder fatigue.')
   }
 
-  if (workoutSummary?.completedWorkouts >= 7) {
-    add('No rest day logged. Keep one recovery day.')
+  const completedRestDay = findCompletedRestDay(weekSessions, activeProgram)
+  if (completedRestDay) {
+    add(
+      `A workout was logged on scheduled rest day ${completedRestDay.day} — ${completedRestDay.name}. Protect recovery unless this was intentional.`,
+    )
   }
 
-  if (legs.sets === 0) {
+  if (legs.targetSessions > 0 && legs.sets === 0) {
     add('No legs completed. Do not skip legs.')
   }
 
-  if (chest.sets >= 18 && back.sets < 12) {
+  if (
+    chest.targetSets > 0 &&
+    back.targetSets > 0 &&
+    getMuscleCompletionRatio(chest) >= 1 &&
+    getMuscleCompletionRatio(back) < 0.7
+  ) {
     add(
       'You trained chest hard but did not log enough back work. Keep back volume strong to protect shoulders.',
     )
@@ -503,7 +560,7 @@ export function generateWarnings({
     add('No body check-in this week.')
   }
 
-  if (posture.sessions === 0) {
+  if (posture.targetSessions > 0 && posture.sessions === 0) {
     add('Posture exercises skipped.')
   }
 
@@ -558,32 +615,102 @@ function filterByWeek(items, weekStart, weekEnd, getDate) {
   })
 }
 
-function getTargetWorkoutDays(workoutPlan) {
-  const days = safeArray(workoutPlan).filter((day) => {
-    const name = String(day?.name ?? '')
-    return toNumber(day?.day) > 0 && !/rest/i.test(name)
-  })
+function getTargetWorkoutDays(programOrPlan) {
+  if (Array.isArray(programOrPlan)) {
+    return programOrPlan.filter(
+      (day) => toNumber(day?.day) > 0 && !isRestDay(day),
+    )
+  }
 
-  return days.length > 0 ? days : safeArray(workoutPlan).slice(0, 6)
+  return safeArray(getTrainingDays(programOrPlan)).filter(
+    (day) => toNumber(day?.day) > 0,
+  )
 }
 
-function buildExerciseMuscleMap(workoutPlan) {
-  const map = new Map()
+function getProgramWeeklyTarget(programOrPlan, targetDays) {
+  if (Array.isArray(programOrPlan)) {
+    return safeArray(targetDays).length
+  }
+
+  const target = toNumber(getWeeklyWorkoutTarget(programOrPlan))
+  return target >= 0 ? target : safeArray(targetDays).length
+}
+
+function getProgramDays(programOrPlan) {
+  return Array.isArray(programOrPlan)
+    ? programOrPlan
+    : safeArray(programOrPlan?.days)
+}
+
+function buildExerciseMuscleMap(workoutPlan, library) {
+  const entries = []
 
   safeArray(workoutPlan).forEach((day) => {
     safeArray(day?.exercises).forEach((exercise) => {
-      const key = normalizeText(exercise?.name)
       const groups = normalizeMuscleGroups(exercise?.muscleGroup)
-      if (!key || groups.length === 0) {
+      if (!exercise?.name || groups.length === 0) {
         return
       }
 
-      const existing = map.get(key) ?? []
-      map.set(key, [...new Set([...existing, ...groups])])
+      entries.push({
+        identity: {
+          exerciseId: exercise?.id,
+          exerciseName: exercise?.name,
+        },
+        groups,
+      })
     })
   })
 
-  return map
+  return { entries, library }
+}
+
+function resolveLoggedExerciseMuscles(exercise, exerciseMuscleMap, library) {
+  const storedGroups = normalizeMuscleGroups(exercise?.muscleGroup)
+  if (storedGroups.length > 0) {
+    return storedGroups
+  }
+
+  const match = safeArray(exerciseMuscleMap?.entries).find((entry) =>
+    exerciseIdentitiesMatch(
+      {
+        exerciseId: exercise?.exerciseId,
+        exerciseName: exercise?.exerciseName,
+      },
+      entry.identity,
+      { library: library ?? exerciseMuscleMap?.library },
+    ),
+  )
+  return match?.groups ?? []
+}
+
+function buildProgramMuscleTargets(programOrPlan) {
+  const targets = Object.fromEntries(
+    targetMuscles.map((muscle) => [muscle, { sets: 0, sessions: 0 }]),
+  )
+
+  getTargetWorkoutDays(programOrPlan).forEach((day) => {
+    const musclesInDay = new Set(normalizeMuscleGroups(safeArray(day?.focus).join(' ')))
+
+    safeArray(day?.exercises).forEach((exercise) => {
+      const groups = normalizeMuscleGroups(exercise?.muscleGroup)
+      groups.forEach((muscle) => {
+        if (!targets[muscle]) {
+          return
+        }
+        targets[muscle].sets += Math.max(0, toNumber(exercise?.sets))
+        musclesInDay.add(muscle)
+      })
+    })
+
+    musclesInDay.forEach((muscle) => {
+      if (targets[muscle]) {
+        targets[muscle].sessions += 1
+      }
+    })
+  })
+
+  return targets
 }
 
 function normalizeMuscleGroups(muscleGroup) {
@@ -633,16 +760,27 @@ function normalizeMuscleGroups(muscleGroup) {
   return groups
 }
 
-function getBestExercisePerformance(sessions, exerciseName) {
+function getBestExercisePerformance(sessions, benchmark, options = {}) {
   const candidates = safeArray(sessions)
     .filter(isWorkoutCompleted)
     .flatMap((session) =>
       getSessionExercises(session).filter(
-        (exercise) =>
-          normalizeText(exercise?.exerciseName) === normalizeText(exerciseName),
+        (exercise) => exerciseIdentitiesMatch(
+          {
+            exerciseId: exercise?.exerciseId,
+            exerciseName: exercise?.exerciseName,
+          },
+          {
+            exerciseId: benchmark.exerciseId,
+            exerciseName: benchmark.exerciseName,
+          },
+          { library: options.library },
+        ),
       ),
     )
-    .flatMap((exercise) => getCompletedSets(exercise))
+    .flatMap((exercise) =>
+      getSets(exercise).filter((set) => toNumber(set?.reps) > 0),
+    )
 
   if (candidates.length === 0) {
     return null
@@ -651,17 +789,51 @@ function getBestExercisePerformance(sessions, exerciseName) {
   const scored = candidates.map((set) => {
     const weight = toNumber(set?.weightKg)
     const reps = toNumber(set?.reps)
-    const time = toNumber(set?.timeSeconds)
     return {
       weight,
       reps,
-      time,
-      score: weight > 0 ? weight * 1000 + reps : reps || time,
-      unit: weight > 0 ? 'kg' : time > 0 && reps === 0 ? 'sec' : 'reps',
+      score: weight > 0 ? weight * 1000 + reps : reps,
+      unit: weight > 0 ? 'kg' : 'reps',
     }
   })
 
   return scored.sort((a, b) => b.score - a.score)[0] ?? null
+}
+
+function normalizeBenchmarkExercises(benchmarks) {
+  const seen = new Set()
+  const normalized = []
+
+  safeArray(benchmarks).forEach((benchmark) => {
+    const exerciseId = nonEmptyText(
+      benchmark?.exerciseId ?? benchmark?.canonicalId ?? benchmark?.id,
+    )
+    const exerciseName = nonEmptyText(
+      benchmark?.exerciseName ??
+        benchmark?.canonicalName ??
+        benchmark?.displayName ??
+        benchmark?.name ??
+        (typeof benchmark === 'string' ? benchmark : ''),
+    )
+    if (!exerciseId && !exerciseName) {
+      return
+    }
+
+    const key = exerciseId
+      ? `id:${exerciseId}`
+      : `name:${normalizeText(exerciseName)}`
+    if (seen.has(key)) {
+      return
+    }
+    seen.add(key)
+    normalized.push({
+      exerciseId: exerciseId || null,
+      exerciseName,
+      displayName: exerciseName || exerciseId,
+    })
+  })
+
+  return normalized
 }
 
 function compareBestPerformances(current, previous) {
@@ -681,12 +853,10 @@ function compareBestPerformances(current, previous) {
     }
   }
 
-  const valueKey = current.unit === 'sec' || previous.unit === 'sec' ? 'time' : 'reps'
-  const unit = valueKey === 'time' ? 'sec' : 'reps'
-  const delta = current[valueKey] - previous[valueKey]
+  const delta = current.reps - previous.reps
 
   return {
-    change: `${formatSigned(delta)} ${unit}`,
+    change: `${formatSigned(delta)} reps`,
     status: delta > 0 ? 'improved' : delta < 0 ? 'decreased' : 'same',
   }
 }
@@ -698,10 +868,6 @@ function formatBest(best) {
 
   if (best.weight > 0) {
     return `${roundOne(best.weight)} kg x ${best.reps || '-'}`
-  }
-
-  if (best.time > 0 && best.reps === 0) {
-    return `${best.time} sec`
   }
 
   return `${best.reps} reps`
@@ -774,7 +940,13 @@ function calculateNutritionPoints(summary) {
 function calculateAbsPosturePoints(muscleVolume) {
   const abs = findMuscle(muscleVolume, 'Abs')
   const posture = findMuscle(muscleVolume, 'Posture')
-  return getRatio(abs.sessions, 3) * 8 + getRatio(posture.sessions, 4) * 7
+  const absPoints = abs.targetSessions > 0
+    ? getRatio(abs.sessions, abs.targetSessions) * 8
+    : 8
+  const posturePoints = posture.targetSessions > 0
+    ? getRatio(posture.sessions, posture.targetSessions) * 7
+    : 7
+  return absPoints + posturePoints
 }
 
 function calculateProgressionPoints(strengthComparison) {
@@ -801,9 +973,9 @@ function buildScoreMessage(label, data) {
     return 'Start logging workouts, nutrition, and check-ins to unlock the review.'
   }
 
-  if (chest.sets >= 18 && back.sets >= 12) {
+  if (isMuscleTargetMet(chest) && isMuscleTargetMet(back)) {
     messages.push('Chest and back volume were strong.')
-  } else if (chest.sets < 12) {
+  } else if (chest.targetSets > 0 && chest.sets < chest.targetSets) {
     messages.push('Chest volume was low.')
   }
 
@@ -864,10 +1036,69 @@ function findMuscle(muscleVolume, muscle) {
       muscle,
       sets: 0,
       sessions: 0,
+      targetSets: 0,
+      targetSessions: 0,
       message: '',
       status: 'neutral',
     }
   )
+}
+
+function isBelowScheduledFrequency(summary) {
+  return summary.targetSessions > 0 && summary.sessions < summary.targetSessions
+}
+
+function isMuscleTargetMet(summary) {
+  if (summary.targetSets <= 0 && summary.targetSessions <= 0) {
+    return false
+  }
+  return (
+    (summary.targetSets <= 0 || summary.sets >= summary.targetSets) &&
+    (summary.targetSessions <= 0 || summary.sessions >= summary.targetSessions)
+  )
+}
+
+function getMuscleCompletionRatio(summary) {
+  if (summary.targetSets > 0) {
+    return summary.sets / summary.targetSets
+  }
+  if (summary.targetSessions > 0) {
+    return summary.sessions / summary.targetSessions
+  }
+  return 1
+}
+
+function getScheduledExerciseNames(programOrPlan, muscles) {
+  const wanted = new Set(safeArray(muscles))
+  return uniqueTexts(
+    getTargetWorkoutDays(programOrPlan).flatMap((day) =>
+      safeArray(day?.exercises)
+        .filter((exercise) =>
+          normalizeMuscleGroups(exercise?.muscleGroup).some((muscle) =>
+            wanted.has(muscle),
+          ),
+        )
+        .map((exercise) => exercise?.name),
+    ),
+  )
+}
+
+function findCompletedRestDay(weekSessions, programOrPlan) {
+  const restDays = Array.isArray(programOrPlan)
+    ? programOrPlan.filter(isRestDay)
+    : safeArray(getRestDays(programOrPlan))
+
+  return restDays.find((day) =>
+    safeArray(weekSessions).some((session) => {
+      if (!isWorkoutCompleted(session) || isStandaloneWorkoutSession(session)) {
+        return false
+      }
+      const dayId = toNumber(session?.workoutDayId)
+      return dayId > 0
+        ? dayId === toNumber(day?.day)
+        : normalizeText(session?.workoutName) === normalizeText(day?.name)
+    }),
+  ) ?? null
 }
 
 function sortByDate(items) {
@@ -931,6 +1162,10 @@ function isWorkoutCompleted(session) {
   )
 }
 
+function isStandaloneWorkoutSession(session) {
+  return session?.sessionType === 'standalone'
+}
+
 function getSessionExercises(session) {
   return safeArray(session?.exercises)
 }
@@ -944,11 +1179,7 @@ function getSets(exercise) {
 }
 
 function isCompletedSet(set) {
-  return (
-    toNumber(set?.reps) > 0 ||
-    toNumber(set?.timeSeconds) > 0 ||
-    Boolean(set?.duration)
-  )
+  return toNumber(set?.reps) > 0 || toNumber(set?.timeSeconds) > 0
 }
 
 function average(values, decimals = 0) {
@@ -1011,6 +1242,14 @@ function formatSigned(value) {
 
 function normalizeText(value) {
   return String(value ?? '').trim().toLowerCase()
+}
+
+function nonEmptyText(value) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function uniqueTexts(values) {
+  return [...new Set(safeArray(values).map(nonEmptyText).filter(Boolean))]
 }
 
 function safeArray(value) {

@@ -1,16 +1,28 @@
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
 import {
+  exerciseIdentitiesMatch,
+  type ExerciseIdentityOptions,
+  type ExerciseIdentityInput,
+} from '../data/exerciseIdentity'
+import {
   getWorkoutSessions,
   saveWorkoutSession,
   type LoggedExercise,
   type LoggedSet,
   type WorkoutSession,
+  type WorkoutSessionType,
 } from '../data/workoutSessions'
 import {
   classifyExercise,
   parseRepRange,
   type ProgressionSuggestion,
 } from './progressionUtils'
+import {
+  formatDuration,
+  getExerciseLoggingMode,
+  isTimedExercise,
+  type ExerciseLoggingMode,
+} from './exerciseLoggingUtils'
 import { safeGetJSON, safeRemove, safeSetJSON } from './storageUtils'
 
 /**
@@ -30,6 +42,7 @@ export const ACTIVE_WORKOUT_SESSION_KEY = 'activeWorkoutSession'
 export interface ActiveSet {
   setNumber: number
   reps: number | null
+  timeSeconds: number | null
   weightKg: number | null
   rpe: number | null
   painLevel: number | null
@@ -42,6 +55,8 @@ export interface ActiveExercise {
   exerciseName: string
   targetSets: number
   targetReps: string
+  targetDuration: string
+  loggingMode: ExerciseLoggingMode
   restSeconds: number
   muscleGroup: string
   equipment: string
@@ -52,8 +67,10 @@ export interface ActiveExercise {
 export interface ActiveWorkoutSession {
   id: string
   date: string
-  workoutDayId: number
+  workoutDayId: number | null
   workoutName: string
+  sessionType?: WorkoutSessionType
+  standaloneWorkoutId?: string | null
   startedAt: string
   finishedAt: string | null
   currentExerciseIndex: number
@@ -61,6 +78,19 @@ export interface ActiveWorkoutSession {
   completed: boolean
   exercises: ActiveExercise[]
 }
+
+type LiveWorkoutDefinition = Pick<WorkoutDay, 'exercises' | 'name'> &
+  Partial<Pick<WorkoutDay, 'day'>>
+
+export type CreateActiveWorkoutSessionOptions =
+  | {
+      sessionType?: 'scheduled'
+      standaloneWorkoutId?: null
+    }
+  | {
+      sessionType: 'standalone'
+      standaloneWorkoutId: string
+    }
 
 export interface SuggestedSetTarget {
   repsTarget: string
@@ -79,18 +109,40 @@ export interface PainWarning {
 // ---------------------------------------------------------------------------
 
 export function createActiveWorkoutSession(
-  workoutDay: WorkoutDay,
+  workoutDay: LiveWorkoutDefinition,
+  options: CreateActiveWorkoutSessionOptions = {},
 ): ActiveWorkoutSession {
   const now = new Date()
   const exercises = safeArray<Exercise>(workoutDay?.exercises).map((exercise) =>
     createActiveExercise(exercise),
   )
+  const sessionType: WorkoutSessionType =
+    options.sessionType === 'standalone' ? 'standalone' : 'scheduled'
+  const standaloneWorkoutId =
+    sessionType === 'standalone'
+      ? nullableNonEmptyText(options.standaloneWorkoutId)
+      : null
+  if (sessionType === 'standalone' && !standaloneWorkoutId) {
+    throw new Error('A standalone workout ID is required to start this workout.')
+  }
+  const workoutDayId =
+    sessionType === 'standalone'
+      ? null
+      : nullablePositiveInteger(workoutDay?.day)
+  const sessionId =
+    sessionType === 'standalone'
+      ? `${now.getTime()}-standalone-${standaloneWorkoutId}`
+      : workoutDayId === null
+        ? `${now.getTime()}-scheduled`
+        : `${now.getTime()}-${workoutDayId}`
 
   return {
-    id: `${now.getTime()}-${toNumber(workoutDay?.day, 0)}`,
+    id: sessionId,
     date: now.toISOString().slice(0, 10),
-    workoutDayId: toNumber(workoutDay?.day, 0),
+    workoutDayId,
     workoutName: toText(workoutDay?.name, 'Workout'),
+    sessionType,
+    standaloneWorkoutId,
     startedAt: now.toISOString(),
     finishedAt: null,
     currentExerciseIndex: 0,
@@ -107,7 +159,9 @@ function createActiveExercise(exercise: Exercise): ActiveExercise {
     exerciseId: toText(exercise?.id, toText(exercise?.name, 'exercise')),
     exerciseName: toText(exercise?.name, 'Exercise'),
     targetSets,
-    targetReps: toText(exercise?.repRange, toText(exercise?.duration, '')),
+    targetReps: toText(exercise?.repRange, ''),
+    targetDuration: toText(exercise?.duration, ''),
+    loggingMode: getExerciseLoggingMode(exercise),
     restSeconds: Math.max(0, Math.round(toNumber(exercise?.restSeconds, 90))),
     muscleGroup: toText(exercise?.muscleGroup, ''),
     equipment: toText(exercise?.equipment, ''),
@@ -124,6 +178,7 @@ export function createEmptySet(setNumber: number): ActiveSet {
   return {
     setNumber,
     reps: null,
+    timeSeconds: null,
     weightKg: null,
     rpe: null,
     painLevel: null,
@@ -162,6 +217,12 @@ export function completeActiveWorkoutSession(
   session: ActiveWorkoutSession,
 ): WorkoutSession {
   const finishedAt = new Date().toISOString()
+  const sessionType: WorkoutSessionType =
+    session?.sessionType === 'standalone' ? 'standalone' : 'scheduled'
+  const standaloneWorkoutId =
+    sessionType === 'standalone'
+      ? nullableNonEmptyText(session?.standaloneWorkoutId)
+      : null
   const finished: WorkoutSession = {
     completed: true,
     date: toText(session?.date, finishedAt.slice(0, 10)),
@@ -170,8 +231,13 @@ export function completeActiveWorkoutSession(
     ),
     finishedAt,
     id: toText(session?.id, `${Date.now()}`),
+    sessionType,
+    standaloneWorkoutId,
     startedAt: toText(session?.startedAt, finishedAt),
-    workoutDayId: toNumber(session?.workoutDayId, 0),
+    workoutDayId:
+      sessionType === 'standalone'
+        ? null
+        : nullablePositiveInteger(session?.workoutDayId),
     workoutName: toText(session?.workoutName, 'Workout'),
   }
 
@@ -182,13 +248,17 @@ export function completeActiveWorkoutSession(
 
 function toLoggedExercise(exercise: ActiveExercise): LoggedExercise {
   return {
+    exerciseId: toText(exercise?.exerciseId, ''),
     exerciseName: toText(exercise?.exerciseName, 'Exercise'),
+    muscleGroup: toText(exercise?.muscleGroup, ''),
     targetReps: toText(exercise?.targetReps, ''),
+    targetDuration: toText(exercise?.targetDuration, '') || undefined,
     targetSets: Math.max(1, toNumber(exercise?.targetSets, 1)),
     sets: safeArray<ActiveSet>(exercise?.sets).map(
       (set, index): LoggedSet => ({
         setNumber: toNumber(set?.setNumber, index + 1),
         reps: nullableNumber(set?.reps),
+        timeSeconds: nullableNonNegativeNumber(set?.timeSeconds),
         weightKg: nullableNumber(set?.weightKg),
         rpe: nullableNumber(set?.rpe),
         painLevel: nullableNumber(set?.painLevel),
@@ -209,6 +279,13 @@ export function updateActiveSet(
   setIndex: number,
   setData: Partial<ActiveSet>,
 ): ActiveWorkoutSession {
+  const safeSetData = {
+    ...setData,
+    ...(Object.hasOwn(setData, 'timeSeconds')
+      ? { timeSeconds: nullableNonNegativeNumber(setData.timeSeconds) }
+      : {}),
+  }
+
   return {
     ...session,
     exercises: session.exercises.map((exercise, index) => {
@@ -219,7 +296,7 @@ export function updateActiveSet(
       return {
         ...exercise,
         sets: exercise.sets.map((set, innerIndex) =>
-          innerIndex === setIndex ? { ...set, ...setData } : set,
+          innerIndex === setIndex ? { ...set, ...safeSetData } : set,
         ),
       }
     }),
@@ -366,6 +443,28 @@ export function getSuggestedSetTarget(
   progressionSuggestion: ProgressionSuggestion | null,
   setIndex = 0,
 ): SuggestedSetTarget {
+  if (isTimedExercise(exercise)) {
+    const previousSet = pickPreviousSet(previousPerformance, setIndex)
+    const previousSeconds = nullableNonNegativeNumber(previousSet?.timeSeconds)
+    const durationTarget =
+      exercise?.targetDuration || exercise?.targetReps || 'a controlled duration'
+    const repsTarget = previousSeconds && previousSeconds > 0
+      ? `Maintain ${formatDuration(previousSeconds)}`
+      : `Target ${durationTarget}`
+    const previousWeight = nullableNumber(previousSet?.weightKg)
+    const weightTarget = previousWeight !== null && previousWeight > 0
+      ? `Use ${roundHalf(previousWeight)} kg`
+      : /carry/i.test(exercise?.exerciseName ?? '')
+        ? 'Pick a weight you control'
+        : 'No added weight'
+
+    return {
+      repsTarget,
+      weightTarget,
+      message: 'Maintain the target duration with controlled effort.',
+    }
+  }
+
   const range = parseRepRange(exercise?.targetReps)
   const previousSet = pickPreviousSet(previousPerformance, setIndex)
   const lastReps = nullableNumber(previousSet?.reps)
@@ -465,49 +564,72 @@ export function summarizePreviousPerformance(
   previous: LoggedExercise | null,
 ): string | null {
   const sets = safeArray<LoggedSet>(previous?.sets).filter(
-    (set) => nullableNumber(set?.reps) !== null || nullableNumber(set?.weightKg) !== null,
+    (set) =>
+      toNumber(set?.reps, 0) > 0 ||
+      toNumber(set?.timeSeconds, 0) > 0,
   )
   if (sets.length === 0) {
     return null
   }
 
   const reps = sets.map((set) => nullableNumber(set.reps)).filter((v) => v !== null)
+  const times = sets
+    .map((set) => nullableNonNegativeNumber(set.timeSeconds))
+    .filter((value): value is number => value !== null && value > 0)
   const weights = sets
     .map((set) => toNumber(set.weightKg, 0))
     .filter((weight) => weight > 0)
   const topWeight = weights.length > 0 ? Math.max(...weights) : 0
 
-  const repsPart =
-    reps.length > 0 ? `${reps.join(' / ')} reps` : `${sets.length} sets`
-  const loadPart = topWeight > 0 ? ` at ${roundHalf(topWeight)} kg` : ' at bodyweight'
+  const repsPart = times.length > 0
+    ? times.map(formatDuration).join(' / ')
+    : reps.length > 0
+      ? `${reps.join(' / ')} reps`
+      : `${sets.length} sets`
+  const loadPart = topWeight > 0
+    ? ` at ${roundHalf(topWeight)} kg`
+    : times.length > 0
+      ? ''
+      : ' at bodyweight'
 
   return `${sets.length} sets: ${repsPart}${loadPart}`
 }
 
 /** Best single set ever logged: "15 reps at bodyweight" or "10 kg x 12 reps". */
 export function getBestPerformanceSummary(
-  exerciseName: string,
+  exercise: string | ExerciseIdentityInput,
   sessions: WorkoutSession[] = getWorkoutSessions(),
+  options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): string | null {
-  let best: { weight: number; reps: number } | null = null
+  let best: { weight: number; reps: number; timeSeconds: number } | null = null
+  const target = typeof exercise === 'string'
+    ? { exerciseName: exercise }
+    : exercise
 
   for (const session of safeArray<WorkoutSession>(sessions)) {
     for (const exercise of safeArray<LoggedExercise>(session?.exercises)) {
-      if (exercise?.exerciseName !== exerciseName) {
+      if (!exerciseIdentitiesMatch(exercise, target, options)) {
         continue
       }
 
       for (const set of safeArray<LoggedSet>(exercise?.sets)) {
         const reps = toNumber(set?.reps, 0)
         const weight = toNumber(set?.weightKg, 0)
-        if (reps <= 0 && weight <= 0) {
+        const timeSeconds = toNumber(set?.timeSeconds, 0)
+        if (reps <= 0 && timeSeconds <= 0) {
           continue
         }
 
-        const score = weight * 1000 + reps
-        const bestScore = best ? best.weight * 1000 + best.reps : -1
+        const score = timeSeconds > 0
+          ? timeSeconds
+          : weight * 1000 + reps
+        const bestScore = best
+          ? best.timeSeconds > 0
+            ? best.timeSeconds
+            : best.weight * 1000 + best.reps
+          : -1
         if (score > bestScore) {
-          best = { weight, reps }
+          best = { weight, reps, timeSeconds }
         }
       }
     }
@@ -515,6 +637,11 @@ export function getBestPerformanceSummary(
 
   if (!best) {
     return null
+  }
+
+  if (best.timeSeconds > 0) {
+    const load = best.weight > 0 ? ` at ${roundHalf(best.weight)} kg` : ''
+    return `${formatDuration(best.timeSeconds)}${load}`
   }
 
   if (best.weight > 0) {
@@ -548,6 +675,7 @@ export function getWhatToDoNext(
   const restSeconds = Math.max(0, toNumber(exercise.restSeconds, 90))
   const postureCue = getPostureCue(exercise.exerciseName)
   const isControlFocus = isPostureOrCore(exercise)
+  const timed = isTimedExercise(exercise)
 
   // Highest priority: pain.
   if (lastSet && toNumber(lastSet.painLevel, 0) >= 4) {
@@ -560,6 +688,12 @@ export function getWhatToDoNext(
 
   // No set logged yet - starting cue.
   if (!lastSet) {
+    if (timed) {
+      return {
+        message: `Start Set 1. Maintain ${exercise.targetDuration || 'the target duration'} with controlled effort.`,
+        tone: 'info',
+      }
+    }
     if (isControlFocus) {
       return {
         message: 'Focus on control. Do not rush reps.',
@@ -580,14 +714,18 @@ export function getWhatToDoNext(
 
   if (rpe === 10) {
     return {
-      message: 'Next set: reduce reps or reduce weight slightly.',
+      message: timed
+        ? 'Next set: shorten the duration or reduce weight slightly.'
+        : 'Next set: reduce reps or reduce weight slightly.',
       tone: 'warn',
     }
   }
 
   if (rpe >= 9) {
     return {
-      message: 'Next set: keep the same weight, but do not force extra reps.',
+      message: timed
+        ? 'Next set: keep the effort controlled and do not extend the duration.'
+        : 'Next set: keep the same weight, but do not force extra reps.',
       tone: 'warn',
     }
   }
@@ -595,6 +733,13 @@ export function getWhatToDoNext(
   if (postureCue) {
     return {
       message: `Rest ${restSeconds} sec. ${postureCue}`,
+      tone: 'info',
+    }
+  }
+
+  if (timed) {
+    return {
+      message: `Rest ${restSeconds} sec. Then repeat the target duration with controlled effort.`,
       tone: 'info',
     }
   }
@@ -680,18 +825,13 @@ function isBodyweight(exercise: ActiveExercise | null): boolean {
 // Small internal helpers
 // ---------------------------------------------------------------------------
 
-/** A set counts as "logged" once it has reps, weight, or a completed stamp. */
+/** A set is complete only when it has positive reps or positive duration. */
 export function isLoggedSet(set: ActiveSet | null | undefined): boolean {
   if (!set) {
     return false
   }
 
-  return (
-    Boolean(set.completedAt) ||
-    nullableNumber(set.reps) !== null ||
-    nullableNumber(set.weightKg) !== null ||
-    nullableNumber(set.rpe) !== null
-  )
+  return toNumber(set.reps, 0) > 0 || toNumber(set.timeSeconds, 0) > 0
 }
 
 export function getLastLoggedSet(
@@ -728,12 +868,22 @@ function normalizeActiveSession(value: unknown): ActiveWorkoutSession | null {
   if (exercises.length === 0) {
     return null
   }
+  const sessionType: WorkoutSessionType =
+    value.sessionType === 'standalone' ? 'standalone' : 'scheduled'
 
   return {
     id: toText(value.id, `${Date.now()}`),
     date: toText(value.date, new Date().toISOString().slice(0, 10)),
-    workoutDayId: toNumber(value.workoutDayId, 0),
+    workoutDayId:
+      sessionType === 'standalone'
+        ? null
+        : nullablePositiveInteger(value.workoutDayId),
     workoutName: toText(value.workoutName, 'Workout'),
+    sessionType,
+    standaloneWorkoutId:
+      sessionType === 'standalone'
+        ? nullableNonEmptyText(value.standaloneWorkoutId)
+        : null,
     startedAt: toText(value.startedAt, new Date().toISOString()),
     finishedAt:
       typeof value.finishedAt === 'string' ? value.finishedAt : null,
@@ -753,11 +903,22 @@ function normalizeExercise(value: unknown): ActiveExercise {
       ? rawSets.map((set, index) => normalizeSet(set, index + 1))
       : Array.from({ length: targetSets }, (_, index) => createEmptySet(index + 1))
 
+  const targetReps = toText(source.targetReps, '')
+  const targetDuration = toText(source.targetDuration, '')
+  const loggingMode = getExerciseLoggingMode({
+    loggingMode: source.loggingMode,
+    targetDuration,
+    targetReps,
+  })
+
   return {
     exerciseId: toText(source.exerciseId, 'exercise'),
     exerciseName: toText(source.exerciseName, 'Exercise'),
     targetSets,
-    targetReps: toText(source.targetReps, ''),
+    targetReps: loggingMode === 'duration' && !targetDuration ? '' : targetReps,
+    targetDuration:
+      targetDuration || (loggingMode === 'duration' ? targetReps : ''),
+    loggingMode,
     restSeconds: Math.max(0, Math.round(toNumber(source.restSeconds, 90))),
     muscleGroup: toText(source.muscleGroup, ''),
     equipment: toText(source.equipment, ''),
@@ -773,6 +934,7 @@ function normalizeSet(value: unknown, setNumber: number): ActiveSet {
   return {
     setNumber: toNumber(source.setNumber, setNumber),
     reps: nullableNumber(source.reps),
+    timeSeconds: nullableNonNegativeNumber(source.timeSeconds),
     weightKg: nullableNumber(source.weightKg),
     rpe: nullableNumber(source.rpe),
     painLevel: nullableNumber(source.painLevel),
@@ -810,6 +972,22 @@ function nullableNumber(value: unknown): number | null {
 
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : null
+}
+
+function nullableNonNegativeNumber(value: unknown): number | null {
+  const parsed = nullableNumber(value)
+  return parsed !== null && parsed >= 0 ? parsed : null
+}
+
+function nullablePositiveInteger(value: unknown): number | null {
+  const parsed = nullableNumber(value)
+  return parsed !== null && Number.isInteger(parsed) && parsed > 0
+    ? parsed
+    : null
+}
+
+function nullableNonEmptyText(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function toText(value: unknown, fallback: string): string {

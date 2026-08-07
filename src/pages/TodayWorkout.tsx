@@ -34,6 +34,7 @@ import {
   getWorkoutSessions,
   type WorkoutSession,
 } from '../data/workoutSessions'
+import type { LibraryExercise } from '../data/exerciseLibrary'
 import type { WorkoutDay } from '../data/workoutPlan'
 import {
   clearActiveWorkoutSession,
@@ -62,7 +63,7 @@ import {
 } from '../utils/coachUtils'
 import {
   findLibraryExerciseForWorkout,
-  getCustomWorkoutPlan,
+  getEffectiveExerciseLibrary,
   getWorkoutDisplaySettings,
   getWorkoutForDate,
 } from '../utils/settingsUtils'
@@ -71,6 +72,11 @@ import { printElement } from '../utils/printUtils'
 import { useAuth } from '../context/AuthContext'
 import * as workoutService from '../services/workoutService'
 import type { PageId } from '../types/navigation'
+import type { StandaloneWorkout } from '../types/workoutProgram'
+import {
+  getActiveWorkoutProgram,
+  type ActiveWorkoutProgram,
+} from '../utils/activeWorkoutProgram'
 
 interface TodayWorkoutProps {
   onNavigate: (page: PageId) => void
@@ -80,9 +86,17 @@ type Screen = 'prompt' | 'intro' | 'active' | 'finished'
 
 export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   const { user } = useAuth()
-  const plan = useMemo(() => getCustomWorkoutPlan() as WorkoutDay[], [])
-  const todayWorkout = useMemo(() => getWorkoutForDate() as WorkoutDay, [])
+  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const plan = activeProgram.days
+  const todayWorkout = useMemo(
+    () => getWorkoutForDate(new Date(), plan) as WorkoutDay,
+    [plan],
+  )
   const previousSessions = useMemo(() => getWorkoutSessions(), [])
+  const effectiveExerciseLibrary = useMemo(
+    () => getEffectiveExerciseLibrary() as LibraryExercise[],
+    [],
+  )
   const displaySettings = useMemo(
     () => getWorkoutDisplaySettings() as WorkoutDisplaySettings,
     [],
@@ -119,14 +133,33 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     saveActiveWorkoutSession(next)
   }
 
-  function startWorkout(day: WorkoutDay) {
-    const fresh = createActiveWorkoutSession(day)
+  function beginWorkout(fresh: ActiveWorkoutSession) {
+    const existing = getActiveWorkoutSession()
+    if (existing && !existing.completed) {
+      setSession(existing)
+      setScreen('prompt')
+      return
+    }
+
     saveActiveWorkoutSession(fresh)
     setSession(fresh)
     setRestSignal(0)
     setNowTs(Date.now())
     setShowFormGuide(false)
     setScreen('active')
+  }
+
+  function startScheduledWorkout(day: WorkoutDay) {
+    beginWorkout(createActiveWorkoutSession(day))
+  }
+
+  function startStandaloneWorkout(workout: StandaloneWorkout) {
+    beginWorkout(
+      createActiveWorkoutSession(workout, {
+        sessionType: 'standalone',
+        standaloneWorkoutId: workout.id,
+      }),
+    )
   }
 
   function continueWorkout() {
@@ -147,13 +180,17 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
 
     const exerciseIndex = session.currentExerciseIndex
     const setIndex = session.currentSetIndex
+    const completed =
+      (data.reps !== null && data.reps > 0) ||
+      (data.timeSeconds !== null && data.timeSeconds > 0)
     const updated = updateActiveSet(session, exerciseIndex, setIndex, {
       reps: data.reps,
+      timeSeconds: data.timeSeconds,
       weightKg: data.weightKg,
       rpe: data.rpe,
       painLevel: data.painLevel,
       notes: data.notes,
-      completedAt: new Date().toISOString(),
+      completedAt: completed ? new Date().toISOString() : null,
     })
 
     commit({ ...updated, currentSetIndex: setIndex + 1 })
@@ -273,6 +310,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   if (screen === 'active' && session) {
     return (
       <LiveWorkoutScreen
+        exerciseLibrary={effectiveExerciseLibrary}
         onAddExtraSet={addExtraSet}
         onFinish={finishWorkout}
         onMoveExercise={moveExercise}
@@ -295,12 +333,15 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   // -- Pre-workout intro -----------------------------------------------------
   return (
     <PreWorkoutScreen
+      activeProgram={activeProgram}
+      exerciseLibrary={effectiveExerciseLibrary}
       onNavigate={onNavigate}
       onSelectDay={(day) => {
         setSelectedDay(day)
         setShowDayPicker(false)
       }}
-      onStart={() => startWorkout(selectedDay)}
+      onStart={() => startScheduledWorkout(selectedDay)}
+      onStartStandalone={startStandaloneWorkout}
       onToggleDayPicker={() => setShowDayPicker((open) => !open)}
       plan={plan}
       previousSessions={previousSessions}
@@ -315,9 +356,12 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
 // ---------------------------------------------------------------------------
 
 interface PreWorkoutScreenProps {
+  activeProgram: ActiveWorkoutProgram
+  exerciseLibrary: readonly LibraryExercise[]
   onNavigate: (page: PageId) => void
   onSelectDay: (day: WorkoutDay) => void
   onStart: () => void
+  onStartStandalone: (workout: StandaloneWorkout) => void
   onToggleDayPicker: () => void
   plan: WorkoutDay[]
   previousSessions: WorkoutSession[]
@@ -326,9 +370,12 @@ interface PreWorkoutScreenProps {
 }
 
 function PreWorkoutScreen({
+  activeProgram,
+  exerciseLibrary,
   onNavigate,
   onSelectDay,
   onStart,
+  onStartStandalone,
   onToggleDayPicker,
   plan,
   previousSessions,
@@ -347,12 +394,15 @@ function PreWorkoutScreen({
   )
   const hasExercises = exercises.length > 0
   const coachAdvice = getTodayWorkoutAdvice({
+    activeProgram,
+    library: exerciseLibrary,
     todayWorkout: selectedDay,
     sessions: previousSessions,
     progressionSuggestions: getTodayProgressionFocus(
       previousSessions,
       selectedDay.exercises,
       4,
+      { library: exerciseLibrary },
     ),
   })
 
@@ -471,8 +521,81 @@ function PreWorkoutScreen({
         </button>
       </header>
 
+      {activeProgram.standaloneWorkouts.length > 0 ? (
+        <section
+          aria-labelledby="extra-workouts-title"
+          className="extra-workouts dashboard-card"
+        >
+          <div className="extra-workouts__heading">
+            <div>
+              <p className="eyebrow">Optional sessions</p>
+              <h2 id="extra-workouts-title">Extra Workouts</h2>
+              <p>
+                Use these when their recommendation fits. They stay separate
+                from the Monday-Sunday schedule.
+              </p>
+            </div>
+            <Dumbbell size={25} strokeWidth={2.3} aria-hidden="true" />
+          </div>
+
+          <div className="extra-workouts__grid">
+            {activeProgram.standaloneWorkouts.map((workout) => (
+              <article className="extra-workout-card" key={workout.id}>
+                <div>
+                  <p className="eyebrow">Standalone workout</p>
+                  <h3>{workout.name}</h3>
+                  <p className="extra-workout-card__description">
+                    {workout.description}
+                  </p>
+                </div>
+
+                <div className="extra-workout-card__meta">
+                  <div>
+                    <span>Estimated time</span>
+                    <strong>{workout.estimatedTime}</strong>
+                  </div>
+                  <div>
+                    <span>Exercises</span>
+                    <strong>{workout.exercises.length}</strong>
+                  </div>
+                </div>
+
+                <div className="extra-workout-card__recommendation">
+                  <strong>Recommended use</strong>
+                  <p>{workout.recommendedUse}</p>
+                </div>
+
+                <div>
+                  <strong className="extra-workout-card__label">Focus</strong>
+                  <div className="tag-row">
+                    {workout.focus.map((focus) => (
+                      <span className="tag tag--category" key={focus}>
+                        {focus}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  className="workout-primary-button"
+                  onClick={() => onStartStandalone(workout)}
+                  type="button"
+                >
+                  <Play size={21} strokeWidth={2.4} aria-hidden="true" />
+                  Start {workout.name}
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="print-source" id="today-workout-print-source" aria-hidden="true">
-        <PrintableTodayWorkout workout={selectedDay} />
+        <PrintableTodayWorkout
+          generatedAt={new Date().toISOString()}
+          program={activeProgram}
+          workout={selectedDay}
+        />
       </div>
     </section>
   )
@@ -483,6 +606,7 @@ function PreWorkoutScreen({
 // ---------------------------------------------------------------------------
 
 interface LiveWorkoutScreenProps {
+  exerciseLibrary: readonly LibraryExercise[]
   onAddExtraSet: () => void
   onCloseFormGuide: () => void
   onFinish: () => void
@@ -501,6 +625,7 @@ interface LiveWorkoutScreenProps {
 }
 
 function LiveWorkoutScreen({
+  exerciseLibrary,
   onAddExtraSet,
   onCloseFormGuide,
   onFinish,
@@ -553,22 +678,33 @@ function LiveWorkoutScreen({
   const isLastExercise = session.currentExerciseIndex >= totalExercises - 1
 
   const previousPerformance = findPreviousExercisePerformance(
-    exercise.exerciseName,
+    {
+      exerciseId: exercise.exerciseId,
+      exerciseName: exercise.exerciseName,
+    },
     previousSessions,
+    { library: exerciseLibrary },
   )
   const bestSummary = getBestPerformanceSummary(
-    exercise.exerciseName,
+    {
+      exerciseId: exercise.exerciseId,
+      exerciseName: exercise.exerciseName,
+    },
     previousSessions,
+    { library: exerciseLibrary },
   )
   const progressionSuggestion = getProgressionSuggestion(
     {
+      id: exercise.exerciseId,
       name: exercise.exerciseName,
-      repRange: exercise.targetReps,
+      repRange: exercise.targetReps || undefined,
+      duration: exercise.targetDuration || undefined,
       muscleGroup: exercise.muscleGroup,
       equipment: exercise.equipment,
       sets: exercise.targetSets,
     },
     previousSessions,
+    { library: exerciseLibrary },
   )
   const suggestedTarget = getSuggestedSetTarget(
     exercise,
@@ -598,6 +734,7 @@ function LiveWorkoutScreen({
         }
         totalExercises={totalExercises}
         totalSets={getTotalPlannedSets(session)}
+        sessionType={session.sessionType}
         workoutName={session.workoutName}
       />
 
@@ -643,10 +780,12 @@ function LiveWorkoutScreen({
             <SetLogger
               initialData={activeSet}
               key={`${exercise.exerciseId}-${currentSetIndex}`}
+              loggingMode={exercise.loggingMode}
               onSave={onSaveSet}
               onSkip={onSkipSet}
               saveSignal={saveSignal}
               setNumber={currentSetIndex + 1}
+              targetDuration={exercise.targetDuration}
             />
           )}
         </div>

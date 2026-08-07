@@ -8,6 +8,7 @@ import {
   type ActiveExercise,
   type SuggestedSetTarget,
 } from '../utils/liveWorkoutUtils'
+import { isTimedExercise } from '../utils/exerciseLoggingUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 
 interface ActiveExerciseCardProps {
@@ -43,6 +44,10 @@ export function ActiveExerciseCard({
   const postureCue = getPostureCue(exercise.exerciseName)
   const previousSummary = summarizePreviousPerformance(previousPerformance)
   const restSeconds = Math.max(0, Math.round(exercise.restSeconds))
+  const timed = isTimedExercise(exercise)
+  const target = timed
+    ? exercise.targetDuration || exercise.targetReps || 'Controlled duration'
+    : exercise.targetReps || 'Controlled reps'
   const showVideoDefault =
     Boolean(displaySettings?.autoOpenVideo) ||
     displaySettings?.videosCollapsedByDefault === false
@@ -82,12 +87,12 @@ export function ActiveExerciseCard({
               <Target size={14} strokeWidth={2.4} aria-hidden="true" />
               Target
             </span>
-            <strong>{exercise.targetReps ? `${exercise.targetReps}` : 'Controlled reps'}</strong>
+            <strong>{target}</strong>
           </div>
           <div>
             <span>
               <Dumbbell size={14} strokeWidth={2.4} aria-hidden="true" />
-              Suggested today
+              {timed ? 'Suggested duration' : 'Suggested today'}
             </span>
             <strong>{suggestedTarget.repsTarget}</strong>
             <small>{suggestedTarget.weightTarget}</small>

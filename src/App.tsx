@@ -120,7 +120,12 @@ function AuthedApp() {
       case 'weekly-review':
         return <WeeklyReview />
       case 'plan-editor':
-        return <PlanEditor />
+        return (
+          <PlanEditor
+            dataVersion={dataVersion}
+            onDataChanged={handlePendingSynced}
+          />
+        )
       case 'coach':
         return <Coach />
       case 'data-health':
@@ -151,7 +156,12 @@ function AuthedApp() {
       >
         <LazyPageBoundary pageKey={activePage}>
           <Suspense fallback={<LoadingState />}>
-            {cloneElement(renderPage(), { key: `${activePage}-${dataVersion}` })}
+            {cloneElement(renderPage(), {
+              key:
+                activePage === 'plan-editor'
+                  ? activePage
+                  : `${activePage}-${dataVersion}`,
+            })}
           </Suspense>
         </LazyPageBoundary>
       </Layout>

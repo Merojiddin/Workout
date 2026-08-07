@@ -5,6 +5,11 @@ export const ACTIVE_WORKOUT_SESSION_KEY = 'activeWorkoutSession'
 export const PENDING_SYNC_QUEUE_KEY = 'pendingSyncQueue'
 export const CUSTOM_EXERCISE_LIBRARY_KEY = 'customExerciseLibrary'
 export const CUSTOM_WORKOUT_PLAN_KEY = 'customWorkoutPlan'
+export const INSTALLED_WORKOUT_PROGRAM_KEY = 'installedWorkoutProgram'
+export const DISMISSED_WORKOUT_PROGRAMS_KEY = 'dismissedWorkoutPrograms'
+export const WORKOUT_PLAN_BACKUPS_KEY = 'workoutPlanBackups'
+export const CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY =
+  'cloudWorkoutProgramManagerCache'
 export const USER_PROFILE_SETTINGS_KEY = 'userProfileSettings'
 export const REMINDER_SETTINGS_KEY = 'reminderSettings'
 export const REMINDER_HISTORY_KEY = 'reminderHistory'
@@ -20,6 +25,10 @@ export const FITNESS_APP_STORAGE_KEYS = [
   NUTRITION_LOGS_KEY,
   USER_PROFILE_SETTINGS_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  WORKOUT_PLAN_BACKUPS_KEY,
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
   REMINDER_SETTINGS_KEY,
   REMINDER_HISTORY_KEY,
@@ -37,6 +46,10 @@ const JSON_STORAGE_KEYS = new Set([
   NUTRITION_LOGS_KEY,
   USER_PROFILE_SETTINGS_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  WORKOUT_PLAN_BACKUPS_KEY,
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
   REMINDER_SETTINGS_KEY,
   REMINDER_HISTORY_KEY,
@@ -101,6 +114,18 @@ export function safeRemove(key) {
   try {
     window.localStorage.removeItem(key)
     return true
+  } catch {
+    return false
+  }
+}
+
+export function safeHasStorageKey(key) {
+  if (!canUseLocalStorage()) {
+    return false
+  }
+
+  try {
+    return window.localStorage.getItem(key) !== null
   } catch {
     return false
   }

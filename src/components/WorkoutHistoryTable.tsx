@@ -1,4 +1,9 @@
 import type { WorkoutSession } from '../data/workoutSessions'
+import type { LibraryExercise } from '../data/exerciseLibrary'
+import {
+  resolveExerciseIdentity,
+  type ExerciseContainer,
+} from '../data/exerciseIdentity'
 import {
   formatSessionDate,
   getSessionDuration,
@@ -7,11 +12,15 @@ import {
 } from '../utils/progressUtils'
 
 interface WorkoutHistoryTableProps {
+  activePlan?: readonly ExerciseContainer[]
+  exerciseLibrary?: readonly LibraryExercise[]
   onSelectSession: (session: WorkoutSession) => void
   sessions: WorkoutSession[]
 }
 
 export function WorkoutHistoryTable({
+  activePlan,
+  exerciseLibrary,
   onSelectSession,
   sessions,
 }: WorkoutHistoryTableProps) {
@@ -50,8 +59,43 @@ export function WorkoutHistoryTable({
             {sessions.slice(0, 10).map((session) => (
               <tr key={session.id}>
                 <td>{formatSessionDate(session.date)}</td>
-                <td>{session.workoutName}</td>
-                <td>{session.exercises.length}</td>
+                <td>
+                  <div className="tag-row">
+                    <span>{session.workoutName}</span>
+                    {isStandaloneWorkoutSession(session) ? (
+                      <span className="tag tag--category">
+                        Standalone workout
+                      </span>
+                    ) : null}
+                  </div>
+                </td>
+                <td>
+                  {session.exercises.map((exercise, exerciseIndex) => {
+                    const identity = resolveExerciseIdentity(exercise, {
+                      ...(activePlan ? { activePlan } : {}),
+                      ...(exerciseLibrary ? { library: exerciseLibrary } : {}),
+                    })
+
+                    return (
+                      <div
+                        className="tag-row"
+                        key={`${exercise.exerciseId ?? exercise.exerciseName}-${exerciseIndex}`}
+                      >
+                        <span>{exercise.exerciseName}</span>
+                        {identity.archived ? (
+                          <span className="tag tag--category">
+                            Archived exercise
+                          </span>
+                        ) : null}
+                        {identity.source === 'unknown' ? (
+                          <span className="tag tag--secondary-muscle">
+                            Unknown exercise
+                          </span>
+                        ) : null}
+                      </div>
+                    )
+                  })}
+                </td>
                 <td>{getSessionSetCount(session)}</td>
                 <td>{getSessionDuration(session)}</td>
                 <td>{isWorkoutCompleted(session) ? 'Yes' : 'No'}</td>
@@ -71,4 +115,10 @@ export function WorkoutHistoryTable({
       </div>
     </article>
   )
+}
+
+function isStandaloneWorkoutSession(session: WorkoutSession): boolean {
+  return (
+    session as WorkoutSession & { sessionType?: 'scheduled' | 'standalone' }
+  ).sessionType === 'standalone'
 }

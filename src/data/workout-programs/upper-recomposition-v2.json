@@ -1,0 +1,959 @@
+{
+  "id": "upper-recomposition",
+  "name": "Upper Body and Recomposition Program",
+  "version": "2.0.0",
+  "updatedAt": "2026-08-06",
+  "description": "Chest-priority hypertrophy program with complete lower-body training, direct abdominal work, posture control, and a swimming recovery day.",
+  "goals": [
+    "Bigger upper body",
+    "Bigger chest and shoulders",
+    "Visible abs",
+    "Controlled waist",
+    "Complete lower-body development",
+    "Improved trunk and pelvic control"
+  ],
+  "benchmarkExerciseIds": [
+    "paused-barbell-bench-press",
+    "shoulder-width-pull-up",
+    "front-squat",
+    "weighted-chin-up",
+    "incline-barbell-press",
+    "sumo-deadlift",
+    "hanging-leg-raise"
+  ],
+  "rules": {
+    "effort": [
+      "Finish most working sets with 1-3 clean repetitions remaining.",
+      "Do not train every set to complete failure."
+    ],
+    "progression": [
+      "Begin near the bottom of the repetition range.",
+      "Keep the load until every planned set reaches the top of the range.",
+      "Increase by the smallest practical amount.",
+      "Return to the bottom of the range after increasing the load.",
+      "Barbell increase: approximately 2.5 kg total.",
+      "Dumbbell increase: smallest available increment.",
+      "Bodyweight increase: small backpack load or a controlled harder variation."
+    ],
+    "postureCue": "Ribs down. Abdomen braced. Glutes controlled. Keep the lower back neutral.",
+    "returnAfterBreak": [
+      "Use 3 sets instead of 4 on primary exercises during the first week.",
+      "Use 2 sets instead of 3 on accessory exercises during the first week.",
+      "Use approximately 75-85% of previous working loads.",
+      "Restore full volume during week two only if recovery is normal."
+    ]
+  },
+  "days": [
+    {
+      "day": 1,
+      "name": "Upper A — Chest and Back Strength",
+      "estimatedTime": "50-60 min",
+      "focus": [
+        "Chest",
+        "Back",
+        "Shoulders",
+        "Abs",
+        "Posture"
+      ],
+      "exercises": [
+        {
+          "id": "paused-barbell-bench-press",
+          "name": "Paused Barbell Bench Press",
+          "sets": 4,
+          "repRange": "6-8",
+          "restSeconds": 150,
+          "muscleGroup": "Chest",
+          "equipment": "Barbell / Bench",
+          "formTips": [
+            "Plant both feet and pin the shoulder blades to the bench.",
+            "Lower the bar to the lower chest with wrists stacked.",
+            "Pause motionless on the chest without relaxing.",
+            "Press while keeping the hips in contact with the bench."
+          ]
+        },
+        {
+          "id": "shoulder-width-pull-up",
+          "name": "Shoulder-Width Pull-Up",
+          "sets": 4,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Back",
+          "equipment": "Pull-up bar",
+          "formTips": [
+            "Begin from a controlled hang with the shoulders engaged.",
+            "Drive the elbows down toward the ribs.",
+            "Keep the legs quiet and avoid swinging.",
+            "Lower under control to full elbow extension."
+          ]
+        },
+        {
+          "id": "one-arm-dumbbell-floor-press",
+          "name": "One-Arm Dumbbell Floor Press",
+          "sets": 3,
+          "repRange": "8-12 each side",
+          "restSeconds": 90,
+          "muscleGroup": "Chest",
+          "equipment": "Dumbbell / Mat",
+          "formTips": [
+            "Lie square on the floor with both feet planted.",
+            "Brace against rotation before lowering the dumbbell.",
+            "Touch the upper arm softly to the floor.",
+            "Press with the wrist stacked over the elbow."
+          ]
+        },
+        {
+          "id": "chest-supported-dumbbell-row",
+          "name": "Chest-Supported Dumbbell Row",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 90,
+          "muscleGroup": "Back",
+          "equipment": "Dumbbells / Incline bench",
+          "formTips": [
+            "Keep the chest in contact with the incline bench.",
+            "Pull the elbows toward the hips without shrugging.",
+            "Pause briefly when the dumbbells reach the torso.",
+            "Lower until the shoulder blades move apart under control."
+          ]
+        },
+        {
+          "id": "lean-away-dumbbell-lateral-raise",
+          "name": "Lean-Away Dumbbell Lateral Raise",
+          "sets": 3,
+          "repRange": "12-20",
+          "restSeconds": 60,
+          "muscleGroup": "Shoulders",
+          "equipment": "Dumbbell / Stable support",
+          "formTips": [
+            "Hold a stable support and lean away as one rigid line.",
+            "Lead the raise with the elbow rather than the hand.",
+            "Stop near shoulder height without shrugging.",
+            "Lower the dumbbell slowly through the stretched position."
+          ]
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Reverse Crunch",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 45,
+          "muscleGroup": "Abs",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Start with the hips and knees bent to about 90 degrees.",
+            "Curl the pelvis toward the ribs without kicking the legs.",
+            "Lift only until the tailbone clears the mat.",
+            "Lower slowly without letting the lower back arch."
+          ]
+        },
+        {
+          "id": "ninety-ninety-hip-lift",
+          "name": "90/90 Hip Lift with Full Exhale",
+          "sets": 2,
+          "repRange": "5 controlled breaths",
+          "restSeconds": 30,
+          "muscleGroup": "Posture / Abs",
+          "equipment": "Wall or bench / Mat",
+          "formTips": [
+            "Set the hips and knees at 90 degrees with the feet supported.",
+            "Dig the heels down gently to tilt the pelvis back.",
+            "Exhale fully until the lower ribs settle.",
+            "Inhale quietly without losing the pelvic position."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "name": "Lower A — Legs and Core Control",
+      "estimatedTime": "50-60 min",
+      "focus": [
+        "Quads",
+        "Hamstrings",
+        "Glutes",
+        "Calves",
+        "Tibialis",
+        "Abs",
+        "Posture"
+      ],
+      "exercises": [
+        {
+          "id": "front-squat",
+          "name": "Front Squat",
+          "sets": 4,
+          "repRange": "6-10",
+          "restSeconds": 150,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Barbell",
+          "formTips": [
+            "Rest the bar across the front shoulders and keep the elbows high.",
+            "Brace before descending between the hips.",
+            "Track the knees in line with the toes.",
+            "Drive through the whole foot while keeping the torso tall."
+          ]
+        },
+        {
+          "id": "single-leg-romanian-deadlift",
+          "name": "Single-Leg Romanian Deadlift",
+          "sets": 3,
+          "repRange": "8-12 each leg",
+          "restSeconds": 90,
+          "muscleGroup": "Hamstrings / Glutes",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Keep a soft bend in the standing knee.",
+            "Reach the free leg back while keeping both hips square.",
+            "Lower the dumbbells close to the standing leg.",
+            "Drive the standing foot down to return without twisting."
+          ]
+        },
+        {
+          "id": "dumbbell-step-up",
+          "name": "Dumbbell Step-Up",
+          "sets": 3,
+          "repRange": "8-12 each leg",
+          "restSeconds": 90,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Dumbbells / Stable bench or step",
+          "formTips": [
+            "Place the entire working foot on the step.",
+            "Drive through the elevated leg instead of pushing off the floor.",
+            "Keep the working knee aligned with the toes.",
+            "Lower under control to the starting position."
+          ]
+        },
+        {
+          "id": "sliding-hamstring-curl",
+          "name": "Sliding Hamstring Curl",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Hamstrings / Glutes",
+          "equipment": "Towels or sliders / Smooth floor",
+          "formTips": [
+            "Lift the hips before sliding the heels away.",
+            "Keep the pelvis level throughout each curl.",
+            "Pull the heels back using the hamstrings.",
+            "Shorten the range if the lower back begins to arch."
+          ]
+        },
+        {
+          "id": "seated-dumbbell-calf-raise",
+          "name": "Seated Dumbbell Calf Raise",
+          "sets": 3,
+          "repRange": "12-20",
+          "restSeconds": 60,
+          "muscleGroup": "Calves",
+          "equipment": "Dumbbell / Bench",
+          "formTips": [
+            "Set the balls of the feet on a stable edge.",
+            "Hold the dumbbell securely across the thighs.",
+            "Lower the heels into a controlled calf stretch.",
+            "Rise fully and pause at the top of each repetition."
+          ]
+        },
+        {
+          "id": "wall-tibialis-raise",
+          "name": "Wall Tibialis Raise",
+          "sets": 3,
+          "repRange": "15-25",
+          "restSeconds": 45,
+          "muscleGroup": "Tibialis anterior",
+          "equipment": "Wall",
+          "formTips": [
+            "Lean the upper back against the wall with the feet forward.",
+            "Keep both heels planted throughout the set.",
+            "Lift the toes toward the shins as high as possible.",
+            "Lower the forefeet slowly without shifting the hips."
+          ]
+        },
+        {
+          "id": "bird-dog-with-pause",
+          "name": "Bird Dog with Pause",
+          "sets": 2,
+          "repRange": "8 each side",
+          "restSeconds": 45,
+          "muscleGroup": "Abs / Posture",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Stack the hands under the shoulders and knees under the hips.",
+            "Brace before reaching the opposite arm and leg long.",
+            "Pause without letting the pelvis rotate.",
+            "Return slowly while keeping the spine neutral."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "name": "Upper B — Back, Arms and Posture",
+      "estimatedTime": "45-55 min",
+      "focus": [
+        "Back",
+        "Biceps",
+        "Triceps",
+        "Rear shoulders",
+        "Grip",
+        "Obliques"
+      ],
+      "exercises": [
+        {
+          "id": "weighted-chin-up",
+          "name": "Weighted Chin-Up",
+          "sets": 3,
+          "repRange": "5-8",
+          "restSeconds": 120,
+          "muscleGroup": "Back / Biceps",
+          "equipment": "Pull-up bar / Backpack or weight",
+          "formTips": [
+            "Secure the added load so it cannot swing.",
+            "Start from a controlled hang with the palms facing you.",
+            "Pull the chest toward the bar by driving the elbows down.",
+            "Lower to full extension without dropping into the shoulders."
+          ]
+        },
+        {
+          "id": "pendlay-row",
+          "name": "Pendlay Row",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Back",
+          "equipment": "Barbell",
+          "formTips": [
+            "Hinge until the torso is nearly parallel to the floor.",
+            "Brace with the bar resting motionless before each repetition.",
+            "Pull the bar toward the lower chest without raising the torso.",
+            "Return the bar to the floor under control."
+          ]
+        },
+        {
+          "id": "close-grip-push-up",
+          "name": "Close-Grip Push-Up",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Triceps / Chest",
+          "equipment": "Bodyweight",
+          "formTips": [
+            "Place the hands just inside shoulder width.",
+            "Keep a straight line from the head through the heels.",
+            "Lower with the elbows tracking close to the ribs.",
+            "Press the floor away without letting the hips sag."
+          ]
+        },
+        {
+          "id": "prone-y-raise",
+          "name": "Prone Y-Raise",
+          "sets": 2,
+          "repRange": "12-15",
+          "restSeconds": 60,
+          "muscleGroup": "Lower traps / Rear shoulders",
+          "equipment": "Bench or floor / Light dumbbells optional",
+          "formTips": [
+            "Lie face down and reach the arms into a wide Y shape.",
+            "Point the thumbs upward and keep the neck long.",
+            "Lift from the shoulder blades without shrugging.",
+            "Use a small controlled range instead of swinging."
+          ]
+        },
+        {
+          "id": "incline-dumbbell-curl",
+          "name": "Incline Dumbbell Curl",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 60,
+          "muscleGroup": "Biceps",
+          "equipment": "Dumbbells / Incline bench",
+          "formTips": [
+            "Keep the upper back supported and arms hanging behind the torso.",
+            "Curl without moving the upper arms forward.",
+            "Keep the wrists straight as the dumbbells rise.",
+            "Lower fully and slowly into the biceps stretch."
+          ]
+        },
+        {
+          "id": "overhead-dumbbell-triceps-extension",
+          "name": "Overhead Dumbbell Triceps Extension",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 60,
+          "muscleGroup": "Triceps",
+          "equipment": "Dumbbell",
+          "formTips": [
+            "Hold the dumbbell securely with both hands overhead.",
+            "Keep the elbows pointed forward and close to the head.",
+            "Lower behind the head without flaring the ribs.",
+            "Straighten the elbows without moving the upper arms."
+          ]
+        },
+        {
+          "id": "suitcase-carry",
+          "name": "Suitcase Carry",
+          "sets": 3,
+          "duration": "30-45 seconds each side",
+          "restSeconds": 60,
+          "muscleGroup": "Obliques / Grip / Traps",
+          "equipment": "Heavy dumbbell",
+          "formTips": [
+            "Stand tall with the dumbbell held at one side.",
+            "Resist leaning toward or away from the load.",
+            "Walk with short controlled steps and level shoulders.",
+            "Turn carefully without letting the weight swing."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "name": "Swimming and Posture Recovery",
+      "estimatedTime": "30-45 min",
+      "focus": [
+        "Recovery",
+        "Conditioning",
+        "Abs",
+        "Glutes",
+        "Posture"
+      ],
+      "exercises": [
+        {
+          "id": "easy-indoor-swimming",
+          "name": "Easy Indoor Swimming",
+          "sets": 1,
+          "duration": "20-30 minutes",
+          "restSeconds": 0,
+          "muscleGroup": "Conditioning / Recovery",
+          "equipment": "Indoor pool",
+          "formTips": [
+            "Swim at an easy pace that allows relaxed breathing.",
+            "Use smooth strokes rather than chasing speed.",
+            "Keep the neck relaxed and exhale steadily underwater.",
+            "Pause or change stroke if the shoulders become uncomfortable."
+          ]
+        },
+        {
+          "id": "glute-bridge-march",
+          "name": "Glute Bridge March",
+          "sets": 3,
+          "repRange": "10 each side",
+          "restSeconds": 45,
+          "muscleGroup": "Glutes / Abs / Posture",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Lift into a bridge with the ribs down and glutes engaged.",
+            "Raise one foot only after the pelvis is steady.",
+            "Keep both hip bones level while alternating legs.",
+            "Use a smaller march if the lower back takes over."
+          ]
+        },
+        {
+          "id": "dead-bug",
+          "name": "Dead Bug",
+          "sets": 3,
+          "repRange": "8-10 each side",
+          "restSeconds": 45,
+          "muscleGroup": "Abs / Posture",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Press the lower back gently into the mat.",
+            "Exhale as the opposite arm and leg extend.",
+            "Reach only as far as the ribs and pelvis stay controlled.",
+            "Return slowly before alternating sides."
+          ]
+        },
+        {
+          "id": "side-plank-reach-through",
+          "name": "Side-Plank Reach-Through",
+          "sets": 2,
+          "repRange": "8-10 each side",
+          "restSeconds": 45,
+          "muscleGroup": "Obliques / Abs",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Stack the supporting elbow directly under the shoulder.",
+            "Lift the hips into a straight line from head to feet.",
+            "Rotate through the upper torso as the free arm reaches under.",
+            "Return to a stable side plank without dropping the hips."
+          ]
+        },
+        {
+          "id": "couch-hip-flexor-stretch",
+          "name": "Couch Hip-Flexor Stretch",
+          "sets": 2,
+          "duration": "45 seconds each side",
+          "restSeconds": 30,
+          "muscleGroup": "Mobility / Posture",
+          "equipment": "Wall or bench / Mat",
+          "formTips": [
+            "Pad the back knee and place the rear foot securely.",
+            "Tuck the pelvis gently before moving upright.",
+            "Squeeze the rear-leg glute to focus the stretch at the hip.",
+            "Avoid gaining range by arching the lower back."
+          ]
+        },
+        {
+          "id": "ninety-ninety-hip-lift",
+          "name": "90/90 Hip Lift with Full Exhale",
+          "sets": 2,
+          "repRange": "5 controlled breaths",
+          "restSeconds": 30,
+          "muscleGroup": "Posture / Abs",
+          "equipment": "Wall or bench / Mat",
+          "formTips": [
+            "Set the hips and knees at 90 degrees with the feet supported.",
+            "Dig the heels down gently to tilt the pelvis back.",
+            "Exhale fully until the lower ribs settle.",
+            "Inhale quietly without losing the pelvic position."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "name": "Upper C — Chest, Shoulders and Abs",
+      "estimatedTime": "50-60 min",
+      "focus": [
+        "Chest",
+        "Shoulders",
+        "Back",
+        "Abs"
+      ],
+      "exercises": [
+        {
+          "id": "incline-barbell-press",
+          "name": "Incline Barbell Press",
+          "sets": 4,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Upper chest",
+          "equipment": "Barbell / Incline bench",
+          "formTips": [
+            "Set the bench to a low or moderate incline.",
+            "Plant the feet and draw the shoulder blades back and down.",
+            "Lower the bar toward the upper chest with stacked wrists.",
+            "Press without lifting the hips or shrugging the shoulders."
+          ]
+        },
+        {
+          "id": "deficit-push-up",
+          "name": "Deficit Push-Up",
+          "sets": 3,
+          "repRange": "8-15",
+          "restSeconds": 90,
+          "muscleGroup": "Chest",
+          "equipment": "Stable push-up handles or non-rolling supports",
+          "formTips": [
+            "Confirm both supports are stable before starting.",
+            "Keep the body rigid from the head through the heels.",
+            "Lower the chest between the hands through a comfortable range.",
+            "Press evenly through both hands without flaring the ribs."
+          ]
+        },
+        {
+          "id": "pull-up",
+          "name": "Pull-Up",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Back",
+          "equipment": "Pull-up bar",
+          "formTips": [
+            "Take an overhand grip and begin from a controlled hang.",
+            "Set the shoulders before driving the elbows down.",
+            "Bring the upper chest toward the bar without kicking.",
+            "Lower under control to full elbow extension."
+          ]
+        },
+        {
+          "id": "elbows-out-dumbbell-row",
+          "name": "Elbows-Out Dumbbell Row",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 90,
+          "muscleGroup": "Upper back / Rear shoulders",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Hinge at the hips and hold the torso steady.",
+            "Row the dumbbells toward the upper ribs with elbows out.",
+            "Pause as the shoulder blades draw together.",
+            "Lower slowly without rounding the lower back."
+          ]
+        },
+        {
+          "id": "one-arm-dumbbell-overhead-press",
+          "name": "Standing One-Arm Dumbbell Overhead Press",
+          "sets": 3,
+          "repRange": "8-12 each side",
+          "restSeconds": 90,
+          "muscleGroup": "Shoulders / Triceps",
+          "equipment": "Dumbbell",
+          "formTips": [
+            "Stand with both feet planted and brace before pressing.",
+            "Start the dumbbell at shoulder height with the wrist stacked.",
+            "Press overhead without leaning away from the weight.",
+            "Finish with the arm beside the ear and ribs controlled."
+          ]
+        },
+        {
+          "id": "rear-delt-dumbbell-row",
+          "name": "Rear-Delt Dumbbell Row",
+          "sets": 3,
+          "repRange": "12-15",
+          "restSeconds": 60,
+          "muscleGroup": "Rear shoulders / Upper back",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Hinge forward and keep the spine neutral.",
+            "Use a light load that allows the elbows to travel wide.",
+            "Pull toward the upper ribs without shrugging.",
+            "Lower slowly until the rear shoulders are lengthened."
+          ]
+        },
+        {
+          "id": "hanging-leg-raise",
+          "name": "Hanging Leg Raise",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 60,
+          "muscleGroup": "Abs",
+          "equipment": "Pull-up bar",
+          "formTips": [
+            "Use a secure grip and begin from a still hang.",
+            "Curl the pelvis upward before lifting the legs.",
+            "Raise only as high as the torso stays controlled.",
+            "Lower slowly without swinging into the next repetition."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 6,
+      "name": "Lower B — Legs, Carries and Abs",
+      "estimatedTime": "50-60 min",
+      "focus": [
+        "Glutes",
+        "Hamstrings",
+        "Quads",
+        "Calves",
+        "Grip",
+        "Abs"
+      ],
+      "exercises": [
+        {
+          "id": "sumo-deadlift",
+          "name": "Sumo Deadlift",
+          "sets": 3,
+          "repRange": "5-8",
+          "restSeconds": 150,
+          "muscleGroup": "Glutes / Hamstrings / Adductors",
+          "equipment": "Barbell",
+          "formTips": [
+            "Set a wide stance with the toes turned out comfortably.",
+            "Brace and pull the slack from the bar before lifting.",
+            "Drive the knees in line with the toes as you push the floor away.",
+            "Stand tall without leaning back at lockout."
+          ]
+        },
+        {
+          "id": "dumbbell-reverse-lunge",
+          "name": "Dumbbell Reverse Lunge",
+          "sets": 3,
+          "repRange": "8-12 each leg",
+          "restSeconds": 90,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Step back far enough to keep the front foot planted.",
+            "Descend with the front knee tracking over the toes.",
+            "Keep the torso controlled and hips square.",
+            "Drive through the front foot to return to standing."
+          ]
+        },
+        {
+          "id": "heels-elevated-goblet-squat",
+          "name": "Heels-Elevated Goblet Squat",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 90,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Dumbbell / Stable heel support",
+          "formTips": [
+            "Place both heels evenly on a stable support.",
+            "Hold the dumbbell close to the chest and brace.",
+            "Let the knees travel forward in line with the toes.",
+            "Descend as deep as possible without losing pelvic control."
+          ]
+        },
+        {
+          "id": "single-leg-hip-thrust",
+          "name": "Single-Leg Hip Thrust",
+          "sets": 3,
+          "repRange": "10-15 each leg",
+          "restSeconds": 75,
+          "muscleGroup": "Glutes / Hamstrings",
+          "equipment": "Bench / Bodyweight or dumbbell",
+          "formTips": [
+            "Place the upper back securely against the bench edge.",
+            "Keep the working foot planted beneath the knee.",
+            "Hold the pelvis level as the hips rise.",
+            "Finish by squeezing the glute without arching the lower back."
+          ]
+        },
+        {
+          "id": "calf-raise",
+          "name": "Standing Calf Raise",
+          "sets": 3,
+          "repRange": "15-25",
+          "restSeconds": 45,
+          "muscleGroup": "Calves",
+          "equipment": "Bodyweight / Dumbbells",
+          "formTips": [
+            "Use stable support if balance limits the movement.",
+            "Lower the heels into a full controlled stretch.",
+            "Rise onto the balls of the feet without rolling the ankles.",
+            "Pause briefly at the top before lowering."
+          ]
+        },
+        {
+          "id": "farmer-carry",
+          "name": "Farmer Carry",
+          "sets": 3,
+          "duration": "30-45 seconds",
+          "restSeconds": 60,
+          "muscleGroup": "Grip / Traps / Forearms / Core",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Stand tall with equal loads held securely at both sides.",
+            "Keep the ribs stacked over the pelvis while walking.",
+            "Take short steady steps without swaying.",
+            "Keep the shoulders level and weights clear of the legs."
+          ]
+        },
+        {
+          "id": "kneeling-barbell-rollout",
+          "name": "Kneeling Barbell Rollout",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 60,
+          "muscleGroup": "Abs / Lats / Shoulders",
+          "equipment": "Barbell with securely rolling plates / Mat",
+          "formTips": [
+            "Confirm the plates roll securely before kneeling at the bar.",
+            "Tuck the pelvis slightly and brace before rolling forward.",
+            "Reach only as far as the lower back stays neutral.",
+            "Pull the bar back by tightening the abs and lats."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 7,
+      "name": "Rest",
+      "estimatedTime": "0-40 min",
+      "focus": [
+        "Recovery"
+      ],
+      "exercises": [
+        {
+          "id": "light-walking-only",
+          "name": "Light Walking",
+          "sets": 1,
+          "duration": "20-40 minutes optional",
+          "restSeconds": 0,
+          "muscleGroup": "Recovery",
+          "equipment": "Walking shoes",
+          "formTips": [
+            "Keep the pace easy enough to support recovery.",
+            "Walk tall with relaxed shoulders and a natural stride.",
+            "Choose a flat comfortable route when the legs feel fatigued.",
+            "Skip the walk if rest would better support recovery."
+          ]
+        }
+      ]
+    }
+  ],
+  "standaloneWorkouts": [
+    {
+      "id": "full-body-reset",
+      "name": "Full Body Reset",
+      "description": "A moderate full-body session for returning after missing several training days.",
+      "recommendedUse": "Use after missing approximately two or more scheduled training days. Do not use it to add another hard session immediately after a completed full-body workout.",
+      "estimatedTime": "45-60 min",
+      "focus": [
+        "Quads",
+        "Hamstrings",
+        "Glutes",
+        "Chest",
+        "Back",
+        "Shoulders",
+        "Arms",
+        "Calves",
+        "Abs",
+        "Grip"
+      ],
+      "rules": [
+        "Use approximately 70-80% of normal working loads.",
+        "Finish every set with 2-3 clean repetitions remaining.",
+        "Do not train to failure.",
+        "Do not repeat exercises already trained heavily the previous day.",
+        "Return to the regular weekly program after recovery."
+      ],
+      "exercises": [
+        {
+          "id": "front-squat",
+          "name": "Front Squat",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Barbell",
+          "formTips": [
+            "Keep the elbows high.",
+            "Brace before descending.",
+            "Stay balanced over the whole foot."
+          ]
+        },
+        {
+          "id": "romanian-deadlift",
+          "name": "Romanian Deadlift",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Hamstrings / Glutes",
+          "equipment": "Barbell / Dumbbells",
+          "formTips": [
+            "Hinge at the hips.",
+            "Keep the lats tight and knees soft.",
+            "Stand tall without over-arching."
+          ]
+        },
+        {
+          "id": "paused-barbell-bench-press",
+          "name": "Paused Barbell Bench Press",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Chest",
+          "equipment": "Barbell / Bench",
+          "formTips": [
+            "Stay braced during the pause.",
+            "Touch the chest softly.",
+            "Keep feet and hips planted."
+          ]
+        },
+        {
+          "id": "pull-up",
+          "name": "Pull-Up",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 120,
+          "muscleGroup": "Back / Biceps",
+          "equipment": "Pull-up bar",
+          "formTips": [
+            "Start with the shoulders down.",
+            "Pull the elbows toward the ribs.",
+            "Control the lowering without swinging."
+          ]
+        },
+        {
+          "id": "chest-supported-dumbbell-row",
+          "name": "Chest-Supported Dumbbell Row",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 90,
+          "muscleGroup": "Back / Rear shoulders",
+          "equipment": "Dumbbells / Incline bench",
+          "formTips": [
+            "Keep the chest on the bench.",
+            "Pull the elbows toward the hips.",
+            "Keep the shoulders away from the ears."
+          ]
+        },
+        {
+          "id": "one-arm-dumbbell-overhead-press",
+          "name": "Standing One-Arm Dumbbell Overhead Press",
+          "sets": 2,
+          "repRange": "8-12 each side",
+          "restSeconds": 90,
+          "muscleGroup": "Shoulders / Triceps",
+          "equipment": "Dumbbell",
+          "formTips": [
+            "Brace before every press.",
+            "Stay centered over both feet.",
+            "Keep the ribs down."
+          ]
+        },
+        {
+          "id": "hammer-curl",
+          "name": "Hammer Curl",
+          "sets": 2,
+          "repRange": "10-12",
+          "restSeconds": 60,
+          "muscleGroup": "Biceps / Forearms",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Keep the elbows close.",
+            "Maintain a neutral grip.",
+            "Lower slowly without swinging."
+          ]
+        },
+        {
+          "id": "overhead-dumbbell-triceps-extension",
+          "name": "Overhead Dumbbell Triceps Extension",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 60,
+          "muscleGroup": "Triceps",
+          "equipment": "Dumbbell",
+          "formTips": [
+            "Keep the elbows near the head.",
+            "Keep the upper arms still.",
+            "Keep the ribs down."
+          ]
+        },
+        {
+          "id": "calf-raise",
+          "name": "Standing Calf Raise",
+          "sets": 2,
+          "repRange": "15-25",
+          "restSeconds": 45,
+          "muscleGroup": "Calves",
+          "equipment": "Bodyweight / Dumbbells",
+          "formTips": [
+            "Use a full range of motion.",
+            "Pause at the top.",
+            "Lower slowly without bouncing."
+          ]
+        },
+        {
+          "id": "hanging-leg-raise",
+          "name": "Hanging Leg Raise",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 60,
+          "muscleGroup": "Abs",
+          "equipment": "Pull-up bar",
+          "formTips": [
+            "Curl the pelvis toward the ribs.",
+            "Keep the shoulders active.",
+            "Reset any swing between repetitions."
+          ]
+        },
+        {
+          "id": "farmer-carry",
+          "name": "Farmer Carry",
+          "sets": 2,
+          "duration": "30-45 seconds",
+          "restSeconds": 60,
+          "muscleGroup": "Grip / Traps / Forearms / Core",
+          "equipment": "Dumbbells",
+          "formTips": [
+            "Keep the ribs stacked over the pelvis.",
+            "Walk tall without swaying.",
+            "Maintain a strong full-hand grip."
+          ]
+        }
+      ]
+    }
+  ]
+}

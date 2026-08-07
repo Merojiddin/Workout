@@ -489,10 +489,7 @@ function hasCompletedWorkoutOn(sessions, dateKey) {
 
 function isCompletedSet(set) {
   return (
-    toNumber(set?.reps, 0) > 0 ||
-    toNumber(set?.timeSeconds, 0) > 0 ||
-    Boolean(set?.duration) ||
-    Boolean(set?.completedAt)
+    toNumber(set?.reps, 0) > 0 || toNumber(set?.timeSeconds, 0) > 0
   )
 }
 

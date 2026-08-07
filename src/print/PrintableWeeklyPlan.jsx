@@ -3,11 +3,32 @@ export function PrintableWeeklyPlan({ data }) {
   const settings = data?.profile ?? {}
   const profile = settings.profile ?? {}
   const goals = settings.goals ?? {}
+  const program = data?.program ?? {}
 
   return (
     <article className="print-page">
       <h1>Weekly Workout Plan</h1>
       <div className="print-meta-grid">
+        <div className="print-meta">
+          <span className="print-label">Program</span>
+          <strong>{program.programName ?? 'Custom Workout Plan'}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Program ID</span>
+          <strong>{program.programId ?? '-'}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Version</span>
+          <strong>{program.programVersion ?? '-'}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Plan status</span>
+          <strong>{getPlanStatus(program)}</strong>
+        </div>
+        <div className="print-meta">
+          <span className="print-label">Printed</span>
+          <strong>{formatDate(data?.generatedAt)}</strong>
+        </div>
         <div className="print-meta">
           <span className="print-label">Name</span>
           <strong>{profile.name ?? 'Mike'}</strong>
@@ -82,4 +103,21 @@ export function PrintableWeeklyPlan({ data }) {
 
 function safeArray(value) {
   return Array.isArray(value) ? value : []
+}
+
+function formatDate(value) {
+  const date = new Date(value ?? '')
+  return Number.isNaN(date.getTime())
+    ? '-'
+    : new Intl.DateTimeFormat('en', {
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }).format(date)
+}
+
+function getPlanStatus(program) {
+  if (program?.modifiedAfterInstallation) return 'Modified after installation'
+  if (program?.installed) return 'Installed plan unchanged'
+  return program?.source === 'custom' ? 'Custom plan' : 'Default plan'
 }
