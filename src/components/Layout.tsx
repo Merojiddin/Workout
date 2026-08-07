@@ -1,4 +1,5 @@
 import type { PropsWithChildren } from 'react'
+import { ArrowLeft } from 'lucide-react'
 import { BottomNav } from './BottomNav'
 import { DataModeIndicator } from './DataModeIndicator'
 import { NotificationCenter } from './NotificationCenter'
@@ -8,6 +9,8 @@ import type { PageId } from '../types/navigation'
 
 interface LayoutProps extends PropsWithChildren {
   activePage: PageId
+  canGoBack: boolean
+  onBack: () => void
   onNavigate: (page: PageId) => void
   syncMessage?: string | null
   syncTone?: string
@@ -15,7 +18,9 @@ interface LayoutProps extends PropsWithChildren {
 
 export function Layout({
   activePage,
+  canGoBack,
   children,
+  onBack,
   onNavigate,
   syncMessage,
   syncTone,
@@ -26,6 +31,17 @@ export function Layout({
       <main className="app-main">
         <OfflineBanner syncMessage={syncMessage} syncTone={syncTone} />
         <div className="app-main__topbar">
+          {canGoBack ? (
+            <button
+              aria-label="Go back to the previous page"
+              className="app-back-button"
+              onClick={onBack}
+              type="button"
+            >
+              <ArrowLeft size={17} strokeWidth={2.4} aria-hidden="true" />
+              <span>Back</span>
+            </button>
+          ) : null}
           <NotificationCenter />
           <DataModeIndicator />
         </div>

@@ -1,4 +1,12 @@
-import { cloneElement, lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import {
+  cloneElement,
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useReducer,
+  useState,
+} from 'react'
 import './App.css'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { GlobalErrorToast } from './components/GlobalErrorToast'
@@ -58,6 +66,54 @@ const PreDeployChecklist = lazy(() =>
   })),
 )
 
+interface NavigationState {
+  activePage: PageId
+  history: PageId[]
+}
+
+type NavigationAction =
+  | { type: 'navigate'; page: PageId }
+  | { type: 'back' }
+  | { type: 'reset'; page: PageId }
+
+const initialNavigationState: NavigationState = {
+  activePage: 'dashboard',
+  history: [],
+}
+
+function navigationReducer(
+  state: NavigationState,
+  action: NavigationAction,
+): NavigationState {
+  switch (action.type) {
+    case 'navigate':
+      if (action.page === state.activePage) {
+        return state
+      }
+
+      return {
+        activePage: action.page,
+        history: [...state.history, state.activePage],
+      }
+    case 'back': {
+      const previousPage = state.history[state.history.length - 1]
+      if (!previousPage) {
+        return state
+      }
+
+      return {
+        activePage: previousPage,
+        history: state.history.slice(0, -1),
+      }
+    }
+    case 'reset':
+      return {
+        activePage: action.page,
+        history: [],
+      }
+  }
+}
+
 function App() {
   return (
     <>
@@ -72,9 +128,19 @@ function App() {
 function AuthedApp() {
   const { user } = useAuth()
   const userId = user?.id ?? null
-  const [activePage, setActivePage] = useState<PageId>('dashboard')
+  const [navigation, dispatchNavigation] = useReducer(
+    navigationReducer,
+    initialNavigationState,
+  )
+  const { activePage } = navigation
   // Bumped after cloud->local hydration so pages re-read the refreshed mirror.
   const [dataVersion, setDataVersion] = useState(0)
+  const handleNavigate = useCallback((page: PageId) => {
+    dispatchNavigation({ type: 'navigate', page })
+  }, [])
+  const handleBack = useCallback(() => {
+    dispatchNavigation({ type: 'back' })
+  }, [])
   const handlePendingSynced = useCallback(() => {
     setDataVersion((version) => version + 1)
   }, [])
@@ -106,11 +172,11 @@ function AuthedApp() {
   function renderPage() {
     switch (activePage) {
       case 'today-workout':
-        return <TodayWorkout onNavigate={setActivePage} />
+        return <TodayWorkout onNavigate={handleNavigate} />
       case 'weekly-plan':
-        return <WeeklyPlan onNavigate={setActivePage} />
+        return <WeeklyPlan onNavigate={handleNavigate} />
       case 'progress':
-        return <Progress onNavigate={setActivePage} />
+        return <Progress onNavigate={handleNavigate} />
       case 'body-check-in':
         return <BodyCheckIn />
       case 'nutrition':
@@ -129,9 +195,9 @@ function AuthedApp() {
       case 'coach':
         return <Coach />
       case 'data-health':
-        return <DataHealth onNavigate={setActivePage} />
+        return <DataHealth onNavigate={handleNavigate} />
       case 'settings':
-        return <Settings onNavigate={setActivePage} />
+        return <Settings onNavigate={handleNavigate} />
       case 'export-print':
         return <ExportPrint />
       case 'privacy':
@@ -142,15 +208,21 @@ function AuthedApp() {
         return <PreDeployChecklist />
       case 'dashboard':
       default:
-        return <Dashboard onNavigate={setActivePage} />
+        return <Dashboard onNavigate={handleNavigate} />
     }
   }
 
   return (
-    <ErrorBoundary onGoDashboard={() => setActivePage('dashboard')}>
+    <ErrorBoundary
+      onGoDashboard={() =>
+        dispatchNavigation({ type: 'reset', page: 'dashboard' })
+      }
+    >
       <Layout
         activePage={activePage}
-        onNavigate={setActivePage}
+        canGoBack={navigation.history.length > 0}
+        onBack={handleBack}
+        onNavigate={handleNavigate}
         syncMessage={autoSync.syncMessage}
         syncTone={autoSync.syncTone}
       >
