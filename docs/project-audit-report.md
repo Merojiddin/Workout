@@ -1078,6 +1078,7 @@ Do not destructively rewrite:
 | 2026-08-06 | Completed Part 5B of the workout-program upgrade: Dashboard, Weekly Plan, Weekly Review, Coach, Exercise Detail, progression callers, demo generation, print, and plan export now follow the active program. Version 2 remains opt-in; workout history, the Supabase schema, packages, and unrelated CSS were unchanged. | Workout Program Upgrade Progress | All 12 focused runtime/SSR assertions and the dedicated active-program/demo checks passed; `npm run lint`, `npm run typecheck`, `git diff --check`, and `npm run build` passed; the in-app browser backend was unavailable |
 | 2026-08-06 | Completed Part 5C of the workout-program upgrade: added optional registry-owned standalone workouts, the Full Body Reset session, explicit standalone session identity, Today Workout access, and separate scheduled-adherence reporting. No eighth day was added; Version 2 remains opt-in; stored history and Supabase schema were not rewritten. | Workout Program Upgrade Progress | All 12 focused standalone access/session/history/adherence/export/default/CSS checks passed with Vite-loaded runtime and SSR fixtures; `npm run build` passed; the in-app browser backend was unavailable |
 | 2026-08-07 | Completed Part 6A final integration verification and fixed Plan Editor reset isolation. Managed installed programs now resolve selected-day defaults and resets through the authoritative active-program architecture; Version 2 can no longer reset to legacy Version 1 content. No production deployment or Supabase access occurred. | Workout Program Upgrade Progress — Part 6A | Build, lint, Version 2 validation, isolated install/storage, focused reset, timed logging, recovery/history, CSV/print/counting/chart exclusion, historical compatibility, export/backup, and cloud-path static checks passed |
+| 2026-08-07 | Completed Part 6B preview verification. The exact deployed application commit passed interactive production-build testing in isolated headless Chrome, and the protected Vercel Preview passed authenticated rendered-runtime and Program Manager checks. No application defect was found; no production deployment or Supabase access occurred. | Workout Program Upgrade Progress — Part 6B | All 37 interactive smoke items passed locally; hosted Preview document/app/chunks initialized with 0 console, page, asset, or Supabase errors |
 
 AUDIT COMPLETE — NO FILES MODIFIED
 
@@ -2231,3 +2232,102 @@ The exact Part 6A-specific files are `src/pages/PlanEditor.tsx`, `src/utils/acti
 6. Interactive browser verification remains deferred to the preview smoke-test phase because no browser backend was exposed during Part 6A.
 
 No required Part 6A check failed. The work may proceed to a focused preview commit and preview-only deployment; production remains explicitly out of scope.
+
+### Part 6B — Preview Deployment and Interactive Verification
+
+**Completed:** 2026-08-07
+**Status:** `PART 6B COMPLETE — PREVIEW VERIFIED — READY FOR PRODUCTION REVIEW`
+
+#### Deployment identity
+
+- Provider: Vercel through the repository's existing GitHub integration.
+- Branch: `codex/part-6b-preview`.
+- Application commit tested and deployed: `c67cf66ca209b9392fa45cd6cb5f7f78afcc56c3`.
+- Commit message: `fix: isolate plan resets by active workout program`.
+- Deployment ID: `dpl_65RU2GC3jBEYgrBVWxSTYBecQaMi`.
+- Preview URL: `https://workout-eze67ywvx-merojiddin-team-url.vercel.app/`.
+- Vercel target/status: Preview / READY.
+- Vercel Git metadata resolved the same branch and full application SHA. The build completed install, TypeScript, Vite, and PWA generation successfully.
+
+#### Browser automation method and isolation
+
+The repository has no permanent Playwright, Puppeteer, Cypress, Selenium, E2E configuration, or browser-test dependency. The verification reused Playwright `1.61.1` already present in the local npm execution cache and launched the installed Google Chrome `151.0.7922.76` through its explicit executable path. No package was installed or added to the application.
+
+The interactive test used a `git archive` of the exact deployed application commit, symlinked the existing dependency directory, built it with `npm run build`, and served the generated production `dist` through `vite preview` on loopback. The archive contained no dirty working-tree CSS/media changes and no `.env.local`; the rendered application therefore ran in Local Mode. Playwright used a fresh ephemeral browser context with isolated localStorage, blocked service workers, accepted downloads only into its temporary context, and captured console errors, uncaught page errors, responses, downloads, popups, and request URLs.
+
+The test created only synthetic in-memory/local-browser state: an explicit V2 installation, two timed workout sessions, and one representative historical fixture. It did not import, inspect, or modify a real user's browser profile or storage. Non-loopback requests were blocked during the local run; none were attempted.
+
+#### Exact-commit local production-build interactive results
+
+| # | Smoke check | Result |
+|---:|---|---|
+| 1 | App loads without fatal runtime errors | Passed — Dashboard rendered in Local Mode. |
+| 2 | Browser console | Passed — 0 console errors and 0 uncaught page errors at load and after all actions. |
+| 3 | Legacy/default workout flow | Passed — Original Weekly Workout Program `1.0.0` rendered all seven days. |
+| 4 | Program Manager opens | Passed — Local Program Manager rendered inside Plan Editor. |
+| 5 | `upper-recomposition@2.0.0` visible | Passed — V2 card rendered as Available. |
+| 6 | V2 not automatically installed | Passed — installed metadata was absent in fresh storage before the explicit click. |
+| 7 | Explicit isolated V2 install | Passed — UI confirmation created the plan and local install backup. |
+| 8 | Active identity | Passed — browser-loaded application resolver returned ID `upper-recomposition`, version `2.0.0`, source `registry`, installed `true`. |
+| 9 | Seven V2 days | Passed — seven rendered cards with all exact names; summary showed six scheduled sessions and one rest day. |
+| 10 | Open Plan Editor on V2 day | Passed — Day 1 editor rendered from installed V2. |
+| 11 | Record canonical exercise IDs/order | Passed — Day 1 matched the seven expected V2 IDs in exact order. |
+| 12 | Modify V2 day | Passed — V1-only `bench-press` was inserted through the UI and persisted. |
+| 13 | `Reset Day to Default` | Passed — reset action completed through the rendered day card. |
+| 14 | Exact V2 canonical day restored | Passed — full saved Day 1 deep-equaled the captured V2 baseline. |
+| 15 | No V1-only content after reset | Passed — injected `bench-press` was absent and the full day equaled V2. |
+| 16 | Program identity preserved | Passed — raw metadata and resolver ID/version/source remained unchanged. |
+| 17 | Another day unchanged | Passed — Days 2–7 and a separately captured Day 5 remained byte-equivalent. |
+| 18 | Reload page | Passed — production SPA reinitialized successfully from the same isolated context. |
+| 19 | V2 remains installed/active | Passed — V2 metadata and Current card survived reload. |
+| 20 | Modify, persist, reload, reset again | Passed — renamed Day 1 persisted across reload, then reset correctly. |
+| 21 | Post-reload reset still uses V2 | Passed — canonical V2 Day 1 and registry identity returned. |
+| 22 | V2 rest-day reset | Passed — after changing the name and removing its exercise, reset restored `Rest`, `Recovery`, `0-40 min`, and sole ID `light-walking-only`; schedule stayed six-plus-one. |
+| 23 | Farmer Carry `40s` | Passed — entered as duration through Set Logger and stored as `timeSeconds: 40`. |
+| 24 | Farmer completion/history | Passed — reload showed unfinished-workout recovery, Continue resumed Farmer Carry, and completion/detail showed `00:40`. |
+| 25 | Easy Indoor Swimming `1320s` / `22:00` | Passed — UI showed `22:00` and stored `timeSeconds: 1320`. |
+| 26 | Swimming history duration | Passed — completed detail rendered `Duration: 22:00`. |
+| 27 | Couch Hip-Flexor Stretch `45s` | Passed — entered through Set Logger and stored as `timeSeconds: 45`. |
+| 28 | Couch completion/history | Passed — completion/detail rendered `Duration: 00:45`. |
+| 29 | Strength progression exclusion | Passed — Farmer Carry selection showed no repetition-based data and no strength point. |
+| 30 | Workout completion counting | Passed — two completed sessions and three completed timed sets were counted exactly. |
+| 31 | Recovery/history rendering | Passed — the recovery-named Day 4 session and both timed details remained visible. |
+| 32 | CSV export through UI | Passed — a real browser download event produced the workout CSV. |
+| 33 | Export structure | Passed — 17 expected columns; completed rows retained Farmer `40`/`00:40`, swimming `1320`/`22:00`, and couch stretch `45`/`00:45`. |
+| 34 | Print view/data | Passed — the hidden source and generated popup contained the latest completed session, both Day 4 timed exercises/durations, and invoked `print()`; no physical print was attempted. |
+| 35 | Legacy historical entries | Passed — id-less `Pullups` retained its recorded name and canonical Pull-up match; `Mystery Cable Arc` remained visible with Archived and Unknown labels. |
+| 36 | Final browser console check | Passed — 0 console errors, 0 uncaught page errors, and 0 failed local production responses. |
+| 37 | No production Supabase target | Passed — 0 `.supabase.co`, `/rest/v1/`, or `/auth/v1/` requests; 0 other non-loopback requests were attempted. |
+
+#### Actual hosted Preview verification
+
+The Vercel project already had an automation-bypass secret. The authenticated Vercel CLI emitted a host-scoped HttpOnly bypass cookie directly through a pipe; the test parsed it in memory and injected it into a fresh Playwright context. The value was never printed, logged, written to a file, or placed in a URL. No Vercel setting, environment variable, deployment, or access policy was changed.
+
+Against the real protected Preview deployment:
+
+- the authenticated document returned HTTP 200 and rendered `Mike Fitness Tracker`;
+- primary application JavaScript initialized and Dashboard rendered in Local Mode;
+- the expected deployed main, active-program, and Plan Editor asset hashes loaded;
+- Plan Editor opened through a real click and the Program Manager/V2 Available card rendered;
+- fresh hosted browser storage had no installed program, confirming no automatic V2 installation;
+- console errors: 0;
+- uncaught page errors: 0;
+- same-host failed responses: 0; and
+- Supabase requests: 0.
+
+The complete mutating install/reset/timed/history/export sequence was intentionally performed only against the exact-commit local production build. Hosted Preview verification remained read-only to avoid any possibility of writing shared data. This is not a claim that the entire 37-step sequence was clicked on the hosted URL; it satisfies the approved decision rule because the exact deployed application tree passed the full interactive test and the hosted Preview independently initialized the same commit/assets and Program Manager without runtime errors.
+
+#### Cleanup, repository state, and safety
+
+- The local preview server and manually launched Chrome debugging process were stopped.
+- The exact-commit archive, production build, browser profile, CSV download, temporary Playwright harnesses, and exploratory CDP harness were removed from `/tmp`.
+- No screenshot, trace, browser download, log, test output, dependency, or temporary file was added to the repository.
+- No genuine application defect was found, so no application code changed during Part 6B verification.
+- Final working tree still contains only the previously preserved user work: the exercise-thumbnail hunks in `src/App.css`, four local image URL substitutions in `src/data/exerciseLibrary.ts`, and untracked `public/exercise-images/*.png`, plus this living-audit append until separately committed.
+- **Production deployment:** No.
+- **Production Supabase mutation/access:** No.
+- **Production environment modification:** No.
+- **Automatic Version 2 installation:** No.
+- **Merge, force push, or production promotion:** No.
+
+No required Part 6B verification failed. The Preview is ready for production review, but this work stops before production and does not authorize deployment or promotion.
