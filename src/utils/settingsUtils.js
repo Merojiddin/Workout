@@ -678,6 +678,10 @@ function normalizeLibraryExercise(value) {
   // have no media, so fall back to the default library entry with the same id.
   const defaultExercise = defaultExercisesById.get(id)
   const videoUrl = toText(exercise.videoUrl, defaultExercise?.videoUrl ?? '')
+  const savedImageUrl = toText(exercise.imageUrl, '')
+  const imageUrl = savedImageUrl.startsWith('/exercise-placeholders/')
+    ? (defaultExercise?.imageUrl ?? savedImageUrl)
+    : savedImageUrl || (defaultExercise?.imageUrl ?? '')
 
   return {
     id,
@@ -694,7 +698,7 @@ function normalizeLibraryExercise(value) {
     progression: toStringArray(exercise.progression, []),
     regression: toStringArray(exercise.regression, []),
     postureNotes: toText(exercise.postureNotes, ''),
-    imageUrl: toText(exercise.imageUrl, defaultExercise?.imageUrl ?? ''),
+    imageUrl,
     imageAlt: toText(exercise.imageAlt, defaultExercise?.imageAlt ?? ''),
     videoUrl,
     videoType: toChoice(

@@ -3513,39 +3513,40 @@ const baseExerciseLibrary: LibraryExercise[] = [
 // Exercise media (Step 18)
 //
 // One place to add or replace images and videos. Keyed by exercise id.
-//  - imageUrl: local placeholder now ("/exercise-placeholders/*.svg" works
-//    offline); swap in your own photo URL later.
+//  - Every bundled exercise has a matching PNG at
+//    "/exercise-images/<exercise-id>.png" so the full library works offline.
+//    An explicit non-placeholder imageUrl below can still override it.
 //  - videoUrl: MUST be an embeddable URL (https://www.youtube.com/embed/ID).
 //    Normal watch/youtu.be/shorts URLs are auto-converted by mediaUtils, but
 //    never put a search/results URL here.
-// Exercises without an entry fall back to their category placeholder image
-// and show "Video guide not added yet".
+// Exercises without an entry still receive their matching bundled image and
+// show "Video guide not added yet".
 // ---------------------------------------------------------------------------
 const exerciseMedia: Record<string, ExerciseMedia> = {
   // ---------------------------------------------------------------- Chest
   'bench-press': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/bench-press.png',
     imageAlt: 'Barbell bench press setup on a flat bench',
     videoUrl: 'https://www.youtube.com/embed/4Y2ZdHCOXok',
     videoType: 'youtube',
     videoTitle: 'Bench Press Form Guide',
   },
   'weighted-push-up': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/weighted-push-up.png',
     imageAlt: 'Push-up with a weighted backpack on the upper back',
     videoUrl: 'https://www.youtube.com/embed/_M0YXeKNB5s',
     videoType: 'youtube',
     videoTitle: 'Weighted Push-up (Backpack) Form Guide',
   },
   'feet-elevated-push-up': {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/feet-elevated-push-up.png',
     imageAlt: 'Decline push-up with feet elevated on a bench',
     videoUrl: 'https://www.youtube.com/embed/SKPab2YC8BE',
     videoType: 'youtube',
     videoTitle: 'Feet-elevated (Decline) Push-up Form Guide',
   },
   dips: {
-    imageUrl: '/exercise-placeholders/chest.svg',
+    imageUrl: '/exercise-images/dips.png',
     imageAlt: 'Chest dips on parallel bars with a slight forward lean',
     videoUrl: 'https://www.youtube.com/embed/yN6Q1UI_xkE',
     videoType: 'youtube',
@@ -3782,13 +3783,28 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
   },
 }
 
-/** Default library with media merged in. */
+/** Default library with its bundled image plus any richer media metadata. */
 export const exerciseLibrary: LibraryExercise[] = baseExerciseLibrary.map(
-  (exercise) => ({
-    ...exercise,
-    videoType: 'none',
-    ...exerciseMedia[exercise.id],
-  }),
+  (exercise) => {
+    const media = exerciseMedia[exercise.id]
+    const configuredImageUrl = media?.imageUrl?.trim()
+    const usesLegacyPlaceholder = configuredImageUrl?.startsWith(
+      '/exercise-placeholders/',
+    )
+
+    return {
+      ...exercise,
+      videoType: 'none',
+      ...media,
+      imageUrl:
+        configuredImageUrl && !usesLegacyPlaceholder
+          ? configuredImageUrl
+          : `/exercise-images/${exercise.id}.png`,
+      imageAlt:
+        media?.imageAlt?.trim() ||
+        `${exercise.name} exercise form demonstration`,
+    }
+  },
 )
 
 /**
