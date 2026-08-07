@@ -1,0 +1,2747 @@
+{
+  "id": "research-recomp-boxing-v2",
+  "name": "V2.1 Research-Optimized Recomposition + Boxing",
+  "version": "2.1.0",
+  "updatedAt": "2026-08-07",
+  "description": "A 12-week, seven-day body-recomposition program prioritizing shoulders, upper back, chest, arms, balanced legs, visible abs, boxing skill, aerobic fitness, and symptom-free movement control. Home and gym choices are alternatives within each slot, not extra exercises.",
+  "durationWeeks": 12,
+  "normalWeeklyDays": 7,
+  "goals": [
+    "Wider, rounder shoulders and a stronger shoulder-to-waist ratio",
+    "A thicker upper back, stronger chest, and larger arms",
+    "Visible abs and a gradually smaller waist without bulking",
+    "Balanced leg strength and development",
+    "Better boxing skill, conditioning, and aerobic fitness",
+    "Neck, scapular, thoracic, and rib-pelvis movement control",
+    "Maintain or increase strength during gradual fat loss",
+    "Support metabolic health, recovery, and male fertility with sustainable training"
+  ],
+  "benchmarkExerciseIds": [
+    "weighted-pull-up",
+    "pull-up",
+    "dumbbell-bench-press",
+    "bench-press",
+    "goblet-squat",
+    "hack-squat",
+    "romanian-deadlift",
+    "heavy-bag-boxing"
+  ],
+  "rules": {
+    "effort": [
+      "Most compound movements: finish with 1-3 clean repetitions in reserve.",
+      "Most accessory movements: finish with 1-2 repetitions in reserve.",
+      "Only selected isolation final sets may approach 0-1 RIR during harder blocks.",
+      "Do not repeatedly train compound movements to failure; clean form takes priority over the rep target."
+    ],
+    "progression": [
+      "Use double progression: begin near the lower or middle part of the rep range and keep the load while adding clean reps.",
+      "Increase load by the smallest practical increment only after every planned work set reaches the top of the range at the required RIR.",
+      "After increasing load, return toward the lower part of the rep range.",
+      "Track every exercise variation independently; do not compare loads between home, cable, machine, Smith, or free-weight variations.",
+      "Keep a main variation stable for roughly one four-week block when practical."
+    ],
+    "rest": [
+      "Heavy compounds: rest 2-3 minutes.",
+      "Most presses and rows: rest 90-150 seconds.",
+      "Isolation work: rest 60-90 seconds.",
+      "Posture and control work: rest 30-60 seconds.",
+      "Rest longer when needed to preserve repetitions and technique."
+    ],
+    "substitutions": [
+      "Choose one exercise from each slot; Home and Gym alternatives are not performed together.",
+      "Substitute for equipment availability, discomfort, training location, stalled progression, or safety.",
+      "Keep each variation's performance history separate."
+    ],
+    "postureCue": "Use comfortable symptom-free positions. Keep the chin controlled, let the scapulae move naturally, and avoid borrowing range through neck extension or excessive lower-back arching.",
+    "returnAfterBreak": [
+      "Less than about 7 days away: normally resume V2.1 without the special workout.",
+      "About 7-13 days away: complete one Full-Body Re-entry, take one recovery day, then restart Day 1.",
+      "About 14-28+ days away: complete one Full-Body Re-entry, take one or two recovery days, then restart Day 1.",
+      "During the first normal week after 14-28+ days away, reduce strength-training set volume about 20-30% and stay near 3 RIR.",
+      "Do not compensate for missed sessions or immediately test previous maximum strength."
+    ],
+    "optionalNeckWork": [
+      "Only if completely symptom-free, use easy-to-moderate four-way neck isometrics no more than twice per week.",
+      "Use 2 sets of 10-20 seconds per direction; never use maximal effort or a heavy neck harness."
+    ],
+    "safety": [
+      "Do not claim exercise changes spinal structure; train strength, movement control, scapular function, thoracic mobility, and rib-pelvis positioning.",
+      "Stop rather than push through sharp or radiating pain, numbness, new weakness, grip weakness, significant unusual joint pain, severe or persistent neck/back pain, dizziness, or neurological symptoms.",
+      "Press without jutting the chin or gaining range through excessive lumbar arching; pull with the arms and scapulae rather than neck extension.",
+      "Stop hinges before lumbar control changes, use only pain-free dip depth, and put boxing mechanics before maximal power.",
+      "Do not use anabolic steroids, exogenous testosterone, hormonal test boosters, crash dieting, or chronic extreme exercise."
+    ]
+  },
+  "progressionPhases": [
+    {
+      "weeks": [
+        1,
+        2,
+        3
+      ],
+      "name": "Technique + Baseline Progression",
+      "volumeGuidance": "Use the normal written volume.",
+      "rirGuidance": "Mostly 2-3 RIR.",
+      "targetRir": "2-3",
+      "priorities": [
+        "Learn the exercises",
+        "Establish realistic loads",
+        "Build clean repeatable technique"
+      ],
+      "restrictions": [
+        "Do not chase failure or premature personal records"
+      ]
+    },
+    {
+      "weeks": [
+        4
+      ],
+      "name": "Recovery / Pivot",
+      "volumeGuidance": "Use about 60-70% of normal working-set volume.",
+      "rirGuidance": "Maintain 3-4 RIR.",
+      "setVolumeMultiplier": 0.65,
+      "targetRir": "3-4",
+      "priorities": [
+        "Recover",
+        "Keep movement quality high",
+        "Practice technique"
+      ],
+      "restrictions": [
+        "Do not set PRs",
+        "Do not grind repetitions"
+      ]
+    },
+    {
+      "weeks": [
+        5,
+        6,
+        7
+      ],
+      "name": "Accumulation",
+      "volumeGuidance": "Use normal written volume; do not automatically add exercises.",
+      "rirGuidance": "Most work at 1-2 RIR.",
+      "targetRir": "1-2",
+      "priorities": [
+        "Increase repetitions",
+        "Increase load only after earning it",
+        "Keep exercise selection stable"
+      ]
+    },
+    {
+      "weeks": [
+        8
+      ],
+      "name": "Recovery / Pivot",
+      "volumeGuidance": "Use about 60-70% of normal working-set volume.",
+      "rirGuidance": "Maintain 3-4 RIR.",
+      "setVolumeMultiplier": 0.65,
+      "targetRir": "3-4",
+      "priorities": [
+        "Recover",
+        "Retain technique",
+        "Prepare for intensification"
+      ],
+      "restrictions": [
+        "Do not set PRs",
+        "Do not grind repetitions"
+      ]
+    },
+    {
+      "weeks": [
+        9,
+        10,
+        11
+      ],
+      "name": "Intensification",
+      "volumeGuidance": "Use normal written volume with compounds nearer the lower half of their rep ranges.",
+      "rirGuidance": "Most compounds at 1-2 RIR; selected isolation final sets may reach 0-1 RIR.",
+      "targetRir": "1-2",
+      "priorities": [
+        "Progress load or repetitions",
+        "Keep compound repetitions clean",
+        "Maintain boxing mechanics"
+      ],
+      "restrictions": [
+        "No unnecessary grinding",
+        "No repeated compound failure"
+      ]
+    },
+    {
+      "weeks": [
+        12
+      ],
+      "name": "Taper + Assessment",
+      "volumeGuidance": "Use about 50-60% of normal volume.",
+      "rirGuidance": "No failure and no grinding.",
+      "setVolumeMultiplier": 0.55,
+      "targetRir": "3-4",
+      "priorities": [
+        "Reduce fatigue",
+        "Assess the full 12-week block"
+      ],
+      "restrictions": [
+        "No failure",
+        "No grinder reps"
+      ],
+      "assessmentItems": [
+        "Weekly-average body weight",
+        "Waist",
+        "Progress photos",
+        "Pull-up performance",
+        "Main press performance",
+        "Lower-body performance",
+        "Boxing performance and notes"
+      ]
+    }
+  ],
+  "coaching": {
+    "proteinMinGrams": 150,
+    "proteinDefaultGrams": 160,
+    "proteinMaxGrams": 170,
+    "creatineDailyGrams": "3-5 g/day creatine monohydrate",
+    "sleepHours": "7-8+ hours average",
+    "targetWeightLossKgPerWeek": "About 0.2-0.4 kg/week",
+    "stalledTrendGuidance": "If weekly-average weight and waist are both unchanged for about two weeks, consider reducing intake about 100-150 kcal/day.",
+    "fastLossGuidance": "If loss exceeds about 0.5 kg/week while performance and recovery worsen, consider adding about 100-150 kcal/day.",
+    "healthContext": [
+      "Use actual body-weight, waist, performance, and recovery trends rather than a permanently hardcoded calorie target.",
+      "Favor whole foods, adequate nutrition, sleep, aerobic fitness, and moderate sustainable fat loss while trying to conceive."
+    ]
+  },
+  "days": [
+    {
+      "day": 1,
+      "name": "Upper A — Back + Shoulder Cap + Biceps",
+      "estimatedTime": "60-75 min",
+      "focus": [
+        "Back",
+        "Lats",
+        "Lateral delts",
+        "Rear delts",
+        "Biceps"
+      ],
+      "exercises": [
+        {
+          "id": "weighted-pull-up",
+          "name": "Vertical Pull — Choose One",
+          "sets": 3,
+          "repRange": "5-8",
+          "restSeconds": 180,
+          "muscleGroup": "Back / Lats / Biceps",
+          "equipment": "Pull-up bar",
+          "targetRir": "1-3",
+          "formTips": [
+            "Use full controlled range of motion.",
+            "Do not finish the repetition by extending the neck."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "weighted-pull-up",
+                "name": "Weighted Pull-up",
+                "equipment": "Pull-up bar / Added load"
+              },
+              {
+                "id": "weighted-chin-up",
+                "name": "Weighted Chin-up",
+                "equipment": "Pull-up bar / Added load"
+              },
+              {
+                "id": "pull-up",
+                "name": "Bodyweight Pull-up",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "chin-up",
+                "name": "Bodyweight Chin-up",
+                "equipment": "Pull-up bar"
+              }
+            ],
+            "gym": [
+              {
+                "id": "weighted-pull-up",
+                "name": "Weighted Pull-up",
+                "equipment": "Pull-up bar / Added load"
+              },
+              {
+                "id": "assisted-pull-up",
+                "name": "Assisted Pull-up",
+                "equipment": "Assisted pull-up machine"
+              },
+              {
+                "id": "neutral-grip-lat-pulldown",
+                "name": "Neutral-Grip Lat Pulldown",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "chest-supported-dumbbell-row",
+          "name": "Chest-Supported Row — Choose One",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Back / Upper back",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "1-3",
+          "formTips": [
+            "Allow natural scapular movement.",
+            "Do not jerk the load."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "chest-supported-dumbbell-row",
+                "name": "Incline-Bench Chest-Supported Dumbbell Row",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "chest-supported-machine-row",
+                "name": "Chest-Supported Machine Row",
+                "equipment": "Row machine"
+              },
+              {
+                "id": "chest-supported-t-bar-row",
+                "name": "Chest-Supported T-Bar Row",
+                "equipment": "T-bar row machine"
+              },
+              {
+                "id": "cable-row",
+                "name": "Cable Row",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "one-arm-dumbbell-row",
+          "name": "One-Arm Row — Choose One",
+          "sets": 2,
+          "repRange": "10-15 each side",
+          "restSeconds": 90,
+          "muscleGroup": "Back / Lats",
+          "equipment": "Dumbbell / Bench",
+          "targetRir": "1-2",
+          "formTips": [
+            "Brace the torso.",
+            "Avoid excessive rotation."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "one-arm-dumbbell-row",
+                "name": "One-Arm Dumbbell Row",
+                "equipment": "Dumbbell / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "one-arm-cable-row",
+                "name": "One-Arm Cable Row",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "one-arm-machine-row",
+                "name": "One-Arm Machine Row",
+                "equipment": "Row machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-lateral-raise",
+          "name": "Lateral Raise — Choose One",
+          "sets": 3,
+          "repRange": "12-20",
+          "restSeconds": 75,
+          "muscleGroup": "Shoulders / Lateral delts",
+          "equipment": "Dumbbells",
+          "targetRir": "1-2",
+          "formTips": [
+            "Move under control.",
+            "Do not turn the repetition into a trap shrug."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-lateral-raise",
+                "name": "Dumbbell Lateral Raise",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-lateral-raise",
+                "name": "Cable Lateral Raise",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "lateral-raise-machine",
+                "name": "Lateral Raise Machine",
+                "equipment": "Lateral raise machine"
+              },
+              {
+                "id": "dumbbell-lateral-raise",
+                "name": "Dumbbell Lateral Raise",
+                "equipment": "Dumbbells"
+              }
+            ]
+          }
+        },
+        {
+          "id": "incline-bench-rear-delt-raise",
+          "name": "Rear Delt — Choose One",
+          "sets": 2,
+          "repRange": "12-20",
+          "restSeconds": 75,
+          "muscleGroup": "Shoulders / Rear delts",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "1-2",
+          "formTips": [
+            "Use a controlled arc and keep the neck relaxed."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "incline-bench-rear-delt-raise",
+                "name": "Incline-Bench Rear-Delt Dumbbell Raise",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "reverse-pec-deck",
+                "name": "Reverse Pec Deck",
+                "equipment": "Reverse pec-deck machine"
+              },
+              {
+                "id": "cable-rear-delt-fly",
+                "name": "Cable Rear-Delt Fly",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "incline-dumbbell-curl",
+          "name": "Lengthened-Position Biceps — Choose One",
+          "sets": 3,
+          "repRange": "8-15",
+          "restSeconds": 75,
+          "muscleGroup": "Biceps",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the upper arm controlled and use the available lengthened position."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "incline-dumbbell-curl",
+                "name": "Incline Dumbbell Curl",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "bayesian-cable-curl",
+                "name": "Bayesian Cable Curl",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "preacher-curl",
+                "name": "Preacher Curl",
+                "equipment": "Preacher bench / Machine"
+              },
+              {
+                "id": "incline-dumbbell-curl",
+                "name": "Incline Dumbbell Curl",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ]
+          }
+        },
+        {
+          "id": "hammer-curl",
+          "name": "Hammer Curl — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Biceps / Forearms",
+          "equipment": "Dumbbells",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the elbows quiet and avoid swinging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "hammer-curl",
+                "name": "Dumbbell Hammer Curl",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "rope-hammer-curl",
+                "name": "Rope Hammer Curl",
+                "equipment": "Cable machine / Rope"
+              },
+              {
+                "id": "hammer-curl",
+                "name": "Dumbbell Hammer Curl",
+                "equipment": "Dumbbells"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "day": 2,
+      "name": "Lower A — Quad Dominant + Hamstrings + Core",
+      "estimatedTime": "60-75 min",
+      "focus": [
+        "Quads",
+        "Hamstrings",
+        "Calves",
+        "Abs",
+        "Anti-rotation"
+      ],
+      "exercises": [
+        {
+          "id": "countermovement-jump",
+          "name": "Optional Power Primer — Choose One",
+          "sets": 3,
+          "repRange": "3",
+          "restSeconds": 120,
+          "muscleGroup": "Power / Legs",
+          "equipment": "Bodyweight",
+          "optional": true,
+          "guidance": [
+            "Use only when knees and ankles feel good and technique is controlled.",
+            "Take full recovery; this is not conditioning.",
+            "Use crisp submaximal repetitions."
+          ],
+          "formTips": [
+            "Land quietly and stop if jump quality drops."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "countermovement-jump",
+                "name": "Countermovement Jump",
+                "equipment": "Bodyweight"
+              }
+            ],
+            "gym": [
+              {
+                "id": "countermovement-jump",
+                "name": "Countermovement Jump",
+                "equipment": "Bodyweight"
+              },
+              {
+                "id": "box-jump",
+                "name": "Box Jump",
+                "equipment": "Stable plyometric box"
+              }
+            ]
+          }
+        },
+        {
+          "id": "goblet-squat",
+          "name": "Main Knee-Dominant Squat — Choose One",
+          "sets": 4,
+          "repRange": "6-12",
+          "restSeconds": 180,
+          "muscleGroup": "Quads / Glutes / Adductors / Core",
+          "equipment": "Dumbbell",
+          "targetRir": "1-3",
+          "formTips": [
+            "Keep the whole foot controlled and let the knees track the toes."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "goblet-squat",
+                "name": "Heavy Goblet Squat",
+                "equipment": "Dumbbell"
+              },
+              {
+                "id": "double-dumbbell-squat",
+                "name": "Double-Dumbbell Squat",
+                "equipment": "Dumbbells"
+              },
+              {
+                "id": "heels-elevated-goblet-squat",
+                "name": "Heel-Elevated Dumbbell Squat",
+                "equipment": "Dumbbell / Heel wedge"
+              }
+            ],
+            "gym": [
+              {
+                "id": "hack-squat",
+                "name": "Hack Squat",
+                "equipment": "Hack squat machine"
+              },
+              {
+                "id": "pendulum-squat",
+                "name": "Pendulum Squat",
+                "equipment": "Pendulum squat machine"
+              },
+              {
+                "id": "leg-press",
+                "name": "Leg Press",
+                "equipment": "Leg press machine"
+              },
+              {
+                "id": "smith-machine-squat",
+                "name": "Smith Squat",
+                "equipment": "Smith machine"
+              },
+              {
+                "id": "squat",
+                "name": "Barbell Squat",
+                "equipment": "Barbell / Squat rack"
+              }
+            ]
+          }
+        },
+        {
+          "id": "bulgarian-split-squat",
+          "name": "Bulgarian Split Squat — Choose One",
+          "sets": 3,
+          "repRange": "8-12 each leg",
+          "restSeconds": 120,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Dumbbells / Bench",
+          "targetRir": "1-3",
+          "formTips": [
+            "Use a stable stance and control the descent."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "bulgarian-split-squat",
+                "name": "Dumbbell Bulgarian Split Squat",
+                "equipment": "Dumbbells / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "bulgarian-split-squat",
+                "name": "Dumbbell Bulgarian Split Squat",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "smith-machine-bulgarian-split-squat",
+                "name": "Smith Bulgarian Split Squat",
+                "equipment": "Smith machine / Bench"
+              },
+              {
+                "id": "leg-extension",
+                "name": "Leg Extension (Lower-Fatigue Substitute)",
+                "equipment": "Leg extension machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "sliding-hamstring-curl",
+          "name": "Hamstring Curl — Choose One",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 90,
+          "muscleGroup": "Hamstrings",
+          "equipment": "Sliders",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the pelvis controlled and shorten range before the lower back arches."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "sliding-hamstring-curl",
+                "name": "Slider Leg Curl",
+                "equipment": "Sliders / Smooth floor"
+              },
+              {
+                "id": "resistance-band-leg-curl",
+                "name": "Resistance-Band Leg Curl",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "seated-leg-curl",
+                "name": "Seated Leg Curl",
+                "equipment": "Leg curl machine"
+              },
+              {
+                "id": "lying-leg-curl",
+                "name": "Lying Leg Curl",
+                "equipment": "Leg curl machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "weighted-single-leg-calf-raise",
+          "name": "Calf Raise — Choose One",
+          "sets": 3,
+          "repRange": "10-20",
+          "restSeconds": 75,
+          "muscleGroup": "Calves",
+          "equipment": "Dumbbell / Stable support",
+          "targetRir": "1-2",
+          "formTips": [
+            "Use a full controlled stretch and pause at the top."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "weighted-single-leg-calf-raise",
+                "name": "Weighted Single-Leg Calf Raise",
+                "equipment": "Dumbbell / Stable support"
+              }
+            ],
+            "gym": [
+              {
+                "id": "standing-calf-machine-raise",
+                "name": "Standing Calf Machine Raise",
+                "equipment": "Calf machine"
+              },
+              {
+                "id": "seated-calf-machine-raise",
+                "name": "Seated Calf Machine Raise",
+                "equipment": "Calf machine"
+              },
+              {
+                "id": "leg-press-calf-raise",
+                "name": "Leg-Press Calf Raise",
+                "equipment": "Leg press machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "resistance-band-kneeling-crunch",
+          "name": "Abdominal Crunch — Choose One",
+          "sets": 3,
+          "repRange": "10-20",
+          "restSeconds": 75,
+          "muscleGroup": "Abs",
+          "equipment": "Resistance band",
+          "targetRir": "1-2",
+          "formTips": [
+            "Curl the ribs toward the pelvis; do not simply hinge at the hips."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "resistance-band-kneeling-crunch",
+                "name": "Band Kneeling Crunch",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-kneeling-crunch",
+                "name": "Cable Kneeling Crunch",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "resistance-band-pallof-press",
+          "name": "Pallof Press — Choose One",
+          "sets": 2,
+          "repRange": "10-15 each side",
+          "restSeconds": 60,
+          "muscleGroup": "Core / Anti-rotation",
+          "equipment": "Resistance band",
+          "formTips": [
+            "Keep ribs and pelvis stacked and resist rotation."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "resistance-band-pallof-press",
+                "name": "Band Pallof Press",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-pallof-press",
+                "name": "Cable Pallof Press",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "day": 3,
+      "name": "Boxing Skill + Aerobic Work",
+      "estimatedTime": "50-75 min",
+      "focus": [
+        "Boxing skill",
+        "Footwork",
+        "Defense",
+        "Heavy bag",
+        "Aerobic fitness"
+      ],
+      "exercises": [
+        {
+          "id": "skipping-rope",
+          "name": "Rope Warm-up",
+          "sets": 1,
+          "duration": "5-6 min",
+          "restSeconds": 60,
+          "muscleGroup": "Conditioning / Coordination",
+          "equipment": "Skipping rope",
+          "formTips": [
+            "Stay relaxed and keep the rhythm easy enough to warm up."
+          ],
+          "guidance": [
+            "This is preparation, not maximal conditioning."
+          ],
+          "phaseTargets": [
+            {
+              "weeks": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "sets": 1,
+              "duration": "5-6 min"
+            },
+            {
+              "weeks": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "sets": 1,
+              "duration": "6-8 min"
+            },
+            {
+              "weeks": [
+                9,
+                10,
+                11
+              ],
+              "sets": 1,
+              "duration": "about 8 min",
+              "guidance": [
+                "Include controlled rhythm changes."
+              ]
+            },
+            {
+              "weeks": [
+                12
+              ],
+              "sets": 1,
+              "duration": "4-5 min",
+              "guidance": [
+                "Keep the taper easy."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "boxing-footwork-drill",
+          "name": "Boxing Footwork",
+          "sets": 3,
+          "duration": "2 min",
+          "restSeconds": 60,
+          "muscleGroup": "Boxing / Footwork",
+          "equipment": "Open floor",
+          "formTips": [
+            "Keep stance and balance without crossing the feet.",
+            "Practice pivots and angle exits."
+          ],
+          "phaseTargets": [
+            {
+              "weeks": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "sets": 3,
+              "duration": "2 min"
+            },
+            {
+              "weeks": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "sets": 4,
+              "duration": "2 min"
+            },
+            {
+              "weeks": [
+                9,
+                10,
+                11
+              ],
+              "sets": 4,
+              "duration": "3 min"
+            },
+            {
+              "weeks": [
+                12
+              ],
+              "sets": 2,
+              "duration": "2 min",
+              "guidance": [
+                "Use crisp low-fatigue practice."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "shadowboxing",
+          "name": "Shadowboxing",
+          "sets": 4,
+          "duration": "2 min",
+          "restSeconds": 60,
+          "muscleGroup": "Boxing skill",
+          "equipment": "Open floor",
+          "formTips": [
+            "Recover the guard after combinations.",
+            "Keep balance through jabs, crosses, hooks, pivots, and defense."
+          ],
+          "phaseTargets": [
+            {
+              "weeks": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "sets": 4,
+              "duration": "2 min"
+            },
+            {
+              "weeks": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "sets": 4,
+              "duration": "2 min",
+              "guidance": [
+                "A fifth round is optional when technique and recovery are good."
+              ]
+            },
+            {
+              "weeks": [
+                9,
+                10,
+                11
+              ],
+              "sets": 4,
+              "duration": "3 min"
+            },
+            {
+              "weeks": [
+                12
+              ],
+              "sets": 2,
+              "duration": "2 min",
+              "guidance": [
+                "Keep the taper technical."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "boxing-defense-drill",
+          "name": "Defense Drills",
+          "sets": 2,
+          "duration": "2 min",
+          "restSeconds": 60,
+          "muscleGroup": "Boxing skill / Defense",
+          "equipment": "Open floor / Slip line optional",
+          "formTips": [
+            "Practice slips, rolls, pivots, and exits.",
+            "Avoid exaggerated neck or head movement."
+          ],
+          "phaseTargets": [
+            {
+              "weeks": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "sets": 2,
+              "duration": "2 min"
+            },
+            {
+              "weeks": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "sets": 3,
+              "duration": "2 min"
+            },
+            {
+              "weeks": [
+                9,
+                10,
+                11
+              ],
+              "sets": 3,
+              "duration": "3 min"
+            },
+            {
+              "weeks": [
+                12
+              ],
+              "sets": 1,
+              "duration": "2 min",
+              "guidance": [
+                "Keep the taper precise and easy."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rotational-medicine-ball-throw",
+          "name": "Optional Rotational Medicine-Ball Throw",
+          "sets": 3,
+          "repRange": "4-6 each side",
+          "restSeconds": 120,
+          "muscleGroup": "Power / Core",
+          "equipment": "Medicine ball / Safe wall",
+          "optional": true,
+          "formTips": [
+            "Throw from a stable base and stop before speed drops."
+          ],
+          "guidance": [
+            "Gym option only when a medicine ball and safe throwing area are available.",
+            "Perform before hard bag work.",
+            "Keep every throw explosive and submaximal."
+          ],
+          "alternatives": {
+            "gym": [
+              {
+                "id": "rotational-medicine-ball-throw",
+                "name": "Rotational Medicine-Ball Throw",
+                "equipment": "Medicine ball / Safe wall"
+              }
+            ]
+          }
+        },
+        {
+          "id": "heavy-bag-boxing",
+          "name": "Heavy Bag",
+          "sets": 4,
+          "duration": "2 min",
+          "restSeconds": 60,
+          "muscleGroup": "Boxing / Conditioning",
+          "equipment": "Heavy bag / Gloves / Wraps",
+          "formTips": [
+            "Keep the wrist stacked and recover the hands quickly.",
+            "Choose clean mechanics over exhaustion."
+          ],
+          "phaseTargets": [
+            {
+              "weeks": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "sets": 4,
+              "duration": "2 min",
+              "guidance": [
+                "Use about 60-70% power."
+              ]
+            },
+            {
+              "weeks": [
+                5,
+                6,
+                7,
+                8
+              ],
+              "sets": 5,
+              "duration": "2 min",
+              "guidance": [
+                "Use about 70-80% power without sacrificing technique."
+              ]
+            },
+            {
+              "weeks": [
+                9,
+                10,
+                11
+              ],
+              "sets": 5,
+              "duration": "3 min",
+              "guidance": [
+                "Use structured combinations; four rounds are acceptable when recovery calls for it."
+              ]
+            },
+            {
+              "weeks": [
+                12
+              ],
+              "sets": 2,
+              "duration": "2 min",
+              "guidance": [
+                "Keep power submaximal during the taper."
+              ]
+            }
+          ]
+        },
+        {
+          "id": "light-walking-only",
+          "name": "Optional Easy Aerobic Walk",
+          "sets": 1,
+          "duration": "20-30 min",
+          "restSeconds": 0,
+          "muscleGroup": "Recovery / Aerobic",
+          "equipment": "Walking shoes",
+          "optional": true,
+          "formTips": [
+            "Keep the pace conversational and use this later in the day."
+          ],
+          "guidance": [
+            "Do not automatically add another HIIT session."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 4,
+      "name": "Upper B — Chest + Shoulders + Triceps",
+      "estimatedTime": "65-80 min",
+      "focus": [
+        "Chest",
+        "Shoulders",
+        "Lateral delts",
+        "Triceps",
+        "Scapular control"
+      ],
+      "exercises": [
+        {
+          "id": "high-incline-dumbbell-press",
+          "name": "High-Incline Press — Choose One",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 150,
+          "muscleGroup": "Upper chest / Shoulders / Triceps",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "1-3",
+          "formTips": [
+            "Keep the chin controlled and do not gain range through excessive lower-back arching."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "high-incline-dumbbell-press",
+                "name": "High-Incline Dumbbell Press",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "incline-smith-machine-press",
+                "name": "Incline Smith Press",
+                "equipment": "Smith machine / Incline bench"
+              },
+              {
+                "id": "incline-chest-press-machine",
+                "name": "Incline Machine Press",
+                "equipment": "Incline chest press machine"
+              },
+              {
+                "id": "incline-dumbbell-press",
+                "name": "Incline Dumbbell Press",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-bench-press",
+          "name": "Main Horizontal Press — Choose One",
+          "sets": 3,
+          "repRange": "6-10",
+          "restSeconds": 150,
+          "muscleGroup": "Chest / Triceps",
+          "equipment": "Dumbbells / Bench",
+          "targetRir": "1-3",
+          "guidance": [
+            "Weighted push-ups or pain-free dips are substitutions, not extra exercises."
+          ],
+          "formTips": [
+            "Press without jutting the chin or over-arching the lower back.",
+            "Use only pain-free dip depth."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-bench-press",
+                "name": "Dumbbell Bench Press",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "bench-press",
+                "name": "Barbell Bench Press (Only with Safe Setup)",
+                "equipment": "Barbell / Bench / Safe supports"
+              },
+              {
+                "id": "weighted-push-up",
+                "name": "Weighted Push-up",
+                "equipment": "Bodyweight / Added load",
+                "repRange": "8-15"
+              },
+              {
+                "id": "dips",
+                "name": "Pain-Free Dip",
+                "equipment": "Dip station",
+                "repRange": "8-15"
+              }
+            ],
+            "gym": [
+              {
+                "id": "bench-press",
+                "name": "Barbell Bench Press",
+                "equipment": "Barbell / Bench / Rack"
+              },
+              {
+                "id": "dumbbell-bench-press",
+                "name": "Dumbbell Bench Press",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "chest-press-machine",
+                "name": "Chest Press Machine",
+                "equipment": "Chest press machine"
+              },
+              {
+                "id": "weighted-push-up",
+                "name": "Weighted Push-up",
+                "equipment": "Bodyweight / Added load",
+                "repRange": "8-15"
+              },
+              {
+                "id": "dips",
+                "name": "Pain-Free Dip",
+                "equipment": "Dip station",
+                "repRange": "8-15"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-squeeze-press",
+          "name": "Chest Isolation — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 90,
+          "muscleGroup": "Chest",
+          "equipment": "Dumbbells / Bench",
+          "targetRir": "1-2",
+          "formTips": [
+            "Use a controlled symptom-free range."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-squeeze-press",
+                "name": "Dumbbell Squeeze Press",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "dumbbell-fly",
+                "name": "Controlled Dumbbell Fly",
+                "equipment": "Dumbbells / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-chest-fly",
+                "name": "Cable Fly",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "pec-deck",
+                "name": "Pec Deck",
+                "equipment": "Pec-deck machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "supported-seated-dumbbell-press",
+          "name": "Shoulder-Friendly Press — Choose One",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Shoulders / Triceps",
+          "equipment": "Dumbbells / Supported bench",
+          "targetRir": "1-3",
+          "formTips": [
+            "Use only symptom-free range of motion.",
+            "Keep ribs controlled rather than leaning back."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "supported-seated-dumbbell-press",
+                "name": "Supported Seated Dumbbell Press",
+                "equipment": "Dumbbells / Supported bench"
+              },
+              {
+                "id": "high-incline-one-arm-dumbbell-press",
+                "name": "High-Incline One-Arm Dumbbell Press",
+                "equipment": "Dumbbell / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "landmine-press",
+                "name": "Landmine Press",
+                "equipment": "Landmine / Barbell"
+              },
+              {
+                "id": "machine-shoulder-press",
+                "name": "Machine Shoulder Press",
+                "equipment": "Shoulder press machine"
+              },
+              {
+                "id": "supported-seated-dumbbell-press",
+                "name": "Supported Dumbbell Press",
+                "equipment": "Dumbbells / Supported bench"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-lateral-raise",
+          "name": "Lateral Raise — Choose One",
+          "sets": 4,
+          "repRange": "12-25",
+          "restSeconds": 75,
+          "muscleGroup": "Shoulders / Lateral delts",
+          "equipment": "Dumbbells",
+          "targetRir": "1-2",
+          "formTips": [
+            "Lead with the elbows and avoid shrugging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-lateral-raise",
+                "name": "Dumbbell Lateral Raise",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-lateral-raise",
+                "name": "Cable Lateral Raise",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "lateral-raise-machine",
+                "name": "Lateral Raise Machine",
+                "equipment": "Lateral raise machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "overhead-dumbbell-triceps-extension",
+          "name": "Overhead Triceps Extension — Choose One",
+          "sets": 3,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Triceps",
+          "equipment": "Dumbbell",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the ribs down and use a controlled elbow position."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "overhead-dumbbell-triceps-extension",
+                "name": "Dumbbell Overhead Triceps Extension",
+                "equipment": "Dumbbell"
+              },
+              {
+                "id": "resistance-band-overhead-triceps-extension",
+                "name": "Resistance-Band Overhead Triceps Extension",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-overhead-triceps-extension",
+                "name": "Cable Overhead Triceps Extension",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "resistance-band-triceps-pressdown",
+          "name": "Triceps Pressdown — Choose One",
+          "sets": 2,
+          "repRange": "10-20",
+          "restSeconds": 75,
+          "muscleGroup": "Triceps",
+          "equipment": "Resistance band",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the upper arms controlled and finish without shoulder movement."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "resistance-band-triceps-pressdown",
+                "name": "Band Pressdown",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "close-grip-push-up",
+                "name": "Close-Grip Push-up",
+                "equipment": "Bodyweight"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-triceps-pressdown",
+                "name": "Cable Pressdown",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "push-up-plus",
+          "name": "Push-up Plus",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 45,
+          "muscleGroup": "Serratus / Scapular control",
+          "equipment": "Bodyweight",
+          "formTips": [
+            "Reach the floor away at the top without collapsing the trunk."
+          ],
+          "guidance": [
+            "Use one or two light control sets and do not take them to failure."
+          ]
+        }
+      ]
+    },
+    {
+      "day": 5,
+      "name": "Lower B — Posterior Chain + Core",
+      "estimatedTime": "60-75 min",
+      "focus": [
+        "Hamstrings",
+        "Glutes",
+        "Quads",
+        "Calves",
+        "Abs",
+        "Lateral core"
+      ],
+      "exercises": [
+        {
+          "id": "romanian-deadlift",
+          "name": "Romanian Deadlift — Choose One",
+          "sets": 4,
+          "repRange": "6-10",
+          "restSeconds": 180,
+          "muscleGroup": "Hamstrings / Glutes / Back",
+          "equipment": "Barbell",
+          "targetRir": "1-3",
+          "formTips": [
+            "Push the hips back with a neutral comfortable neck.",
+            "Stop before lumbar control changes."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "romanian-deadlift",
+                "name": "Barbell Romanian Deadlift",
+                "equipment": "Barbell"
+              },
+              {
+                "id": "dumbbell-romanian-deadlift",
+                "name": "Dumbbell Romanian Deadlift",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "romanian-deadlift",
+                "name": "Barbell Romanian Deadlift",
+                "equipment": "Barbell"
+              },
+              {
+                "id": "smith-machine-romanian-deadlift",
+                "name": "Smith Romanian Deadlift",
+                "equipment": "Smith machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "front-foot-elevated-dumbbell-reverse-lunge",
+          "name": "Front-Foot-Elevated Reverse Lunge — Choose One",
+          "sets": 3,
+          "repRange": "8-12 each leg",
+          "restSeconds": 120,
+          "muscleGroup": "Quads / Glutes",
+          "equipment": "Dumbbells / Low step",
+          "targetRir": "1-3",
+          "formTips": [
+            "Use a stable step and control each descent."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "front-foot-elevated-dumbbell-reverse-lunge",
+                "name": "Front-Foot-Elevated Dumbbell Reverse Lunge",
+                "equipment": "Dumbbells / Low step"
+              }
+            ],
+            "gym": [
+              {
+                "id": "front-foot-elevated-smith-reverse-lunge",
+                "name": "Smith Reverse Lunge",
+                "equipment": "Smith machine / Low step"
+              },
+              {
+                "id": "dumbbell-reverse-lunge",
+                "name": "Dumbbell Reverse Lunge",
+                "equipment": "Dumbbells"
+              },
+              {
+                "id": "leg-press",
+                "name": "Leg Press (When Unilateral Work Is Impractical)",
+                "equipment": "Leg press machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-hip-thrust",
+          "name": "Hip Thrust — Choose One",
+          "sets": 3,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Glutes / Hamstrings",
+          "equipment": "Dumbbell / Bench",
+          "targetRir": "1-3",
+          "formTips": [
+            "Finish with glutes without over-extending the lower back."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "hip-thrust",
+                "name": "Barbell Hip Thrust",
+                "equipment": "Barbell / Bench"
+              },
+              {
+                "id": "dumbbell-hip-thrust",
+                "name": "Dumbbell Hip Thrust",
+                "equipment": "Dumbbell / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "smith-machine-hip-thrust",
+                "name": "Smith Hip Thrust",
+                "equipment": "Smith machine / Bench"
+              },
+              {
+                "id": "hip-thrust-machine",
+                "name": "Hip-Thrust Machine",
+                "equipment": "Hip-thrust machine"
+              },
+              {
+                "id": "hip-thrust",
+                "name": "Barbell Hip Thrust",
+                "equipment": "Barbell / Bench"
+              }
+            ]
+          }
+        },
+        {
+          "id": "resistance-band-leg-curl",
+          "name": "Hamstring Curl — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 90,
+          "muscleGroup": "Hamstrings",
+          "equipment": "Resistance band",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the pelvis controlled and use smooth repetitions."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "resistance-band-leg-curl",
+                "name": "Band Leg Curl",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "sliding-hamstring-curl",
+                "name": "Slider Leg Curl",
+                "equipment": "Sliders / Smooth floor"
+              }
+            ],
+            "gym": [
+              {
+                "id": "seated-leg-curl",
+                "name": "Seated Leg Curl",
+                "equipment": "Leg curl machine"
+              },
+              {
+                "id": "lying-leg-curl",
+                "name": "Lying Leg Curl",
+                "equipment": "Leg curl machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "calf-raise",
+          "name": "Calf Raise — Choose One",
+          "sets": 3,
+          "repRange": "10-20",
+          "restSeconds": 75,
+          "muscleGroup": "Calves",
+          "equipment": "Dumbbells / Stable support",
+          "targetRir": "1-2",
+          "formTips": [
+            "Use a full controlled range without bouncing."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "calf-raise",
+                "name": "Weighted Calf Raise",
+                "equipment": "Dumbbells / Stable support"
+              }
+            ],
+            "gym": [
+              {
+                "id": "standing-calf-machine-raise",
+                "name": "Calf Machine Raise",
+                "equipment": "Calf machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "hanging-knee-raise",
+          "name": "Hanging Knee / Leg Raise — Choose One",
+          "sets": 3,
+          "repRange": "8-15",
+          "restSeconds": 75,
+          "muscleGroup": "Abs",
+          "equipment": "Pull-up bar",
+          "targetRir": "1-2",
+          "formTips": [
+            "Posteriorly rotate the pelvis and reset any swing."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "hanging-knee-raise",
+                "name": "Hanging Knee Raise",
+                "equipment": "Pull-up bar"
+              }
+            ],
+            "gym": [
+              {
+                "id": "hanging-knee-raise",
+                "name": "Hanging Knee Raise",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "captains-chair-knee-raise",
+                "name": "Captain's Chair Knee Raise",
+                "equipment": "Captain's chair"
+              }
+            ]
+          }
+        },
+        {
+          "id": "side-plank",
+          "name": "Lateral Core — Choose One",
+          "sets": 2,
+          "duration": "20-40 sec each side",
+          "restSeconds": 60,
+          "muscleGroup": "Obliques / Core",
+          "equipment": "Bodyweight / Mat",
+          "formTips": [
+            "Keep the ribs and pelvis stacked without sagging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "side-plank",
+                "name": "Side Plank",
+                "equipment": "Bodyweight / Mat"
+              },
+              {
+                "id": "suitcase-hold",
+                "name": "Suitcase Hold",
+                "equipment": "Dumbbell"
+              },
+              {
+                "id": "suitcase-carry",
+                "name": "Suitcase Carry",
+                "equipment": "Dumbbell / Walking space"
+              }
+            ],
+            "gym": [
+              {
+                "id": "suitcase-carry",
+                "name": "Suitcase Carry",
+                "equipment": "Dumbbell / Walking space"
+              },
+              {
+                "id": "side-plank",
+                "name": "Side Plank",
+                "equipment": "Bodyweight / Mat"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "day": 6,
+      "name": "Upper C — Shoulders + Arms + Upper Back + Boxing Conditioning",
+      "estimatedTime": "55-70 min",
+      "focus": [
+        "Shoulders",
+        "Arms",
+        "Upper back",
+        "Small chest dose",
+        "Boxing conditioning"
+      ],
+      "exercises": [
+        {
+          "id": "neutral-grip-pull-up",
+          "name": "Neutral-Grip Pull-up / Pulldown — Choose One",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Back / Lats / Biceps",
+          "equipment": "Pull-up bar",
+          "targetRir": "2-3",
+          "formTips": [
+            "Keep the neck comfortable and finish with arm and scapular movement."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "pull-up",
+                "name": "Pull-up",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "chin-up",
+                "name": "Chin-up",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "neutral-grip-pull-up",
+                "name": "Neutral-Grip Pull-up",
+                "equipment": "Neutral-grip pull-up bar"
+              }
+            ],
+            "gym": [
+              {
+                "id": "neutral-grip-lat-pulldown",
+                "name": "Neutral-Grip Pulldown",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "chest-supported-dumbbell-row",
+          "name": "Supported Row — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 105,
+          "muscleGroup": "Upper back / Lats",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "2-3",
+          "formTips": [
+            "Use smooth repetitions without jerking."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "chest-supported-dumbbell-row",
+                "name": "Chest-Supported Dumbbell Row",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-row",
+                "name": "Cable Row",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "machine-row",
+                "name": "Machine Row",
+                "equipment": "Row machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "weighted-push-up",
+          "name": "Chest Press — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 105,
+          "muscleGroup": "Chest / Triceps",
+          "equipment": "Bodyweight / Added load",
+          "targetRir": "2-3",
+          "formTips": [
+            "Keep the chin and ribs controlled."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "weighted-push-up",
+                "name": "Weighted Push-up",
+                "equipment": "Bodyweight / Added load"
+              },
+              {
+                "id": "dumbbell-bench-press",
+                "name": "Dumbbell Bench Press",
+                "equipment": "Dumbbells / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "chest-press-machine",
+                "name": "Chest Press Machine",
+                "equipment": "Chest press machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-lateral-raise",
+          "name": "Lateral Raise — Choose One",
+          "sets": 3,
+          "repRange": "15-25",
+          "restSeconds": 75,
+          "muscleGroup": "Shoulders / Lateral delts",
+          "equipment": "Dumbbells",
+          "targetRir": "1-2",
+          "formTips": [
+            "Use control and do not shrug."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-lateral-raise",
+                "name": "Dumbbell Lateral Raise",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-lateral-raise",
+                "name": "Cable Lateral Raise",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "lateral-raise-machine",
+                "name": "Lateral Raise Machine",
+                "equipment": "Lateral raise machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "incline-bench-rear-delt-raise",
+          "name": "Rear-Delt Fly / Row — Choose One",
+          "sets": 2,
+          "repRange": "15-25",
+          "restSeconds": 75,
+          "muscleGroup": "Rear delts / Upper back",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the neck relaxed and use the rear delts."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "incline-bench-rear-delt-raise",
+                "name": "Rear-Delt Dumbbell Fly",
+                "equipment": "Dumbbells / Incline bench"
+              },
+              {
+                "id": "rear-delt-dumbbell-row",
+                "name": "Rear-Delt Dumbbell Row",
+                "equipment": "Dumbbells / Incline bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "reverse-pec-deck",
+                "name": "Reverse Pec Deck",
+                "equipment": "Reverse pec-deck machine"
+              },
+              {
+                "id": "cable-rear-delt-fly",
+                "name": "Cable Rear-Delt Fly",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-curl",
+          "name": "Biceps Curl — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Biceps",
+          "equipment": "Dumbbells",
+          "targetRir": "1-2",
+          "formTips": [
+            "Choose an appropriate variant and avoid swinging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-curl",
+                "name": "Dumbbell Curl",
+                "equipment": "Dumbbells"
+              },
+              {
+                "id": "incline-dumbbell-curl",
+                "name": "Incline Dumbbell Curl",
+                "equipment": "Dumbbells / Incline bench"
+              },
+              {
+                "id": "hammer-curl",
+                "name": "Hammer Curl",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-curl",
+                "name": "Cable Curl",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "preacher-curl",
+                "name": "Preacher Curl",
+                "equipment": "Preacher bench / Machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "resistance-band-triceps-pressdown",
+          "name": "Triceps Pressdown / Extension — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Triceps",
+          "equipment": "Resistance band",
+          "targetRir": "1-2",
+          "formTips": [
+            "Keep the upper arm stable and use controlled range."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "resistance-band-triceps-pressdown",
+                "name": "Band Pressdown",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "overhead-dumbbell-triceps-extension",
+                "name": "Dumbbell Overhead Extension",
+                "equipment": "Dumbbell"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-triceps-pressdown",
+                "name": "Cable Pressdown",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "cable-overhead-triceps-extension",
+                "name": "Cable Overhead Extension",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "reverse-crunch",
+          "name": "Reverse Crunch",
+          "sets": 2,
+          "repRange": "12-20",
+          "restSeconds": 60,
+          "muscleGroup": "Abs",
+          "equipment": "Bodyweight / Mat",
+          "targetRir": "1-2",
+          "formTips": [
+            "Curl the pelvis toward the ribs without kicking the legs."
+          ]
+        },
+        {
+          "id": "heavy-bag-boxing",
+          "name": "Boxing Conditioning — Choose One",
+          "sets": 6,
+          "duration": "30 sec fast",
+          "restSeconds": 60,
+          "muscleGroup": "Boxing / Conditioning",
+          "equipment": "Heavy bag / Gloves / Wraps",
+          "formTips": [
+            "Keep technique intact during fast intervals.",
+            "Stop progression if performance or recovery worsens."
+          ],
+          "guidance": [
+            "Start with six rounds, using each 60-second rest timer as the easy interval.",
+            "Progress to seven or eight rounds only when recovery, technique, and performance stay good; do not automatically progress beyond eight."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "heavy-bag-boxing",
+                "name": "Heavy-Bag Intervals",
+                "equipment": "Heavy bag / Gloves / Wraps"
+              },
+              {
+                "id": "skipping-rope",
+                "name": "Jump-Rope Intervals",
+                "equipment": "Skipping rope"
+              }
+            ],
+            "gym": [
+              {
+                "id": "heavy-bag-boxing",
+                "name": "Heavy-Bag Intervals",
+                "equipment": "Heavy bag / Gloves / Wraps"
+              },
+              {
+                "id": "skipping-rope",
+                "name": "Jump-Rope Intervals",
+                "equipment": "Skipping rope"
+              }
+            ]
+          }
+        }
+      ],
+      "notes": "This is a moderate workout, not another maximal upper-body day."
+    },
+    {
+      "day": 7,
+      "name": "Recovery",
+      "estimatedTime": "36-55 min",
+      "focus": [
+        "Recovery",
+        "Aerobic base",
+        "Mobility",
+        "Movement control"
+      ],
+      "exercises": [
+        {
+          "id": "brisk-walking",
+          "name": "Brisk Walking",
+          "sets": 1,
+          "duration": "30-45 min",
+          "restSeconds": 0,
+          "muscleGroup": "Recovery / Aerobic",
+          "equipment": "Walking shoes",
+          "formTips": [
+            "Use a sustainable conversational pace and relaxed posture."
+          ],
+          "guidance": [
+            "No hard lifting and no HIIT."
+          ]
+        },
+        {
+          "id": "chin-tuck",
+          "name": "Short Movement / Control Routine — Choose 2-4",
+          "sets": 2,
+          "repRange": "8-12 controlled reps",
+          "restSeconds": 45,
+          "muscleGroup": "Posture / Core / Mobility",
+          "equipment": "Bodyweight / Resistance band / Mat",
+          "selectionMode": "multiple",
+          "minSelections": 2,
+          "maxSelections": 4,
+          "defaultVariantIds": [
+            "chin-tuck",
+            "wall-slide",
+            "dead-bug"
+          ],
+          "formTips": [
+            "Use one or two light sets and stop well before fatigue; static choices may use 20-30 seconds instead."
+          ],
+          "guidance": [
+            "Choose a small selection for about 6-10 minutes; the goal is movement quality, mobility, control, and recovery."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "chin-tuck",
+                "name": "Chin Tuck",
+                "equipment": "Bodyweight / Wall optional"
+              },
+              {
+                "id": "thoracic-extension-reach",
+                "name": "Thoracic Extension / Reach",
+                "equipment": "Bench / Chair / Floor"
+              },
+              {
+                "id": "wall-slide",
+                "name": "Wall Slide",
+                "equipment": "Wall"
+              },
+              {
+                "id": "band-face-pull",
+                "name": "Light Band Face Pull",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "band-pull-apart",
+                "name": "Band Pull-Apart",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "dead-bug",
+                "name": "Dead Bug",
+                "equipment": "Bodyweight / Mat"
+              },
+              {
+                "id": "hip-flexor-stretch",
+                "name": "Hip-Flexor Stretch",
+                "equipment": "Bodyweight / Mat",
+                "duration": "20-30 sec per side"
+              },
+              {
+                "id": "glute-bridge",
+                "name": "Glute Bridge",
+                "equipment": "Bodyweight / Mat"
+              }
+            ],
+            "gym": [
+              {
+                "id": "chin-tuck",
+                "name": "Chin Tuck",
+                "equipment": "Bodyweight / Wall optional"
+              },
+              {
+                "id": "thoracic-extension-reach",
+                "name": "Thoracic Extension / Reach",
+                "equipment": "Bench / Floor"
+              },
+              {
+                "id": "wall-slide",
+                "name": "Wall Slide",
+                "equipment": "Wall"
+              },
+              {
+                "id": "band-face-pull",
+                "name": "Light Band Face Pull",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "band-pull-apart",
+                "name": "Band Pull-Apart",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "dead-bug",
+                "name": "Dead Bug",
+                "equipment": "Bodyweight / Mat"
+              },
+              {
+                "id": "hip-flexor-stretch",
+                "name": "Hip-Flexor Stretch",
+                "equipment": "Bodyweight / Mat",
+                "duration": "20-30 sec per side"
+              },
+              {
+                "id": "glute-bridge",
+                "name": "Glute Bridge",
+                "equipment": "Bodyweight / Mat"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "standaloneWorkouts": [
+    {
+      "id": "full-body-reentry",
+      "name": "Full-Body Re-entry",
+      "description": "A gentle whole-body technical re-exposure after a significant break from resistance training. It provides a full-body stimulus with low-to-moderate fatigue before restarting Day 1.",
+      "recommendedUse": "Use this after a significant training break before restarting Day 1. About 7-13 days away: take one recovery day afterward. About 14-28+ days away: take one or two recovery days afterward and reduce first-week strength volume about 20-30% at roughly 3 RIR.",
+      "estimatedTime": "45-65 min",
+      "focus": [
+        "Whole body",
+        "Technical re-exposure",
+        "Low-to-moderate fatigue",
+        "Return after break"
+      ],
+      "progressionMode": "reentry",
+      "rules": [
+        "Use about 3 RIR on every set and never train to failure.",
+        "If reliable prior data exists, 60-70% of the previously expected working load may be a reference, but never force a percentage; choose a clearly manageable load.",
+        "No 1RM tests, PR attempts, forced reps, drop sets, maximal weighted pull-ups or dips, or grinder reps.",
+        "The optional finisher is easy technique or walking only; no HIIT, maximal rounds, sprints, AMRAPs, or exhaustion training.",
+        "Take at least one recovery day afterward; take two if significant soreness or fatigue remains, then restart normal V2.1 at Day 1."
+      ],
+      "exercises": [
+        {
+          "id": "goblet-squat",
+          "name": "Knee-Dominant Squat — Choose One",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 150,
+          "muscleGroup": "Quads / Glutes / Core",
+          "equipment": "Dumbbell",
+          "targetRir": "3",
+          "formTips": [
+            "Use a clearly manageable load and clean depth."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "goblet-squat",
+                "name": "Heavy Goblet Squat",
+                "equipment": "Dumbbell"
+              },
+              {
+                "id": "double-dumbbell-squat",
+                "name": "Double-Dumbbell Squat",
+                "equipment": "Dumbbells"
+              },
+              {
+                "id": "heels-elevated-goblet-squat",
+                "name": "Heel-Elevated Dumbbell Squat",
+                "equipment": "Dumbbell / Heel wedge"
+              }
+            ],
+            "gym": [
+              {
+                "id": "hack-squat",
+                "name": "Hack Squat",
+                "equipment": "Hack squat machine"
+              },
+              {
+                "id": "leg-press",
+                "name": "Leg Press",
+                "equipment": "Leg press machine"
+              },
+              {
+                "id": "smith-machine-squat",
+                "name": "Smith Squat",
+                "equipment": "Smith machine"
+              },
+              {
+                "id": "squat",
+                "name": "Barbell Squat",
+                "equipment": "Barbell / Squat rack"
+              }
+            ]
+          }
+        },
+        {
+          "id": "romanian-deadlift",
+          "name": "Hip Hinge — Choose One",
+          "sets": 2,
+          "repRange": "8-10",
+          "restSeconds": 150,
+          "muscleGroup": "Hamstrings / Glutes",
+          "equipment": "Barbell",
+          "targetRir": "3",
+          "formTips": [
+            "Stop before lumbar control changes and keep the neck comfortable."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "romanian-deadlift",
+                "name": "Barbell Romanian Deadlift",
+                "equipment": "Barbell"
+              },
+              {
+                "id": "dumbbell-romanian-deadlift",
+                "name": "Dumbbell Romanian Deadlift",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "romanian-deadlift",
+                "name": "Barbell Romanian Deadlift",
+                "equipment": "Barbell"
+              },
+              {
+                "id": "smith-machine-romanian-deadlift",
+                "name": "Smith Romanian Deadlift",
+                "equipment": "Smith machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-bench-press",
+          "name": "Horizontal Press — Choose One",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 150,
+          "muscleGroup": "Chest / Triceps",
+          "equipment": "Dumbbells / Bench",
+          "targetRir": "3",
+          "formTips": [
+            "Press without jutting the chin or over-arching."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-bench-press",
+                "name": "Dumbbell Bench Press",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "bench-press",
+                "name": "Barbell Bench Press (Only with Safe Setup)",
+                "equipment": "Barbell / Bench / Safe supports"
+              },
+              {
+                "id": "weighted-push-up",
+                "name": "Weighted Push-up",
+                "equipment": "Bodyweight / Added load"
+              }
+            ],
+            "gym": [
+              {
+                "id": "bench-press",
+                "name": "Barbell Bench Press",
+                "equipment": "Barbell / Bench / Rack"
+              },
+              {
+                "id": "dumbbell-bench-press",
+                "name": "Dumbbell Bench Press",
+                "equipment": "Dumbbells / Bench"
+              },
+              {
+                "id": "chest-press-machine",
+                "name": "Chest Press Machine",
+                "equipment": "Chest press machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "pull-up",
+          "name": "Vertical Pull — Choose One",
+          "sets": 2,
+          "repRange": "6-10",
+          "restSeconds": 150,
+          "muscleGroup": "Back / Lats / Biceps",
+          "equipment": "Pull-up bar",
+          "targetRir": "3",
+          "formTips": [
+            "Do not use maximal weighted pull-ups; finish without neck extension."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "pull-up",
+                "name": "Pull-up",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "chin-up",
+                "name": "Chin-up",
+                "equipment": "Pull-up bar"
+              }
+            ],
+            "gym": [
+              {
+                "id": "pull-up",
+                "name": "Pull-up",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "assisted-pull-up",
+                "name": "Assisted Pull-up",
+                "equipment": "Assisted pull-up machine"
+              },
+              {
+                "id": "neutral-grip-lat-pulldown",
+                "name": "Neutral-Grip Pulldown",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "chest-supported-dumbbell-row",
+          "name": "Row — Choose One",
+          "sets": 2,
+          "repRange": "8-12",
+          "restSeconds": 120,
+          "muscleGroup": "Back / Upper back",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "3",
+          "formTips": [
+            "Use controlled scapular movement without jerking."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "chest-supported-dumbbell-row",
+                "name": "Chest-Supported Dumbbell Row",
+                "equipment": "Dumbbells / Incline bench"
+              },
+              {
+                "id": "one-arm-dumbbell-row",
+                "name": "One-Arm Dumbbell Row",
+                "equipment": "Dumbbell / Bench"
+              }
+            ],
+            "gym": [
+              {
+                "id": "chest-supported-machine-row",
+                "name": "Chest-Supported Row",
+                "equipment": "Row machine"
+              },
+              {
+                "id": "cable-row",
+                "name": "Cable Row",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "machine-row",
+                "name": "Machine Row",
+                "equipment": "Row machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "dumbbell-lateral-raise",
+          "name": "Lateral Delts — Choose One",
+          "sets": 2,
+          "repRange": "12-20",
+          "restSeconds": 75,
+          "muscleGroup": "Shoulders / Lateral delts",
+          "equipment": "Dumbbells",
+          "targetRir": "3",
+          "formTips": [
+            "Use easy controlled repetitions without shrugging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "dumbbell-lateral-raise",
+                "name": "Dumbbell Lateral Raise",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-lateral-raise",
+                "name": "Cable Lateral Raise",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "lateral-raise-machine",
+                "name": "Machine Lateral Raise",
+                "equipment": "Lateral raise machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "incline-dumbbell-curl",
+          "name": "Biceps — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Biceps",
+          "equipment": "Dumbbells / Incline bench",
+          "targetRir": "3",
+          "guidance": [
+            "One set is acceptable after a longer layoff or when fatigue rises."
+          ],
+          "formTips": [
+            "Use controlled repetitions without swinging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "incline-dumbbell-curl",
+                "name": "Incline Dumbbell Curl",
+                "equipment": "Dumbbells / Incline bench"
+              },
+              {
+                "id": "hammer-curl",
+                "name": "Hammer Curl",
+                "equipment": "Dumbbells"
+              }
+            ],
+            "gym": [
+              {
+                "id": "bayesian-cable-curl",
+                "name": "Bayesian Curl",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "preacher-curl",
+                "name": "Preacher Curl",
+                "equipment": "Preacher bench / Machine"
+              },
+              {
+                "id": "cable-curl",
+                "name": "Cable Curl",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "rope-hammer-curl",
+                "name": "Rope Hammer Curl",
+                "equipment": "Cable machine / Rope"
+              }
+            ]
+          }
+        },
+        {
+          "id": "overhead-dumbbell-triceps-extension",
+          "name": "Triceps — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Triceps",
+          "equipment": "Dumbbell",
+          "targetRir": "3",
+          "guidance": [
+            "One set is acceptable after a longer layoff or when fatigue rises."
+          ],
+          "formTips": [
+            "Keep the ribs controlled and use symptom-free range."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "overhead-dumbbell-triceps-extension",
+                "name": "Dumbbell Overhead Extension",
+                "equipment": "Dumbbell"
+              },
+              {
+                "id": "resistance-band-triceps-pressdown",
+                "name": "Band Pressdown",
+                "equipment": "Resistance band"
+              },
+              {
+                "id": "resistance-band-overhead-triceps-extension",
+                "name": "Band Overhead Extension",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-triceps-pressdown",
+                "name": "Cable Pressdown",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "cable-overhead-triceps-extension",
+                "name": "Cable Overhead Extension",
+                "equipment": "Cable machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "calf-raise",
+          "name": "Calves — Choose One",
+          "sets": 2,
+          "repRange": "12-20",
+          "restSeconds": 75,
+          "muscleGroup": "Calves",
+          "equipment": "Dumbbells / Stable support",
+          "targetRir": "3",
+          "guidance": [
+            "One set is acceptable after a longer layoff or when fatigue rises."
+          ],
+          "formTips": [
+            "Use a controlled full range without bouncing."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "calf-raise",
+                "name": "Weighted Calf Raise",
+                "equipment": "Dumbbells / Stable support"
+              }
+            ],
+            "gym": [
+              {
+                "id": "standing-calf-machine-raise",
+                "name": "Calf Machine Raise",
+                "equipment": "Calf machine"
+              }
+            ]
+          }
+        },
+        {
+          "id": "hanging-knee-raise",
+          "name": "Abs — Choose One",
+          "sets": 2,
+          "repRange": "10-15",
+          "restSeconds": 75,
+          "muscleGroup": "Abs",
+          "equipment": "Pull-up bar",
+          "targetRir": "3",
+          "formTips": [
+            "Control the pelvis and avoid swinging."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "hanging-knee-raise",
+                "name": "Hanging Knee Raise",
+                "equipment": "Pull-up bar"
+              },
+              {
+                "id": "reverse-crunch",
+                "name": "Reverse Crunch",
+                "equipment": "Bodyweight / Mat"
+              },
+              {
+                "id": "resistance-band-kneeling-crunch",
+                "name": "Band Kneeling Crunch",
+                "equipment": "Resistance band"
+              }
+            ],
+            "gym": [
+              {
+                "id": "cable-kneeling-crunch",
+                "name": "Cable Crunch",
+                "equipment": "Cable machine"
+              },
+              {
+                "id": "captains-chair-knee-raise",
+                "name": "Captain's Chair Knee Raise",
+                "equipment": "Captain's chair"
+              },
+              {
+                "id": "hanging-knee-raise",
+                "name": "Hanging Knee Raise",
+                "equipment": "Pull-up bar"
+              }
+            ]
+          }
+        },
+        {
+          "id": "light-walking-only",
+          "name": "Optional Easy Finisher — Choose One",
+          "sets": 1,
+          "duration": "5-10 min",
+          "restSeconds": 0,
+          "muscleGroup": "Recovery / Boxing technique",
+          "equipment": "Walking shoes",
+          "optional": true,
+          "formTips": [
+            "Keep breathing easy and stop well before fatigue."
+          ],
+          "guidance": [
+            "No HIIT, maximal rounds, sprint intervals, AMRAP circuits, or exhaustion training."
+          ],
+          "alternatives": {
+            "home": [
+              {
+                "id": "skipping-rope",
+                "name": "Easy Jump Rope",
+                "equipment": "Skipping rope"
+              },
+              {
+                "id": "shadowboxing",
+                "name": "Easy Shadowboxing",
+                "equipment": "Open floor"
+              },
+              {
+                "id": "heavy-bag-boxing",
+                "name": "Light Heavy-Bag Technique",
+                "equipment": "Heavy bag / Gloves / Wraps"
+              },
+              {
+                "id": "light-walking-only",
+                "name": "Easy Walking",
+                "equipment": "Walking shoes"
+              }
+            ],
+            "gym": [
+              {
+                "id": "skipping-rope",
+                "name": "Easy Jump Rope",
+                "equipment": "Skipping rope"
+              },
+              {
+                "id": "shadowboxing",
+                "name": "Easy Shadowboxing",
+                "equipment": "Open floor"
+              },
+              {
+                "id": "heavy-bag-boxing",
+                "name": "Light Heavy-Bag Technique",
+                "equipment": "Heavy bag / Gloves / Wraps"
+              },
+              {
+                "id": "light-walking-only",
+                "name": "Easy Walking",
+                "equipment": "Walking shoes"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

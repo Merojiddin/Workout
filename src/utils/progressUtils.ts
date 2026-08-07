@@ -166,6 +166,7 @@ export function getWeeklyCompletion(
   const completedDates = new Set(
     getThisWeekSessions(sessions, date)
       .filter(isWorkoutCompleted)
+      .filter((session) => session.sessionType !== 'standalone')
       .map((session) => session.date),
   )
 

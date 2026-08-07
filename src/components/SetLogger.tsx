@@ -11,6 +11,7 @@ export interface SetLoggerData {
   timeSeconds: number | null
   weightKg: number | null
   rpe: number | null
+  rir: number | null
   painLevel: number | null
   notes: string
 }
@@ -40,6 +41,7 @@ export function SetLogger({
   const [seconds, setSeconds] = useState('')
   const [weight, setWeight] = useState('')
   const [rpe, setRpe] = useState('')
+  const [rir, setRir] = useState('')
   const [pain, setPain] = useState('')
   const [notes, setNotes] = useState('')
   // Seed with the mount-time signal so a remount (next set) does not re-fire
@@ -54,6 +56,7 @@ export function SetLogger({
     setSeconds(durationInputs.seconds)
     setWeight(numberToInput(initialData?.weightKg))
     setRpe(numberToInput(initialData?.rpe))
+    setRir(numberToInput(initialData?.rir))
     setPain(numberToInput(initialData?.painLevel))
     setNotes(initialData?.notes ?? '')
     // Only re-run when the target set changes.
@@ -81,6 +84,7 @@ export function SetLogger({
       timeSeconds,
       weightKg: parseField(weight),
       rpe: parseField(rpe),
+      rir: parseField(rir),
       painLevel: parseField(pain),
       notes: notes.trim(),
     })
@@ -193,6 +197,21 @@ export function SetLogger({
             step="0.5"
             type="number"
             value={rpe}
+          />
+        </div>
+
+        <div className="set-logger__field">
+          <label htmlFor="set-rir">RIR</label>
+          <input
+            id="set-rir"
+            inputMode="decimal"
+            max={10}
+            min={0}
+            onChange={(event) => setRir(sanitize(event.target.value))}
+            placeholder="0-4"
+            step="0.5"
+            type="number"
+            value={rir}
           />
         </div>
 

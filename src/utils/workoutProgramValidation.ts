@@ -32,6 +32,18 @@ export function validateWorkoutProgram(
   if (!isValidDateString(program.updatedAt)) {
     errors.push('Missing or invalid updatedAt.')
   }
+  if (
+    program.durationWeeks !== undefined &&
+    !isPositiveInteger(program.durationWeeks)
+  ) {
+    errors.push('durationWeeks must be a positive integer when supplied.')
+  }
+  if (
+    program.normalWeeklyDays !== undefined &&
+    !isPositiveInteger(program.normalWeeklyDays)
+  ) {
+    errors.push('normalWeeklyDays must be a positive integer when supplied.')
+  }
 
   if (
     program.description === undefined ||
@@ -64,6 +76,12 @@ export function validateWorkoutProgram(
     errors.push('Benchmark exercise IDs must contain only non-empty strings.')
   }
   validateRules(program.rules, errors)
+  validateProgressionPhases(
+    program.progressionPhases,
+    isPositiveInteger(program.durationWeeks) ? program.durationWeeks : undefined,
+    errors,
+  )
+  validateCoaching(program.coaching, errors)
   validateStandaloneWorkouts(program.standaloneWorkouts, options, errors)
 
   if (!Array.isArray(program.days) || program.days.length === 0) {
@@ -178,8 +196,18 @@ export function validateWorkoutProgram(
           `${exerciseLabel}: formTips must contain only non-empty strings.`,
         )
       }
+      validateExerciseExtensions(exercise, exerciseLabel, options, errors)
     })
   })
+
+  if (
+    isPositiveInteger(program.normalWeeklyDays) &&
+    program.normalWeeklyDays !== program.days.length
+  ) {
+    errors.push(
+      `normalWeeklyDays (${program.normalWeeklyDays}) does not match the days array (${program.days.length}).`,
+    )
+  }
 
   const uniqueSortedDays = [...new Set(validDayNumbers)].sort((left, right) =>
     left - right,
@@ -247,6 +275,13 @@ function validateStandaloneWorkouts(
       ) {
         errors.push(`${workoutLabel}: rules must be an array of non-empty strings.`)
       }
+    }
+    if (
+      workout?.progressionMode !== undefined &&
+      workout.progressionMode !== 'standard' &&
+      workout.progressionMode !== 'reentry'
+    ) {
+      errors.push(`${workoutLabel}: progressionMode must be standard or reentry.`)
     }
     const standaloneExercises = workout?.exercises
     if (
@@ -329,7 +364,175 @@ function validateStandaloneExercises(
     } else if (!exercise.formTips.every(isNonEmptyString)) {
       errors.push(`${exerciseLabel}: formTips must contain only non-empty strings.`)
     }
+    validateExerciseExtensions(exercise, exerciseLabel, {
+      knownExerciseIds,
+      requireKnownExercises: true,
+    }, errors)
   })
+}
+
+function validateExerciseExtensions(
+  exercise: Record<string, unknown> | undefined,
+  exerciseLabel: string,
+  options: WorkoutProgramValidationOptions,
+  errors: string[],
+) {
+  if (!exercise) return
+
+  if (exercise.optional !== undefined && typeof exercise.optional !== 'boolean') {
+    errors.push(`${exerciseLabel}: optional must be a boolean when supplied.`)
+  }
+  if (
+    exercise.selectionMode !== undefined &&
+    exercise.selectionMode !== 'single' &&
+    exercise.selectionMode !== 'multiple'
+  ) {
+    errors.push(`${exerciseLabel}: selectionMode must be single or multiple.`)
+  }
+  for (const field of ['minSelections', 'maxSelections'] as const) {
+    if (exercise[field] !== undefined && !isPositiveInteger(exercise[field])) {
+      errors.push(`${exerciseLabel}: ${field} must be a positive integer.`)
+    }
+  }
+  if (
+    isPositiveInteger(exercise.minSelections) &&
+    isPositiveInteger(exercise.maxSelections) &&
+    exercise.minSelections > exercise.maxSelections
+  ) {
+    errors.push(`${exerciseLabel}: minSelections cannot exceed maxSelections.`)
+  }
+  validateOptionalStringArray(exercise.guidance, `${exerciseLabel}.guidance`, errors)
+  if (exercise.targetRir !== undefined && !isRirTarget(exercise.targetRir)) {
+    errors.push(`${exerciseLabel}: targetRir must be a numeric RIR value or range.`)
+  }
+
+  const alternatives = exercise.alternatives
+  const variantIds = new Set<string>()
+  if (alternatives !== undefined) {
+    if (!isPlainObject(alternatives)) {
+      errors.push(`${exerciseLabel}: alternatives must be an object.`)
+    } else {
+      let variantCount = 0
+      for (const location of ['home', 'gym'] as const) {
+        const variants = alternatives[location]
+        if (variants === undefined) continue
+        if (!Array.isArray(variants) || variants.length === 0) {
+          errors.push(`${exerciseLabel}: alternatives.${location} must be a non-empty array.`)
+          continue
+        }
+
+        const locationIds = new Set<string>()
+        variants.forEach((candidate, variantIndex) => {
+          const variant = isPlainObject(candidate) ? candidate : undefined
+          const label = `${exerciseLabel}, ${location} variant at index ${variantIndex}`
+          const id = isNonEmptyString(variant?.id) ? variant.id.trim() : ''
+          if (!id) {
+            errors.push(`${label}: Missing exercise ID.`)
+          } else {
+            if (locationIds.has(id)) {
+              errors.push(`${label}: Duplicate variant ID ${id}.`)
+            }
+            locationIds.add(id)
+            variantIds.add(id)
+            if (options.knownExerciseIds && !options.knownExerciseIds.has(id)) {
+              errors.push(`${label}: Exercise ID not found in the supplied exercise library: ${id}.`)
+            }
+          }
+          if (!isNonEmptyString(variant?.name)) {
+            errors.push(`${label}: Missing name.`)
+          }
+          if (!isNonEmptyString(variant?.equipment)) {
+            errors.push(`${label}: Missing equipment.`)
+          }
+          if (
+            variant?.repRange !== undefined &&
+            !isNonEmptyString(variant.repRange)
+          ) {
+            errors.push(`${label}: repRange must be a non-empty string.`)
+          }
+          if (
+            variant?.duration !== undefined &&
+            !isNonEmptyString(variant.duration)
+          ) {
+            errors.push(`${label}: duration must be a non-empty string.`)
+          }
+          if (
+            variant?.repRange !== undefined &&
+            variant?.duration !== undefined
+          ) {
+            errors.push(`${label}: repRange and duration cannot both be supplied.`)
+          }
+          if (
+            variant?.formTips !== undefined &&
+            (!Array.isArray(variant.formTips) ||
+              !variant.formTips.every(isNonEmptyString))
+          ) {
+            errors.push(`${label}: formTips must contain only non-empty strings.`)
+          }
+          variantCount += 1
+        })
+      }
+      if (variantCount === 0) {
+        errors.push(`${exerciseLabel}: alternatives must provide at least one variant.`)
+      }
+      if (isNonEmptyString(exercise.id) && !variantIds.has(exercise.id.trim())) {
+        errors.push(`${exerciseLabel}: the primary exercise ID must appear in alternatives.`)
+      }
+    }
+  }
+
+  if (exercise.defaultVariantIds !== undefined) {
+    if (
+      !Array.isArray(exercise.defaultVariantIds) ||
+      exercise.defaultVariantIds.length === 0 ||
+      !exercise.defaultVariantIds.every(isNonEmptyString)
+    ) {
+      errors.push(`${exerciseLabel}: defaultVariantIds must be a non-empty string array.`)
+    } else if (
+      variantIds.size > 0 &&
+      exercise.defaultVariantIds.some((id) => !variantIds.has(id.trim()))
+    ) {
+      errors.push(`${exerciseLabel}: defaultVariantIds contains an unavailable variant.`)
+    }
+  }
+
+  const phaseTargets = exercise.phaseTargets
+  if (phaseTargets !== undefined) {
+    if (!Array.isArray(phaseTargets) || phaseTargets.length === 0) {
+      errors.push(`${exerciseLabel}: phaseTargets must be a non-empty array.`)
+    } else {
+      const seenWeeks = new Set<number>()
+      phaseTargets.forEach((candidate, targetIndex) => {
+        const target = isPlainObject(candidate) ? candidate : undefined
+        const label = `${exerciseLabel}, phase target at index ${targetIndex}`
+        if (
+          !Array.isArray(target?.weeks) ||
+          target.weeks.length === 0 ||
+          !target.weeks.every(isPositiveInteger)
+        ) {
+          errors.push(`${label}: weeks must be a non-empty positive-integer array.`)
+        } else {
+          target.weeks.forEach((week) => {
+            if (seenWeeks.has(week)) errors.push(`${label}: week ${week} overlaps another phase target.`)
+            seenWeeks.add(week)
+          })
+        }
+        if (target?.sets !== undefined && !isPositiveInteger(target.sets)) {
+          errors.push(`${label}: sets must be a positive integer.`)
+        }
+        if (target?.repRange !== undefined && !isNonEmptyString(target.repRange)) {
+          errors.push(`${label}: repRange must be a non-empty string.`)
+        }
+        if (target?.duration !== undefined && !isNonEmptyString(target.duration)) {
+          errors.push(`${label}: duration must be a non-empty string.`)
+        }
+        if (target?.repRange !== undefined && target?.duration !== undefined) {
+          errors.push(`${label}: repRange and duration cannot both be supplied.`)
+        }
+        validateOptionalStringArray(target?.guidance, `${label}.guidance`, errors)
+      })
+    }
+  }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -384,12 +587,140 @@ function validateRules(value: unknown, errors: string[]) {
     'rules.returnAfterBreak',
     errors,
   )
+  validateOptionalStringArray(value.rest, 'rules.rest', errors)
+  validateOptionalStringArray(value.substitutions, 'rules.substitutions', errors)
+  validateOptionalStringArray(value.safety, 'rules.safety', errors)
+  validateOptionalStringArray(
+    value.optionalNeckWork,
+    'rules.optionalNeckWork',
+    errors,
+  )
   if (
     value.postureCue !== undefined &&
     !isNonEmptyString(value.postureCue)
   ) {
     errors.push('rules.postureCue must be a non-empty string when supplied.')
   }
+}
+
+function validateProgressionPhases(
+  value: unknown,
+  durationWeeks: number | undefined,
+  errors: string[],
+) {
+  if (value === undefined) return
+  if (!Array.isArray(value) || value.length === 0) {
+    errors.push('progressionPhases must be a non-empty array when supplied.')
+    return
+  }
+
+  const seenWeeks = new Set<number>()
+  value.forEach((candidate, index) => {
+    const phase = isPlainObject(candidate) ? candidate : undefined
+    const label = `Progression phase at index ${index}`
+    if (
+      !Array.isArray(phase?.weeks) ||
+      phase.weeks.length === 0 ||
+      !phase.weeks.every(isPositiveInteger)
+    ) {
+      errors.push(`${label}: weeks must be a non-empty positive-integer array.`)
+    } else {
+      phase.weeks.forEach((week) => {
+        if (durationWeeks !== undefined && week > durationWeeks) {
+          errors.push(`${label}: week ${week} exceeds durationWeeks.`)
+        }
+        if (seenWeeks.has(week)) {
+          errors.push(`${label}: week ${week} overlaps another phase.`)
+        }
+        seenWeeks.add(week)
+      })
+    }
+    for (const field of ['name', 'volumeGuidance', 'rirGuidance'] as const) {
+      if (!isNonEmptyString(phase?.[field])) {
+        errors.push(`${label}: Missing ${field}.`)
+      }
+    }
+    if (
+      phase?.setVolumeMultiplier !== undefined &&
+      (!isFiniteNumber(phase.setVolumeMultiplier) ||
+        phase.setVolumeMultiplier <= 0 ||
+        phase.setVolumeMultiplier > 1)
+    ) {
+      errors.push(`${label}: setVolumeMultiplier must be greater than 0 and no more than 1.`)
+    }
+    if (phase?.targetRir !== undefined && !isRirTarget(phase.targetRir)) {
+      errors.push(`${label}: targetRir must be a numeric RIR value or range.`)
+    }
+    if (!Array.isArray(phase?.priorities) || !phase.priorities.every(isNonEmptyString)) {
+      errors.push(`${label}: priorities must be an array of non-empty strings.`)
+    }
+    validateOptionalStringArray(phase?.restrictions, `${label}.restrictions`, errors)
+    validateOptionalStringArray(
+      phase?.assessmentItems,
+      `${label}.assessmentItems`,
+      errors,
+    )
+  })
+
+  if (durationWeeks !== undefined) {
+    for (let week = 1; week <= durationWeeks; week += 1) {
+      if (!seenWeeks.has(week)) {
+        errors.push(`progressionPhases does not cover week ${week}.`)
+      }
+    }
+  }
+}
+
+function validateCoaching(value: unknown, errors: string[]) {
+  if (value === undefined) return
+  if (!isPlainObject(value)) {
+    errors.push('coaching must be an object when supplied.')
+    return
+  }
+
+  for (const field of [
+    'proteinMinGrams',
+    'proteinDefaultGrams',
+    'proteinMaxGrams',
+  ] as const) {
+    if (value[field] !== undefined && (!isFiniteNumber(value[field]) || value[field] < 0)) {
+      errors.push(`coaching.${field} must be a non-negative number.`)
+    }
+  }
+  for (const field of [
+    'creatineDailyGrams',
+    'sleepHours',
+    'targetWeightLossKgPerWeek',
+    'stalledTrendGuidance',
+    'fastLossGuidance',
+  ] as const) {
+    if (value[field] !== undefined && !isNonEmptyString(value[field])) {
+      errors.push(`coaching.${field} must be a non-empty string.`)
+    }
+  }
+  validateOptionalStringArray(value.healthContext, 'coaching.healthContext', errors)
+
+  const min = value.proteinMinGrams
+  const target = value.proteinDefaultGrams
+  const max = value.proteinMaxGrams
+  if (
+    isFiniteNumber(min) &&
+    isFiniteNumber(target) &&
+    isFiniteNumber(max) &&
+    (min > target || target > max)
+  ) {
+    errors.push('coaching protein targets must satisfy min <= default <= max.')
+  }
+}
+
+function isRirTarget(value: unknown): value is string {
+  if (!isNonEmptyString(value)) return false
+  const normalized = value.trim()
+  const match = /^(\d+(?:\.\d+)?)(?:\s*[-–]\s*(\d+(?:\.\d+)?))?$/.exec(normalized)
+  if (!match) return false
+  const minimum = Number(match[1])
+  const maximum = Number(match[2] ?? match[1])
+  return minimum >= 0 && maximum <= 10 && minimum <= maximum
 }
 
 function validateOptionalStringArray(

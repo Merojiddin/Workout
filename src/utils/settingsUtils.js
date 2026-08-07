@@ -271,6 +271,12 @@ export function exportAllData() {
     userProfileSettings: getUserProfileSettings(),
     customWorkoutPlan: readJson(CUSTOM_WORKOUT_PLAN_KEY),
     customExerciseLibrary: readJson(CUSTOM_EXERCISE_LIBRARY_KEY),
+    installedWorkoutProgram: readJson(INSTALLED_WORKOUT_PROGRAM_KEY),
+    dismissedWorkoutPrograms: readJson(DISMISSED_WORKOUT_PROGRAMS_KEY),
+    workoutPlanBackups: readJson(WORKOUT_PLAN_BACKUPS_KEY),
+    cloudWorkoutProgramManagerCache: readJson(
+      CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+    ),
     workoutSessions: readArray(WORKOUT_SESSIONS_KEY),
     bodyCheckIns: readArray(BODY_CHECK_INS_KEY),
     nutritionLogs: readArray(NUTRITION_LOGS_KEY),
@@ -321,6 +327,38 @@ export function importAllData(jsonData) {
         resetCustomExerciseLibrary()
       } else {
         saveCustomExerciseLibrary(data.customExerciseLibrary)
+      }
+    }
+
+    if ('installedWorkoutProgram' in data) {
+      if (data.installedWorkoutProgram === null) {
+        safeRemove(INSTALLED_WORKOUT_PROGRAM_KEY)
+      } else {
+        writeJson(INSTALLED_WORKOUT_PROGRAM_KEY, data.installedWorkoutProgram)
+      }
+    }
+    if ('dismissedWorkoutPrograms' in data) {
+      writeJson(
+        DISMISSED_WORKOUT_PROGRAMS_KEY,
+        Array.isArray(data.dismissedWorkoutPrograms)
+          ? data.dismissedWorkoutPrograms
+          : [],
+      )
+    }
+    if ('workoutPlanBackups' in data) {
+      writeJson(
+        WORKOUT_PLAN_BACKUPS_KEY,
+        Array.isArray(data.workoutPlanBackups) ? data.workoutPlanBackups : [],
+      )
+    }
+    if ('cloudWorkoutProgramManagerCache' in data) {
+      if (data.cloudWorkoutProgramManagerCache === null) {
+        safeRemove(CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY)
+      } else {
+        writeJson(
+          CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+          data.cloudWorkoutProgramManagerCache,
+        )
       }
     }
 
@@ -632,6 +670,23 @@ function normalizePlanExercise(value, fallback, suffix) {
     ? ''
     : explicitDuration || (fallbackRepRange ? '' : fallbackDuration)
 
+  const alternatives = normalizeExerciseAlternatives(
+    exercise.alternatives,
+    defaultExercise.alternatives,
+  )
+  const phaseTargets = normalizeExercisePhaseTargets(
+    exercise.phaseTargets,
+    defaultExercise.phaseTargets,
+  )
+  const guidance = toStringArray(
+    exercise.guidance,
+    defaultExercise.guidance ?? [],
+  )
+  const defaultVariantIds = toStringArray(
+    exercise.defaultVariantIds,
+    defaultExercise.defaultVariantIds ?? [],
+  )
+
   return removeEmptyFields({
     id: toText(exercise.id, defaultExercise.id ?? `custom-${slugify(name)}-${suffix}`),
     name,
@@ -652,6 +707,117 @@ function normalizePlanExercise(value, fallback, suffix) {
       defaultExercise.formTips ?? ['Keep control'],
     ),
     notes: toText(exercise.notes, defaultExercise.notes ?? ''),
+    ...(alternatives ? { alternatives } : {}),
+    ...(phaseTargets.length > 0 ? { phaseTargets } : {}),
+    ...(guidance.length > 0 ? { guidance } : {}),
+    ...(defaultVariantIds.length > 0 ? { defaultVariantIds } : {}),
+    ...(exercise.optional !== undefined || defaultExercise.optional !== undefined
+      ? { optional: toBoolean(exercise.optional, Boolean(defaultExercise.optional)) }
+      : {}),
+    ...(exercise.selectionMode !== undefined || defaultExercise.selectionMode !== undefined
+      ? {
+          selectionMode: toChoice(
+            exercise.selectionMode,
+            ['single', 'multiple'],
+            defaultExercise.selectionMode ?? 'single',
+          ),
+        }
+      : {}),
+    ...(exercise.minSelections !== undefined || defaultExercise.minSelections !== undefined
+      ? {
+          minSelections: Math.max(
+            1,
+            Math.round(
+              toPositiveNumber(
+                exercise.minSelections,
+                defaultExercise.minSelections ?? 1,
+              ),
+            ),
+          ),
+        }
+      : {}),
+    ...(exercise.maxSelections !== undefined || defaultExercise.maxSelections !== undefined
+      ? {
+          maxSelections: Math.max(
+            1,
+            Math.round(
+              toPositiveNumber(
+                exercise.maxSelections,
+                defaultExercise.maxSelections ?? 1,
+              ),
+            ),
+          ),
+        }
+      : {}),
+    ...(toText(exercise.targetRir, defaultExercise.targetRir ?? '')
+      ? { targetRir: toText(exercise.targetRir, defaultExercise.targetRir ?? '') }
+      : {}),
+  })
+}
+
+function normalizeExerciseAlternatives(value, fallback) {
+  const source = isPlainObject(value)
+    ? value
+    : isPlainObject(fallback)
+      ? fallback
+      : null
+  if (!source) return undefined
+
+  const result = {}
+  for (const location of ['home', 'gym']) {
+    const variants = Array.isArray(source[location]) ? source[location] : []
+    const normalized = variants
+      .filter(isPlainObject)
+      .map((variant) => {
+        const id = toText(variant.id, '')
+        const name = toText(variant.name, '')
+        const equipment = toText(variant.equipment, '')
+        const repRange = toText(variant.repRange, '')
+        const duration = repRange ? '' : toText(variant.duration, '')
+        const formTips = toStringArray(variant.formTips, [])
+        return removeEmptyFields({
+          id,
+          name,
+          equipment,
+          repRange,
+          duration,
+          ...(formTips.length > 0 ? { formTips } : {}),
+        })
+      })
+      .filter((variant) => variant.id && variant.name && variant.equipment)
+    if (normalized.length > 0) result[location] = normalized
+  }
+
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
+function normalizeExercisePhaseTargets(value, fallback) {
+  const source = Array.isArray(value)
+    ? value
+    : Array.isArray(fallback)
+      ? fallback
+      : []
+
+  return source.filter(isPlainObject).flatMap((target) => {
+    const weeks = toNumberArray(target.weeks)
+      .map((week) => Math.round(week))
+      .filter((week) => week > 0)
+    if (weeks.length === 0) return []
+
+    const repRange = toText(target.repRange, '')
+    const duration = repRange ? '' : toText(target.duration, '')
+    const guidance = toStringArray(target.guidance, [])
+    return [
+      removeEmptyFields({
+        weeks,
+        ...(target.sets !== undefined
+          ? { sets: Math.max(1, Math.round(toPositiveNumber(target.sets, 1))) }
+          : {}),
+        repRange,
+        duration,
+        ...(guidance.length > 0 ? { guidance } : {}),
+      }),
+    ]
   })
 }
 

@@ -316,12 +316,17 @@ export function getBodyProgressSummary(currentWeekCheckIns, allCheckIns) {
   }
 }
 
-export function getNutritionSummary(weekNutritionLogs) {
+export function getNutritionSummary(
+  weekNutritionLogs,
+  targets = nutritionTargets,
+) {
   const logs = safeArray(weekNutritionLogs)
   const summary = {
     averageProtein: average(logs.map((log) => log?.proteinGrams)),
+    proteinMin: targets.proteinMin,
+    proteinMax: targets.proteinMax,
     proteinTargetDays: logs.filter(
-      (log) => toNumber(log?.proteinGrams) >= nutritionTargets.proteinMin,
+      (log) => toNumber(log?.proteinGrams) >= targets.proteinMin,
     ).length,
     averageWater: average(logs.map((log) => log?.waterLiters), 1),
     creatineDays: logs.filter((log) => Boolean(log?.creatineTaken)).length,
@@ -339,9 +344,9 @@ export function getNutritionSummary(weekNutritionLogs) {
     return summary
   }
 
-  if (summary.averageProtein < nutritionTargets.proteinMin) {
+  if (summary.averageProtein < targets.proteinMin) {
     summary.messages.push('Protein too low for muscle gain.')
-  } else if (summary.averageProtein <= nutritionTargets.proteinMax) {
+  } else if (summary.averageProtein <= targets.proteinMax) {
     summary.messages.push('Protein target good.')
   } else {
     summary.messages.push('Protein is high. Keep calories controlled.')
@@ -548,8 +553,13 @@ export function generateWarnings({
     )
   }
 
-  if (nutritionSummary?.logCount > 0 && nutritionSummary.averageProtein < 120) {
-    add('Protein low. Muscle gain will be harder.')
+  const proteinMinimum =
+    toNumber(nutritionSummary?.proteinMin) || nutritionTargets.proteinMin
+  if (
+    nutritionSummary?.logCount > 0 &&
+    nutritionSummary.averageProtein < proteinMinimum
+  ) {
+    add(`Protein low. Aim for at least ${proteinMinimum} g per day.`)
   }
 
   if (nutritionSummary?.logCount > 0 && nutritionSummary.averageWater < 2) {
@@ -692,16 +702,18 @@ function buildProgramMuscleTargets(programOrPlan) {
   getTargetWorkoutDays(programOrPlan).forEach((day) => {
     const musclesInDay = new Set(normalizeMuscleGroups(safeArray(day?.focus).join(' ')))
 
-    safeArray(day?.exercises).forEach((exercise) => {
-      const groups = normalizeMuscleGroups(exercise?.muscleGroup)
-      groups.forEach((muscle) => {
-        if (!targets[muscle]) {
-          return
-        }
-        targets[muscle].sets += Math.max(0, toNumber(exercise?.sets))
-        musclesInDay.add(muscle)
+    safeArray(day?.exercises)
+      .filter((exercise) => exercise?.optional !== true)
+      .forEach((exercise) => {
+        const groups = normalizeMuscleGroups(exercise?.muscleGroup)
+        groups.forEach((muscle) => {
+          if (!targets[muscle]) {
+            return
+          }
+          targets[muscle].sets += Math.max(0, toNumber(exercise?.sets))
+          musclesInDay.add(muscle)
+        })
       })
-    })
 
     musclesInDay.forEach((muscle) => {
       if (targets[muscle]) {
@@ -981,7 +993,10 @@ function buildScoreMessage(label, data) {
 
   if (nutrition?.logCount === 0 || nutrition?.proteinTargetDays < 3) {
     messages.push('Nutrition tracking was inconsistent.')
-  } else if (nutrition?.averageProtein >= 120) {
+  } else if (
+    nutrition?.averageProtein >=
+    (toNumber(nutrition?.proteinMin) || nutritionTargets.proteinMin)
+  ) {
     messages.push('Protein target was solid.')
   }
 
@@ -1087,8 +1102,11 @@ function findCompletedRestDay(weekSessions, programOrPlan) {
   const restDays = Array.isArray(programOrPlan)
     ? programOrPlan.filter(isRestDay)
     : safeArray(getRestDays(programOrPlan))
+  const trueRestDays = restDays.filter(
+    (day) => normalizeText(day?.name) === 'rest',
+  )
 
-  return restDays.find((day) =>
+  return trueRestDays.find((day) =>
     safeArray(weekSessions).some((session) => {
       if (!isWorkoutCompleted(session) || isStandaloneWorkoutSession(session)) {
         return false

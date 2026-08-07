@@ -60,6 +60,7 @@ export interface FlexibleSet {
   reps?: number | null
   weightKg?: number | null
   rpe?: number | null
+  rir?: number | null
   timeSeconds?: number | null
   painLevel?: number | null
   setNumber?: number
@@ -90,6 +91,7 @@ export interface ProgressionExercise {
   category?: string
   equipment?: string | string[]
   sets?: number
+  targetRir?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -242,12 +244,20 @@ export function classifyExercise(exercise: ProgressionExercise): ExerciseType {
 
   const hasBarbell = equipment.includes('barbell')
   const hasDumbbell = equipment.includes('dumbbell')
+  const hasExternalLoad = [
+    'cable',
+    'machine',
+    'smith',
+    'band',
+    'plate',
+    'weighted',
+  ].some((term) => equipment.includes(term))
 
   if (hasDumbbell && !hasBarbell) {
     return 'dumbbell'
   }
 
-  if (hasBarbell || hasDumbbell) {
+  if (hasBarbell || hasDumbbell || hasExternalLoad) {
     return 'weighted'
   }
 
@@ -272,15 +282,30 @@ export function shouldIncreaseLoad(
   }
 
   const completed = getCompletedSets(latestResult)
-  if (completed.length === 0) {
+  const requiredSets = getRequiredSetCount(exercise, latestResult)
+  if (completed.length < requiredSets) {
     return false
   }
 
-  const reachedTop = completed.every((set) => toNumber(set.reps) >= range.max)
+  const workSets = completed.slice(0, requiredSets)
+  const reachedTop = workSets.every((set) => toNumber(set.reps) >= range.max)
   const averageRpe = getAverageRPE(latestResult)
   const pain = getMaxPainLevel(latestResult)
+  const requiredRir = getRequiredRir(exercise)
+  const rirValues = workSets
+    .map((set) => nullableNumber(set.rir))
+    .filter((value): value is number => value !== null)
+  const rirSatisfied = requiredRir === null
+    ? true
+    : rirValues.length === workSets.length &&
+      rirValues.every((rir) => rir >= requiredRir)
 
-  return reachedTop && (averageRpe === null || averageRpe <= 9) && pain === 0
+  return (
+    reachedTop &&
+    rirSatisfied &&
+    (averageRpe === null || averageRpe <= 9) &&
+    pain === 0
+  )
 }
 
 /**
@@ -302,9 +327,35 @@ export function shouldKeepSameLoad(
   }
 
   const inRange = completed.every((set) => toNumber(set.reps) >= range.min)
-  const reachedTop = completed.every((set) => toNumber(set.reps) >= range.max)
+  const requiredSets = getRequiredSetCount(exercise, latestResult)
+  const reachedTop =
+    completed.length >= requiredSets &&
+    completed
+      .slice(0, requiredSets)
+      .every((set) => toNumber(set.reps) >= range.max)
 
   return inRange && !reachedTop
+}
+
+function getRequiredSetCount(
+  exercise: ProgressionExercise,
+  latestResult: FlexibleExerciseResult | null,
+): number {
+  const value = Number(exercise.sets ?? latestResult?.targetSets ?? 1)
+  return Number.isFinite(value) ? Math.max(1, Math.round(value)) : 1
+}
+
+function getRequiredRir(exercise: ProgressionExercise): number | null {
+  const match = exercise.targetRir?.match(/\d+(?:\.\d+)?/)
+  if (!match) return null
+  const parsed = Number(match[0])
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function nullableNumber(value: unknown): number | null {
+  if (value === null || value === undefined || value === '') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 /**
@@ -342,10 +393,23 @@ export function getProgressionSuggestion(
   sessions: WorkoutSession[],
   options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): ProgressionSuggestion {
-  const latest = getLatestExerciseResult(sessions, {
+  const identity = {
     exerciseId: exercise.id,
     exerciseName: exercise.name,
-  }, options)
+  }
+  const latestAny = getLatestExerciseResult(sessions, identity, options)
+
+  // Pain from a re-entry or recovery session remains safety-relevant even
+  // though its deliberately reduced performance is not a progression baseline.
+  if (latestAny && getMaxPainLevel(latestAny) >= 4) {
+    return withMeta(formWarningSuggestion(), exercise.name, latestAny)
+  }
+
+  const latest = getLatestExerciseResult(
+    (sessions ?? []).filter(isProgressionBaselineSession),
+    identity,
+    options,
+  )
 
   if (!latest) {
     return withMeta(noDataSuggestion(), exercise.name, null)
@@ -400,6 +464,13 @@ export function getProgressionSuggestion(
 
   // 5. Fallback - timed core work or partial data.
   return withMeta(keepSuggestion(type), exercise.name, latest)
+}
+
+function isProgressionBaselineSession(session: WorkoutSession): boolean {
+  return (
+    session?.progressionMode !== 'reentry' &&
+    session?.progressionMode !== 'recovery'
+  )
 }
 
 /** Convenience for pages that only know an exercise name. */
@@ -467,7 +538,7 @@ export function getGeneralProgressionAdvice(
     case 'weighted':
       return [
         'Reach the top of your rep range on every set first',
-        'Then add about 2.5 kg and rebuild your reps',
+        'Then add the smallest practical load increment and rebuild your reps',
         'Keep RPE around 8-9 - do not grind to failure',
         'Keep ribs down and brace; reduce load if the back arches',
       ]
@@ -588,8 +659,8 @@ function increaseSuggestion(type: ExerciseType): ProgressionSuggestion {
     type: 'increase',
     title: 'Increase Load',
     message:
-      'You reached the top of the rep range for all sets. Add 2.5 kg next time.',
-    nextTarget: 'Add 2.5 kg total',
+      'You reached the top of the rep range for all sets. Use the smallest practical load increase next time.',
+    nextTarget: 'Add the smallest practical increment',
     reason,
   }
 }

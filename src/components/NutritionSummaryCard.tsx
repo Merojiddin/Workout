@@ -12,10 +12,18 @@ import {
 
 interface NutritionSummaryCardProps {
   log: NutritionLog
+  proteinTargets?: {
+    proteinMin: number
+    proteinMax: number
+    proteinHigh: number
+  }
 }
 
-export function NutritionSummaryCard({ log }: NutritionSummaryCardProps) {
-  const proteinStatus = getProteinStatus(log.proteinGrams)
+export function NutritionSummaryCard({
+  log,
+  proteinTargets = nutritionTargets,
+}: NutritionSummaryCardProps) {
+  const proteinStatus = getProteinStatus(log.proteinGrams, proteinTargets)
   const waterStatus = getWaterStatus(log.waterLiters)
 
   const highlights = buildHighlights(log)
@@ -32,7 +40,7 @@ export function NutritionSummaryCard({ log }: NutritionSummaryCardProps) {
 
       <ProgressBar
         label={`Protein (${getProteinStatusMessage(proteinStatus)})`}
-        max={nutritionTargets.proteinMax}
+        max={proteinTargets.proteinMax}
         value={Math.round(log.proteinGrams ?? 0)}
       />
       <ProgressBar

@@ -88,6 +88,9 @@ export function validateWorkoutSessions(sessions) {
         if (hasNumber(set.rpe) && !isBetween(set.rpe, 1, 10)) {
           issues.push(issue(setLabel, 'Invalid RPE.'))
         }
+        if (hasNumber(set.rir) && !isBetween(set.rir, 0, 10)) {
+          issues.push(issue(setLabel, 'Invalid RIR.'))
+        }
         if (hasNumber(set.painLevel) && !isBetween(set.painLevel, 0, 10)) {
           issues.push(issue(setLabel, 'Invalid pain level.'))
         }
@@ -326,6 +329,7 @@ function repairSet(set, index) {
     timeSeconds: nonNegativeOrNull(set.timeSeconds),
     weightKg: nonNegativeOrNull(set.weightKg),
     rpe: hasNumber(set.rpe) ? clamp(Number(set.rpe), 1, 10) : null,
+    rir: hasNumber(set.rir) ? clamp(Number(set.rir), 0, 10) : null,
     painLevel: hasNumber(set.painLevel)
       ? clamp(Number(set.painLevel), 0, 10)
       : null,

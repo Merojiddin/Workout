@@ -11,7 +11,11 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { exerciseLibrary } from '../data/exerciseLibrary'
-import type { WorkoutDay } from '../data/workoutPlan'
+import type {
+  Exercise,
+  ExercisePhaseTarget,
+  WorkoutDay,
+} from '../data/workoutPlan'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import {
   dismissWorkoutProgramInCloud,
@@ -768,11 +772,15 @@ function ProgramPreviewDialog({
   const rules = [
     ['Rules — Effort', program.rules?.effort],
     ['Rules — Progression', program.rules?.progression],
+    ['Rules — Rest between sets', program.rules?.rest],
+    ['Rules — Substitutions', program.rules?.substitutions],
     [
       'Rules — Posture cue',
       program.rules?.postureCue ? [program.rules.postureCue] : undefined,
     ],
     ['Rules — Return after a break', program.rules?.returnAfterBreak],
+    ['Rules — Safety', program.rules?.safety],
+    ['Rules — Optional neck work', program.rules?.optionalNeckWork],
   ] as const
 
   return (
@@ -824,7 +832,11 @@ function ProgramPreviewDialog({
           </div>
           <div>
             <dt>Days</dt>
-            <dd>{program.days.length}</dd>
+            <dd>{program.normalWeeklyDays ?? program.days.length}</dd>
+          </div>
+          <div>
+            <dt>Duration</dt>
+            <dd>{program.durationWeeks ? `${program.durationWeeks} weeks` : '-'}</dd>
           </div>
           <div>
             <dt>Exercise occurrences</dt>
@@ -851,6 +863,43 @@ function ProgramPreviewDialog({
                 <li key={warning}>{warning}</li>
               ))}
             </ul>
+          </section>
+        ) : null}
+
+        {safeArray(program.progressionPhases).length > 0 ? (
+          <section
+            className="program-preview-days"
+            aria-labelledby="program-phases-title"
+          >
+            <h3 id="program-phases-title">Progression phases</h3>
+            {safeArray(program.progressionPhases).map((phase) => (
+              <article
+                className="program-preview-day"
+                key={`${phase.name}-${phase.weeks.join('-')}`}
+              >
+                <div className="program-preview-day__heading">
+                  <div>
+                    <p className="eyebrow">{formatWeeks(phase.weeks)}</p>
+                    <h4>{phase.name}</h4>
+                  </div>
+                </div>
+                <p>
+                  <strong>Volume:</strong> {phase.volumeGuidance}
+                </p>
+                <p>
+                  <strong>Effort:</strong> {phase.rirGuidance}
+                </p>
+                <PreviewList title="Priorities" values={phase.priorities} />
+                <PreviewList
+                  title="Restrictions"
+                  values={phase.restrictions ?? []}
+                />
+                <PreviewList
+                  title="Assessment"
+                  values={phase.assessmentItems ?? []}
+                />
+              </article>
+            ))}
           </section>
         ) : null}
 
@@ -891,7 +940,9 @@ function ProgramPreviewDialog({
         </section>
 
         <section className="program-preview-days" aria-labelledby="program-days-title">
-          <h3 id="program-days-title">All seven days</h3>
+          <h3 id="program-days-title">
+            Weekly days ({program.normalWeeklyDays ?? program.days.length})
+          </h3>
           {program.days.map((day) => (
             <article className="program-preview-day" key={day.day}>
               <div className="program-preview-day__heading">
@@ -906,22 +957,164 @@ function ProgramPreviewDialog({
               </p>
               <div className="program-preview-exercises">
                 {day.exercises.map((exercise, index) => (
-                  <div
-                    className="program-preview-exercise"
+                  <ProgramExercisePreview
+                    exercise={exercise}
                     key={`${exercise.id}-${index}`}
-                  >
-                    <strong>{exercise.name}</strong>
-                    <span>{getExerciseTargetLabel(exercise)}</span>
-                    <span>Rest: {exercise.restSeconds} sec</span>
-                  </div>
+                  />
                 ))}
               </div>
             </article>
           ))}
         </section>
+
+        {safeArray(program.standaloneWorkouts).length > 0 ? (
+          <section
+            className="program-preview-days"
+            aria-labelledby="program-standalone-title"
+          >
+            <h3 id="program-standalone-title">
+              Optional standalone workouts
+            </h3>
+            <p>
+              These workouts remain outside the weekly rotation and never
+              advance a scheduled day.
+            </p>
+            {safeArray(program.standaloneWorkouts).map((workout) => (
+              <article className="program-preview-day" key={workout.id}>
+                <div className="program-preview-day__heading">
+                  <div>
+                    <p className="eyebrow">Standalone workout</p>
+                    <h4>{workout.name}</h4>
+                  </div>
+                  <span>{workout.estimatedTime}</span>
+                </div>
+                <p>{workout.description}</p>
+                <p>
+                  <strong>Recommended use:</strong> {workout.recommendedUse}
+                </p>
+                <p className="program-preview-day__focus">
+                  Focus: {workout.focus.join(', ')}
+                </p>
+                <PreviewList title="Workout rules" values={workout.rules ?? []} />
+                <div className="program-preview-exercises">
+                  {workout.exercises.map((exercise, index) => (
+                    <ProgramExercisePreview
+                      exercise={exercise}
+                      key={`${workout.id}-${exercise.id}-${index}`}
+                    />
+                  ))}
+                </div>
+              </article>
+            ))}
+          </section>
+        ) : null}
       </section>
     </div>
   )
+}
+
+function ProgramExercisePreview({ exercise }: { exercise: Exercise }) {
+  const homeAlternatives = exercise.alternatives?.home ?? []
+  const gymAlternatives = exercise.alternatives?.gym ?? []
+  const hasAlternatives =
+    homeAlternatives.length > 0 || gymAlternatives.length > 0
+
+  return (
+    <div className="program-preview-exercise">
+      <strong>{exercise.name}</strong>
+      <span>
+        {exercise.optional ? 'Optional · ' : ''}
+        {getExerciseTargetLabel(exercise)}
+        {exercise.targetRir ? ` · ${exercise.targetRir} RIR` : ''}
+      </span>
+      <span>Rest: {exercise.restSeconds} sec</span>
+      {hasAlternatives ? (
+        <>
+          <span>
+            <strong>{getSelectionInstruction(exercise)}</strong>
+          </span>
+          <VariantPreviewLine label="Home" variants={homeAlternatives} />
+          <VariantPreviewLine label="Gym" variants={gymAlternatives} />
+        </>
+      ) : null}
+      {safeArray(exercise.guidance).map((guidance, index) => (
+        <span key={`${guidance}-${index}`}>Guidance: {guidance}</span>
+      ))}
+      {safeArray(exercise.phaseTargets).map((target, index) => (
+        <span key={`${target.weeks.join('-')}-${index}`}>
+          {formatPhaseTarget(target)}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function VariantPreviewLine({
+  label,
+  variants,
+}: {
+  label: string
+  variants: NonNullable<Exercise['alternatives']>['home']
+}) {
+  if (!variants || variants.length === 0) return null
+
+  return (
+    <span>
+      <strong>{label}:</strong>{' '}
+      {variants
+        .map((variant) =>
+          `${variant.name} (${variant.equipment})${
+            variant.repRange
+              ? ` — ${variant.repRange}`
+              : variant.duration
+                ? ` — ${variant.duration}`
+                : ''
+          }`,
+        )
+        .join(' · ')}
+    </span>
+  )
+}
+
+function getSelectionInstruction(exercise: Exercise): string {
+  const optionalPrefix = exercise.optional ? 'Optional slot. ' : ''
+  if (exercise.selectionMode !== 'multiple') {
+    return `${optionalPrefix}Choose one exercise from this slot; do not perform every alternative.`
+  }
+
+  const minimum = Math.max(1, exercise.minSelections ?? 1)
+  const maximum = Math.max(minimum, exercise.maxSelections ?? minimum)
+  const count = minimum === maximum ? String(minimum) : `${minimum}-${maximum}`
+  return `${optionalPrefix}Choose ${count} exercises from this slot.`
+}
+
+function formatPhaseTarget(target: ExercisePhaseTarget): string {
+  const prescription = [
+    target.sets ? `${target.sets} sets` : '',
+    target.repRange ?? target.duration ?? '',
+  ]
+    .filter(Boolean)
+    .join(' × ')
+  const guidance = safeArray(target.guidance).join(' ')
+  return `${formatWeeks(target.weeks)}: ${[prescription, guidance]
+    .filter(Boolean)
+    .join(' · ')}`
+}
+
+function formatWeeks(weeks: readonly number[]): string {
+  const sorted = [...new Set(weeks)].sort((left, right) => left - right)
+  if (sorted.length === 0) return 'Weeks not specified'
+  if (sorted.length === 1) return `Week ${sorted[0]}`
+  const sequential = sorted.every(
+    (week, index) => index === 0 || week === sorted[index - 1] + 1,
+  )
+  return sequential
+    ? `Weeks ${sorted[0]}-${sorted.at(-1)}`
+    : `Weeks ${sorted.join(', ')}`
+}
+
+function safeArray<T>(value: T[] | undefined): T[] {
+  return Array.isArray(value) ? value : []
 }
 
 function InstallConfirmationDialog({

@@ -20,6 +20,7 @@ import {
   getActiveWorkoutProgram,
   getProgramBenchmarkExercises,
   getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
 } from '../utils/activeWorkoutProgram'
 import {
   calculateWeeklyScore,
@@ -314,7 +315,10 @@ function buildReview(
     { library: effectiveExerciseLibrary },
   )
   const bodySummary = getBodyProgressSummary(weekCheckIns, checkIns)
-  const nutritionSummary = getNutritionSummary(weekNutrition)
+  const nutritionSummary = getNutritionSummary(
+    weekNutrition,
+    getProgramNutritionTargets(activeProgram),
+  )
   const progressionSuggestions = benchmarkExercises
     .map((benchmark) =>
       activePlan

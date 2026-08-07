@@ -4,7 +4,7 @@ import {
   type LibraryExercise,
 } from './exerciseLibrary'
 import type { WorkoutSession } from './workoutSessions'
-import type { Exercise, WorkoutDay } from './workoutPlan'
+import type { Exercise } from './workoutPlan'
 
 export interface ExerciseIdentityInput {
   exerciseId?: string | null
@@ -56,9 +56,11 @@ export interface HistoricalExerciseCatalogEntry
   unknown: boolean
   exerciseId: string | null
   exerciseName: string
+  equipment?: string
   muscleGroup?: string
   targetDuration?: string
   targetReps?: string
+  targetRir?: string
   targetSets?: number
 }
 
@@ -66,11 +68,13 @@ type CatalogExercise = ExerciseIdentityInput & {
   id?: string
   name?: string
   duration?: string
+  equipment?: string
   muscleGroup?: string
   repRange?: string
   sets?: number
   targetDuration?: string
   targetReps?: string
+  targetRir?: string
   targetSets?: number
 }
 
@@ -291,7 +295,7 @@ export function exerciseIdentitiesMatch(
  */
 export function getHistoricalExerciseCatalog(
   sessions: WorkoutSession[] | null | undefined,
-  activePlan: WorkoutDay[] | null | undefined,
+  activePlan: readonly ExerciseContainer[] | null | undefined,
   options: Pick<ExerciseIdentityOptions, 'library'> = {},
 ): HistoricalExerciseCatalogEntry[] {
   const library = options.library ?? exerciseLibrary
@@ -299,7 +303,7 @@ export function getHistoricalExerciseCatalog(
   const catalog: HistoricalExerciseCatalogEntry[] = []
 
   plan.forEach((day) => {
-    safeExercises(day?.exercises).forEach((exercise) => {
+    safeExercises(day?.exercises).flatMap(expandPlanExercise).forEach((exercise) => {
       const input = toIdentityInput(exercise)
       if (catalog.some((entry) => exerciseIdentitiesMatch(entry, input, { library }))) {
         return
@@ -449,10 +453,29 @@ function planContainsIdentity(
   }
 
   return activePlan.some((day) =>
-    safeExercises(day?.exercises).some((exercise) =>
+    safeExercises(day?.exercises).flatMap(expandPlanExercise).some((exercise) =>
       exerciseIdentitiesMatch(target, toIdentityInput(exercise), { library }),
     ),
   )
+}
+
+function expandPlanExercise(exercise: Exercise): Exercise[] {
+  const variants = (['home', 'gym'] as const).flatMap((location) =>
+    (exercise.alternatives?.[location] ?? []).map((variant) => ({
+      ...exercise,
+      id: variant.id,
+      name: variant.name,
+      equipment: variant.equipment,
+      repRange:
+        variant.repRange ?? (variant.duration ? undefined : exercise.repRange),
+      duration:
+        variant.duration ?? (variant.repRange ? undefined : exercise.duration),
+      formTips: variant.formTips ?? exercise.formTips,
+      alternatives: undefined,
+    })),
+  )
+
+  return [exercise, ...variants]
 }
 
 function buildLibraryIndexes(library: readonly LibraryExercise[]) {
@@ -518,9 +541,11 @@ function toCatalogEntry(
     unknown: identity.source === 'unknown',
     exerciseId: cleanId(exercise.exerciseId ?? exercise.id),
     exerciseName,
+    equipment: copyText(exercise.equipment),
     muscleGroup: copyText(exercise.muscleGroup),
     targetDuration: copyText(exercise.targetDuration ?? exercise.duration),
     targetReps: copyText(exercise.targetReps ?? exercise.repRange),
+    targetRir: copyText(exercise.targetRir),
     targetSets: finiteNumber(exercise.targetSets ?? exercise.sets),
   }
 }

@@ -13,6 +13,7 @@ export interface LoggedSet {
   reps: number | null
   timeSeconds?: number | null
   rpe: number | null
+  rir?: number | null
   setNumber: number
   weightKg: number | null
   /** Optional live-workout fields (Step 11) - read defensively everywhere. */
@@ -27,6 +28,7 @@ export interface LoggedExercise {
   sets: LoggedSet[]
   targetReps: string
   targetDuration?: string
+  targetRir?: string
   targetSets: number
 }
 
@@ -38,6 +40,11 @@ export interface WorkoutSession {
   exercises: LoggedExercise[]
   finishedAt: string
   id: string
+  programId?: string | null
+  programVersion?: string | null
+  programWeek?: number | null
+  progressionMode?: 'standard' | 'reentry' | 'recovery'
+  workoutGuidance?: string[]
   startedAt: string
   syncStatus?: 'local-only' | 'synced' | 'pending-sync'
   sessionType?: WorkoutSessionType
@@ -52,6 +59,7 @@ export type DraftSet = {
   reps: string
   timeSeconds: string
   rpe: string
+  rir: string
   weightKg: string
 }
 
@@ -64,6 +72,7 @@ export function createWorkoutDraft(workout: WorkoutDay): WorkoutDraft {
       reps: '',
       timeSeconds: '',
       rpe: '',
+      rir: '',
       weightKg: '',
     }))
 
@@ -112,11 +121,13 @@ export function buildWorkoutSession({
         reps: parseNonNegativeNullableNumber(set.reps),
         timeSeconds: parseNonNegativeNullableNumber(set.timeSeconds),
         rpe: parseNullableNumber(set.rpe),
+        rir: parseNullableNumber(set.rir),
         setNumber: index + 1,
         weightKg: parseNullableNumber(set.weightKg),
       })),
       targetReps: getTargetReps(exercise),
       targetDuration: exercise.duration,
+      targetRir: exercise.targetRir,
       targetSets: exercise.sets,
     })),
     finishedAt: finishedAt.toISOString(),
@@ -165,7 +176,7 @@ export function getWeeklyCompletedWorkouts(
   end.setDate(start.getDate() + 7)
 
   return sessions.filter((session) => {
-    if (!session.completed) {
+    if (!session.completed || session.sessionType === 'standalone') {
       return false
     }
 

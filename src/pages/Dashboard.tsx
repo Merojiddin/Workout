@@ -63,6 +63,7 @@ import {
 import {
   getNutritionLogs,
   getTodayNutritionLog,
+  nutritionTargets,
 } from '../utils/nutritionUtils'
 import { userProfile } from '../data/userProfile'
 import { useAuth } from '../context/AuthContext'
@@ -77,6 +78,7 @@ import {
   getActiveWorkoutProgram,
   getProgramBenchmarkExercises,
   getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
   getWeeklyWorkoutTarget,
 } from '../utils/activeWorkoutProgram'
 import { getPendingSyncCount } from '../utils/offlineSyncQueue'
@@ -117,6 +119,10 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const pendingSyncCount = getPendingSyncCount()
   const settings = getUserProfileSettings()
   const activeProgram = getActiveWorkoutProgram()
+  const programNutritionTargets = {
+    ...nutritionTargets,
+    ...getProgramNutritionTargets(activeProgram),
+  }
   const activePlan = activeProgram.days
   const effectiveExerciseLibrary = getEffectiveExerciseLibrary()
   const todayWorkout = getWorkoutForDate(new Date(), activePlan)
@@ -208,6 +214,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   )
   const reviewNutritionSummary = getNutritionSummary(
     getNutritionForWeek(nutritionLogs, weekRange.start, weekRange.end),
+    programNutritionTargets,
   )
   const reviewBodySummary = getBodyProgressSummary(
     getCheckInsForWeek(bodyCheckIns, weekRange.start, weekRange.end),
@@ -250,11 +257,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     progressionSuggestions: progressionFocus,
   })
   const readiness = calculateReadinessScore({
+    activeProgram,
     sessions,
     nutritionLogs,
     bodyCheckIns,
+    targets: programNutritionTargets,
   })
-  const nutritionAdvice = getNutritionCoachAdvice(nutritionLogs)
+  const nutritionAdvice = getNutritionCoachAdvice(
+    nutritionLogs,
+    programNutritionTargets,
+  )
   const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions, {
     library: effectiveExerciseLibrary,
   })
@@ -268,6 +280,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     bodyCheckIns,
     muscleVolume: reviewMuscleVolume,
     warningSensitivity: settings.coach.warningSensitivity,
+    targets: programNutritionTargets,
   })
   const coachActionPlan = generateTodayActionPlan({
     todayWorkout,
@@ -276,6 +289,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     bodyAdvice,
     absPostureAdvice,
     warnings: coachWarnings,
+    targets: programNutritionTargets,
   })
   const reminderStatus = getDashboardReminderStatus(
     reminderSettings,

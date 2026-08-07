@@ -44,6 +44,12 @@ export function WorkoutDetailModal({
             {isStandaloneWorkoutSession(session) ? (
               <p>Standalone workout</p>
             ) : null}
+            {session.programId && session.programVersion ? (
+              <p>
+                {session.programId} · Version {session.programVersion}
+                {session.programWeek ? ` · Week ${session.programWeek}` : ''}
+              </p>
+            ) : null}
             <p>Duration: {getSessionDuration(session)}</p>
           </div>
           <button
@@ -117,6 +123,7 @@ export function WorkoutDetailModal({
                       <span>Duration: {formatLoggedDuration(set.timeSeconds)}</span>
                       <span>Weight: {set.weightKg ?? '-'} kg</span>
                       <span>RPE: {set.rpe ?? '-'}</span>
+                      <span>RIR: {set.rir ?? '-'}</span>
                       {set.painLevel !== null && set.painLevel !== undefined ? (
                         <span>Pain: {set.painLevel}</span>
                       ) : null}

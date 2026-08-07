@@ -138,12 +138,16 @@ export function getThisWeekNutritionLogs(
 }
 
 /** Classifies a protein amount as low / target / high. */
-export function getProteinStatus(proteinGrams: number | null): ProteinStatus {
+export function getProteinStatus(
+  proteinGrams: number | null,
+  targets: Pick<typeof nutritionTargets, 'proteinMin' | 'proteinHigh'> =
+    nutritionTargets,
+): ProteinStatus {
   const value = toNumber(proteinGrams)
-  if (value < nutritionTargets.proteinMin) {
+  if (value < targets.proteinMin) {
     return 'low'
   }
-  if (value > nutritionTargets.proteinHigh) {
+  if (value > targets.proteinHigh) {
     return 'high'
   }
   return 'target'
@@ -188,6 +192,7 @@ export function getWaterStatusMessage(status: WaterStatus): string {
 /** Aggregates this week's logs into simple averages and counts. */
 export function getWeeklyNutritionSummary(
   logs: NutritionLog[],
+  proteinMin = nutritionTargets.proteinMin,
 ): WeeklyNutritionSummary {
   const week = getThisWeekNutritionLogs(logs)
 
@@ -197,7 +202,7 @@ export function getWeeklyNutritionSummary(
     creatineDays: week.filter((log) => log.creatineTaken).length,
     wheyDays: week.filter((log) => log.wheyTaken).length,
     proteinTargetDays: week.filter(
-      (log) => toNumber(log.proteinGrams) >= nutritionTargets.proteinMin,
+      (log) => toNumber(log.proteinGrams) >= proteinMin,
     ).length,
     seafoodMeals: week.filter((log) => log.seafoodMeal).length,
     oysterMeals: week.filter((log) => log.oystersMeal).length,

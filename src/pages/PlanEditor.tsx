@@ -26,6 +26,7 @@ import {
   CLOUD_PROGRAM_OPERATION_STATUS,
   resetCloudPlanToCurrentDefault,
 } from '../services/workoutProgramService'
+import { saveCustomWorkoutPlan as saveCloudAwareWorkoutPlan } from '../services/settingsService'
 import {
   createPlanExerciseFromLibrary,
   getCustomExerciseLibraryOverrides,
@@ -202,26 +203,51 @@ export function PlanEditor({
     )
   }
 
-  function savePlan(message = 'Plan saved.') {
-    const result = saveCustomWorkoutPlanSafely(plan)
-    if (!result.success) {
-      setNotice('Plan could not be saved to local storage.')
-      return
-    }
-    setPlan(result.plan)
-    setPlanDirty(false)
-    setNotice(message)
-  }
-
-  function commitPlan(nextPlan: EditableWorkoutDay[], message: string) {
+  async function persistPlan(
+    nextPlan: EditableWorkoutDay[],
+    message: string,
+  ) {
     const result = saveCustomWorkoutPlanSafely(nextPlan)
     if (!result.success) {
       setNotice('Plan could not be saved to local storage.')
       return
     }
-    setPlan(result.plan)
+
+    setPlan(result.plan as EditableWorkoutDay[])
     setPlanDirty(false)
-    setNotice(message)
+    onDataChanged?.()
+
+    if (!cloudActive) {
+      setNotice(message)
+      return
+    }
+
+    setNotice(
+      isOnline
+        ? `${message} Saving the cloud copy…`
+        : `${message} Saved locally; cloud sync is queued until you reconnect.`,
+    )
+    try {
+      const saved = await saveCloudAwareWorkoutPlan(user, result.plan)
+      setPlan(saved as EditableWorkoutDay[])
+      setNotice(`${message} Cloud copy synced.`)
+    } catch (error) {
+      const detail =
+        error instanceof Error && error.message
+          ? ` ${error.message}`
+          : ''
+      setNotice(
+        `${message} Saved locally; cloud sync is queued.${detail}`,
+      )
+    }
+  }
+
+  function savePlan(message = 'Plan saved.') {
+    void persistPlan(plan, message)
+  }
+
+  function commitPlan(nextPlan: EditableWorkoutDay[], message: string) {
+    void persistPlan(nextPlan, message)
   }
 
   function deleteDayExercises(dayNumber: number) {
@@ -493,7 +519,7 @@ export function PlanEditor({
         <div className="hero-target">
           <SlidersHorizontal size={22} strokeWidth={2.4} aria-hidden="true" />
           <span>Active source</span>
-          <strong>localStorage override</strong>
+          <strong>{cloudActive ? 'Local + cloud plan' : 'Local plan'}</strong>
         </div>
       </header>
 
@@ -619,6 +645,40 @@ export function PlanEditor({
               </article>
             ))}
           </div>
+
+          {activeProgramBaseline.activeProgram.standaloneWorkouts.length > 0 ? (
+            <section className="extra-workouts dashboard-card">
+              <div className="extra-workouts__heading">
+                <div>
+                  <p className="eyebrow">Program-defined optional workouts</p>
+                  <h2>Standalone Workouts</h2>
+                  <p>
+                    These sessions stay outside the seven-day editor so they
+                    cannot become an extra scheduled day. They are read-only
+                    here and remain available from Today&apos;s Workout.
+                  </p>
+                </div>
+              </div>
+              <div className="extra-workouts__grid">
+                {activeProgramBaseline.activeProgram.standaloneWorkouts.map(
+                  (workout) => (
+                    <article className="extra-workout-card" key={workout.id}>
+                      <p className="eyebrow">Standalone workout</p>
+                      <h3>{workout.name}</h3>
+                      <p>{workout.description}</p>
+                      <p>
+                        <strong>Use:</strong> {workout.recommendedUse}
+                      </p>
+                      <p>
+                        {workout.exercises.length} exercise slots ·{' '}
+                        {workout.estimatedTime}
+                      </p>
+                    </article>
+                  ),
+                )}
+              </div>
+            </section>
+          ) : null}
 
           {selectedDay ? (
             <>

@@ -41,6 +41,16 @@ export function PrintableWorkoutSession({
           <span className="print-label">Completed</span>
           <strong>{session.completed ? 'Yes' : 'No'}</strong>
         </div>
+        {session.programId ? (
+          <div className="print-meta">
+            <span className="print-label">Program</span>
+            <strong>
+              {session.programId}
+              {session.programVersion ? ` · ${session.programVersion}` : ''}
+              {session.programWeek ? ` · Week ${session.programWeek}` : ''}
+            </strong>
+          </div>
+        ) : null}
       </div>
 
       <table>
@@ -52,6 +62,7 @@ export function PrintableWorkoutSession({
             <th>Duration</th>
             <th>Weight kg</th>
             <th>RPE</th>
+            <th>RIR</th>
             <th>Pain</th>
             <th>Notes</th>
           </tr>
@@ -84,6 +95,7 @@ export function PrintableWorkoutSession({
                   <td>{seconds !== null ? formatDuration(seconds) : '-'}</td>
                   <td>{set?.weightKg ?? '-'}</td>
                   <td>{set?.rpe ?? '-'}</td>
+                  <td>{set?.rir ?? '-'}</td>
                   <td>{set?.painLevel ?? '-'}</td>
                   <td>{set?.notes ?? ''}</td>
                 </tr>

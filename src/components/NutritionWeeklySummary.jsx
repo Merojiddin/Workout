@@ -1,7 +1,13 @@
 export function NutritionWeeklySummary({ summary }) {
+  const proteinMin = summary.proteinMin ?? 120
+  const proteinMax = summary.proteinMax ?? 160
   const metrics = [
     ['Avg protein', `${summary.averageProtein} g`, 'Per logged day'],
-    ['Protein target days', String(summary.proteinTargetDays), '120-160 g/day'],
+    [
+      'Protein target days',
+      String(summary.proteinTargetDays),
+      `${proteinMin}-${proteinMax} g/day`,
+    ],
     ['Avg water', `${summary.averageWater} L`, 'Target 2-3 L/day'],
     ['Creatine days', String(summary.creatineDays), 'Daily 3-5 g'],
     ['Whey days', String(summary.wheyDays), 'Whey used'],

@@ -104,8 +104,20 @@ export function ActiveExerciseCard({
             </span>
             <strong>{restSeconds} sec</strong>
           </div>
+          {exercise.targetRir ? (
+            <div>
+              <span>Reps in reserve</span>
+              <strong>{exercise.targetRir} RIR</strong>
+            </div>
+          ) : null}
         </div>
       </section>
+
+      {exercise.guidance.length > 0 ? (
+        <p className="card-copy">
+          <strong>Session guidance:</strong> {exercise.guidance.join(' ')}
+        </p>
+      ) : null}
 
       {/* Compact info row: cue, history, and suggestion share one line.
           Full form tips stay available in the Form Guide modal. */}

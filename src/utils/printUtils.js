@@ -8,6 +8,7 @@ import {
   getActiveWorkoutProgram,
   getProgramBenchmarkExercises,
   getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
 } from './activeWorkoutProgram'
 import {
   calculateWeeklyScore,
@@ -146,7 +147,10 @@ export function buildWeeklyReviewPrintData({
     { library: exerciseLibrary },
   )
   const bodySummary = getBodyProgressSummary(weekCheckIns, checkIns)
-  const nutritionSummary = getNutritionSummary(weekNutrition)
+  const nutritionSummary = getNutritionSummary(
+    weekNutrition,
+    getProgramNutritionTargets(program),
+  )
   const progressionSuggestions = benchmarkExercises
     .map((benchmark) =>
       safeArray(program.days)

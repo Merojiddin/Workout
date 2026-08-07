@@ -30,6 +30,7 @@ import {
   getActiveWorkoutProgram,
   getProgramBenchmarkExercises,
   getProgramBenchmarkExercisesWithFallback,
+  getProgramNutritionTargets,
 } from '../utils/activeWorkoutProgram'
 import {
   calculateWeeklyScore,
@@ -47,6 +48,7 @@ import {
 export function Coach() {
   const settings = getUserProfileSettings()
   const activeProgram = getActiveWorkoutProgram()
+  const programNutritionTargets = getProgramNutritionTargets(activeProgram)
   const activePlan = activeProgram.days
   const effectiveExerciseLibrary = getEffectiveExerciseLibrary()
   const explicitBenchmarkExercises = getProgramBenchmarkExercises(
@@ -88,6 +90,7 @@ export function Coach() {
   })
   const nutritionSummary = getNutritionSummary(
     getNutritionForWeek(nutritionLogs, weekRange.start, weekRange.end),
+    programNutritionTargets,
   )
   const bodySummary = getBodyProgressSummary(
     getCheckInsForWeek(bodyCheckIns, weekRange.start, weekRange.end),
@@ -114,11 +117,16 @@ export function Coach() {
     library: effectiveExerciseLibrary,
   })
   const readiness = calculateReadinessScore({
+    activeProgram,
     sessions,
     nutritionLogs,
     bodyCheckIns,
+    targets: programNutritionTargets,
   })
-  const nutritionAdvice = getNutritionCoachAdvice(nutritionLogs)
+  const nutritionAdvice = getNutritionCoachAdvice(
+    nutritionLogs,
+    programNutritionTargets,
+  )
   const bodyAdvice = getBodyRecompositionAdvice(bodyCheckIns, sessions, {
     library: effectiveExerciseLibrary,
   })
@@ -132,6 +140,7 @@ export function Coach() {
     muscleVolume,
     warningSensitivity: settings.coach.warningSensitivity,
     activeProgram,
+    targets: programNutritionTargets,
   })
   const actionPlan = generateTodayActionPlan({
     todayWorkout,
@@ -140,6 +149,7 @@ export function Coach() {
     bodyAdvice,
     absPostureAdvice,
     warnings,
+    targets: programNutritionTargets,
   })
   const motivationalMessage = getMotivationalCoachMessage(readiness, weeklyScore)
   const reminderAdvice = buildReminderAdvice({

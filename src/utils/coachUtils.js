@@ -157,9 +157,14 @@ export function calculateReadinessScore({
   sessions,
   nutritionLogs,
   bodyCheckIns,
+  activeProgram,
+  targets = nutritionTargets,
 }) {
   let score = 75
   const reasons = []
+  const proteinMinimum =
+    toNumber(targets?.proteinMin) || nutritionTargets.proteinMin
+  const proteinLowThreshold = Math.max(1, proteinMinimum - 20)
   const yesterday = getDateKey(addDays(new Date(), -1))
   const yesterdayNutrition = safeArray(nutritionLogs).find(
     (log) => log?.date === yesterday,
@@ -174,12 +179,12 @@ export function calculateReadinessScore({
     const protein = toNumber(yesterdayNutrition.proteinGrams)
     const water = toNumber(yesterdayNutrition.waterLiters)
 
-    if (protein >= nutritionTargets.proteinMin) {
+    if (protein >= proteinMinimum) {
       score += 10
-      reasons.push('Protein target reached yesterday.')
-    } else if (protein > 0 && protein < 100) {
+      reasons.push(`Protein target (${proteinMinimum}+ g) reached yesterday.`)
+    } else if (protein > 0 && protein < proteinLowThreshold) {
       score -= 10
-      reasons.push('Protein was below 100 g yesterday.')
+      reasons.push(`Protein was below ${proteinLowThreshold} g yesterday.`)
     }
 
     if (yesterdayNutrition.creatineTaken) {
@@ -223,7 +228,7 @@ export function calculateReadinessScore({
     reasons.push('A hard workout was logged yesterday.')
   }
 
-  if (hasNoRestDayInLastSevenDays(sessions)) {
+  if (hasNoRestDayInLastSevenDays(sessions, activeProgram)) {
     score -= 10
     reasons.push('No rest or light day found in the last 7 days.')
   }
@@ -238,13 +243,16 @@ export function calculateReadinessScore({
   }
 }
 
-export function getNutritionCoachAdvice(nutritionLogs) {
+export function getNutritionCoachAdvice(
+  nutritionLogs,
+  targets = nutritionTargets,
+) {
   const logs = safeArray(nutritionLogs)
   const todayLog = logs.find((log) => log?.date === getDateKey(new Date()))
 
   if (!todayLog) {
     return [
-      'Log nutrition today. Protein target is 120-160 g.',
+      `Log nutrition today. Protein target is ${targets.proteinMin}-${targets.proteinMax} g.`,
       'Take 3-5 g creatine today.',
       'Drink at least 2 L water.',
     ]
@@ -254,11 +262,11 @@ export function getNutritionCoachAdvice(nutritionLogs) {
   const protein = toNumber(todayLog.proteinGrams)
   const water = toNumber(todayLog.waterLiters)
 
-  if (protein < nutritionTargets.proteinMin) {
+  if (protein < targets.proteinMin) {
     advice.push('Protein is low. Add whey, eggs, seafood, or yogurt.')
-  } else if (protein <= nutritionTargets.proteinMax) {
+  } else if (protein <= targets.proteinMax) {
     advice.push('Protein target reached.')
-  } else if (protein > nutritionTargets.proteinHigh) {
+  } else if (protein > (targets.proteinHigh ?? targets.proteinMax + 20)) {
     advice.push('Protein is high. Make sure calories are controlled.')
   } else {
     advice.push('Protein is above target. Keep calories controlled.')
@@ -272,7 +280,7 @@ export function getNutritionCoachAdvice(nutritionLogs) {
     advice.push('Take 3-5 g creatine today.')
   }
 
-  if (!todayLog.wheyTaken && protein < nutritionTargets.proteinMin) {
+  if (!todayLog.wheyTaken && protein < targets.proteinMin) {
     advice.push('Use whey to close the protein gap.')
   }
 
@@ -417,6 +425,7 @@ export function getCoachWarnings({
   muscleVolume,
   warningSensitivity = 'Normal',
   activeProgram,
+  targets = nutritionTargets,
 }) {
   const warnings = []
   const add = (warning) => {
@@ -425,7 +434,12 @@ export function getCoachWarnings({
     }
   }
   const sensitivity = String(warningSensitivity).toLowerCase()
-  const proteinFloor = sensitivity === 'high' ? 130 : sensitivity === 'low' ? 100 : 120
+  const proteinMinimum =
+    toNumber(targets?.proteinMin) || nutritionTargets.proteinMin
+  const proteinFloor = Math.max(
+    1,
+    proteinMinimum + (sensitivity === 'high' ? 10 : sensitivity === 'low' ? -20 : 0),
+  )
   const waterFloor = sensitivity === 'low' ? 1.7 : 2
   const recentPain = getRecentMaxPain(sessions, 7)
   const rpes = getRecentSets(sessions, 7).map((set) => toNumber(set.rpe)).filter(Boolean)
@@ -455,7 +469,7 @@ export function getCoachWarnings({
     add('You trained chest heavily but back volume is low. Keep back training strong to protect shoulders.')
   }
 
-  if (hasNoRestDayInLastSevenDays(sessions)) {
+  if (hasNoRestDayInLastSevenDays(sessions, activeProgram)) {
     const restDay = getProgramRestDayLabel(activeProgram)
     add(
       restDay
@@ -473,7 +487,7 @@ export function getCoachWarnings({
   }
 
   if (latestNutrition && toNumber(latestNutrition.proteinGrams) < proteinFloor) {
-    add('Protein low. Reach at least 120 g today for muscle gain.')
+    add(`Protein low. Reach at least ${proteinFloor} g today.`)
   }
 
   if (latestNutrition && toNumber(latestNutrition.waterLiters) < waterFloor) {
@@ -514,6 +528,7 @@ export function generateTodayActionPlan({
   bodyAdvice,
   absPostureAdvice,
   warnings,
+  targets = nutritionTargets,
 }) {
   const items = []
   const add = (item) => {
@@ -550,7 +565,9 @@ export function generateTodayActionPlan({
     add('Take 3-5 g creatine.')
   }
   if (nutritionText.includes('protein') || nutritionText.includes('nutrition')) {
-    add('Reach at least 120 g protein.')
+    const proteinMinimum =
+      toNumber(targets?.proteinMin) || nutritionTargets.proteinMin
+    add(`Reach at least ${proteinMinimum} g protein.`)
   }
   if (nutritionText.includes('water')) {
     add('Drink at least 2 L water.')
@@ -883,12 +900,37 @@ function getSessionAverageRpe(session) {
   return rpes.reduce((sum, rpe) => sum + rpe, 0) / rpes.length
 }
 
-function hasNoRestDayInLastSevenDays(sessions) {
+function hasNoRestDayInLastSevenDays(sessions, programOrPlan) {
+  const recentCompleted = safeArray(sessions)
+    .filter(isCompletedSession)
+    .filter(
+      (session) =>
+        daysBetween(new Date(getSessionTime(session)), new Date()) < 7,
+    )
+  const recoveryDayIds = new Set(
+    (Array.isArray(programOrPlan)
+      ? programOrPlan
+      : safeArray(programOrPlan?.days)
+    )
+      .filter(isRestDay)
+      .map((day) => Number(day?.day))
+      .filter((day) => Number.isFinite(day)),
+  )
+
+  if (
+    recentCompleted.some(
+      (session) =>
+        session?.sessionType !== 'standalone' &&
+        recoveryDayIds.has(Number(session?.workoutDayId)),
+    )
+  ) {
+    return false
+  }
+
   const completedDateKeys = new Set(
-    safeArray(sessions)
-      .filter(isCompletedSession)
-      .filter((session) => daysBetween(new Date(getSessionTime(session)), new Date()) < 7)
-      .map((session) => getDateKey(new Date(getSessionTime(session)))),
+    recentCompleted.map((session) =>
+      getDateKey(new Date(getSessionTime(session))),
+    ),
   )
 
   return completedDateKeys.size >= 7

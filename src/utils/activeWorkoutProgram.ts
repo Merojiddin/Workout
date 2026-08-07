@@ -1,6 +1,6 @@
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import { resolveExerciseLibraryEntry } from '../data/exerciseIdentity'
-import type { WorkoutDay } from '../data/workoutPlan'
+import type { Exercise, WorkoutDay } from '../data/workoutPlan'
 import {
   CURRENT_DEFAULT_PROGRAM_ID,
   getLatestWorkoutProgramById,
@@ -9,6 +9,8 @@ import {
 import type {
   StandaloneWorkout,
   WorkoutProgram,
+  WorkoutProgramCoaching,
+  WorkoutProgramPhase,
   WorkoutProgramRules,
 } from '../types/workoutProgram'
 import {
@@ -35,12 +37,17 @@ export interface ActiveWorkoutProgram {
   programVersion: string | null
   programName: string
   description: string
+  durationWeeks: number | null
+  normalWeeklyDays: number
   days: ActiveWorkoutDay[]
   standaloneWorkouts: StandaloneWorkout[]
+  progressionPhases: WorkoutProgramPhase[]
+  coaching: WorkoutProgramCoaching
   goals: string[]
   rules: WorkoutProgramRules
   benchmarkExerciseIds: string[]
   installed: boolean
+  installedAt: string | null
   modifiedAfterInstallation: boolean
   source: ActiveWorkoutProgramSource
 }
@@ -67,7 +74,9 @@ export interface ResetWorkoutPlanDayResult {
 type ProgramDaySource = Pick<ActiveWorkoutProgram, 'days'> | readonly WorkoutDay[]
 
 const RECOVERY_ONLY_TERMS = [
+  'aerobic',
   'breathing',
+  'control',
   'foam roll',
   'mobility',
   'recovery',
@@ -112,12 +121,17 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
       programVersion: null,
       programName: 'Custom Workout Plan',
       description: 'A manually configured workout plan.',
+      durationWeeks: null,
+      normalWeeklyDays: days.length,
       days,
       standaloneWorkouts: [],
+      progressionPhases: [],
+      coaching: {},
       goals: [],
       rules: {},
       benchmarkExerciseIds: [],
       installed: false,
+      installedAt: null,
       modifiedAfterInstallation: false,
       source: 'custom',
     }
@@ -139,12 +153,17 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
     programVersion: null,
     programName: 'Workout Program',
     description: 'Your active weekly workout plan.',
+    durationWeeks: null,
+    normalWeeklyDays: days.length,
     days,
     standaloneWorkouts: [],
+    progressionPhases: [],
+    coaching: {},
     goals: [],
     rules: {},
     benchmarkExerciseIds: [],
     installed: false,
+    installedAt: null,
     modifiedAfterInstallation: false,
     source: 'legacy-default',
   }
@@ -320,15 +339,13 @@ export function getProgramExerciseIds(program: ProgramDaySource): string[] {
   const seen = new Set<string>()
 
   return getDays(program).flatMap((day) =>
-    day.exercises.flatMap((exercise) => {
-      const id = cleanText(exercise.id)
-      if (!id || seen.has(id)) {
-        return []
-      }
-
-      seen.add(id)
-      return [id]
-    }),
+    day.exercises.flatMap((exercise) =>
+      getExerciseIdentityIds(exercise).flatMap((id) => {
+        if (!id || seen.has(id)) return []
+        seen.add(id)
+        return [id]
+      }),
+    ),
   )
 }
 
@@ -433,6 +450,21 @@ export function getDayLabel(day: WorkoutDay): string {
   return `${prefix} · ${name}`
 }
 
+export function getProgramNutritionTargets(
+  program: Pick<ActiveWorkoutProgram, 'coaching'>,
+): { proteinMin: number; proteinMax: number; proteinHigh: number } {
+  const minimum = program.coaching.proteinMinGrams ?? 120
+  const maximum = Math.max(
+    minimum,
+    program.coaching.proteinMaxGrams ?? 160,
+  )
+  return {
+    proteinMin: minimum,
+    proteinMax: maximum,
+    proteinHigh: maximum + 20,
+  }
+}
+
 export function findProgramDay(
   program: ProgramDaySource,
   dayNumber: number,
@@ -456,13 +488,20 @@ function fromRegistryProgram(
     programVersion: program.version,
     programName: program.name,
     description: program.description,
+    durationWeeks: program.durationWeeks ?? null,
+    normalWeeklyDays: program.normalWeeklyDays ?? program.days.length,
     days,
     standaloneWorkouts: state.installed
       ? cloneStandaloneWorkouts(program.standaloneWorkouts)
       : [],
+    progressionPhases: cloneProgressionPhases(program.progressionPhases),
+    coaching: cloneCoaching(program.coaching),
     goals: [...(program.goals ?? [])],
     rules: cloneRules(program.rules),
     benchmarkExerciseIds: [...(program.benchmarkExerciseIds ?? [])],
+    installedAt: state.installed
+      ? getInstalledWorkoutProgram().data?.installedAt ?? null
+      : null,
     ...state,
   }
 }
@@ -513,8 +552,7 @@ function cloneDays(days: WorkoutDay[]): ActiveWorkoutDay[] {
     notes: cleanText((day as WorkoutDay & { notes?: unknown }).notes),
     focus: [...day.focus],
     exercises: day.exercises.map((exercise) => ({
-      ...exercise,
-      formTips: [...exercise.formTips],
+      ...cloneExercise(exercise),
     })),
   }))
 }
@@ -527,8 +565,7 @@ function cloneStandaloneWorkouts(
     focus: [...workout.focus],
     rules: workout.rules ? [...workout.rules] : undefined,
     exercises: workout.exercises.map((exercise) => ({
-      ...exercise,
-      formTips: [...exercise.formTips],
+      ...cloneExercise(exercise),
     })),
   }))
 }
@@ -544,8 +581,83 @@ function cloneRules(
         returnAfterBreak: rules.returnAfterBreak
           ? [...rules.returnAfterBreak]
           : undefined,
+        rest: rules.rest ? [...rules.rest] : undefined,
+        substitutions: rules.substitutions
+          ? [...rules.substitutions]
+          : undefined,
+        safety: rules.safety ? [...rules.safety] : undefined,
+        optionalNeckWork: rules.optionalNeckWork
+          ? [...rules.optionalNeckWork]
+          : undefined,
       }
     : {}
+}
+
+function cloneExercise(exercise: Exercise): Exercise {
+  return {
+    ...exercise,
+    formTips: [...exercise.formTips],
+    guidance: exercise.guidance ? [...exercise.guidance] : undefined,
+    defaultVariantIds: exercise.defaultVariantIds
+      ? [...exercise.defaultVariantIds]
+      : undefined,
+    alternatives: exercise.alternatives
+      ? Object.fromEntries(
+          (['home', 'gym'] as const).flatMap((location) => {
+            const variants = exercise.alternatives?.[location]
+            return variants
+              ? [[location, variants.map((variant) => ({
+                  ...variant,
+                  formTips: variant.formTips ? [...variant.formTips] : undefined,
+                }))]]
+              : []
+          }),
+        )
+      : undefined,
+    phaseTargets: exercise.phaseTargets?.map((target) => ({
+      ...target,
+      weeks: [...target.weeks],
+      guidance: target.guidance ? [...target.guidance] : undefined,
+    })),
+  }
+}
+
+function cloneProgressionPhases(
+  phases: WorkoutProgramPhase[] | undefined,
+): WorkoutProgramPhase[] {
+  return (phases ?? []).map((phase) => ({
+    ...phase,
+    weeks: [...phase.weeks],
+    priorities: [...phase.priorities],
+    restrictions: phase.restrictions ? [...phase.restrictions] : undefined,
+    assessmentItems: phase.assessmentItems
+      ? [...phase.assessmentItems]
+      : undefined,
+  }))
+}
+
+function cloneCoaching(
+  coaching: WorkoutProgramCoaching | undefined,
+): WorkoutProgramCoaching {
+  return coaching
+    ? {
+        ...coaching,
+        healthContext: coaching.healthContext
+          ? [...coaching.healthContext]
+          : undefined,
+      }
+    : {}
+}
+
+function getExerciseIdentityIds(exercise: Exercise): string[] {
+  return [
+    cleanText(exercise.id),
+    ...(['home', 'gym'] as const).flatMap((location) =>
+      (exercise.alternatives?.[location] ?? []).map((variant) =>
+        cleanText(variant.id),
+      ),
+    ),
+  ].filter(Boolean)
 }
 
 function positiveDayNumber(value: unknown): number | null {

@@ -11,14 +11,22 @@ import {
 interface SupplementChecklistProps {
   log: NutritionLog
   onChange: (log: NutritionLog) => void
+  proteinTargets?: Pick<
+    typeof nutritionTargets,
+    'proteinMin' | 'proteinMax' | 'proteinHigh'
+  >
 }
 
-export function SupplementChecklist({ log, onChange }: SupplementChecklistProps) {
+export function SupplementChecklist({
+  log,
+  onChange,
+  proteinTargets = nutritionTargets,
+}: SupplementChecklistProps) {
   function patch(changes: Partial<NutritionLog>) {
     onChange({ ...log, ...changes })
   }
 
-  const proteinStatus = getProteinStatus(log.proteinGrams)
+  const proteinStatus = getProteinStatus(log.proteinGrams, proteinTargets)
   const waterStatus = getWaterStatus(log.waterLiters)
 
   const statuses = [
@@ -114,7 +122,7 @@ export function SupplementChecklist({ log, onChange }: SupplementChecklistProps)
       </div>
 
       <p className="checklist-hint">
-        Targets: protein {nutritionTargets.proteinMin}–{nutritionTargets.proteinMax} g,
+        Targets: protein {proteinTargets.proteinMin}–{proteinTargets.proteinMax} g,
         water {nutritionTargets.waterMin}–{nutritionTargets.waterMax} L, creatine{' '}
         {nutritionTargets.creatineMin}–{nutritionTargets.creatineMax} g. Changes save to
         today automatically.

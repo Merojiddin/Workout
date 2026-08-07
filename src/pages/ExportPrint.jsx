@@ -36,7 +36,10 @@ import {
   getEffectiveExerciseLibrary,
   getUserProfileSettings,
 } from '../utils/settingsUtils'
-import { getActiveWorkoutProgram } from '../utils/activeWorkoutProgram'
+import {
+  getActiveWorkoutProgram,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 
 const printableActions = [
   {
@@ -80,6 +83,10 @@ export function ExportPrint() {
   const [notice, setNotice] = useState('')
   const settings = useMemo(() => getUserProfileSettings(), [])
   const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const proteinTargets = useMemo(
+    () => getProgramNutritionTargets(activeProgram),
+    [activeProgram],
+  )
   const workoutPlan = activeProgram.days
   const identityExerciseContainers = useMemo(
     () => [...workoutPlan, ...activeProgram.standaloneWorkouts],
@@ -111,8 +118,8 @@ export function ExportPrint() {
     [activeProgram, settings, workoutPlan],
   )
   const nutritionSummary = useMemo(
-    () => getWeeklyNutritionSummary(nutritionLogs),
-    [nutritionLogs],
+    () => getWeeklyNutritionSummary(nutritionLogs, proteinTargets.proteinMin),
+    [nutritionLogs, proteinTargets.proteinMin],
   )
 
   function handlePrint(elementId, label) {

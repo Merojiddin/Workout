@@ -45,6 +45,7 @@ export interface ActiveSet {
   timeSeconds: number | null
   weightKg: number | null
   rpe: number | null
+  rir: number | null
   painLevel: number | null
   notes: string
   completedAt: string | null
@@ -56,11 +57,13 @@ export interface ActiveExercise {
   targetSets: number
   targetReps: string
   targetDuration: string
+  targetRir: string
   loggingMode: ExerciseLoggingMode
   restSeconds: number
   muscleGroup: string
   equipment: string
   formTips: string[]
+  guidance: string[]
   sets: ActiveSet[]
 }
 
@@ -71,6 +74,11 @@ export interface ActiveWorkoutSession {
   workoutName: string
   sessionType?: WorkoutSessionType
   standaloneWorkoutId?: string | null
+  programId?: string | null
+  programVersion?: string | null
+  programWeek?: number | null
+  progressionMode?: 'standard' | 'reentry' | 'recovery'
+  workoutGuidance?: string[]
   startedAt: string
   finishedAt: string | null
   currentExerciseIndex: number
@@ -82,15 +90,25 @@ export interface ActiveWorkoutSession {
 type LiveWorkoutDefinition = Pick<WorkoutDay, 'exercises' | 'name'> &
   Partial<Pick<WorkoutDay, 'day'>>
 
-export type CreateActiveWorkoutSessionOptions =
-  | {
+interface ActiveWorkoutProgramContext {
+  programId?: string | null
+  programVersion?: string | null
+  programWeek?: number | null
+  progressionMode?: 'standard' | 'reentry' | 'recovery'
+  workoutGuidance?: string[]
+}
+
+export type CreateActiveWorkoutSessionOptions = ActiveWorkoutProgramContext &
+  (
+    | {
       sessionType?: 'scheduled'
       standaloneWorkoutId?: null
-    }
-  | {
+      }
+    | {
       sessionType: 'standalone'
       standaloneWorkoutId: string
-    }
+      }
+  )
 
 export interface SuggestedSetTarget {
   repsTarget: string
@@ -143,6 +161,13 @@ export function createActiveWorkoutSession(
     workoutName: toText(workoutDay?.name, 'Workout'),
     sessionType,
     standaloneWorkoutId,
+    programId: nullableNonEmptyText(options.programId),
+    programVersion: nullableNonEmptyText(options.programVersion),
+    programWeek: nullablePositiveInteger(options.programWeek),
+    progressionMode: normalizeProgressionMode(options.progressionMode),
+    workoutGuidance: safeArray<string>(options.workoutGuidance).filter(
+      (item) => typeof item === 'string' && item.trim().length > 0,
+    ),
     startedAt: now.toISOString(),
     finishedAt: null,
     currentExerciseIndex: 0,
@@ -161,12 +186,16 @@ function createActiveExercise(exercise: Exercise): ActiveExercise {
     targetSets,
     targetReps: toText(exercise?.repRange, ''),
     targetDuration: toText(exercise?.duration, ''),
+    targetRir: toText(exercise?.targetRir, ''),
     loggingMode: getExerciseLoggingMode(exercise),
     restSeconds: Math.max(0, Math.round(toNumber(exercise?.restSeconds, 90))),
     muscleGroup: toText(exercise?.muscleGroup, ''),
     equipment: toText(exercise?.equipment, ''),
     formTips: safeArray<string>(exercise?.formTips).filter(
       (tip) => typeof tip === 'string',
+    ),
+    guidance: safeArray<string>(exercise?.guidance).filter(
+      (item) => typeof item === 'string',
     ),
     sets: Array.from({ length: targetSets }, (_, index) =>
       createEmptySet(index + 1),
@@ -181,6 +210,7 @@ export function createEmptySet(setNumber: number): ActiveSet {
     timeSeconds: null,
     weightKg: null,
     rpe: null,
+    rir: null,
     painLevel: null,
     notes: '',
     completedAt: null,
@@ -233,6 +263,13 @@ export function completeActiveWorkoutSession(
     id: toText(session?.id, `${Date.now()}`),
     sessionType,
     standaloneWorkoutId,
+    programId: nullableNonEmptyText(session?.programId),
+    programVersion: nullableNonEmptyText(session?.programVersion),
+    programWeek: nullablePositiveInteger(session?.programWeek),
+    progressionMode: normalizeProgressionMode(session?.progressionMode),
+    workoutGuidance: safeArray<string>(session?.workoutGuidance).filter(
+      (item) => typeof item === 'string' && item.trim().length > 0,
+    ),
     startedAt: toText(session?.startedAt, finishedAt),
     workoutDayId:
       sessionType === 'standalone'
@@ -253,6 +290,7 @@ function toLoggedExercise(exercise: ActiveExercise): LoggedExercise {
     muscleGroup: toText(exercise?.muscleGroup, ''),
     targetReps: toText(exercise?.targetReps, ''),
     targetDuration: toText(exercise?.targetDuration, '') || undefined,
+    targetRir: toText(exercise?.targetRir, '') || undefined,
     targetSets: Math.max(1, toNumber(exercise?.targetSets, 1)),
     sets: safeArray<ActiveSet>(exercise?.sets).map(
       (set, index): LoggedSet => ({
@@ -261,6 +299,7 @@ function toLoggedExercise(exercise: ActiveExercise): LoggedExercise {
         timeSeconds: nullableNonNegativeNumber(set?.timeSeconds),
         weightKg: nullableNumber(set?.weightKg),
         rpe: nullableNumber(set?.rpe),
+        rir: nullableNumber(set?.rir),
         painLevel: nullableNumber(set?.painLevel),
         notes: toText(set?.notes, ''),
         completedAt: set?.completedAt ?? null,
@@ -884,6 +923,13 @@ function normalizeActiveSession(value: unknown): ActiveWorkoutSession | null {
       sessionType === 'standalone'
         ? nullableNonEmptyText(value.standaloneWorkoutId)
         : null,
+    programId: nullableNonEmptyText(value.programId),
+    programVersion: nullableNonEmptyText(value.programVersion),
+    programWeek: nullablePositiveInteger(value.programWeek),
+    progressionMode: normalizeProgressionMode(value.progressionMode),
+    workoutGuidance: safeArray<string>(value.workoutGuidance).filter(
+      (item) => typeof item === 'string' && item.trim().length > 0,
+    ),
     startedAt: toText(value.startedAt, new Date().toISOString()),
     finishedAt:
       typeof value.finishedAt === 'string' ? value.finishedAt : null,
@@ -918,12 +964,16 @@ function normalizeExercise(value: unknown): ActiveExercise {
     targetReps: loggingMode === 'duration' && !targetDuration ? '' : targetReps,
     targetDuration:
       targetDuration || (loggingMode === 'duration' ? targetReps : ''),
+    targetRir: toText(source.targetRir, ''),
     loggingMode,
     restSeconds: Math.max(0, Math.round(toNumber(source.restSeconds, 90))),
     muscleGroup: toText(source.muscleGroup, ''),
     equipment: toText(source.equipment, ''),
     formTips: safeArray<string>(source.formTips).filter(
       (tip) => typeof tip === 'string',
+    ),
+    guidance: safeArray<string>(source.guidance).filter(
+      (item) => typeof item === 'string',
     ),
     sets,
   }
@@ -937,6 +987,7 @@ function normalizeSet(value: unknown, setNumber: number): ActiveSet {
     timeSeconds: nullableNonNegativeNumber(source.timeSeconds),
     weightKg: nullableNumber(source.weightKg),
     rpe: nullableNumber(source.rpe),
+    rir: nullableNumber(source.rir),
     painLevel: nullableNumber(source.painLevel),
     notes: toText(source.notes, ''),
     completedAt: typeof source.completedAt === 'string' ? source.completedAt : null,
@@ -977,6 +1028,13 @@ function nullableNumber(value: unknown): number | null {
 function nullableNonNegativeNumber(value: unknown): number | null {
   const parsed = nullableNumber(value)
   return parsed !== null && parsed >= 0 ? parsed : null
+}
+
+function normalizeProgressionMode(
+  value: unknown,
+): 'standard' | 'reentry' | 'recovery' {
+  if (value === 'reentry' || value === 'recovery') return value
+  return 'standard'
 }
 
 function nullablePositiveInteger(value: unknown): number | null {

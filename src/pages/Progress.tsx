@@ -48,7 +48,10 @@ import {
 } from '../utils/nutritionUtils'
 import { getProgressionSuggestion } from '../utils/progressionUtils'
 import { getExerciseLoggingMode } from '../utils/exerciseLoggingUtils'
-import { getActiveWorkoutProgram } from '../utils/activeWorkoutProgram'
+import {
+  getActiveWorkoutProgram,
+  getProgramNutritionTargets,
+} from '../utils/activeWorkoutProgram'
 import { NutritionChart } from '../components/NutritionChart'
 import type { PageId } from '../types/navigation'
 
@@ -82,10 +85,10 @@ export function Progress({ onNavigate }: ProgressProps) {
   const settings = useMemo(() => getUserProfileSettings(), [])
   const exerciseCatalog = useMemo(
     () =>
-      getHistoricalExerciseCatalog(sessions, activePlan, {
+      getHistoricalExerciseCatalog(sessions, identityExerciseContainers, {
         library: effectiveExerciseLibrary,
       }),
-    [activePlan, effectiveExerciseLibrary, sessions],
+    [effectiveExerciseLibrary, identityExerciseContainers, sessions],
   )
   const activeExerciseCatalog = useMemo(
     () => exerciseCatalog.filter((exercise) => exercise.active),
@@ -125,7 +128,10 @@ export function Progress({ onNavigate }: ProgressProps) {
     [sessions],
   )
   const thisWeekSessions = useMemo(
-    () => getThisWeekSessions(sessions).filter(isWorkoutCompleted),
+    () =>
+      getThisWeekSessions(sessions)
+        .filter(isWorkoutCompleted)
+        .filter((session) => session.sessionType !== 'standalone'),
     [sessions],
   )
   const weeklyCompletion = useMemo(
@@ -155,9 +161,13 @@ export function Progress({ onNavigate }: ProgressProps) {
   )
   const nutritionLogs = useMemo(() => getNutritionLogs(), [])
   const hasNutritionData = nutritionLogs.length > 0
+  const proteinTargets = useMemo(
+    () => getProgramNutritionTargets(activeProgram),
+    [activeProgram],
+  )
   const nutritionWeekly = useMemo(
-    () => getWeeklyNutritionSummary(nutritionLogs),
-    [nutritionLogs],
+    () => getWeeklyNutritionSummary(nutritionLogs, proteinTargets.proteinMin),
+    [nutritionLogs, proteinTargets.proteinMin],
   )
   const proteinTrend = useMemo(
     () => getNutritionChartData(nutritionLogs, 'proteinGrams'),
@@ -170,15 +180,12 @@ export function Progress({ onNavigate }: ProgressProps) {
   const progressionSuggestions = useMemo(
     () =>
       activeExerciseCatalog.map((catalogExercise) => {
-        const planExercise = activePlan
-          .flatMap((day) => day.exercises)
-          .find((exercise) => exercise.id === catalogExercise.exerciseId)
-
         return {
           key: catalogExercise.key,
           suggestion: getProgressionSuggestion(
-            planExercise ?? {
+            {
               duration: catalogExercise.targetDuration,
+              equipment: catalogExercise.equipment,
               id:
                 catalogExercise.exerciseId ??
                 catalogExercise.canonicalId ??
@@ -187,13 +194,14 @@ export function Progress({ onNavigate }: ProgressProps) {
               name: catalogExercise.displayName,
               repRange: catalogExercise.targetReps,
               sets: catalogExercise.targetSets,
+              targetRir: catalogExercise.targetRir,
             },
             sessions,
             { library: effectiveExerciseLibrary },
           ),
         }
       }),
-    [activeExerciseCatalog, activePlan, effectiveExerciseLibrary, sessions],
+    [activeExerciseCatalog, effectiveExerciseLibrary, sessions],
   )
 
   function handleAddDemoData() {
@@ -262,7 +270,7 @@ export function Progress({ onNavigate }: ProgressProps) {
           value={String(getTotalWorkouts(sessions))}
         />
         <OverviewCard
-          subtitle="Monday to Sunday"
+          subtitle="Scheduled Monday-Sunday sessions"
           title="This week"
           value={String(thisWeekSessions.length)}
         />
@@ -438,7 +446,7 @@ export function Progress({ onNavigate }: ProgressProps) {
           </div>
           <div className="overview-grid">
             <OverviewCard
-              subtitle="Per logged day"
+              subtitle={`Target ${proteinTargets.proteinMin}–${proteinTargets.proteinMax} g/day`}
               title="Avg protein"
               value={`${nutritionWeekly.averageProtein} g`}
             />
