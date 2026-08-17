@@ -25,7 +25,7 @@ import {
 export type ActiveWorkoutProgramSource =
   | 'registry'
   | 'custom'
-  | 'legacy-default'
+  | 'registry-default'
 
 /** Active-plan normalization always supplies the editable day notes field. */
 export interface ActiveWorkoutDay extends WorkoutDay {
@@ -144,7 +144,7 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
     return fromRegistryProgram(defaultProgram, days, {
       installed: false,
       modifiedAfterInstallation: false,
-      source: 'legacy-default',
+      source: 'registry-default',
     })
   }
 
@@ -165,7 +165,7 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
     installed: false,
     installedAt: null,
     modifiedAfterInstallation: false,
-    source: 'legacy-default',
+    source: 'registry-default',
   }
 }
 

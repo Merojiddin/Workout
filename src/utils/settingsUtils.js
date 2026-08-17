@@ -8,7 +8,7 @@ import {
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { userProfile } from '../data/userProfile'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
-import { weeklyPlan } from '../data/workoutPlan'
+import { getDefaultWorkoutPlanDays } from '../data/workoutProgramRegistry'
 import {
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
@@ -168,7 +168,7 @@ export function normalizeCustomWorkoutPlan(plan) {
 
 export function resetCustomWorkoutPlan() {
   removeStorageItem(CUSTOM_WORKOUT_PLAN_KEY)
-  return clone(weeklyPlan)
+  return clone(getDefaultWorkoutPlanDays())
 }
 
 export function hasCustomWorkoutPlan() {
@@ -405,7 +405,9 @@ export function getWorkoutForDate(date = new Date(), plan = getCustomWorkoutPlan
     return safePlan[mondayBasedIndex % safePlan.length]
   }
 
-  return clone(weeklyPlan[0])
+  // Only reachable when the stored plan is empty and the default program is
+  // missing or failed validation, so show a rest day rather than throwing.
+  return clone(emptyDefaultDay)
 }
 
 export function getExerciseTargetLabel(exercise) {
@@ -632,12 +634,27 @@ function normalizeUserProfileSettings(value) {
   }
 }
 
+/**
+ * Day used to fill in missing display fields when the default program supplies
+ * no counterpart. The default program is read from the registry rather than
+ * bundled here, so it can legitimately be empty and every lookup must survive
+ * that without throwing.
+ */
+const emptyDefaultDay = {
+  day: 1,
+  name: 'No workout scheduled',
+  estimatedTime: '0 min',
+  focus: ['Rest'],
+  exercises: [],
+}
+
 function normalizeWorkoutPlan(value) {
   const source = Array.isArray(value) ? value.filter(isPlainObject) : []
+  const defaultDays = getDefaultWorkoutPlanDays()
 
-  // With nothing stored, the bundled default plan is the plan.
+  // With nothing stored, the default program is the plan.
   if (source.length === 0) {
-    return weeklyPlan.map((defaultDay, index) =>
+    return defaultDays.map((defaultDay, index) =>
       normalizeWorkoutDay(defaultDay, defaultDay, index),
     )
   }
@@ -649,16 +666,16 @@ function normalizeWorkoutPlan(value) {
   return source.map((day, index) => {
     const dayNumber = Number(day?.day)
     const defaultDay =
-      weeklyPlan.find((entry) => entry.day === dayNumber) ??
-      weeklyPlan[index] ??
-      weeklyPlan[0]
+      defaultDays.find((entry) => entry.day === dayNumber) ??
+      defaultDays[index] ??
+      defaultDays[0]
     return normalizeWorkoutDay(day, defaultDay, index)
   })
 }
 
 function normalizeWorkoutDay(value, fallback, index) {
   const day = isPlainObject(value) ? value : {}
-  const defaultDay = fallback ?? weeklyPlan[index] ?? weeklyPlan[0]
+  const defaultDay = fallback ?? emptyDefaultDay
 
   return {
     day: toPositiveNumber(day.day, defaultDay.day ?? index + 1),

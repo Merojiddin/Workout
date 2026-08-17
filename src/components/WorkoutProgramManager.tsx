@@ -89,7 +89,7 @@ interface ManagerState {
   userPrograms: UserWorkoutProgram[]
 }
 
-type ProgramStatus = 'Current' | 'Available' | 'Dismissed' | 'Legacy'
+type ProgramStatus = 'Current' | 'Available' | 'Dismissed' | 'Default'
 type ManagerNotice = {
   message: string
   tone: 'success' | 'error'
@@ -1344,7 +1344,9 @@ function getProgramStatus(
 ): ProgramStatus {
   if (current) return 'Current'
   if (dismissed) return 'Dismissed'
-  if (program.id === CURRENT_DEFAULT_PROGRAM_ID) return 'Legacy'
+  // Shown when another program is installed or a custom plan is in use: this
+  // is the program a full reset returns to.
+  if (program.id === CURRENT_DEFAULT_PROGRAM_ID) return 'Default'
   return 'Available'
 }
 

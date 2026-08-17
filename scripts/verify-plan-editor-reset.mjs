@@ -63,19 +63,22 @@ try {
     'upper-recomposition',
     '2.0.0',
   )
-  const legacy = registry.getWorkoutProgramByIdAndVersion(
-    'legacy-workout-v1',
-    '1.0.0',
+  // The registry default is the plan normalizer's fallback, so it is the most
+  // likely program to leak into a reset day. Probing with its content proves
+  // reset follows installed identity rather than the default.
+  const defaultProgram = registry.getWorkoutProgramByIdAndVersion(
+    registry.CURRENT_DEFAULT_PROGRAM_ID,
+    '2.1.0',
   )
   assert.ok(version2, 'Version 2 must be registered.')
-  assert.ok(legacy, 'The legacy registry program must be available.')
+  assert.ok(defaultProgram, 'The registry default program must be available.')
 
   const registeredVersion2Before = JSON.stringify(version2)
   const expectedVersion2Plan = settings.normalizeCustomWorkoutPlan(
     version2.days,
   )
-  const legacyOnlyIds = new Set(
-    legacy.days
+  const defaultOnlyIds = new Set(
+    defaultProgram.days
       .flatMap((day) => day.exercises.map((exercise) => exercise.id))
       .filter(
         (id) =>
@@ -83,6 +86,10 @@ try {
             day.exercises.some((exercise) => exercise.id === id),
           ),
       ),
+  )
+  assert.ok(
+    defaultOnlyIds.size > 0,
+    'The probe needs at least one exercise unique to the default program.',
   )
 
   const install = manager.installWorkoutProgramLocally({
@@ -115,11 +122,11 @@ try {
       ? {
           ...day,
           name: 'Modified Version 2 Day',
-          focus: ['Legacy contamination probe'],
+          focus: ['Default program contamination probe'],
           exercises: [
             {
-              ...legacy.days[0].exercises[0],
-              formTips: [...legacy.days[0].exercises[0].formTips],
+              ...defaultProgram.days[0].exercises[0],
+              formTips: [...defaultProgram.days[0].exercises[0].formTips],
             },
             ...[...day.exercises].reverse().map((exercise) => ({
               ...exercise,
@@ -152,7 +159,7 @@ try {
   assert.deepEqual(
     firstReload
       .flatMap((day) => day.exercises.map((exercise) => exercise.id))
-      .filter((id) => legacyOnlyIds.has(id)),
+      .filter((id) => defaultOnlyIds.has(id)),
     [],
   )
 
@@ -250,7 +257,7 @@ try {
         activeProgram: 'upper-recomposition@2.0.0',
         daysResolved: 7,
         historyUnchanged: true,
-        legacyOnlyExercisesAfterReset: 0,
+        defaultOnlyExercisesAfterReset: 0,
         registeredProgramMutated: false,
         restDays: 1,
         status: 'passed',

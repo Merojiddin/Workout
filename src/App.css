@@ -7715,10 +7715,10 @@
   color: var(--muted);
 }
 
-.program-manager-status--legacy {
-  background: rgba(242, 166, 90, 0.1);
-  border-color: rgba(242, 166, 90, 0.28);
-  color: var(--orange);
+.program-manager-status--default {
+  background: var(--surface-3);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--soft);
 }
 
 .program-manager-card__stats,

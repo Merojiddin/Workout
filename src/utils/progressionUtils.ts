@@ -1,4 +1,5 @@
-import { weeklyPlan, type Exercise, type WorkoutDay } from '../data/workoutPlan'
+import type { Exercise, WorkoutDay } from '../data/workoutPlan'
+import { getDefaultWorkoutPlanDays } from '../data/workoutProgramRegistry'
 import type { WorkoutSession } from '../data/workoutSessions'
 import {
   exerciseIdentitiesMatch,
@@ -473,21 +474,6 @@ function isProgressionBaselineSession(session: WorkoutSession): boolean {
   )
 }
 
-/** Convenience for pages that only know an exercise name. */
-export function getSuggestionForExerciseName(
-  exerciseName: string,
-  sessions: WorkoutSession[],
-  plan: WorkoutDay[] = weeklyPlan,
-  options: Pick<ExerciseIdentityOptions, 'library'> = {},
-): ProgressionSuggestion {
-  const planExercise = findPlanExercise(exerciseName, plan)
-  return getProgressionSuggestion(
-    planExercise ?? { name: exerciseName },
-    sessions,
-    options,
-  )
-}
-
 /** The most actionable suggestions for today's workout (for the dashboard). */
 export function getTodayProgressionFocus(
   sessions: WorkoutSession[],
@@ -862,7 +848,7 @@ function getTargetRange(
 
 export function findPlanExercise(
   exerciseName: string,
-  plan: WorkoutDay[] = weeklyPlan,
+  plan: WorkoutDay[] = getDefaultWorkoutPlanDays(),
 ): Exercise | undefined {
   const normalizedTarget = normalizeExerciseName(exerciseName)
 

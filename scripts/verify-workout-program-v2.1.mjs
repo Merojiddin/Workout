@@ -105,19 +105,29 @@ try {
 
   assert.equal(
     registry.CURRENT_DEFAULT_PROGRAM_ID,
-    'legacy-workout-v1',
-    'V2.1 must not silently replace the legacy default program.',
+    PROGRAM_ID,
+    'V2.1 must be the registry default program.',
   )
 
+  // With nothing installed and no custom plan, V2.1 is the active program by
+  // default rather than only after an explicit install.
   const initialActiveProgram = activePrograms.getActiveWorkoutProgram()
-  assert.equal(initialActiveProgram.programId, 'legacy-workout-v1')
-  assert.equal(initialActiveProgram.programVersion, '1.0.0')
+  assert.equal(initialActiveProgram.programId, PROGRAM_ID)
+  assert.equal(initialActiveProgram.programVersion, PROGRAM_VERSION)
   assert.equal(initialActiveProgram.installed, false)
+  assert.equal(initialActiveProgram.source, 'registry-default')
 
-  const legacy = registry.getWorkoutProgramByIdAndVersion(
-    'legacy-workout-v1',
-    '1.0.0',
+  assert.equal(
+    registry.getWorkoutProgramByIdAndVersion('legacy-workout-v1', '1.0.0'),
+    undefined,
+    'The retired legacy program must no longer be registered.',
   )
+  assert.deepEqual(
+    registry.getDefaultWorkoutPlanDays().map((day) => day.day),
+    [1, 2, 3, 4, 5, 6, 7],
+    'The default plan days must come from V2.1.',
+  )
+
   const version2 = registry.getWorkoutProgramByIdAndVersion(
     'upper-recomposition',
     '2.0.0',
@@ -126,7 +136,6 @@ try {
     PROGRAM_ID,
     PROGRAM_VERSION,
   )
-  assert.ok(legacy, 'The V1 registry program must remain available.')
   assert.ok(version2, 'The V2 registry program must remain available.')
   assert.ok(version21, 'The V2.1 registry program must be available.')
 
@@ -1103,14 +1112,14 @@ try {
   )
 
   const existingBackup = manager.createWorkoutPlanBackup(
-    legacy.days,
+    version2.days,
     'Existing backup sentinel',
   )
   assert.equal(existingBackup.success, true, existingBackup.message)
   assert.ok(existingBackup.data)
 
   const customPlanBeforeInstall = settings.normalizeCustomWorkoutPlan(
-    legacy.days,
+    version2.days,
   )
   customPlanBeforeInstall[0].name = 'Custom plan sentinel before V2.1'
   assert.equal(
@@ -1223,7 +1232,7 @@ try {
   const priorCloudBackup = {
     createdAt: '2026-07-01T00:00:00.000Z',
     id: 'prior-cloud-backup',
-    plan: settings.normalizeCustomWorkoutPlan(legacy.days),
+    plan: settings.normalizeCustomWorkoutPlan(version2.days),
     previousProgram: null,
     reason: 'Cloud backup sentinel',
   }
@@ -1346,10 +1355,6 @@ try {
   )
   assert.equal(storage.getItem('workoutSessions'), historyBeforeCloudInstall)
 
-  assert.deepEqual(
-    registry.getWorkoutProgramByIdAndVersion('legacy-workout-v1', '1.0.0'),
-    legacy,
-  )
   assert.deepEqual(
     registry.getWorkoutProgramByIdAndVersion('upper-recomposition', '2.0.0'),
     version2,
