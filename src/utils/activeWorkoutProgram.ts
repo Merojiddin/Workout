@@ -333,27 +333,6 @@ export function getRestDays(program: ProgramDaySource): WorkoutDay[] {
 export function getWeeklyWorkoutTarget(program: ProgramDaySource): number {
   return getTrainingDays(program).length
 }
-
-/** Unique exercise IDs in active-plan order, including recovery prescriptions. */
-export function getProgramExerciseIds(program: ProgramDaySource): string[] {
-  const seen = new Set<string>()
-
-  return getDays(program).flatMap((day) =>
-    day.exercises.flatMap((exercise) =>
-      getExerciseIdentityIds(exercise).flatMap((id) => {
-        if (!id || seen.has(id)) return []
-        seen.add(id)
-        return [id]
-      }),
-    ),
-  )
-}
-
-/** Count unique exercise identities rather than repeated weekly occurrences. */
-export function getProgramExerciseCount(program: ProgramDaySource): number {
-  return getProgramExerciseIds(program).length
-}
-
 /** Resolve explicit benchmark IDs only, preserving metadata order. */
 export function getProgramBenchmarkExercises(
   program: Pick<ActiveWorkoutProgram, 'benchmarkExerciseIds'>,
@@ -647,17 +626,6 @@ function cloneCoaching(
           : undefined,
       }
     : {}
-}
-
-function getExerciseIdentityIds(exercise: Exercise): string[] {
-  return [
-    cleanText(exercise.id),
-    ...(['home', 'gym'] as const).flatMap((location) =>
-      (exercise.alternatives?.[location] ?? []).map((variant) =>
-        cleanText(variant.id),
-      ),
-    ),
-  ].filter(Boolean)
 }
 
 function positiveDayNumber(value: unknown): number | null {

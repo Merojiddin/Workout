@@ -345,10 +345,6 @@ export function getInAppReminders() {
   return reminders
 }
 
-export function formatReminderDayAndTime(day, time) {
-  return `${normalizeDay(day, 'Sunday')} at ${normalizeTime(time, '09:00')}`
-}
-
 export function toDateKey(date = new Date()) {
   const safeDate = toDate(date)
   const year = safeDate.getFullYear()

@@ -29,17 +29,6 @@ export function getExerciseSlotKey(exercise: Exercise, index: number): string {
   return `${index}:${exercise.id}`
 }
 
-export function getAllExerciseVariants(exercise: Exercise): ExerciseVariant[] {
-  const seen = new Set<string>()
-  return (['home', 'gym'] as const).flatMap((location) =>
-    (exercise.alternatives?.[location] ?? []).flatMap((variant) => {
-      if (seen.has(variant.id)) return []
-      seen.add(variant.id)
-      return [{ ...variant, formTips: variant.formTips ? [...variant.formTips] : undefined }]
-    }),
-  )
-}
-
 export function getExerciseVariantsForLocation(
   exercise: Exercise,
   location: TrainingLocation,

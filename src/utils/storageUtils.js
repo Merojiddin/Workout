@@ -41,27 +41,6 @@ export const FITNESS_APP_STORAGE_KEYS = [
   CLOUD_HEALTH_LAST_CHECK_KEY,
 ]
 
-const JSON_STORAGE_KEYS = new Set([
-  WORKOUT_SESSIONS_KEY,
-  ACTIVE_WORKOUT_SESSION_KEY,
-  BODY_CHECK_INS_KEY,
-  NUTRITION_LOGS_KEY,
-  USER_PROFILE_SETTINGS_KEY,
-  CUSTOM_WORKOUT_PLAN_KEY,
-  INSTALLED_WORKOUT_PROGRAM_KEY,
-  DISMISSED_WORKOUT_PROGRAMS_KEY,
-  WORKOUT_PLAN_BACKUPS_KEY,
-  USER_WORKOUT_PROGRAMS_KEY,
-  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
-  CUSTOM_EXERCISE_LIBRARY_KEY,
-  REMINDER_SETTINGS_KEY,
-  REMINDER_HISTORY_KEY,
-  SENT_REMINDER_LOG_KEY,
-  PENDING_SYNC_QUEUE_KEY,
-  PRE_DEPLOY_CHECKLIST_KEY,
-  CLOUD_HEALTH_LAST_CHECK_KEY,
-])
-
 const APP_KEY_SUFFIXES = ['__cloudBackup']
 const FIVE_MB = 5 * 1024 * 1024
 
@@ -89,10 +68,6 @@ export function setStorageNamespace(userId) {
   const changed = next !== activeStorageNamespace
   activeStorageNamespace = next
   return changed
-}
-
-export function getStorageNamespace() {
-  return activeStorageNamespace
 }
 
 function normalizeNamespace(userId) {
@@ -186,49 +161,6 @@ export function claimLegacyLocalDataForUser(userId) {
     return { claimed: false, keys: [] }
   }
 }
-
-/** Removes every app key belonging to one user. Used by "forget this device". */
-export function clearNamespacedData(userId) {
-  const namespace = normalizeNamespace(userId)
-  if (!canUseLocalStorage()) {
-    return []
-  }
-
-  const prefix =
-    namespace === null ? null : `${NAMESPACE_PREFIX}${namespace}:`
-  const removed = []
-
-  try {
-    const doomed = []
-    for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index)
-      if (!key) {
-        continue
-      }
-      if (prefix === null) {
-        if (!key.startsWith(NAMESPACE_PREFIX) && isFitnessStorageKey(key)) {
-          doomed.push(key)
-        }
-      } else if (key.startsWith(prefix)) {
-        doomed.push(key)
-      }
-    }
-
-    doomed.forEach((key) => {
-      try {
-        window.localStorage.removeItem(key)
-        removed.push(key)
-      } catch {
-        // Ignore individual failures.
-      }
-    })
-  } catch {
-    return removed
-  }
-
-  return removed
-}
-
 /**
  * @param {string} key
  * @param {any} fallback
@@ -339,64 +271,6 @@ export function downloadLocalStorageBackup() {
   URL.revokeObjectURL(url)
 
   return backup
-}
-
-export function restoreLocalStorageBackup(fileData) {
-  if (!canUseLocalStorage()) {
-    return { success: false, message: 'Local storage is unavailable.' }
-  }
-
-  try {
-    const parsed =
-      typeof fileData === 'string' ? JSON.parse(fileData) : fileData
-    const values = getBackupValues(parsed)
-
-    if (!values) {
-      return { success: false, message: 'Invalid backup file.' }
-    }
-
-    const restored = []
-    const skipped = []
-
-    Object.entries(values).forEach(([key, value]) => {
-      if (!isFitnessStorageKey(key) || typeof value !== 'string') {
-        skipped.push(key)
-        return
-      }
-
-      if (isJsonStorageKey(key) && !isJsonString(value)) {
-        skipped.push(key)
-        return
-      }
-
-      try {
-        window.localStorage.setItem(resolveStorageKey(key), value)
-        restored.push(key)
-      } catch {
-        skipped.push(key)
-      }
-    })
-
-    if (restored.length === 0) {
-      return {
-        success: false,
-        message: 'No valid app data was found in that backup.',
-        restored,
-        skipped,
-      }
-    }
-
-    return {
-      success: true,
-      message: `Restored ${restored.length} storage item${
-        restored.length === 1 ? '' : 's'
-      }.`,
-      restored,
-      skipped,
-    }
-  } catch {
-    return { success: false, message: 'Invalid backup file.' }
-  }
 }
 
 export function getStorageUsageEstimate() {
@@ -529,18 +403,6 @@ function quarantineCorruptedValue(key) {
   }
 }
 
-function getBackupValues(parsed) {
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return null
-  }
-
-  if (parsed.keys && typeof parsed.keys === 'object' && !Array.isArray(parsed.keys)) {
-    return parsed.keys
-  }
-
-  return parsed
-}
-
 function getRawStorageValue(key) {
   if (!canUseLocalStorage()) {
     return null
@@ -550,29 +412,6 @@ function getRawStorageValue(key) {
     return window.localStorage.getItem(resolveStorageKey(key))
   } catch {
     return null
-  }
-}
-
-function isJsonStorageKey(key) {
-  if (JSON_STORAGE_KEYS.has(key)) {
-    return true
-  }
-
-  return APP_KEY_SUFFIXES.some((suffix) => {
-    if (!key.endsWith(suffix)) {
-      return false
-    }
-    const sourceKey = key.slice(0, -suffix.length)
-    return JSON_STORAGE_KEYS.has(sourceKey)
-  })
-}
-
-function isJsonString(value) {
-  try {
-    JSON.parse(value)
-    return true
-  } catch {
-    return false
   }
 }
 

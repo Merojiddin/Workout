@@ -46,16 +46,6 @@ export function getUserWorkoutPrograms(): UserWorkoutProgram[] {
 
   return stored.filter(isUserWorkoutProgram)
 }
-
-export function getUserWorkoutProgram(
-  id: string,
-  version: string,
-): UserWorkoutProgram | undefined {
-  return getUserWorkoutPrograms().find(
-    (program) => program.id === id && program.version === version,
-  )
-}
-
 /**
  * Saves a pasted program. An existing program with the same id AND version is
  * replaced, so re-pasting a corrected copy updates in place rather than

@@ -12,6 +12,7 @@ const VALID_TYPES = new Set([
   'customWorkoutPlan',
   'customExerciseLibrary',
 ])
+
 const VALID_ACTIONS = new Set(['create', 'update', 'delete'])
 
 export function addToSyncQueue(item) {
@@ -78,10 +79,6 @@ export function updateSyncQueueItem(id, updates) {
   ).filter(Boolean)
   writeQueue(queue)
   return queue.find((item) => item.id === id) ?? null
-}
-
-export function clearSyncQueue() {
-  writeQueue([])
 }
 
 export function getPendingSyncCount() {

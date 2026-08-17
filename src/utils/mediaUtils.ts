@@ -98,12 +98,6 @@ export function getEmbedVideoUrl(url: unknown): string {
   // rel=0 keeps "more videos" suggestions inside the same channel.
   return `https://www.youtube.com/embed/${videoId}?rel=0`
 }
-
-/** True when the URL can be safely embedded in an iframe. */
-export function isEmbeddableVideoUrl(url: unknown): boolean {
-  return getEmbedVideoUrl(url) !== ''
-}
-
 /**
  * Image to show for an exercise: its own imageUrl when set, otherwise the
  * category placeholder, otherwise the default placeholder. Always non-empty.

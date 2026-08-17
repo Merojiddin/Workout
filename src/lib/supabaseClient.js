@@ -32,11 +32,3 @@ export const supabase = isSupabaseConfigured
       },
     })
   : null
-
-/** Small helper so services can bail out cleanly in local mode. */
-export function requireSupabase() {
-  if (!supabase) {
-    throw new Error('Supabase is not configured. Running in local mode.')
-  }
-  return supabase
-}

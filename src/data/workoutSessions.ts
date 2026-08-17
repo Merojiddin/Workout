@@ -1,4 +1,3 @@
-import type { Exercise, WorkoutDay } from './workoutPlan'
 import {
   exerciseIdentitiesMatch,
   type ExerciseIdentityOptions,
@@ -54,32 +53,6 @@ export interface WorkoutSession {
   workoutName: string
 }
 
-export type DraftSet = {
-  notes: string
-  reps: string
-  timeSeconds: string
-  rpe: string
-  rir: string
-  weightKg: string
-}
-
-export type WorkoutDraft = Record<string, DraftSet[]>
-
-export function createWorkoutDraft(workout: WorkoutDay): WorkoutDraft {
-  return workout.exercises.reduce<WorkoutDraft>((draft, exercise) => {
-    draft[exercise.id] = Array.from({ length: exercise.sets }, () => ({
-      notes: '',
-      reps: '',
-      timeSeconds: '',
-      rpe: '',
-      rir: '',
-      weightKg: '',
-    }))
-
-    return draft
-  }, {})
-}
-
 export function getWorkoutSessions(): WorkoutSession[] {
   if (typeof window === 'undefined') {
     return []
@@ -93,52 +66,6 @@ export function getWorkoutSessions(): WorkoutSession[] {
 export function saveWorkoutSession(session: WorkoutSession): boolean {
   const sessions = getWorkoutSessions()
   return safeSetJSON(WORKOUT_SESSIONS_KEY, [session, ...sessions])
-}
-
-export function getTargetReps(exercise: Exercise) {
-  return exercise.repRange ?? ''
-}
-
-export function buildWorkoutSession({
-  draft,
-  finishedAt,
-  startedAt,
-  workout,
-}: {
-  draft: WorkoutDraft
-  finishedAt: Date
-  startedAt: Date
-  workout: WorkoutDay
-}): WorkoutSession {
-  return {
-    completed: true,
-    date: finishedAt.toISOString().slice(0, 10),
-    exercises: workout.exercises.map((exercise) => ({
-      exerciseId: exercise.id,
-      exerciseName: exercise.name,
-      muscleGroup: exercise.muscleGroup,
-      sets: (draft[exercise.id] ?? []).map((set, index) => ({
-        notes: set.notes.trim(),
-        reps: parseNonNegativeNullableNumber(set.reps),
-        timeSeconds: parseNonNegativeNullableNumber(set.timeSeconds),
-        rpe: parseNullableNumber(set.rpe),
-        rir: parseNullableNumber(set.rir),
-        setNumber: index + 1,
-        weightKg: parseNullableNumber(set.weightKg),
-      })),
-      targetReps: getTargetReps(exercise),
-      targetDuration: exercise.duration,
-      targetRir: exercise.targetRir,
-      targetSets: exercise.sets,
-    })),
-    finishedAt: finishedAt.toISOString(),
-    id: `${finishedAt.getTime()}-${workout.day}`,
-    sessionType: 'scheduled',
-    standaloneWorkoutId: null,
-    startedAt: startedAt.toISOString(),
-    workoutDayId: workout.day,
-    workoutName: workout.name,
-  }
 }
 
 export function findPreviousExercisePerformance(
@@ -168,24 +95,6 @@ export function getLatestWorkoutSession(sessions = getWorkoutSessions()) {
   return sessions[0] ?? null
 }
 
-export function getWeeklyCompletedWorkouts(
-  sessions = getWorkoutSessions(),
-  date = new Date(),
-) {
-  const start = getStartOfWeek(date)
-  const end = new Date(start)
-  end.setDate(start.getDate() + 7)
-
-  return sessions.filter((session) => {
-    if (!session.completed || session.sessionType === 'standalone') {
-      return false
-    }
-
-    const sessionDate = new Date(session.finishedAt || session.date)
-    return sessionDate >= start && sessionDate < end
-  }).length
-}
-
 export function getCurrentWorkoutStreak(sessions = getWorkoutSessions()) {
   const completedDates = new Set(
     sessions
@@ -206,28 +115,4 @@ export function getCurrentWorkoutStreak(sessions = getWorkoutSessions()) {
   }
 
   return streak
-}
-
-function parseNullableNumber(value: string) {
-  if (value.trim() === '') {
-    return null
-  }
-
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
-}
-
-function parseNonNegativeNullableNumber(value: string) {
-  const parsed = parseNullableNumber(value)
-  return parsed !== null && parsed >= 0 ? parsed : null
-}
-
-function getStartOfWeek(date: Date) {
-  const start = new Date(date)
-  const day = start.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  start.setDate(start.getDate() + diff)
-  start.setHours(0, 0, 0, 0)
-
-  return start
 }

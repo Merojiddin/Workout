@@ -83,26 +83,6 @@ export async function deleteProgressPhoto(user, path) {
     return { removed: false }
   }
 }
-
-/**
- * Replace a photo: upload the new file (upsert), then delete the old path if
- * it is different from the new one (paths are deterministic per slot, so this
- * only matters when the check-in id changed).
- */
-export async function replaceProgressPhoto(
-  user,
-  oldPath,
-  newFile,
-  checkInId,
-  photoType,
-) {
-  const result = await uploadProgressPhoto(user, newFile, checkInId, photoType)
-  if (oldPath && oldPath !== result.path) {
-    await deleteProgressPhoto(user, oldPath)
-  }
-  return result
-}
-
 /**
  * Resolve a displayable URL for a stored path. Private bucket -> signed URL.
  * Returns null (never throws) so callers can fall back to base64 safely.

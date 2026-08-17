@@ -5470,12 +5470,6 @@ const exerciseById = new Map(
   exerciseLibrary.map((exercise) => [exercise.id, exercise]),
 )
 
-export function getLibraryExerciseById(
-  id: string,
-): LibraryExercise | undefined {
-  return exerciseById.get(id)
-}
-
 function normalizeName(value: string): string {
   return value
     .toLowerCase()

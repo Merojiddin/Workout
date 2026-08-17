@@ -64,23 +64,6 @@ export function printElement(elementId) {
   return true
 }
 
-export function openPrintView(type, data) {
-  return { type, data }
-}
-
-export function formatPrintDate(date) {
-  const parsed = date instanceof Date ? date : new Date(date)
-  if (Number.isNaN(parsed.getTime())) {
-    return String(date ?? '-')
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(parsed)
-}
-
 export function getTodayWorkoutForPrint(workoutPlan) {
   return getWorkoutForDate(new Date(), workoutPlan)
 }

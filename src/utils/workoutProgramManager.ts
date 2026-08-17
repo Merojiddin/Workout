@@ -1,11 +1,6 @@
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type { WorkoutDay } from '../data/workoutPlan'
-import {
-  CURRENT_DEFAULT_PROGRAM_ID,
-  getLatestWorkoutProgramById,
-  getWorkoutProgramByIdAndVersion,
-  getWorkoutPrograms,
-} from '../data/workoutProgramRegistry'
+import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
 import type {
   WorkoutProgram,
   WorkoutProgramValidationResult,
@@ -626,48 +621,6 @@ export function installWorkoutProgramLocally(
   )
 }
 
-export function getAvailableWorkoutProgramUpdates(): ProgramManagerResult<
-  WorkoutProgram[]
-> {
-  const installedResult = getInstalledWorkoutProgram()
-  if (!installedResult.success) {
-    return fail([], installedResult.code ?? 'metadata-read-failed', installedResult.message)
-  }
-  const dismissedResult = getDismissedWorkoutPrograms()
-  if (!dismissedResult.success) {
-    return fail([], dismissedResult.code ?? 'dismissal-read-failed', dismissedResult.message)
-  }
-
-  const baseline =
-    installedResult.data ?? getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)
-  const dismissed = new Set(
-    dismissedResult.data.map((entry) => programIdentity(entry.id, entry.version)),
-  )
-  const programs = getWorkoutPrograms().filter((program) => {
-    if (dismissed.has(programIdentity(program.id, program.version))) {
-      return false
-    }
-    if (
-      program.id === CURRENT_DEFAULT_PROGRAM_ID &&
-      baseline?.id !== CURRENT_DEFAULT_PROGRAM_ID
-    ) {
-      return false
-    }
-    if (
-      baseline &&
-      program.id === baseline.id &&
-      compareVersions(program.version, baseline.version) <= 0
-    ) {
-      return false
-    }
-    return !(
-      baseline?.id === program.id && baseline.version === program.version
-    )
-  })
-
-  return succeed(programs, `${programs.length} workout program update(s) available.`)
-}
-
 export function getWorkoutProgramChangeProtection(): ProgramManagerResult<{
   blocked: boolean
 }> {
@@ -962,17 +915,6 @@ function isIsoTimestamp(value: unknown): value is string {
     !Number.isNaN(Date.parse(value)) &&
     new Date(value).toISOString() === value
   )
-}
-
-function programIdentity(id: string, version: string): string {
-  return `${id}\u0000${version}`
-}
-
-function compareVersions(left: string, right: string): number {
-  return left.localeCompare(right, undefined, {
-    numeric: true,
-    sensitivity: 'base',
-  })
 }
 
 function deepEqual(left: unknown, right: unknown): boolean {

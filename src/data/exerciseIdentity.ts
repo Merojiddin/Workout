@@ -43,11 +43,6 @@ export interface ExerciseIdentityOptions {
   library?: readonly LibraryExercise[]
 }
 
-export interface ExerciseAliases {
-  legacyIds: Record<string, string>
-  normalizedNames: Record<string, string>
-}
-
 export interface HistoricalExerciseCatalogEntry
   extends ResolvedExerciseIdentity {
   key: string
@@ -158,13 +153,6 @@ export function normalizeExerciseName(name: unknown): string {
     : ''
 }
 
-export function getExerciseAliases(): ExerciseAliases {
-  return {
-    legacyIds: { ...LEGACY_ID_ALIASES },
-    normalizedNames: { ...LEGACY_NORMALIZED_NAME_ALIASES },
-  }
-}
-
 export function resolveExerciseIdentity(
   input: ExerciseIdentityInput,
   options: ExerciseIdentityOptions = {},
@@ -195,14 +183,6 @@ export function resolveExerciseLibraryEntry(
   )
   return entry ? cloneLibraryExercise(entry) : undefined
 }
-
-export function isExerciseArchived(
-  identity: ResolvedExerciseIdentity,
-  activePlan: readonly ExerciseContainer[] | null | undefined,
-): boolean {
-  return !planContainsIdentity(identity, activePlan ?? [], exerciseLibrary)
-}
-
 /**
  * Exact IDs win. Conflicting valid IDs never fall through to a name match.
  * Legacy name and alias resolution is used only where an exact ID cannot

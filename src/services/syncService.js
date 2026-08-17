@@ -351,17 +351,6 @@ export async function syncPendingQueue(user) {
 
   return summary
 }
-
-/** Optional. Never called automatically. Backs up, then clears bulk data keys. */
-export function clearLocalAfterCloudSync() {
-  const keys = [WORKOUT_SESSIONS_KEY, BODY_CHECK_INS_KEY, NUTRITION_LOGS_KEY]
-  keys.forEach((key) => {
-    backupLocalKey(key)
-    writeArrayKey(key, [])
-  })
-  return { cleared: keys }
-}
-
 // --- internal --------------------------------------------------------------
 
 async function countRows(table, user) {

@@ -116,13 +116,6 @@ export interface SuggestedSetTarget {
   weightTarget: string
   message: string
 }
-
-export interface PainWarning {
-  exerciseName: string
-  setNumber: number
-  painLevel: number
-}
-
 // ---------------------------------------------------------------------------
 // Create / read / write / clear
 // ---------------------------------------------------------------------------
@@ -372,17 +365,6 @@ export function getCurrentExercise(
   return session.exercises[session.currentExerciseIndex] ?? null
 }
 
-export function getCurrentSet(
-  session: ActiveWorkoutSession | null,
-): ActiveSet | null {
-  const exercise = getCurrentExercise(session)
-  if (!exercise || !session) {
-    return null
-  }
-
-  return exercise.sets[session.currentSetIndex] ?? null
-}
-
 export function getTotalPlannedSets(
   session: ActiveWorkoutSession | null,
 ): number {
@@ -401,15 +383,6 @@ export function getCompletedSetsCount(
     0,
   )
 }
-
-export function getCompletedExerciseCount(
-  session: ActiveWorkoutSession | null,
-): number {
-  return safeArray<ActiveExercise>(session?.exercises).filter((exercise) =>
-    safeArray<ActiveSet>(exercise?.sets).some(isLoggedSet),
-  ).length
-}
-
 /** Duration in whole minutes (at least 0). */
 export function getWorkoutDuration(
   session: ActiveWorkoutSession | null,
@@ -430,64 +403,6 @@ export function getWorkoutDuration(
 
   return Math.max(0, Math.round((end - started) / 60000))
 }
-
-export function getTotalVolume(session: ActiveWorkoutSession | null): number {
-  return safeArray<ActiveExercise>(session?.exercises).reduce(
-    (total, exercise) =>
-      total +
-      safeArray<ActiveSet>(exercise?.sets).reduce((sum, set) => {
-        const reps = toNumber(set?.reps, 0)
-        const weight = toNumber(set?.weightKg, 0)
-        return weight > 0 && reps > 0 ? sum + weight * reps : sum
-      }, 0),
-    0,
-  )
-}
-
-export function calculateAverageRPE(
-  session: ActiveWorkoutSession | null,
-): number | null {
-  const rpes: number[] = []
-
-  for (const exercise of safeArray<ActiveExercise>(session?.exercises)) {
-    for (const set of safeArray<ActiveSet>(exercise?.sets)) {
-      const rpe = toNumber(set?.rpe, 0)
-      if (rpe > 0) {
-        rpes.push(rpe)
-      }
-    }
-  }
-
-  if (rpes.length === 0) {
-    return null
-  }
-
-  const average = rpes.reduce((sum, value) => sum + value, 0) / rpes.length
-  return Math.round(average * 10) / 10
-}
-
-/** Warnings for every set that logged pain >= 4. */
-export function getPainWarnings(
-  session: ActiveWorkoutSession | null,
-): PainWarning[] {
-  const warnings: PainWarning[] = []
-
-  for (const exercise of safeArray<ActiveExercise>(session?.exercises)) {
-    for (const set of safeArray<ActiveSet>(exercise?.sets)) {
-      const painLevel = toNumber(set?.painLevel, 0)
-      if (painLevel >= 4) {
-        warnings.push({
-          exerciseName: toText(exercise?.exerciseName, 'Exercise'),
-          setNumber: toNumber(set?.setNumber, 0),
-          painLevel,
-        })
-      }
-    }
-  }
-
-  return warnings
-}
-
 // ---------------------------------------------------------------------------
 // Suggested target for today's set
 // ---------------------------------------------------------------------------

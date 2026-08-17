@@ -465,29 +465,6 @@ export function createPlanExerciseFromLibrary(libraryExercise) {
   }
 }
 
-export function createLibraryExerciseFromPlanExercise(planExercise) {
-  const name = toText(planExercise?.name, 'Custom Exercise')
-
-  return normalizeLibraryExercise({
-    id: toText(planExercise?.id, `custom-${slugify(name)}`),
-    name,
-    category: toText(planExercise?.category, 'Conditioning'),
-    primaryMuscles: toStringArray(planExercise?.muscleGroup, ['Other']),
-    secondaryMuscles: [],
-    equipment: toStringArray(planExercise?.equipment, ['Bodyweight']),
-    difficulty: 'Beginner',
-    formCue: toStringArray(planExercise?.formTips, ['Keep control']).join(' '),
-    instructions: toStringArray(planExercise?.notes, ['Move with control.']),
-    formTips: toStringArray(planExercise?.formTips, ['Keep control']),
-    commonMistakes: [],
-    progression: [],
-    regression: [],
-    postureNotes: '',
-    demoLinks: [],
-    relatedWorkoutDays: [],
-  })
-}
-
 function normalizeUserProfileSettings(value) {
   const settings = isPlainObject(value) ? value : {}
   const profile = isPlainObject(settings.profile) ? settings.profile : {}

@@ -1,7 +1,6 @@
 import {
   getCustomExerciseLibrary as localGetLibrary,
   getCustomWorkoutPlan as localGetPlan,
-  getUserProfileSettings as localGetSettings,
   saveCustomExerciseLibrary as localSaveLibrary,
   saveCustomWorkoutPlan as localSavePlan,
   saveUserProfileSettings as localSaveSettings,
@@ -198,22 +197,6 @@ export async function deleteCloudWorkoutPlan(user) {
     user,
     'cloud workout plan',
   )
-}
-
-// --- user settings ---------------------------------------------------------
-
-export async function getUserSettings(user) {
-  if (!isCloudMode(user)) {
-    return localGetSettings()
-  }
-  if (!isBrowserOnline()) {
-    return localGetSettings()
-  }
-  const cloud = await fetchSingle('user_settings', user, 'settings')
-  if (cloud) {
-    return localSaveSettings(cloud) // mirror + normalize
-  }
-  return localGetSettings()
 }
 
 export async function saveUserSettings(user, settings) {
