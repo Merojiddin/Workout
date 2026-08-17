@@ -27,8 +27,8 @@ export class ErrorBoundary extends Component {
     window.location.reload()
   }
 
-  handleDashboard = () => {
-    this.props.onGoDashboard?.()
+  handleGoHome = () => {
+    this.props.onGoHome?.()
     this.setState({
       copied: false,
       error: null,
@@ -93,11 +93,11 @@ export class ErrorBoundary extends Component {
             </button>
             <button
               className="workout-secondary-button"
-              onClick={this.handleDashboard}
+              onClick={this.handleGoHome}
               type="button"
             >
               <Home size={19} strokeWidth={2.4} aria-hidden="true" />
-              Go to Dashboard
+              Go to Today's Workout
             </button>
             <button
               className="workout-secondary-button"

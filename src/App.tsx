@@ -16,24 +16,21 @@ import { LoadingState } from './components/LoadingState'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { useAuth } from './context/AuthContext'
 import { useAutoSync } from './hooks/useAutoSync'
-import { Dashboard } from './pages/Dashboard'
+import { More } from './pages/More'
+import { Nutrition } from './pages/Nutrition'
 import { TodayWorkout } from './pages/TodayWorkout'
-import { WeeklyPlan } from './pages/WeeklyPlan'
 import { syncCloudToLocal } from './services/syncService'
 import type { PageId } from './types/navigation'
 
-// Step 20: heavier pages are code-split so the initial bundle stays small.
-// Dashboard/TodayWorkout/WeeklyPlan stay eager so starting or logging a
-// workout never waits on a chunk download. BodyCheckIn and Nutrition are
-// lazy because they pull in recharts, the largest dependency.
-const Progress = lazy(() =>
-  import('./pages/Progress').then((m) => ({ default: m.Progress })),
+// Today's Workout and Nutrition are the two screens the app is for, so they
+// stay eager and never wait on a chunk download. The More pages are all
+// code-split; Body Check-in is the last page pulling in recharts, the largest
+// dependency, and must not reach the entry bundle.
+const WeeklyPlan = lazy(() =>
+  import('./pages/WeeklyPlan').then((m) => ({ default: m.WeeklyPlan })),
 )
 const BodyCheckIn = lazy(() =>
   import('./pages/BodyCheckIn').then((m) => ({ default: m.BodyCheckIn })),
-)
-const Nutrition = lazy(() =>
-  import('./pages/Nutrition').then((m) => ({ default: m.Nutrition })),
 )
 const ExerciseLibrary = lazy(() =>
   import('./pages/ExerciseLibrary').then((m) => ({ default: m.ExerciseLibrary })),
@@ -41,18 +38,8 @@ const ExerciseLibrary = lazy(() =>
 const WeeklyReview = lazy(() =>
   import('./pages/WeeklyReview').then((m) => ({ default: m.WeeklyReview })),
 )
-const PlanEditor = lazy(() =>
-  import('./pages/PlanEditor').then((m) => ({ default: m.PlanEditor })),
-)
-const Coach = lazy(() => import('./pages/Coach').then((m) => ({ default: m.Coach })))
-const DataHealth = lazy(() =>
-  import('./pages/DataHealth').then((m) => ({ default: m.DataHealth })),
-)
 const Settings = lazy(() =>
   import('./pages/Settings').then((m) => ({ default: m.Settings })),
-)
-const ExportPrint = lazy(() =>
-  import('./pages/ExportPrint').then((m) => ({ default: m.ExportPrint })),
 )
 const Privacy = lazy(() =>
   import('./pages/Privacy').then((m) => ({ default: m.Privacy })),
@@ -66,6 +53,8 @@ const PreDeployChecklist = lazy(() =>
   })),
 )
 
+const HOME_PAGE: PageId = 'today-workout'
+
 interface NavigationState {
   activePage: PageId
   history: PageId[]
@@ -77,7 +66,7 @@ type NavigationAction =
   | { type: 'reset'; page: PageId }
 
 const initialNavigationState: NavigationState = {
-  activePage: 'dashboard',
+  activePage: HOME_PAGE,
   history: [],
 }
 
@@ -171,52 +160,35 @@ function AuthedApp() {
 
   function renderPage() {
     switch (activePage) {
-      case 'today-workout':
-        return <TodayWorkout onNavigate={handleNavigate} />
-      case 'weekly-plan':
-        return <WeeklyPlan onNavigate={handleNavigate} />
-      case 'progress':
-        return <Progress onNavigate={handleNavigate} />
-      case 'body-check-in':
-        return <BodyCheckIn />
       case 'nutrition':
         return <Nutrition />
+      case 'more':
+        return <More onNavigate={handleNavigate} />
+      case 'weekly-plan':
+        return <WeeklyPlan onNavigate={handleNavigate} />
+      case 'body-check-in':
+        return <BodyCheckIn />
       case 'exercise-library':
         return <ExerciseLibrary />
       case 'weekly-review':
         return <WeeklyReview />
-      case 'plan-editor':
-        return (
-          <PlanEditor
-            dataVersion={dataVersion}
-            onDataChanged={handlePendingSynced}
-          />
-        )
-      case 'coach':
-        return <Coach />
-      case 'data-health':
-        return <DataHealth onNavigate={handleNavigate} />
       case 'settings':
         return <Settings onNavigate={handleNavigate} />
-      case 'export-print':
-        return <ExportPrint />
       case 'privacy':
         return <Privacy />
       case 'disclaimer':
         return <Disclaimer />
       case 'pre-deploy-checklist':
         return <PreDeployChecklist />
-      case 'dashboard':
+      case 'today-workout':
       default:
-        return <Dashboard onNavigate={handleNavigate} />
+        return <TodayWorkout onNavigate={handleNavigate} />
     }
   }
 
   return (
     <ErrorBoundary
-      onGoDashboard={() =>
-        dispatchNavigation({ type: 'reset', page: 'dashboard' })
-      }
+      onGoHome={() => dispatchNavigation({ type: 'reset', page: HOME_PAGE })}
     >
       <Layout
         activePage={activePage}
@@ -231,10 +203,7 @@ function AuthedApp() {
             {cloneElement(renderPage(), {
               // userId is part of the key so switching accounts tears down any
               // page state still holding the previous user's data.
-              key:
-                activePage === 'plan-editor'
-                  ? `${activePage}-${userId ?? 'local'}`
-                  : `${activePage}-${userId ?? 'local'}-${dataVersion}`,
+              key: `${activePage}-${userId ?? 'local'}-${dataVersion}`,
             })}
           </Suspense>
         </LazyPageBoundary>

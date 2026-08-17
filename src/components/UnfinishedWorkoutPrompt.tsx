@@ -1,6 +1,6 @@
 import { Play, RotateCcw, Trash2 } from 'lucide-react'
 import {
-  getCompletedSetsCount,
+  getDoneSetsCount,
   getTotalPlannedSets,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
@@ -16,7 +16,7 @@ export function UnfinishedWorkoutPrompt({
   onContinue,
   onDiscard,
 }: UnfinishedWorkoutPromptProps) {
-  const completedSets = getCompletedSetsCount(session)
+  const doneSets = getDoneSetsCount(session)
   const totalSets = getTotalPlannedSets(session)
   const startedLabel = formatStarted(session?.startedAt)
 
@@ -31,8 +31,8 @@ export function UnfinishedWorkoutPrompt({
         <p className="card-copy">Standalone workout</p>
       ) : null}
       <p>
-        {session?.workoutName ?? 'Workout'} - {completedSets} of {totalSets} sets
-        logged{startedLabel ? ` , started ${startedLabel}` : ''}.
+        {session?.workoutName ?? 'Workout'} - {doneSets} of {totalSets} sets done
+        {startedLabel ? `, started ${startedLabel}` : ''}.
       </p>
 
       <div className="unfinished-prompt__actions">

@@ -1,75 +1,53 @@
-import { ArrowRight, CheckCircle2, Clock3, Dumbbell } from 'lucide-react'
-import type { WorkoutSessionType } from '../data/workoutSessions'
+import { Clock3 } from 'lucide-react'
 
 interface LiveWorkoutHeaderProps {
   workoutName: string
-  sessionType?: WorkoutSessionType
   currentExerciseIndex: number
   totalExercises: number
-  completedSets: number
+  doneSets: number
   totalSets: number
   duration: number
-  /** Name of the upcoming exercise; omit on the last one. */
-  nextExerciseName?: string | null
 }
 
+/**
+ * One line of orientation and a progress bar. Anything more (next exercise,
+ * set counts, session guidance) lives in the collapsible exercise list.
+ */
 export function LiveWorkoutHeader({
   workoutName,
-  sessionType,
   currentExerciseIndex,
   totalExercises,
-  completedSets,
+  doneSets,
   totalSets,
   duration,
-  nextExerciseName,
 }: LiveWorkoutHeaderProps) {
-  const safeTotalSets = Math.max(totalSets, 1)
-  const progress = Math.min((completedSets / safeTotalSets) * 100, 100)
+  const progress = Math.min((doneSets / Math.max(totalSets, 1)) * 100, 100)
 
   return (
     <header className="live-header">
       <div className="live-header__top">
-        <div className="live-header__title">
-          <p className="eyebrow">
-            {sessionType === 'standalone' ? 'Standalone workout' : 'Live Workout'}
-          </p>
-          <h1>{workoutName}</h1>
-        </div>
-        <div className="live-header__badges">
-          {nextExerciseName ? (
-            <span className="live-header__next">
-              <ArrowRight size={15} strokeWidth={2.4} aria-hidden="true" />
-              Next: {nextExerciseName}
-            </span>
-          ) : null}
-          <span className="live-header__timer">
-            <Clock3 size={16} strokeWidth={2.4} aria-hidden="true" />
-            {duration} min
-          </span>
-        </div>
-      </div>
-
-      <div className="live-header__meta">
-        <span>
-          <Dumbbell size={15} strokeWidth={2.4} aria-hidden="true" />
-          Exercise {Math.min(currentExerciseIndex + 1, totalExercises)} of{' '}
-          {totalExercises}
-        </span>
-        <span>
-          <CheckCircle2 size={15} strokeWidth={2.4} aria-hidden="true" />
-          {completedSets} / {totalSets} sets
+        <span className="live-header__name">{workoutName}</span>
+        <span className="live-header__timer">
+          <Clock3 size={14} strokeWidth={2.4} aria-hidden="true" />
+          {duration} min
         </span>
       </div>
 
       <div
         className="live-header__progress"
         role="progressbar"
+        aria-label="Sets completed"
         aria-valuemin={0}
         aria-valuemax={totalSets}
-        aria-valuenow={completedSets}
+        aria-valuenow={doneSets}
       >
         <span style={{ width: `${progress}%` }} />
       </div>
+
+      <p className="live-header__position">
+        Exercise {Math.min(currentExerciseIndex + 1, totalExercises)} of{' '}
+        {totalExercises}
+      </p>
     </header>
   )
 }

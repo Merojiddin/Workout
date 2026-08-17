@@ -1,6 +1,4 @@
 import nodeAssert from 'node:assert/strict'
-import { createElement } from 'react'
-import { renderToStaticMarkup } from 'react-dom/server'
 import { createServer } from 'vite'
 
 const PROGRAM_ID = 'research-recomp-boxing-v2'
@@ -96,9 +94,6 @@ try {
     '/src/utils/weeklyReviewUtils.js',
   )
   const exports = await server.ssrLoadModule('/src/utils/exportUtils.js')
-  const printableWorkout = await server.ssrLoadModule(
-    '/src/print/PrintableWorkoutSession.jsx',
-  )
   const cloudPrograms = await server.ssrLoadModule(
     '/src/services/workoutProgramService.ts',
   )
@@ -969,20 +964,10 @@ try {
   assert.match(sessionCsv, /full-body-reentry/)
   assert.match(sessionCsv, /research-recomp-boxing-v2/)
 
-  const printableSessionHtml = renderToStaticMarkup(
-    createElement(printableWorkout.PrintableWorkoutSession, {
-      exerciseLibrary: libraryModule.exerciseLibrary,
-      session: finishedReentry,
-      workoutPlan: allWorkoutDefinitions,
-    }),
-  )
-  assert.match(printableSessionHtml, /Completed Workout Session/)
-  assert.match(printableSessionHtml, /Standalone workout/)
-  assert.match(printableSessionHtml, /research-recomp-boxing-v2/)
-  assert.match(printableSessionHtml, /2\.1\.0/)
-  assert.match(printableSessionHtml, /Week 1/)
-  assert.match(printableSessionHtml, /<th>RIR<\/th>/)
-  assert.match(printableSessionHtml, />3<\/td>/)
+  // The printable-session render used to be asserted here too. That component
+  // went away with the Export/Print page; the CSV assertions directly above
+  // still cover the same provenance fields (program id/version/week,
+  // standalone identity, canonical id, RIR).
 
   const progressionExercise = {
     equipment: 'Cable machine',
@@ -1404,7 +1389,7 @@ try {
         daysResolved: 7,
         historyPreservedOnInstall: true,
         phasesCovered: 12,
-        printAndCsvProvenanceVerified: true,
+        csvProvenanceVerified: true,
         recoveryDayScheduledTarget: 6,
         scheduledCompletionsFromReentry: 0,
         status: 'passed',

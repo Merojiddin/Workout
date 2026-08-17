@@ -1,14 +1,8 @@
 import {
-  BarChart3,
-  Brain,
   CalendarDays,
   ClipboardCheck,
-  Database,
-  FileDown,
   Dumbbell,
-  Home,
   Library,
-  ListChecks,
   MoreHorizontal,
   NotebookPen,
   Settings,
@@ -16,26 +10,47 @@ import {
 } from 'lucide-react'
 import type { NavItem } from '../types/navigation'
 
+/**
+ * The whole app is three destinations. Today's Workout is the reason the app
+ * exists, Nutrition is what you read after training, and everything else is a
+ * reference page reached from More.
+ */
 export const navigationItems: NavItem[] = [
-  { id: 'dashboard', icon: Home, label: 'Dashboard' },
-  { id: 'today-workout', icon: Dumbbell, label: "Today's Workout" },
-  { id: 'weekly-plan', icon: CalendarDays, label: 'Weekly Plan' },
-  { id: 'progress', icon: BarChart3, label: 'Progress' },
-  { id: 'body-check-in', icon: NotebookPen, label: 'Body Check-in' },
+  { id: 'today-workout', icon: Dumbbell, label: "Today's Workout", shortLabel: 'Workout' },
   { id: 'nutrition', icon: Utensils, label: 'Nutrition' },
-  { id: 'exercise-library', icon: Library, label: 'Exercise Library' },
-  { id: 'weekly-review', icon: ClipboardCheck, label: 'Weekly Review' },
-  { id: 'plan-editor', icon: ListChecks, label: 'Plan Editor' },
-  { id: 'export-print', icon: FileDown, label: 'Export / Print' },
-  { id: 'coach', icon: Brain, label: 'Coach' },
-  { id: 'data-health', icon: Database, label: 'Data Health' },
-  { id: 'settings', icon: Settings, label: 'Settings' },
+  { id: 'more', icon: MoreHorizontal, label: 'More' },
 ]
 
-export const mobileNavigationItems: NavItem[] = [
-  { id: 'dashboard', icon: Home, label: 'Home' },
-  { id: 'today-workout', icon: Dumbbell, label: 'Workout' },
-  { id: 'coach', icon: Brain, label: 'Coach' },
-  { id: 'progress', icon: BarChart3, label: 'Progress' },
-  { id: 'settings', icon: MoreHorizontal, label: 'More' },
+/** Pages listed on the More screen, in the order they appear. */
+export const moreNavigationItems: NavItem[] = [
+  {
+    id: 'weekly-plan',
+    icon: CalendarDays,
+    label: 'Weekly Plan',
+    description: 'The seven training days and what each one covers.',
+  },
+  {
+    id: 'exercise-library',
+    icon: Library,
+    label: 'Exercise Library',
+    description: 'Form guides, demo videos and muscle groups.',
+  },
+  {
+    id: 'weekly-review',
+    icon: ClipboardCheck,
+    label: 'Weekly Review',
+    description: 'How last week went and what to focus on next.',
+  },
+  {
+    id: 'body-check-in',
+    icon: NotebookPen,
+    label: 'Body Check-in',
+    description: 'Weight, measurements and progress photos.',
+  },
+  {
+    id: 'settings',
+    icon: Settings,
+    label: 'Settings',
+    description: 'Profile, program, reminders, backup and sync.',
+  },
 ]

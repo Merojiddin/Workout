@@ -80,11 +80,11 @@ export function WeeklyPlan({ onNavigate }: WeeklyPlanProps) {
           </button>
           <button
             className="demo-data-button"
-            onClick={() => onNavigate('plan-editor')}
+            onClick={() => onNavigate('settings')}
             type="button"
           >
             <SlidersHorizontal size={19} strokeWidth={2.4} aria-hidden="true" />
-            Edit Plan
+            Change Program
           </button>
         </div>
         <div className="hero-target">

@@ -4,7 +4,6 @@ import {
   Cloud,
   Database,
   Download,
-  FileDown,
   Plus,
   Goal,
   MonitorPlay,
@@ -22,12 +21,15 @@ import { useRef, useState } from 'react'
 import { CloudHealthPanel } from '../components/CloudHealthPanel'
 import { CloudSyncPanel } from '../components/CloudSyncPanel'
 import { OfflineSyncPanel } from '../components/OfflineSyncPanel'
+import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
 import { useAuth } from '../context/AuthContext'
+import type { WorkoutDay } from '../data/workoutPlan'
 import * as settingsService from '../services/settingsService'
 import {
   clearAllData,
   equipmentSettingsOptions,
   exportAllData,
+  getCustomWorkoutPlan,
   getUserProfileSettings,
   importAllData,
   resetUserProfileSettings,
@@ -45,6 +47,7 @@ import type { PageId } from '../types/navigation'
 
 type SettingsTab =
   | 'profile'
+  | 'program'
   | 'goals'
   | 'equipment'
   | 'supplements'
@@ -65,6 +68,7 @@ const tabs: Array<{
   label: string
 }> = [
   { id: 'profile', icon: UserRound, label: 'Profile' },
+  { id: 'program', icon: SlidersHorizontal, label: 'Program' },
   { id: 'goals', icon: Goal, label: 'Goals' },
   { id: 'equipment', icon: Wrench, label: 'Equipment' },
   { id: 'supplements', icon: PackageCheck, label: 'Supplements' },
@@ -102,6 +106,9 @@ export function Settings({ onNavigate }: SettingsProps) {
     getInitialSettingsTab(),
   )
   const [settings, setSettings] = useState(() => getUserProfileSettings())
+  const [plan, setPlan] = useState<WorkoutDay[]>(
+    () => getCustomWorkoutPlan() as WorkoutDay[],
+  )
   const [reminderSettings, setReminderSettings] = useState(() =>
     getReminderSettings(),
   )
@@ -297,32 +304,6 @@ export function Settings({ onNavigate }: SettingsProps) {
             Edit your training profile, goals, equipment, supplement targets,
             and local backup files.
           </p>
-        </div>
-        <div className="settings-hero-actions">
-          <button
-            className="workout-secondary-button"
-            onClick={() => onNavigate('plan-editor')}
-            type="button"
-          >
-            <SlidersHorizontal size={19} strokeWidth={2.4} aria-hidden="true" />
-            Plan Editor
-          </button>
-          <button
-            className="workout-secondary-button"
-            onClick={() => onNavigate('export-print')}
-            type="button"
-          >
-            <FileDown size={19} strokeWidth={2.4} aria-hidden="true" />
-            Export / Print
-          </button>
-          <button
-            className="workout-secondary-button"
-            onClick={() => onNavigate('data-health')}
-            type="button"
-          >
-            <Database size={19} strokeWidth={2.4} aria-hidden="true" />
-            Data Health
-          </button>
         </div>
       </header>
 
@@ -1151,6 +1132,16 @@ export function Settings({ onNavigate }: SettingsProps) {
             </button>
           </div>
         </article>
+      ) : null}
+
+      {/* The program manager (including "paste a program") used to live on the
+          Plan Editor page. That page is gone, so it is hosted here. */}
+      {activeTab === 'program' ? (
+        <WorkoutProgramManager
+          hasUnsavedPlanChanges={false}
+          onPlanChanged={() => setPlan(getCustomWorkoutPlan() as WorkoutDay[])}
+          plan={plan}
+        />
       ) : null}
 
       {activeTab === 'cloud' ? (

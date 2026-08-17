@@ -1,4 +1,4 @@
-import { mobileNavigationItems } from '../data/navigation'
+import { navigationItems } from '../data/navigation'
 import type { PageId } from '../types/navigation'
 
 interface BottomNavProps {
@@ -9,7 +9,7 @@ interface BottomNavProps {
 export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
   return (
     <nav className="bottom-nav" aria-label="Mobile navigation">
-      {mobileNavigationItems.map((item) => {
+      {navigationItems.map((item) => {
         const Icon = item.icon
 
         return (
@@ -21,7 +21,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
             type="button"
           >
             <Icon size={19} strokeWidth={2.3} aria-hidden="true" />
-            <span>{item.label}</span>
+            <span>{item.shortLabel ?? item.label}</span>
           </button>
         )
       })}

@@ -1,155 +1,76 @@
-import {
-  BarChart3,
-  ClipboardCheck,
-  Home,
-  ShieldAlert,
-  Trophy,
-} from 'lucide-react'
+import { Check, Home } from 'lucide-react'
+import { PostWorkoutNutritionCard } from './PostWorkoutNutritionCard'
 import type { LoggedSet, WorkoutSession } from '../data/workoutSessions'
+import type { NutritionGuidance } from '../utils/postWorkoutNutrition'
 
 interface WorkoutFinishSummaryProps {
   session: WorkoutSession
-  onDashboard: () => void
-  onProgress: () => void
-  onWeeklyReview: () => void
+  nutrition: NutritionGuidance
+  onDone: () => void
 }
 
+/**
+ * Three facts about the session, then what to eat. The old version showed six
+ * stats and three navigation buttons; volume and RPE are meaningless when
+ * logging is optional, so they are gone.
+ */
 export function WorkoutFinishSummary({
   session,
-  onDashboard,
-  onProgress,
-  onWeeklyReview,
+  nutrition,
+  onDone,
 }: WorkoutFinishSummaryProps) {
-  const standalone = session?.sessionType === 'standalone'
   const exercises = Array.isArray(session?.exercises) ? session.exercises : []
   const allSets: LoggedSet[] = exercises.flatMap((exercise) =>
     Array.isArray(exercise?.sets) ? exercise.sets : [],
   )
-  const loggedSets = allSets.filter(isCompletedSet)
-  const completedExercises = exercises.filter((exercise) =>
-    (Array.isArray(exercise?.sets) ? exercise.sets : []).some(isCompletedSet),
+  const doneSets = allSets.filter(isDoneSet).length
+  const doneExercises = exercises.filter((exercise) =>
+    (Array.isArray(exercise?.sets) ? exercise.sets : []).some(isDoneSet),
   ).length
 
-  const totalVolume = loggedSets.reduce((sum, set) => {
-    const reps = num(set?.reps)
-    const weight = num(set?.weightKg)
-    return weight > 0 && reps > 0 ? sum + weight * reps : sum
-  }, 0)
-
-  const rpes = loggedSets.map((set) => num(set?.rpe)).filter((value) => value > 0)
-  const averageRpe =
-    rpes.length > 0
-      ? Math.round((rpes.reduce((sum, value) => sum + value, 0) / rpes.length) * 10) /
-        10
-      : null
-
-  const painWarnings = exercises.flatMap((exercise) =>
-    (Array.isArray(exercise?.sets) ? exercise.sets : [])
-      .filter((set) => num(set?.painLevel) >= 4)
-      .map((set) => ({
-        name: exercise?.exerciseName ?? 'Exercise',
-        setNumber: num(set?.setNumber),
-        painLevel: num(set?.painLevel),
-      })),
-  )
-
   return (
-    <section className="finish-screen dashboard-card">
-      <div className="finish-screen__badge" aria-hidden="true">
-        <Trophy size={34} strokeWidth={2.4} />
-      </div>
-      <p className="eyebrow">Workout completed</p>
-      <h1>{session?.workoutName ?? 'Workout'}</h1>
-      {standalone ? <p className="card-copy">Standalone workout</p> : null}
-      <p>Saved safely to your workout history.</p>
+    <div className="finish-screen">
+      <header className="finish-screen__head">
+        <span className="finish-screen__badge" aria-hidden="true">
+          <Check size={26} strokeWidth={3} />
+        </span>
+        <h1>Workout done</h1>
+        <p>{session?.workoutName ?? 'Workout'} · saved</p>
+      </header>
 
-      <div className="finish-summary-grid">
+      <div className="finish-screen__stats">
         <div>
-          <span>Exercises completed</span>
-          <strong>{completedExercises}</strong>
+          <strong>{doneExercises}</strong>
+          <span>exercises</span>
         </div>
         <div>
-          <span>Sets completed</span>
-          <strong>{loggedSets.length}</strong>
+          <strong>{doneSets}</strong>
+          <span>sets</span>
         </div>
         <div>
-          <span>Total volume</span>
-          <strong>
-            {totalVolume > 0 ? `${roundHalf(totalVolume)} kg` : '-'}
-          </strong>
-        </div>
-        <div>
-          <span>Average RPE</span>
-          <strong>{averageRpe ?? '-'}</strong>
-        </div>
-        <div>
-          <span>Duration</span>
           <strong>{formatDuration(session?.startedAt, session?.finishedAt)}</strong>
-        </div>
-        <div>
-          <span>Save confirmation</span>
-          <strong>Saved</strong>
+          <span>time</span>
         </div>
       </div>
 
-      {painWarnings.length > 0 ? (
-        <div className="finish-pain-warning">
-          <p>
-            <ShieldAlert size={17} strokeWidth={2.4} aria-hidden="true" />
-            Pain warnings
-          </p>
-          <ul>
-            {painWarnings.map((warning) => (
-              <li key={`${warning.name}-${warning.setNumber}`}>
-                {warning.name} - set {warning.setNumber} logged pain{' '}
-                {warning.painLevel}. Keep the load light next time.
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <PostWorkoutNutritionCard guidance={nutrition} variant="after-workout" />
 
-      <div className="finish-actions">
-        <button
-          className="workout-secondary-button"
-          onClick={onDashboard}
-          type="button"
-        >
-          <Home size={19} strokeWidth={2.4} aria-hidden="true" />
-          Back to Dashboard
-        </button>
-        <button
-          className="workout-secondary-button"
-          onClick={onProgress}
-          type="button"
-        >
-          <BarChart3 size={19} strokeWidth={2.4} aria-hidden="true" />
-          View Progress
-        </button>
-        <button
-          className="workout-primary-button"
-          onClick={onWeeklyReview}
-          type="button"
-        >
-          <ClipboardCheck size={19} strokeWidth={2.4} aria-hidden="true" />
-          View Weekly Review
-        </button>
-      </div>
-    </section>
+      <button className="workout-primary-button" onClick={onDone} type="button">
+        <Home size={19} strokeWidth={2.4} aria-hidden="true" />
+        Done
+      </button>
+    </div>
   )
+}
+
+/** Worked through, whether or not reps/kg were typed in. */
+function isDoneSet(set: LoggedSet | null | undefined): boolean {
+  return Boolean(set?.completedAt) || num(set?.reps) > 0 || num(set?.timeSeconds) > 0
 }
 
 function num(value: number | null | undefined): number {
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
-}
-
-function isCompletedSet(set: LoggedSet | null | undefined): boolean {
-  return num(set?.reps) > 0 || num(set?.timeSeconds) > 0
-}
-
-function roundHalf(value: number): number {
-  return Math.round(value * 2) / 2
 }
 
 function formatDuration(startedAt?: string, finishedAt?: string): string {

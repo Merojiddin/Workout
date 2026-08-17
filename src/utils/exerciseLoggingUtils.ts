@@ -100,6 +100,24 @@ export function parseDurationTarget(
   }
 }
 
+/**
+ * Short target text for one exercise ("8-12 reps", "45 sec"), accepting both
+ * plan exercises and the snapshot fields on an active/completed session.
+ */
+export function getExerciseTarget(
+  exercise: ExerciseLoggingTarget | null | undefined,
+): string {
+  const reps = firstText(exercise?.repRange, exercise?.targetReps)
+  if (getExerciseLoggingMode(exercise) === 'reps' && reps) {
+    return `${reps} reps`
+  }
+
+  return (
+    firstText(exercise?.duration, exercise?.targetDuration, exercise?.targetReps) ||
+    'controlled work'
+  )
+}
+
 /** MM:SS below one hour; H:MM:SS at one hour or above. */
 export function formatDuration(seconds: number | null | undefined): string {
   const numeric = Number(seconds)
@@ -119,6 +137,16 @@ export function formatDuration(seconds: number | null | undefined): string {
 
 function hasText(value: unknown): boolean {
   return typeof value === 'string' && value.trim().length > 0
+}
+
+function firstText(...values: unknown[]): string {
+  for (const value of values) {
+    if (hasText(value)) {
+      return String(value).trim()
+    }
+  }
+
+  return ''
 }
 
 function pad(value: number): string {

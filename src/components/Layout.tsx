@@ -1,7 +1,6 @@
 import type { PropsWithChildren } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { BottomNav } from './BottomNav'
-import { DataModeIndicator } from './DataModeIndicator'
 import { NotificationCenter } from './NotificationCenter'
 import { OfflineBanner } from './OfflineBanner'
 import { Sidebar } from './Sidebar'
@@ -30,6 +29,8 @@ export function Layout({
       <Sidebar activePage={activePage} onNavigate={onNavigate} />
       <main className="app-main">
         <OfflineBanner syncMessage={syncMessage} syncTone={syncTone} />
+        {/* Local/cloud storage mode used to sit here as a permanent pill. It is
+            status, not an action, so it now lives in Settings > Cloud Sync. */}
         <div className="app-main__topbar">
           {canGoBack ? (
             <button
@@ -43,7 +44,6 @@ export function Layout({
             </button>
           ) : null}
           <NotificationCenter />
-          <DataModeIndicator />
         </div>
         {children}
       </main>

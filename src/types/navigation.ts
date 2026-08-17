@@ -1,19 +1,14 @@
 import type { LucideIcon } from 'lucide-react'
 
 export type PageId =
-  | 'dashboard'
   | 'today-workout'
-  | 'weekly-plan'
-  | 'progress'
-  | 'body-check-in'
   | 'nutrition'
+  | 'more'
+  | 'weekly-plan'
+  | 'body-check-in'
   | 'exercise-library'
   | 'weekly-review'
-  | 'plan-editor'
-  | 'coach'
-  | 'data-health'
   | 'settings'
-  | 'export-print'
   | 'privacy'
   | 'disclaimer'
   | 'pre-deploy-checklist'
@@ -23,4 +18,5 @@ export interface NavItem {
   icon: LucideIcon
   label: string
   shortLabel?: string
+  description?: string
 }

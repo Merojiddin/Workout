@@ -795,13 +795,40 @@ function isBodyweight(exercise: ActiveExercise | null): boolean {
 // Small internal helpers
 // ---------------------------------------------------------------------------
 
-/** A set is complete only when it has positive reps or positive duration. */
+/**
+ * A set carries NUMBERS only when it has positive reps or positive duration.
+ * Progression rules need this: they cannot compare loads they were never told.
+ */
 export function isLoggedSet(set: ActiveSet | null | undefined): boolean {
   if (!set) {
     return false
   }
 
   return toNumber(set.reps, 0) > 0 || toNumber(set.timeSeconds, 0) > 0
+}
+
+/**
+ * A set was DONE when the user moved past it, whether or not they typed
+ * anything. Logging reps/kg is optional, so counting only numbered sets would
+ * report "0 of 24 sets" for a whole workout that actually happened.
+ */
+export function isDoneSet(set: ActiveSet | null | undefined): boolean {
+  if (!set) {
+    return false
+  }
+
+  return Boolean(set.completedAt) || isLoggedSet(set)
+}
+
+/** Number of sets the user has worked through, logged or not. */
+export function getDoneSetsCount(
+  session: ActiveWorkoutSession | null,
+): number {
+  return safeArray<ActiveExercise>(session?.exercises).reduce(
+    (total, exercise) =>
+      total + safeArray<ActiveSet>(exercise?.sets).filter(isDoneSet).length,
+    0,
+  )
 }
 
 export function getLastLoggedSet(

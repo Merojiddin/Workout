@@ -1,4 +1,4 @@
-import { Pause, Play, Plus, RotateCcw, SkipForward } from 'lucide-react'
+import { Pause, Play, Plus, SkipForward } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sendReminder } from '../services/reminderService'
 import { getReminderSettings } from '../utils/reminderUtils'
@@ -116,12 +116,6 @@ export function RestTimer({
     setIsRunning(true)
   }
 
-  function reset() {
-    setSecondsLeft(duration)
-    setIsRunning(false)
-    setIsComplete(false)
-  }
-
   function addThirty() {
     setSecondsLeft((current) => current + 30)
     setDuration((current) => current + 30)
@@ -141,7 +135,12 @@ export function RestTimer({
       aria-label="Rest timer"
     >
       <strong aria-live="polite">{formatSeconds(secondsLeft)}</strong>
+      <span className="rest-timer__label">
+        {isRunning ? 'Resting' : isComplete ? 'Rest done' : `${duration} sec rest`}
+      </span>
 
+      {/* Three controls only: run it, stretch it, or leave it. "Reset" was a
+          fourth button that did what pause + start already does. */}
       <div className="timer-actions">
         {isRunning ? (
           <button
@@ -159,20 +158,16 @@ export function RestTimer({
             type="button"
           >
             <Play size={18} strokeWidth={2.4} aria-hidden="true" />
-            {isComplete ? 'Restart' : 'Start Rest'}
+            {isComplete ? 'Again' : 'Start'}
           </button>
         )}
         <button className="timer-button" onClick={addThirty} type="button">
           <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
-          +30 sec
-        </button>
-        <button className="timer-button" onClick={reset} type="button">
-          <RotateCcw size={18} strokeWidth={2.4} aria-hidden="true" />
-          Reset
+          30s
         </button>
         <button className="timer-button" onClick={skip} type="button">
           <SkipForward size={18} strokeWidth={2.4} aria-hidden="true" />
-          Skip Rest
+          Skip
         </button>
       </div>
     </section>
