@@ -1,5 +1,16 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
+import {
+  claimLegacyLocalDataForUser,
+  setStorageNamespace,
+} from '../utils/storageUtils'
 
 /**
  * Step 12 - Auth context.
@@ -22,6 +33,20 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(isSupabaseConfigured)
+  const [recoveryMode, setRecoveryMode] = useState(false)
+  const appliedNamespaceRef = useRef(undefined)
+
+  // Applied during render, not in an effect: pages read localStorage while
+  // they render, so an effect would let the first render of a newly signed-in
+  // user read the PREVIOUS user's data. Both calls are idempotent.
+  const activeUserId = user?.id ?? null
+  if (appliedNamespaceRef.current !== activeUserId) {
+    setStorageNamespace(activeUserId)
+    if (activeUserId) {
+      claimLegacyLocalDataForUser(activeUserId)
+    }
+    appliedNamespaceRef.current = activeUserId
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -45,7 +70,13 @@ export function AuthProvider({ children }) {
       })
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
+      (event, nextSession) => {
+        // Opening the emailed reset link signs the user in with a recovery
+        // session. Without handling this they land on the dashboard with no
+        // way to actually set a new password.
+        if (event === 'PASSWORD_RECOVERY') {
+          setRecoveryMode(true)
+        }
         setSession(nextSession ?? null)
         setUser(nextSession?.user ?? null)
         setLoading(false)
@@ -104,6 +135,27 @@ export function AuthProvider({ children }) {
     }
   }
 
+  /**
+   * Completes a password reset. Supabase signs the user in with a recovery
+   * session when they open the emailed link, so this just updates the password
+   * on the already-authenticated user.
+   */
+  async function updatePassword(password) {
+    if (!supabase) {
+      return notConfigured
+    }
+
+    try {
+      const { data, error } = await supabase.auth.updateUser({ password })
+      if (!error) {
+        setRecoveryMode(false)
+      }
+      return { data, error }
+    } catch (error) {
+      return { error: { message: normalizeError(error) } }
+    }
+  }
+
   async function resetPassword(email) {
     if (!supabase) {
       return notConfigured
@@ -126,13 +178,16 @@ export function AuthProvider({ children }) {
       user,
       session,
       loading,
+      recoveryMode,
       isSupabaseConfigured,
       signUp,
       signIn,
       signOut,
       resetPassword,
+      updatePassword,
     }),
-    [user, session, loading],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, session, loading, recoveryMode],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -146,11 +201,13 @@ export function useAuth() {
       user: null,
       session: null,
       loading: false,
+      recoveryMode: false,
       isSupabaseConfigured,
       signUp: async () => notConfigured,
       signIn: async () => notConfigured,
       signOut: async () => notConfigured,
       resetPassword: async () => notConfigured,
+      updatePassword: async () => notConfigured,
     }
   }
   return context

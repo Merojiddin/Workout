@@ -1,8 +1,34 @@
 # Adding Workout Programs
 
-Workout programs are JSON documents discovered automatically at build time. They reference one shared bundled Exercise Library by stable exercise ID; exercise instructions, form guidance, and media are not embedded in program JSON. Adding a valid program does not require a new TypeScript import and does not activate it. A user must explicitly install a discovered program through the Program Manager.
+There are two ways to add a program.
 
-## Future workflow
+## 1. Paste it into the app (no deploy)
+
+Open **Plan Editor → Workout Programs → Paste a workout program**, paste the
+program JSON, press **Check**, then **Save program**. It joins the program list
+on that screen and installs through the same backup-and-verify path as a
+bundled program.
+
+Pasted programs are stored per signed-in user and sync to Supabase
+(`user_workout_programs`), so they follow the account rather than the device.
+The paste box also accepts JSON wrapped in markdown fences or surrounded by
+chat prose, and fills in a missing `version`, `updatedAt`, `description`, or
+`id` automatically — it reports whatever it filled in.
+
+Use **Copy AI prompt** on that panel to get a ready-made prompt for an AI chat:
+paste the prompt plus your plan in any wording, and paste the JSON it returns
+straight back into the app.
+
+Exercise IDs that are not in the bundled Exercise Library are accepted with a
+warning. Those exercises track fully (sets, reps, rest, form tips come from the
+program JSON) but have no built-in form guide, image, or demo video. Reuse the
+IDs listed in the AI prompt wherever a movement matches to get that media.
+
+## 2. Bundle it with the app (requires a deploy)
+
+Workout programs are also JSON documents discovered automatically at build time. They reference one shared bundled Exercise Library by stable exercise ID; exercise instructions, form guidance, and media are not embedded in program JSON. Adding a valid program does not require a new TypeScript import and does not activate it. A user must explicitly install a discovered program through the Program Manager.
+
+### Build-time workflow
 
 1. Prepare a workout-program JSON file by copying `src/data/workout-programs/_template.example.json` and renaming it. The installable filename must not start with `_` or end with `.example.json`.
 2. Reference existing shared exercise IDs wherever the movement is already defined.

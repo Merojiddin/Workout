@@ -2,6 +2,7 @@ import { BODY_CHECK_INS_KEY } from '../data/bodyCheckIns'
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
 import { resolveExerciseIdentity } from '../data/exerciseIdentity'
+import { toLocalIsoDate } from './dateUtils'
 import {
   CUSTOM_EXERCISE_LIBRARY_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
@@ -419,7 +420,7 @@ function yesNo(value) {
 }
 
 function fileDate(date = new Date()) {
-  return date.toISOString().slice(0, 10)
+  return toLocalIsoDate(date)
 }
 
 function dateKey(date) {
@@ -427,8 +428,7 @@ function dateKey(date) {
     return ''
   }
 
-  const parsed = date instanceof Date ? date : new Date(date)
-  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+  return toLocalIsoDate(date)
 }
 
 function muscleSets(volume = [], muscle) {

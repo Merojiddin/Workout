@@ -1,5 +1,9 @@
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
-import { safeGetJSON, safeSetJSON } from '../utils/storageUtils'
+import {
+  resolveStorageKey,
+  safeGetJSON,
+  safeSetJSON,
+} from '../utils/storageUtils'
 
 /**
  * Step 12 - shared service helpers.
@@ -106,9 +110,14 @@ export function backupLocalKey(key) {
     return
   }
   try {
-    const current = window.localStorage.getItem(key)
+    // Must go through resolveStorageKey so the backup lands in the signed-in
+    // user's namespace instead of a shared global key.
+    const current = window.localStorage.getItem(resolveStorageKey(key))
     if (current !== null) {
-      window.localStorage.setItem(`${key}__cloudBackup`, current)
+      window.localStorage.setItem(
+        resolveStorageKey(`${key}__cloudBackup`),
+        current,
+      )
     }
   } catch {
     // Best-effort.

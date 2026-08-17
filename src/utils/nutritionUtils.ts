@@ -1,5 +1,6 @@
 import { NUTRITION_LOGS_KEY, type NutritionLog } from '../data/nutritionLogs'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
+import { toLocalIsoDate, todayIsoDate } from './dateUtils'
 
 export type NutritionNumericKey =
   | 'bodyWeightKg'
@@ -312,9 +313,7 @@ export function formatNutritionDate(date: string): string {
 
 /** Today's date as a local YYYY-MM-DD string. */
 export function todayIso(): string {
-  const now = new Date()
-  const offset = now.getTimezoneOffset() * 60000
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10)
+  return todayIsoDate()
 }
 
 // --- internal helpers ---------------------------------------------------------
@@ -557,8 +556,7 @@ function addDays(date: Date, days: number): Date {
 }
 
 function toDateKey(date: Date): string {
-  const offset = date.getTimezoneOffset() * 60000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+  return toLocalIsoDate(date)
 }
 
 function formatWeekLabel(dateKey: string): string {

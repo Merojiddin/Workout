@@ -1,4 +1,5 @@
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
+import { toLocalIsoDate, todayIsoDate } from './dateUtils'
 import {
   exerciseIdentitiesMatch,
   type ExerciseIdentityOptions,
@@ -156,7 +157,7 @@ export function createActiveWorkoutSession(
 
   return {
     id: sessionId,
-    date: now.toISOString().slice(0, 10),
+    date: toLocalIsoDate(now),
     workoutDayId,
     workoutName: toText(workoutDay?.name, 'Workout'),
     sessionType,
@@ -242,10 +243,19 @@ export function clearActiveWorkoutSession(): void {
   safeRemove(ACTIVE_WORKOUT_SESSION_KEY)
 }
 
-/** Move a finished active session into workoutSessions, then clear it. */
+export interface CompleteWorkoutResult {
+  /** False when history could not be written; the active session is kept. */
+  saved: boolean
+  session: WorkoutSession
+}
+
+/**
+ * Moves a finished active session into workoutSessions, clearing the active
+ * session only if that write succeeded.
+ */
 export function completeActiveWorkoutSession(
   session: ActiveWorkoutSession,
-): WorkoutSession {
+): CompleteWorkoutResult {
   const finishedAt = new Date().toISOString()
   const sessionType: WorkoutSessionType =
     session?.sessionType === 'standalone' ? 'standalone' : 'scheduled'
@@ -255,7 +265,7 @@ export function completeActiveWorkoutSession(
       : null
   const finished: WorkoutSession = {
     completed: true,
-    date: toText(session?.date, finishedAt.slice(0, 10)),
+    date: toText(session?.date, toLocalIsoDate(finishedAt)),
     exercises: safeArray<ActiveExercise>(session?.exercises).map(
       toLoggedExercise,
     ),
@@ -278,9 +288,15 @@ export function completeActiveWorkoutSession(
     workoutName: toText(session?.workoutName, 'Workout'),
   }
 
-  saveWorkoutSession(finished)
-  clearActiveWorkoutSession()
-  return finished
+  // Only discard the in-progress session once history has actually accepted
+  // it. Clearing unconditionally meant a failed write (a full localStorage is
+  // the realistic cause) destroyed the workout that was just completed.
+  const saved = saveWorkoutSession(finished)
+  if (saved) {
+    clearActiveWorkoutSession()
+  }
+
+  return { saved, session: finished }
 }
 
 function toLoggedExercise(exercise: ActiveExercise): LoggedExercise {
@@ -912,7 +928,7 @@ function normalizeActiveSession(value: unknown): ActiveWorkoutSession | null {
 
   return {
     id: toText(value.id, `${Date.now()}`),
-    date: toText(value.date, new Date().toISOString().slice(0, 10)),
+    date: toText(value.date, todayIsoDate()),
     workoutDayId:
       sessionType === 'standalone'
         ? null

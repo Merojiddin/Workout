@@ -421,7 +421,7 @@ try {
   const activePushUpIndex = activeDay4PushUp.exercises.findIndex(
     (exercise) => exercise.exerciseId === 'weighted-push-up',
   )
-  const loggedDay4PushUp = liveWorkouts.completeActiveWorkoutSession(
+  const { session: loggedDay4PushUp } = liveWorkouts.completeActiveWorkoutSession(
     liveWorkouts.updateActiveSet(
       activeDay4PushUp,
       activePushUpIndex,
@@ -851,7 +851,8 @@ try {
     rir: 3,
     weightKg: 40,
   })
-  const finishedReentry = liveWorkouts.completeActiveWorkoutSession(activeReentry)
+  const { session: finishedReentry } =
+    liveWorkouts.completeActiveWorkoutSession(activeReentry)
   assert.equal(finishedReentry.sessionType, 'standalone')
   assert.equal(finishedReentry.workoutDayId, null)
   assert.equal(finishedReentry.standaloneWorkoutId, 'full-body-reentry')

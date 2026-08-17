@@ -229,10 +229,12 @@ function AuthedApp() {
         <LazyPageBoundary pageKey={activePage}>
           <Suspense fallback={<LoadingState />}>
             {cloneElement(renderPage(), {
+              // userId is part of the key so switching accounts tears down any
+              // page state still holding the previous user's data.
               key:
                 activePage === 'plan-editor'
-                  ? activePage
-                  : `${activePage}-${dataVersion}`,
+                  ? `${activePage}-${userId ?? 'local'}`
+                  : `${activePage}-${userId ?? 'local'}-${dataVersion}`,
             })}
           </Suspense>
         </LazyPageBoundary>

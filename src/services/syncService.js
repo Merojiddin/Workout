@@ -11,10 +11,16 @@ import {
 import { pushBodyCheckInToCloud } from './bodyCheckInService'
 import { pushNutritionLogToCloud } from './nutritionService'
 import {
+  fetchUserWorkoutProgramsFromCloud,
   saveCustomExerciseLibrary,
   saveCustomWorkoutPlan,
   saveUserSettings,
+  saveUserWorkoutProgramsToCloud,
 } from './settingsService'
+import {
+  getUserWorkoutPrograms,
+  replaceUserWorkoutPrograms,
+} from '../utils/userWorkoutPrograms'
 import { pushWorkoutSessionToCloud } from './workoutService'
 import {
   backupLocalKey,
@@ -38,6 +44,7 @@ import {
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   INSTALLED_WORKOUT_PROGRAM_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
 } from '../utils/storageUtils'
 import { hydrateWorkoutProgramManagerFromCloudSettings } from './workoutProgramService'
 
@@ -101,6 +108,7 @@ export async function syncLocalToCloud(user) {
     settings: 0,
     customPlan: 0,
     customLibrary: 0,
+    userPrograms: 0,
     errors: [],
   }
 
@@ -156,6 +164,16 @@ export async function syncLocalToCloud(user) {
     }
   }
 
+  const pastedPrograms = getUserWorkoutPrograms()
+  if (pastedPrograms.length > 0) {
+    try {
+      await saveUserWorkoutProgramsToCloud(user, pastedPrograms)
+      summary.userPrograms = pastedPrograms.length
+    } catch (error) {
+      summary.errors.push(describe('pasted workout programs', error))
+    }
+  }
+
   return summary
 }
 
@@ -171,6 +189,7 @@ export async function syncCloudToLocal(user) {
     settings: 0,
     customPlan: 0,
     customLibrary: 0,
+    userPrograms: 0,
     errors: [],
   }
 
@@ -264,6 +283,16 @@ export async function syncCloudToLocal(user) {
     }
   } catch (error) {
     summary.errors.push(describe('exercise library', error))
+  }
+
+  try {
+    const cloudPrograms = await fetchUserWorkoutProgramsFromCloud(user)
+    if (Array.isArray(cloudPrograms) && cloudPrograms.length > 0) {
+      backupLocalKey(USER_WORKOUT_PROGRAMS_KEY)
+      summary.userPrograms = replaceUserWorkoutPrograms(cloudPrograms).length
+    }
+  } catch (error) {
+    summary.errors.push(describe('pasted workout programs', error))
   }
 
   return summary
@@ -409,6 +438,14 @@ async function processQueueItem(user, item) {
       return processSingleValueQueueItem(
         'custom_exercise_libraries',
         'library',
+        user,
+        item,
+        payload,
+      )
+    case 'userWorkoutPrograms':
+      return processSingleValueQueueItem(
+        'user_workout_programs',
+        'programs',
         user,
         item,
         payload,

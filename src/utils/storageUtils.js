@@ -8,6 +8,7 @@ export const CUSTOM_WORKOUT_PLAN_KEY = 'customWorkoutPlan'
 export const INSTALLED_WORKOUT_PROGRAM_KEY = 'installedWorkoutProgram'
 export const DISMISSED_WORKOUT_PROGRAMS_KEY = 'dismissedWorkoutPrograms'
 export const WORKOUT_PLAN_BACKUPS_KEY = 'workoutPlanBackups'
+export const USER_WORKOUT_PROGRAMS_KEY = 'userWorkoutPrograms'
 export const CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY =
   'cloudWorkoutProgramManagerCache'
 export const USER_PROFILE_SETTINGS_KEY = 'userProfileSettings'
@@ -28,6 +29,7 @@ export const FITNESS_APP_STORAGE_KEYS = [
   INSTALLED_WORKOUT_PROGRAM_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
   REMINDER_SETTINGS_KEY,
@@ -49,6 +51,7 @@ const JSON_STORAGE_KEYS = new Set([
   INSTALLED_WORKOUT_PROGRAM_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
   REMINDER_SETTINGS_KEY,
@@ -63,6 +66,170 @@ const APP_KEY_SUFFIXES = ['__cloudBackup']
 const FIVE_MB = 5 * 1024 * 1024
 
 /**
+ * Per-user storage namespacing.
+ *
+ * Every app key is stored under `u:<userId>:<key>` while a user is signed in,
+ * and under its bare name in local (signed-out) mode. Callers always pass the
+ * bare "logical" key - resolution happens here - so no page or util needed to
+ * change.
+ *
+ * This is what keeps two people sharing one browser from reading, overwriting,
+ * or uploading each other's history: signing in switches the namespace, so the
+ * previous user's data is not merely hidden but unreachable through the normal
+ * read path.
+ */
+const NAMESPACE_PREFIX = 'u:'
+const LEGACY_CLAIM_KEY = 'legacyLocalDataClaim'
+
+let activeStorageNamespace = null
+
+/** @param {string | null | undefined} userId */
+export function setStorageNamespace(userId) {
+  const next = normalizeNamespace(userId)
+  const changed = next !== activeStorageNamespace
+  activeStorageNamespace = next
+  return changed
+}
+
+export function getStorageNamespace() {
+  return activeStorageNamespace
+}
+
+function normalizeNamespace(userId) {
+  if (typeof userId !== 'string') {
+    return null
+  }
+  const trimmed = userId.trim()
+  if (trimmed === '') {
+    return null
+  }
+  // Keep the prefix delimiter unambiguous.
+  return trimmed.replace(/:/g, '-')
+}
+
+/** Bare key -> the key actually written to localStorage. */
+export function resolveStorageKey(key) {
+  if (activeStorageNamespace === null) {
+    return key
+  }
+  return `${NAMESPACE_PREFIX}${activeStorageNamespace}:${key}`
+}
+
+/**
+ * Physical key -> bare key, or null when it belongs to a different namespace.
+ */
+function toLogicalKey(physicalKey) {
+  if (activeStorageNamespace === null) {
+    return physicalKey.startsWith(NAMESPACE_PREFIX) ? null : physicalKey
+  }
+
+  const prefix = `${NAMESPACE_PREFIX}${activeStorageNamespace}:`
+  return physicalKey.startsWith(prefix) ? physicalKey.slice(prefix.length) : null
+}
+
+/**
+ * One-time migration for data written before namespacing existed.
+ *
+ * The un-namespaced data belongs to whoever was using the app locally, so the
+ * FIRST account to sign in on this device adopts it. Later accounts get a clean
+ * slate instead of inheriting someone else's history.
+ */
+export function claimLegacyLocalDataForUser(userId) {
+  const namespace = normalizeNamespace(userId)
+  if (!namespace || !canUseLocalStorage()) {
+    return { claimed: false, keys: [] }
+  }
+
+  try {
+    const existingClaim = window.localStorage.getItem(LEGACY_CLAIM_KEY)
+    if (existingClaim !== null) {
+      return { claimed: false, keys: [], claimedBy: existingClaim }
+    }
+
+    const legacyKeys = []
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index)
+      if (
+        key &&
+        !key.startsWith(NAMESPACE_PREFIX) &&
+        key !== LEGACY_CLAIM_KEY &&
+        isFitnessStorageKey(key)
+      ) {
+        legacyKeys.push(key)
+      }
+    }
+
+    // Always record the claim, even with nothing to move, so a second account
+    // signing in later can never adopt data the first account creates.
+    window.localStorage.setItem(LEGACY_CLAIM_KEY, namespace)
+
+    const moved = []
+    legacyKeys.forEach((key) => {
+      try {
+        const value = window.localStorage.getItem(key)
+        if (value === null) {
+          return
+        }
+        window.localStorage.setItem(
+          `${NAMESPACE_PREFIX}${namespace}:${key}`,
+          value,
+        )
+        window.localStorage.removeItem(key)
+        moved.push(key)
+      } catch {
+        // Best effort: a quota failure leaves the original key in place.
+      }
+    })
+
+    return { claimed: true, keys: moved, claimedBy: namespace }
+  } catch {
+    return { claimed: false, keys: [] }
+  }
+}
+
+/** Removes every app key belonging to one user. Used by "forget this device". */
+export function clearNamespacedData(userId) {
+  const namespace = normalizeNamespace(userId)
+  if (!canUseLocalStorage()) {
+    return []
+  }
+
+  const prefix =
+    namespace === null ? null : `${NAMESPACE_PREFIX}${namespace}:`
+  const removed = []
+
+  try {
+    const doomed = []
+    for (let index = 0; index < window.localStorage.length; index += 1) {
+      const key = window.localStorage.key(index)
+      if (!key) {
+        continue
+      }
+      if (prefix === null) {
+        if (!key.startsWith(NAMESPACE_PREFIX) && isFitnessStorageKey(key)) {
+          doomed.push(key)
+        }
+      } else if (key.startsWith(prefix)) {
+        doomed.push(key)
+      }
+    }
+
+    doomed.forEach((key) => {
+      try {
+        window.localStorage.removeItem(key)
+        removed.push(key)
+      } catch {
+        // Ignore individual failures.
+      }
+    })
+  } catch {
+    return removed
+  }
+
+  return removed
+}
+
+/**
  * @param {string} key
  * @param {any} fallback
  * @returns {any}
@@ -73,7 +240,7 @@ export function safeGetJSON(key, fallback = null) {
   }
 
   try {
-    const raw = window.localStorage.getItem(key)
+    const raw = window.localStorage.getItem(resolveStorageKey(key))
     if (raw === null || raw === '') {
       return fallback
     }
@@ -99,7 +266,7 @@ export function safeSetJSON(key, value) {
     if (typeof serialized !== 'string') {
       return false
     }
-    window.localStorage.setItem(key, serialized)
+    window.localStorage.setItem(resolveStorageKey(key), serialized)
     return true
   } catch {
     return false
@@ -112,7 +279,7 @@ export function safeRemove(key) {
   }
 
   try {
-    window.localStorage.removeItem(key)
+    window.localStorage.removeItem(resolveStorageKey(key))
     return true
   } catch {
     return false
@@ -125,7 +292,7 @@ export function safeHasStorageKey(key) {
   }
 
   try {
-    return window.localStorage.getItem(key) !== null
+    return window.localStorage.getItem(resolveStorageKey(key)) !== null
   } catch {
     return false
   }
@@ -203,7 +370,7 @@ export function restoreLocalStorageBackup(fileData) {
       }
 
       try {
-        window.localStorage.setItem(key, value)
+        window.localStorage.setItem(resolveStorageKey(key), value)
         restored.push(key)
       } catch {
         skipped.push(key)
@@ -296,7 +463,13 @@ export function getFitnessStorageKeys() {
   const keys = new Set()
   try {
     for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index)
+      const physicalKey = window.localStorage.key(index)
+      if (!physicalKey) {
+        continue
+      }
+      // Only surface keys inside the active namespace, so Data Health and
+      // backups never expose another account's data.
+      const key = toLogicalKey(physicalKey)
       if (key && isFitnessStorageKey(key)) {
         keys.add(key)
       }
@@ -330,12 +503,12 @@ function quarantineCorruptedValue(key) {
   }
 
   try {
-    const raw = window.localStorage.getItem(key)
+    const raw = window.localStorage.getItem(resolveStorageKey(key))
     if (raw === null) {
       return
     }
 
-    const prefix = `corrupted_${key}_`
+    const prefix = resolveStorageKey(`corrupted_${key}_`)
     for (let index = 0; index < window.localStorage.length; index += 1) {
       const existingKey = window.localStorage.key(index)
       if (
@@ -350,7 +523,7 @@ function quarantineCorruptedValue(key) {
       .toISOString()
       .replace(/[:.]/g, '-')}`
 
-    window.localStorage.setItem(backupKey, raw)
+    window.localStorage.setItem(resolveStorageKey(backupKey), raw)
   } catch {
     // Best effort only.
   }
@@ -374,7 +547,7 @@ function getRawStorageValue(key) {
   }
 
   try {
-    return window.localStorage.getItem(key)
+    return window.localStorage.getItem(resolveStorageKey(key))
   } catch {
     return null
   }

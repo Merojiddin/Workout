@@ -268,6 +268,41 @@ export async function saveCustomWorkoutPlan(user, plan) {
   return saved
 }
 
+// --- user-pasted workout programs -------------------------------------------
+
+/**
+ * Pasted programs are per-user content, so they follow the same offline-first
+ * single-document pattern as the custom plan: local write always wins, cloud
+ * upsert when online, queued otherwise.
+ */
+export async function saveUserWorkoutProgramsToCloud(user, programs) {
+  const list = Array.isArray(programs) ? programs : []
+  if (!isCloudMode(user)) {
+    return list
+  }
+
+  if (!isBrowserOnline()) {
+    queueSettingsChange('userWorkoutPrograms', 'update', list, 'offline')
+    throw createCloudSyncError(new Error('offline'))
+  }
+
+  try {
+    await upsertSingle('user_workout_programs', user, 'programs', list)
+  } catch (error) {
+    queueSettingsChange('userWorkoutPrograms', 'update', list, describeError(error))
+    throw createCloudSyncError(error)
+  }
+
+  return list
+}
+
+export async function fetchUserWorkoutProgramsFromCloud(user) {
+  if (!isCloudMode(user) || !isBrowserOnline()) {
+    return null
+  }
+  return fetchSingle('user_workout_programs', user, 'programs')
+}
+
 // --- custom exercise library ------------------------------------------------
 
 export async function getCustomExerciseLibrary(user) {

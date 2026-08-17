@@ -15,11 +15,14 @@ export interface AuthValue {
   user: AuthUser | null
   session: unknown
   loading: boolean
+  /** True while a password-reset link's recovery session is active. */
+  recoveryMode: boolean
   isSupabaseConfigured: boolean
   signUp: (email: string, password: string, name?: string) => Promise<AuthResult>
   signIn: (email: string, password: string) => Promise<AuthResult>
   signOut: () => Promise<AuthResult>
   resetPassword: (email: string) => Promise<AuthResult>
+  updatePassword: (password: string) => Promise<AuthResult>
 }
 
 export function AuthProvider(props: { children: ReactNode }): ReactElement

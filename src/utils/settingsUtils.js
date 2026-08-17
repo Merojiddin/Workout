@@ -14,6 +14,7 @@ import {
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   INSTALLED_WORKOUT_PROGRAM_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
   safeGetJSON,
   safeRemove,
   safeSetJSON,
@@ -84,6 +85,7 @@ const appStorageKeys = [
   INSTALLED_WORKOUT_PROGRAM_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   WORKOUT_SESSIONS_KEY,
   BODY_CHECK_INS_KEY,
@@ -389,7 +391,21 @@ export function getWorkoutForDate(date = new Date(), plan = getCustomWorkoutPlan
   const dayOfWeek = date.getDay()
   const mondayBasedIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1
 
-  return safePlan[mondayBasedIndex] ?? safePlan[0] ?? clone(weeklyPlan[0])
+  // Match on the declared day number first. Array position only agrees with it
+  // when a plan has exactly seven days in order, which is not guaranteed for
+  // pasted programs, so position is the fallback rather than the rule.
+  const targetDayNumber = mondayBasedIndex + 1
+  const byDayNumber = safePlan.find((day) => day?.day === targetDayNumber)
+  if (byDayNumber) {
+    return byDayNumber
+  }
+
+  // Shorter cycles (a 3- or 4-day split) repeat across the week.
+  if (safePlan.length > 0) {
+    return safePlan[mondayBasedIndex % safePlan.length]
+  }
+
+  return clone(weeklyPlan[0])
 }
 
 export function getExerciseTargetLabel(exercise) {
@@ -617,12 +633,26 @@ function normalizeUserProfileSettings(value) {
 }
 
 function normalizeWorkoutPlan(value) {
-  const source = Array.isArray(value) ? value : []
+  const source = Array.isArray(value) ? value.filter(isPlainObject) : []
 
-  return weeklyPlan.map((defaultDay, index) => {
-    const incoming =
-      source.find((day) => Number(day?.day) === defaultDay.day) ?? source[index]
-    return normalizeWorkoutDay(incoming, defaultDay, index)
+  // With nothing stored, the bundled default plan is the plan.
+  if (source.length === 0) {
+    return weeklyPlan.map((defaultDay, index) =>
+      normalizeWorkoutDay(defaultDay, defaultDay, index),
+    )
+  }
+
+  // A stored plan defines its own length and order. Previously this mapped over
+  // the seven bundled days, which padded shorter programs with legacy days and
+  // silently dropped anything past day seven - both wrong for pasted programs.
+  // A default day is now only consulted to fill in missing display fields.
+  return source.map((day, index) => {
+    const dayNumber = Number(day?.day)
+    const defaultDay =
+      weeklyPlan.find((entry) => entry.day === dayNumber) ??
+      weeklyPlan[index] ??
+      weeklyPlan[0]
+    return normalizeWorkoutDay(day, defaultDay, index)
   })
 }
 
@@ -643,7 +673,13 @@ function normalizeWorkoutDay(value, fallback, index) {
       ? day.exercises.map((exercise, exerciseIndex) =>
           normalizePlanExercise(
             exercise,
-            defaultDay.exercises?.[exerciseIndex],
+            // Only inherit from the default exercise in the same slot when it
+            // is the SAME movement. Position alone would let an unrelated
+            // pasted exercise inherit bench-press rest, equipment, and cues.
+            matchingDefaultExercise(
+              exercise,
+              defaultDay.exercises?.[exerciseIndex],
+            ),
             `${index + 1}-${exerciseIndex + 1}`,
           ),
         )
@@ -651,6 +687,32 @@ function normalizeWorkoutDay(value, fallback, index) {
           normalizePlanExercise(exercise, null, `${index + 1}-${exerciseIndex + 1}`),
         ),
   }
+}
+
+/**
+ * Returns the default exercise only when it describes the same movement as the
+ * incoming one, matched by id and then by name. Otherwise null, so generic
+ * defaults are used instead of another exercise's data.
+ */
+function matchingDefaultExercise(incoming, defaultExercise) {
+  if (!isPlainObject(incoming) || !isPlainObject(defaultExercise)) {
+    return null
+  }
+
+  const incomingId = toText(incoming.id, '')
+  const defaultId = toText(defaultExercise.id, '')
+  if (incomingId && defaultId) {
+    return incomingId === defaultId ? defaultExercise : null
+  }
+
+  const incomingName = toText(incoming.name, '').toLowerCase()
+  const defaultName = toText(defaultExercise.name, '').toLowerCase()
+  if (incomingName && defaultName) {
+    return incomingName === defaultName ? defaultExercise : null
+  }
+
+  // Nothing identifies the incoming exercise, so inheriting is the best guess.
+  return defaultExercise
 }
 
 function normalizePlanExercise(value, fallback, suffix) {

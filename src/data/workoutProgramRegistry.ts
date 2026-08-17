@@ -1,6 +1,7 @@
 import { exerciseLibrary } from './exerciseLibrary'
 import type { WorkoutProgram } from '../types/workoutProgram'
 import type { WorkoutProgramValidationResult } from '../types/workoutProgram'
+import { getUserWorkoutPrograms } from '../utils/userWorkoutPrograms'
 import { validateWorkoutProgram } from '../utils/workoutProgramValidation'
 
 export const LEGACY_WORKOUT_PROGRAM_ID = 'legacy-workout-v1'
@@ -82,8 +83,38 @@ if (import.meta.env.DEV) {
     })
 }
 
+/**
+ * Bundled programs plus the current user's pasted programs.
+ *
+ * Read on every call rather than cached at module load, because pasted
+ * programs are stored per user and can be added, replaced, or removed while
+ * the app is running. A pasted program shadows a bundled one with the same
+ * id and version, so re-pasting a fixed copy of a shipped program wins.
+ */
+function allPrograms(): RegisteredProgram[] {
+  const userPrograms = getUserWorkoutPrograms().map((program) => ({
+    filename: `user:${program.id}@${program.version}`,
+    program: program as WorkoutProgram,
+  }))
+
+  if (userPrograms.length === 0) {
+    return registeredPrograms
+  }
+
+  const shadowed = new Set(
+    userPrograms.map(({ program }) => `${program.id}@${program.version}`),
+  )
+
+  return [
+    ...registeredPrograms.filter(
+      ({ program }) => !shadowed.has(`${program.id}@${program.version}`),
+    ),
+    ...userPrograms,
+  ].sort(compareRegisteredPrograms)
+}
+
 export function getWorkoutPrograms(): WorkoutProgram[] {
-  return registeredPrograms.map(({ program }) => cloneProgram(program))
+  return allPrograms().map(({ program }) => cloneProgram(program))
 }
 
 /** Returns the latest registered version for a program ID. */
@@ -95,7 +126,7 @@ export function getWorkoutProgramByIdAndVersion(
   id: string,
   version: string,
 ): WorkoutProgram | undefined {
-  const match = registeredPrograms.find(
+  const match = allPrograms().find(
     ({ program }) => program.id === id && program.version === version,
   )
   return match ? cloneProgram(match.program) : undefined
@@ -104,7 +135,7 @@ export function getWorkoutProgramByIdAndVersion(
 export function getLatestWorkoutProgramById(
   id: string,
 ): WorkoutProgram | undefined {
-  const match = registeredPrograms
+  const match = allPrograms()
     .filter(({ program }) => program.id === id)
     .at(-1)
   return match ? cloneProgram(match.program) : undefined
@@ -118,7 +149,7 @@ export function isWorkoutProgramAvailable(
   id: string,
   version: string,
 ): boolean {
-  return registeredPrograms.some(
+  return allPrograms().some(
     ({ program }) => program.id === id && program.version === version,
   )
 }

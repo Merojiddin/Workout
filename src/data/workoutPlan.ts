@@ -732,7 +732,12 @@ export function getWorkoutForDate(date = new Date()) {
   const dayOfWeek = date.getDay()
   const mondayBasedIndex = dayOfWeek === 0 ? 6 : dayOfWeek - 1
 
-  return weeklyPlan[mondayBasedIndex]
+  // Prefer the declared day number so reordering the array cannot silently
+  // shift which workout a weekday maps to.
+  return (
+    weeklyPlan.find((day) => day.day === mondayBasedIndex + 1) ??
+    weeklyPlan[mondayBasedIndex]
+  )
 }
 
 export function getExerciseTarget(exercise: Exercise) {

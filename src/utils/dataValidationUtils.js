@@ -1,3 +1,5 @@
+import { todayIsoDate } from './dateUtils'
+
 const BODY_MEASUREMENT_KEYS = [
   'bodyWeightKg',
   'waistCm',
@@ -460,9 +462,7 @@ function humanizeKey(key) {
 }
 
 function todayIso() {
-  const now = new Date()
-  const offset = now.getTimezoneOffset() * 60000
-  return new Date(now.getTime() - offset).toISOString().slice(0, 10)
+  return todayIsoDate()
 }
 
 function createId(prefix, index) {

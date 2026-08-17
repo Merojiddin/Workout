@@ -335,3 +335,36 @@ create trigger user_settings_set_updated_at
 -- =====================================================================
 -- Done. Every table now enforces per-user Row Level Security.
 -- =====================================================================
+
+-- =====================================================================
+-- user_workout_programs  (one row per user)
+--
+-- Holds the workout programs a user pasted into the app, as a JSON array.
+-- Programs are per-user content, so this is guarded by the same owner-only
+-- RLS policies as every other table here.
+-- =====================================================================
+create table if not exists public.user_workout_programs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  programs jsonb not null default '[]'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create unique index if not exists user_workout_programs_user_id_key
+  on public.user_workout_programs (user_id);
+
+alter table public.user_workout_programs enable row level security;
+
+create policy "Users can view own workout programs"
+  on public.user_workout_programs for select using (auth.uid() = user_id);
+create policy "Users can insert own workout programs"
+  on public.user_workout_programs for insert with check (auth.uid() = user_id);
+create policy "Users can update own workout programs"
+  on public.user_workout_programs for update using (auth.uid() = user_id);
+create policy "Users can delete own workout programs"
+  on public.user_workout_programs for delete using (auth.uid() = user_id);
+
+create trigger user_workout_programs_set_updated_at
+  before update on public.user_workout_programs
+  for each row execute function public.set_updated_at();

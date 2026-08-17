@@ -89,9 +89,10 @@ export function getWorkoutSessions(): WorkoutSession[] {
   return Array.isArray(sessions) ? sessions : []
 }
 
-export function saveWorkoutSession(session: WorkoutSession) {
+/** Returns false when the write failed, e.g. storage is full. */
+export function saveWorkoutSession(session: WorkoutSession): boolean {
   const sessions = getWorkoutSessions()
-  safeSetJSON(WORKOUT_SESSIONS_KEY, [session, ...sessions])
+  return safeSetJSON(WORKOUT_SESSIONS_KEY, [session, ...sessions])
 }
 
 export function getTargetReps(exercise: Exercise) {

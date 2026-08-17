@@ -134,6 +134,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   const [finishedSession, setFinishedSession] = useState<WorkoutSession | null>(
     null,
   )
+  const [finishError, setFinishError] = useState<string | null>(null)
   const [showFormGuide, setShowFormGuide] = useState(false)
   const [restSignal, setRestSignal] = useState(0)
   const [nowTs, setNowTs] = useState(() => Date.now())
@@ -317,7 +318,18 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
       return
     }
 
-    const finished = completeActiveWorkoutSession(session)
+    const { saved, session: finished } = completeActiveWorkoutSession(session)
+
+    if (!saved) {
+      // History could not be written, so the active workout is deliberately
+      // still on screen and still saved. Losing it silently would be worse.
+      setFinishError(
+        'Could not save this workout - device storage is full. Free up space (Settings > Data Health) and press Finish again. Your workout is still here.',
+      )
+      return
+    }
+
+    setFinishError(null)
     // Local save already happened above; push to the cloud in the background.
     void workoutService.saveWorkoutSession(user, finished).catch(() => undefined)
     setFinishedSession(finished)
@@ -357,6 +369,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     return (
       <LiveWorkoutScreen
         exerciseLibrary={effectiveExerciseLibrary}
+        finishError={finishError}
         onAddExtraSet={addExtraSet}
         onFinish={finishWorkout}
         onMoveExercise={moveExercise}
@@ -1123,6 +1136,7 @@ function StandaloneWorkoutCard({
 
 interface LiveWorkoutScreenProps {
   exerciseLibrary: readonly LibraryExercise[]
+  finishError: string | null
   onAddExtraSet: () => void
   onCloseFormGuide: () => void
   onFinish: () => void
@@ -1142,6 +1156,7 @@ interface LiveWorkoutScreenProps {
 
 function LiveWorkoutScreen({
   exerciseLibrary,
+  finishError,
   onAddExtraSet,
   onCloseFormGuide,
   onFinish,
@@ -1281,6 +1296,12 @@ function LiveWorkoutScreen({
 
   return (
     <section className="workout-page workout-page--live">
+      {finishError ? (
+        <div className="live-finish-error" role="alert">
+          <ShieldCheck size={18} strokeWidth={2.4} aria-hidden="true" />
+          <span>{finishError}</span>
+        </div>
+      ) : null}
       <LiveWorkoutHeader
         completedSets={getCompletedSetsCount(session)}
         currentExerciseIndex={session.currentExerciseIndex}

@@ -2,10 +2,13 @@ import {
   AlertTriangle,
   Archive,
   CheckCircle2,
+  ClipboardPaste,
+  Copy,
   Download,
   Eye,
   Package,
   RotateCcw,
+  Trash2,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -25,6 +28,7 @@ import {
   type CloudProgramOperationStatus,
   type CloudWorkoutPlanBackup,
 } from '../services/workoutProgramService'
+import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import {
   CURRENT_DEFAULT_PROGRAM_ID,
   getLatestWorkoutProgramById,
@@ -34,6 +38,15 @@ import {
 } from '../data/workoutProgramRegistry'
 import type { WorkoutProgram } from '../types/workoutProgram'
 import { exportWorkoutPlanJSON } from '../utils/exportUtils'
+import {
+  buildProgramAuthoringPrompt,
+  deleteUserWorkoutProgram,
+  getUserWorkoutPrograms,
+  parseWorkoutProgramInput,
+  saveUserWorkoutProgram,
+  type ParsedWorkoutProgramResult,
+  type UserWorkoutProgram,
+} from '../utils/userWorkoutPrograms'
 import {
   getCustomWorkoutPlan,
   getExerciseTargetLabel,
@@ -70,7 +83,10 @@ interface ManagerState {
   hasStoredCustomPlan: boolean
   installed: InstalledWorkoutProgram | null
   localBackups: WorkoutPlanBackup[]
+  /** Bundled programs plus this user's pasted ones; re-read on every refresh. */
+  programs: WorkoutProgram[]
   savedPlan: WorkoutDay[]
+  userPrograms: UserWorkoutProgram[]
 }
 
 type ProgramStatus = 'Current' | 'Available' | 'Dismissed' | 'Legacy'
@@ -79,7 +95,6 @@ type ManagerNotice = {
   tone: 'success' | 'error'
 }
 
-const programs = getWorkoutPrograms()
 const validationResults = getWorkoutProgramValidationResults()
 const CLOUD_OFFLINE_MESSAGE =
   'Connect to the internet before changing a cloud workout program.'
@@ -132,6 +147,7 @@ export function WorkoutProgramManager({
       ? 'Custom workout plan'
       : getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)?.name ??
         'Original weekly workout plan'
+  const programs = managerState.programs
   const dismissedCount = programs.filter((program) =>
     dismissedIdentities.has(programIdentity(program.id, program.version)),
   ).length
@@ -186,6 +202,17 @@ export function WorkoutProgramManager({
     const next = readManagerState(user?.id ?? null)
     setManagerState(next)
     return next
+  }
+
+  /**
+   * Mirrors pasted programs to the cloud. The local save already succeeded, so
+   * a failure here is queued for replay rather than surfaced as a hard error.
+   */
+  function persistProgramsToCloud(programs: UserWorkoutProgram[]) {
+    if (!cloudActive) {
+      return
+    }
+    saveUserWorkoutProgramsToCloud(user, programs).catch(() => undefined)
   }
 
   async function keepCurrentPlan(program: WorkoutProgram) {
@@ -488,6 +515,20 @@ export function WorkoutProgramManager({
           changes are not included.
         </small>
       ) : null}
+
+      <PasteProgramPanel
+        onSaved={(message, programs) => {
+          setNotice({ message, tone: 'success' })
+          refreshState()
+          persistProgramsToCloud(programs)
+        }}
+        savedPrograms={managerState.userPrograms}
+        onDeleted={(message, programs) => {
+          setNotice({ message, tone: 'success' })
+          refreshState()
+          persistProgramsToCloud(programs)
+        }}
+      />
 
       <div className="program-manager__grid">
         {visiblePrograms.map((program) => {
@@ -1277,7 +1318,9 @@ function readManagerState(userId: string | null): ManagerState {
       ? cloudMetadata?.installedProgram ?? null
       : installed.data,
     localBackups: localBackups.data,
+    programs: getWorkoutPrograms(),
     savedPlan: getCustomWorkoutPlan(),
+    userPrograms: getUserWorkoutPrograms(),
   }
 }
 
@@ -1360,4 +1403,234 @@ function downloadJSON(value: unknown, filename: string) {
 
 function exportCurrentPlan() {
   exportWorkoutPlanJSON()
+}
+
+interface PasteProgramPanelProps {
+  onDeleted: (message: string, programs: UserWorkoutProgram[]) => void
+  onSaved: (message: string, programs: UserWorkoutProgram[]) => void
+  savedPrograms: UserWorkoutProgram[]
+}
+
+/**
+ * Paste-a-program panel.
+ *
+ * Programs pasted here are saved to this user's own program list and then
+ * appear in the catalog above, so installing one goes through the same
+ * backup-and-verify path as a program that shipped with the app.
+ */
+function PasteProgramPanel({
+  onDeleted,
+  onSaved,
+  savedPrograms,
+}: PasteProgramPanelProps) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
+  const [copyLabel, setCopyLabel] = useState('Copy AI prompt')
+
+  function handleCheck() {
+    setResult(parseWorkoutProgramInput(text))
+  }
+
+  function handleSave() {
+    const parsed = result?.success ? result : parseWorkoutProgramInput(text)
+    setResult(parsed)
+    if (!parsed.success || !parsed.program) {
+      return
+    }
+
+    const saved = saveUserWorkoutProgram(parsed.program)
+    if (!saved.success) {
+      setResult({ ...parsed, success: false, errors: [saved.message] })
+      return
+    }
+
+    setText('')
+    setResult(null)
+    setOpen(false)
+    onSaved(
+      `${saved.message} Find it in the list below to install it.`,
+      saved.programs,
+    )
+  }
+
+  async function handleCopyPrompt() {
+    const prompt = buildProgramAuthoringPrompt()
+    try {
+      await navigator.clipboard.writeText(prompt)
+      setCopyLabel('Copied')
+    } catch {
+      // Clipboard access can be blocked; fall back to a manual selection.
+      setCopyLabel('Press Ctrl/Cmd+C')
+      setText(prompt)
+    }
+    window.setTimeout(() => setCopyLabel('Copy AI prompt'), 2500)
+  }
+
+  function handleDelete(program: UserWorkoutProgram) {
+    const confirmed = window.confirm(
+      `Remove "${program.name}" ${program.version} from your pasted programs?\n\nThis does not change your current workout plan.`,
+    )
+    if (!confirmed) {
+      return
+    }
+
+    const removed = deleteUserWorkoutProgram(program.id, program.version)
+    if (removed.success) {
+      onDeleted(`Removed "${program.name}" ${program.version}.`, removed.programs)
+    }
+  }
+
+  return (
+    <div className="paste-program">
+      <button
+        aria-expanded={open}
+        className="paste-program__toggle"
+        onClick={() => setOpen((current) => !current)}
+        type="button"
+      >
+        <ClipboardPaste size={18} strokeWidth={2.4} aria-hidden="true" />
+        {open ? 'Close paste panel' : 'Paste a workout program'}
+      </button>
+
+      {open ? (
+        <div className="paste-program__body">
+          <p className="paste-program__hint">
+            Paste a program in JSON. If you have your plan as plain text, copy
+            the prompt below into ChatGPT (or any AI chat) along with your plan,
+            then paste the JSON it returns here.
+          </p>
+
+          <button
+            className="workout-secondary-button paste-program__prompt-button"
+            onClick={handleCopyPrompt}
+            type="button"
+          >
+            <Copy size={17} strokeWidth={2.4} aria-hidden="true" />
+            {copyLabel}
+          </button>
+
+          <label className="paste-program__label" htmlFor="paste-program-input">
+            Program JSON
+          </label>
+          <textarea
+            className="paste-program__textarea"
+            id="paste-program-input"
+            onChange={(event) => {
+              setText(event.target.value)
+              setResult(null)
+            }}
+            placeholder={'{\n  "name": "My Program",\n  "days": [ ... ]\n}'}
+            rows={10}
+            spellCheck={false}
+            value={text}
+          />
+
+          <div className="paste-program__actions">
+            <button
+              className="workout-secondary-button"
+              disabled={text.trim() === ''}
+              onClick={handleCheck}
+              type="button"
+            >
+              Check
+            </button>
+            <button
+              className="workout-primary-button"
+              disabled={text.trim() === ''}
+              onClick={handleSave}
+              type="button"
+            >
+              Save program
+            </button>
+          </div>
+
+          {result ? (
+            <div
+              className={`paste-program__result paste-program__result--${
+                result.success ? 'ok' : 'error'
+              }`}
+              role={result.success ? 'status' : 'alert'}
+            >
+              {result.success && result.program ? (
+                <>
+                  <p className="paste-program__result-title">
+                    <CheckCircle2 size={17} strokeWidth={2.4} aria-hidden="true" />
+                    {result.program.name} looks good - {result.program.days.length}{' '}
+                    days, {countExercises(result.program.days)} exercises.
+                  </p>
+                  <p className="paste-program__result-note">
+                    Choose &quot;Save program&quot; to add it to your list.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="paste-program__result-title">
+                    <AlertTriangle size={17} strokeWidth={2.4} aria-hidden="true" />
+                    This program cannot be saved yet.
+                  </p>
+                  <ul className="paste-program__issues">
+                    {result.errors.map((error) => (
+                      <li key={error}>{error}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+
+              {result.repairs.length > 0 ? (
+                <ul className="paste-program__issues paste-program__issues--muted">
+                  {result.repairs.map((repair) => (
+                    <li key={repair}>{repair}</li>
+                  ))}
+                </ul>
+              ) : null}
+
+              {result.warnings.length > 0 ? (
+                <details className="paste-program__warnings">
+                  <summary>
+                    {result.warnings.length} warning
+                    {result.warnings.length === 1 ? '' : 's'} (program still
+                    works)
+                  </summary>
+                  <ul className="paste-program__issues paste-program__issues--muted">
+                    {result.warnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </details>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {savedPrograms.length > 0 ? (
+        <div className="paste-program__saved">
+          <p className="paste-program__saved-title">
+            Your pasted programs ({savedPrograms.length})
+          </p>
+          <ul className="paste-program__saved-list">
+            {savedPrograms.map((program) => (
+              <li key={programIdentity(program.id, program.version)}>
+                <span>
+                  {program.name}{' '}
+                  <span className="paste-program__saved-version">
+                    {program.version}
+                  </span>
+                </span>
+                <button
+                  aria-label={`Remove ${program.name} ${program.version}`}
+                  className="paste-program__delete"
+                  onClick={() => handleDelete(program)}
+                  type="button"
+                >
+                  <Trash2 size={16} strokeWidth={2.4} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+    </div>
+  )
 }

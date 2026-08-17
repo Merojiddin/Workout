@@ -79,13 +79,16 @@ export function SetLogger({
     const timeSeconds =
       loggingMode === 'duration' ? durationToSeconds(minutes, seconds) : null
 
+    // RPE, RIR, and pain are bounded scales. Without a ceiling a typo like
+    // "100" silently poisons readiness scoring and progression rules, which
+    // both treat high RPE and pain as strong signals.
     onSave({
       reps: loggingMode === 'reps' ? parseField(reps) : null,
       timeSeconds,
       weightKg: parseField(weight),
-      rpe: parseField(rpe),
-      rir: parseField(rir),
-      painLevel: parseField(pain),
+      rpe: parseField(rpe, 10),
+      rir: parseField(rir, 10),
+      painLevel: parseField(pain, 10),
       notes: notes.trim(),
     })
   }
@@ -324,12 +327,17 @@ function timeToInputs(value: number | null | undefined): {
   }
 }
 
-function parseField(value: string): number | null {
+function parseField(value: string, max?: number): number | null {
   if (value.trim() === '') {
     return null
   }
   const numeric = Number(value)
-  return Number.isFinite(numeric) ? Math.max(0, numeric) : null
+  if (!Number.isFinite(numeric)) {
+    return null
+  }
+
+  const floored = Math.max(0, numeric)
+  return max === undefined ? floored : Math.min(max, floored)
 }
 
 function numberToInput(value: number | null | undefined): string {

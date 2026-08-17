@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { ForgotPassword } from '../pages/ForgotPassword'
 import { Login } from '../pages/Login'
 import { Register } from '../pages/Register'
+import { UpdatePassword } from '../pages/UpdatePassword'
 
 /**
  * Step 12 - route guard.
@@ -13,7 +14,7 @@ import { Register } from '../pages/Register'
  * - Cloud mode + signed in: render the app.
  */
 export function ProtectedRoute({ children }) {
-  const { isSupabaseConfigured, loading, user } = useAuth()
+  const { isSupabaseConfigured, loading, recoveryMode, user } = useAuth()
   const [authView, setAuthView] = useState('login') // login | register | forgot
 
   // Local mode: the whole app is available offline, no auth gate.
@@ -42,6 +43,11 @@ export function ProtectedRoute({ children }) {
       return <ForgotPassword onSwitch={setAuthView} />
     }
     return <Login onSwitch={setAuthView} />
+  }
+
+  // A recovery session is signed in but exists only to set a new password.
+  if (recoveryMode) {
+    return <UpdatePassword />
   }
 
   return children

@@ -1,4 +1,4 @@
-import { safeGetJSON, safeSetJSON } from './storageUtils'
+import { resolveStorageKey, safeGetJSON, safeSetJSON } from './storageUtils'
 
 export const PENDING_SYNC_QUEUE_KEY = 'pendingSyncQueue'
 export const LAST_OFFLINE_SYNC_AT_KEY = 'lastOfflineSyncAt'
@@ -109,7 +109,9 @@ export function getLastOfflineSyncAt() {
     return null
   }
   try {
-    return window.localStorage.getItem(LAST_OFFLINE_SYNC_AT_KEY)
+    return window.localStorage.getItem(
+      resolveStorageKey(LAST_OFFLINE_SYNC_AT_KEY),
+    )
   } catch {
     return null
   }
@@ -120,7 +122,10 @@ export function setLastOfflineSyncAt(value = new Date().toISOString()) {
     return null
   }
   try {
-    window.localStorage.setItem(LAST_OFFLINE_SYNC_AT_KEY, value)
+    window.localStorage.setItem(
+      resolveStorageKey(LAST_OFFLINE_SYNC_AT_KEY),
+      value,
+    )
     return value
   } catch {
     return null

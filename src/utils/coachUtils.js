@@ -2,6 +2,7 @@ import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
 import { isTimedExercise } from './exerciseLoggingUtils'
 import { getTrainingDays, isRestDay } from './activeWorkoutProgram'
 import { nutritionTargets } from './nutritionUtils'
+import { toLocalIsoDate } from './dateUtils'
 
 const postureCue =
   'Ribs down. Abs tight. Glutes slightly squeezed. Do not over-arch lower back.'
@@ -1130,8 +1131,7 @@ function addDays(date, days) {
 }
 
 function getDateKey(date) {
-  const offset = date.getTimezoneOffset() * 60000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+  return toLocalIsoDate(date)
 }
 
 function toNumber(value) {
