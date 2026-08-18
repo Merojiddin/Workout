@@ -2,12 +2,13 @@
 
 There are two ways to add a program.
 
-## 1. Paste it into the app (no deploy)
+## 1. Add it in the app (no deploy)
 
-Open **Plan Editor → Workout Programs → Paste a workout program**, paste the
-program JSON, press **Check**, then **Save program**. It joins the program list
-on that screen and installs through the same backup-and-verify path as a
-bundled program.
+Open **Settings → Program → Add a workout program**, upload the `.json` file or
+paste the JSON, press **Check**, then **Save program**. It joins the program
+list on that screen and installs through the same backup-and-verify path as a
+bundled program. An account with no program installed sees the same upload step
+as a first-run screen instead.
 
 Pasted programs are stored per signed-in user and sync to Supabase
 (`user_workout_programs`), so they follow the account rather than the device.
@@ -17,14 +18,25 @@ chat prose, and fills in a missing `version`, `updatedAt`, `description`, or
 
 Use **Copy AI prompt** on that panel to get a ready-made prompt for an AI chat:
 paste the prompt plus your plan in any wording, and paste the JSON it returns
-straight back into the app.
+straight back into the app. The prompt is built by
+`buildProgramAuthoringPrompt()` in `src/utils/userWorkoutPrograms.ts` and is
+generated from the live Exercise Library, so it always lists every current
+exercise ID. It also asks for the `coaching` block the Nutrition screen reads,
+and tells the chat to avoid the fields this app version hides or rejects
+(`optional`, `alternatives`). Keep it in step with
+`src/utils/workoutProgramValidation.ts` whenever the accepted shape changes.
 
 Exercise IDs that are not in the bundled Exercise Library are accepted with a
 warning. Those exercises track fully (sets, reps, rest, form tips come from the
 program JSON) but have no built-in form guide, image, or demo video. Reuse the
-IDs listed in the AI prompt wherever a movement matches to get that media.
+IDs listed in the AI prompt wherever a movement matches to get that media; an
+exercise whose `name` matches a library entry exactly also resolves.
 
 ## 2. Bundle it with the app (requires a deploy)
+
+No program ships with the app today — `src/data/workout-programs/` holds only
+`_template.example.json` — but the build-time path below still works and is how
+a program would be shipped to every account.
 
 Workout programs are also JSON documents discovered automatically at build time. They reference one shared bundled Exercise Library by stable exercise ID; exercise instructions, form guidance, and media are not embedded in program JSON. Adding a valid program does not require a new TypeScript import and does not activate it. A user must explicitly install a discovered program through the Program Manager.
 
@@ -148,9 +160,13 @@ Examples include Full Body Reset, Travel Workout, Short Recovery Workout, and Eq
 | `description` | Recommended | Human-readable summary. Omitting it produces a validation warning. |
 | `goals` | No | Array of goal strings. An empty or omitted list may produce a warning. |
 | `benchmarkExerciseIds` | No | Array of stable shared Exercise Library IDs used as benchmarks. An empty or omitted list may produce a warning. |
-| `rules` | No | Program-wide effort, progression, posture, and return-after-break guidance. |
-| `days` | Yes | Non-empty array of workout days; weekly programs should contain exactly seven. |
-| `standaloneWorkouts` | No | Array of explicitly selected workouts outside the Monday-Sunday day sequence. |
+| `rules` | No | Program-wide effort, progression, posture, and return-after-break guidance. Shown on the Weekly Plan screen. |
+| `durationWeeks` | No | Positive integer. When supplied alongside `progressionPhases`, the phases must cover every week from `1` to this value. |
+| `normalWeeklyDays` | No | Positive integer. Must equal the length of `days` when supplied. |
+| `progressionPhases` | No | Non-empty array of phases. Each needs `weeks` (positive integers, no overlap), `name`, `volumeGuidance`, `rirGuidance`, and `priorities`; `targetRir` (a number or range from `0` to `10`), `setVolumeMultiplier` (above `0`, at most `1`), `restrictions`, and `assessmentItems` are optional. |
+| `coaching` | No | Nutrition and recovery defaults read by the Nutrition screen. |
+| `days` | Yes | Non-empty array of workout days; weekly programs should contain exactly seven. Day `1` is Monday and day `7` is Sunday. |
+| `standaloneWorkouts` | No | Array of explicitly selected workouts outside the Monday-Sunday day sequence. Every exercise ID inside one must exist in the Exercise Library — unknown IDs are rejected here rather than warned about. |
 
 Supported `rules` fields are:
 
@@ -158,6 +174,18 @@ Supported `rules` fields are:
 - `progression`: an array of strings.
 - `postureCue`: a string.
 - `returnAfterBreak`: an array of strings.
+- `rest`: an array of strings.
+- `substitutions`: an array of strings.
+- `safety`: an array of strings.
+- `optionalNeckWork`: an array of strings.
+
+Supported `coaching` fields are `proteinMinGrams`, `proteinDefaultGrams`, and
+`proteinMaxGrams` (non-negative numbers satisfying min ≤ default ≤ max),
+`creatineDailyGrams`, `sleepHours`, `targetWeightLossKgPerWeek`,
+`stalledTrendGuidance`, `fastLossGuidance` (non-empty strings), and
+`healthContext` (an array of strings). Omitting the block leaves the Nutrition
+screen on its built-in fallbacks (120-160 g protein, `3-5 g/day` creatine,
+`7-8+ hours` sleep).
 
 ### Day fields
 
@@ -184,6 +212,10 @@ Supported `rules` fields are:
 | `formTips` | Yes | Array of form-cue strings. |
 
 Every exercise must contain exactly one target field: `repRange` for a repetition exercise or `duration` for a timed exercise. An exercise should not contain both unless the application later explicitly supports that model.
+
+Optional exercise fields: `targetRir` (a number or range from `0` to `10`, such as `1-2`), `guidance` (an array of strings), and `phaseTargets` (per-week overrides of `sets`, `repRange`/`duration`, and `guidance`).
+
+`optional: true` and `alternatives` still validate, but the simplified app has no UI to opt an optional exercise in or to switch a home/gym variant by hand: an optional exercise never appears in the workout, and an `alternatives` block must list every variant with an Exercise Library ID and include the primary exercise's own ID among them. The AI prompt tells chats to avoid both.
 
 ## IDs, revisions, and history
 

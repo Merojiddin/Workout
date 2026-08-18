@@ -1,4 +1,4 @@
-import { exerciseLibrary } from '../data/exerciseLibrary'
+import { exerciseCategories, exerciseLibrary } from '../data/exerciseLibrary'
 import type {
   WorkoutProgram,
   WorkoutProgramValidationResult,
@@ -211,19 +211,18 @@ export function parseWorkoutProgramInput(
 
 /**
  * The prompt handed to an AI chat so it returns a program this app accepts.
+ *
  * Kept here (not in the component) so the schema and the prompt stay together.
+ * It asks for every field the app actually reads - including the coaching
+ * block behind the Nutrition screen - and names the ones to leave out, because
+ * a program that trips validation is worse than one without an extra.
  */
 export function buildProgramAuthoringPrompt(): string {
-  const sampleExerciseIds = exerciseLibrary
-    .slice(0, 24)
-    .map((exercise) => exercise.id)
-    .join(', ')
-
   return `Convert my workout plan into JSON for my fitness tracker app.
 
 Reply with ONLY the JSON object - no explanation, no markdown fences.
 
-Required shape:
+REQUIRED SHAPE
 {
   "id": "short-kebab-case-id",
   "name": "Program name",
@@ -231,6 +230,13 @@ Required shape:
   "updatedAt": "${new Date().toISOString().slice(0, 10)}",
   "description": "One or two sentences about the program.",
   "goals": ["Goal one", "Goal two"],
+  "coaching": {
+    "proteinMinGrams": 120,
+    "proteinDefaultGrams": 140,
+    "proteinMaxGrams": 160,
+    "creatineDailyGrams": "3-5 g/day",
+    "sleepHours": "7-8+ hours"
+  },
   "days": [
     {
       "day": 1,
@@ -253,20 +259,68 @@ Required shape:
   ]
 }
 
-Rules:
-- "days" must contain exactly 7 objects, numbered 1 to 7. A rest day is a day with light exercises (for example an easy walk).
+RULES
+- "days" must contain exactly 7 objects, numbered 1 to 7. Day 1 is Monday and day 7 is Sunday: the app shows day N on that weekday.
+- A rest day is still one of the 7. Give it light work (an easy walk, mobility) rather than an empty list.
 - Every exercise needs EITHER "repRange" (like "8-12") OR "duration" (like "30 sec") - never both, never neither.
-- "sets" must be at least 1. "restSeconds" must be 0 or more. Both are numbers, not strings.
-- "formTips" must be an array of at least one short string.
+- "sets" must be at least 1 and "restSeconds" 0 or more. Both are numbers, not strings.
+- "name", "muscleGroup" and "equipment" are required strings on every exercise. "formTips" is an array of at least one short string.
 - Exercise "id" must be kebab-case and unique within its day.
-- Where a movement matches one of these known ids, reuse the id exactly so the app can show its form guide and images: ${sampleExerciseIds}.
-- For any other movement, invent a sensible kebab-case id. That is fine - the workout still tracks fully, it just has no built-in form guide.
+- "updatedAt" must be a real calendar date written as YYYY-MM-DD.
+- Do not invent fields. Anything not described here is either ignored or rejected.
+
+NUTRITION ("coaching")
+The Nutrition screen reads this block, so always include it. The protein numbers are grams per day and must satisfy min <= default <= max. "creatineDailyGrams" and "sleepHours" are short strings shown as written. Use my plan's numbers where it gives them, otherwise sensible ones for the goal.
+
+EXERCISE IDS
+Reuse one of these ids wherever a movement matches - that is what gives the exercise its picture and form guide in the app:
+${buildExerciseIdCatalog()}
+For anything else, invent a sensible kebab-case id. That is fine: the workout still tracks fully, it just has no picture or built-in guide. If a movement is clearly one of the above but you are unsure of the id, write the exercise "name" exactly as the app spells it and it will still match.
+
+OPTIONAL EXTRAS - only if my plan actually contains them
+- "durationWeeks": 12 with "progressionPhases": [{"weeks": [1,2,3,4], "name": "Base", "volumeGuidance": "...", "rirGuidance": "...", "priorities": ["..."], "targetRir": "2-3"}]. The phases must cover every week from 1 to durationWeeks exactly once. "targetRir" is a bare number or range from 0 to 10 ("2" or "1-2"), never "2 RIR". A deload phase may add "setVolumeMultiplier" above 0 and at most 1.
+- "rules": {"effort": [...], "progression": [...], "rest": [...], "substitutions": [...], "safety": [...], "returnAfterBreak": [...], "postureCue": "..."} - shown on the Weekly Plan screen. Every value is an array of strings except "postureCue".
+- "benchmarkExerciseIds": ["bench-press", "squat"] - the lifts progress is measured on. Use ids from the list above.
+- Per exercise: "targetRir": "1-2" and "guidance": ["short note"].
+- "standaloneWorkouts" only if every exercise id in them comes from the list above; unknown ids are rejected there.
+- Never use "optional": true or "alternatives". This app version hides optional exercises and rejects most alternatives blocks.
 
 My plan:
 [PASTE YOUR PLAN HERE]`
 }
 
 // --- internal --------------------------------------------------------------
+
+/**
+ * Every library exercise id, grouped by category.
+ *
+ * The whole library goes in rather than a sample: matching an id is what earns
+ * an exercise its picture and form guide, and a chat cannot reuse an id it was
+ * never shown.
+ */
+function buildExerciseIdCatalog(): string {
+  const idsByCategory = new Map<string, string[]>()
+  for (const exercise of exerciseLibrary) {
+    const ids = idsByCategory.get(exercise.category) ?? []
+    ids.push(exercise.id)
+    idsByCategory.set(exercise.category, ids)
+  }
+
+  // Listed in the app's own category order; a category added to the library
+  // later still appears rather than being silently dropped.
+  const known = exerciseCategories.filter((category) =>
+    idsByCategory.has(category),
+  )
+  const extra = [...idsByCategory.keys()].filter(
+    (category) => !known.includes(category as (typeof exerciseCategories)[number]),
+  )
+
+  return [...known, ...extra]
+    .map(
+      (category) => `${category}: ${(idsByCategory.get(category) ?? []).join(', ')}`,
+    )
+    .join('\n')
+}
 
 /**
  * Pulls the JSON object out of a paste that may include markdown fences or
