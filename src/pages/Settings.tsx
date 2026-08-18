@@ -24,7 +24,7 @@ import { ImageUploadPreview } from '../components/ImageUploadPreview'
 import { ProfileAvatar } from '../components/ProfileAvatar'
 import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
 import { useAuth } from '../context/AuthContext'
-import { profileInitials } from '../hooks/useProfileIdentity'
+import { buildProfileIdentity } from '../hooks/useProfileIdentity'
 import type { WorkoutDay } from '../data/workoutPlan'
 import * as settingsService from '../services/settingsService'
 import { fileToBase64, resizeImageFile } from '../utils/imageUtils'
@@ -89,6 +89,13 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
     getInitialSettingsTab(),
   )
   const [settings, setSettings] = useState(() => getUserProfileSettings())
+  // Skipping the name step leaves the profile nameless, so the account's email
+  // stands in as the nickname here and in the nav until a name is entered.
+  const identity = buildProfileIdentity(
+    String(settings.profile.name ?? '').trim(),
+    String(settings.profile.avatarDataUrl ?? ''),
+    user?.email,
+  )
   const [plan, setPlan] = useState<WorkoutDay[]>(
     () => getCustomWorkoutPlan() as WorkoutDay[],
   )
@@ -453,14 +460,17 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
             <>
               <div className="settings-identity">
                 <ProfileAvatar
-                  avatarDataUrl={settings.profile.avatarDataUrl}
-                  initials={profileInitials(settings.profile.name)}
+                  avatarDataUrl={identity.avatarDataUrl}
+                  initials={identity.initials}
                   size={62}
                 />
                 <div className="settings-identity__text">
-                  <strong>{settings.profile.name || 'Your profile'}</strong>
+                  <strong>{identity.name || 'Your profile'}</strong>
                   <span>
-                    {settings.profile.experienceLevel || 'Tap Edit to add your details'}
+                    {settings.profile.experienceLevel ||
+                      (identity.isFallbackName
+                        ? 'Using your email until you add a name'
+                        : 'Tap Edit to add your details')}
                   </span>
                 </div>
                 <button

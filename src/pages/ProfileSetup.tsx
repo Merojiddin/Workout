@@ -1,5 +1,7 @@
 import { UserRound } from 'lucide-react'
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { nicknameFromEmail } from '../hooks/useProfileIdentity'
 import {
   getUserProfileSettings,
   markProfileOnboardingCompleted,
@@ -29,6 +31,10 @@ const fields = [
  * can fill them in later.
  */
 export function ProfileSetup({ onDone }: ProfileSetupProps) {
+  const { user } = useAuth()
+  // Skipping is fine: the email's local part becomes the nickname until a name
+  // is entered, so the placeholder shows the person what they will be called.
+  const emailNickname = nicknameFromEmail(user?.email)
   const [name, setName] = useState('')
   const [values, setValues] = useState<Record<string, string>>({})
 
@@ -75,7 +81,7 @@ export function ProfileSetup({ onDone }: ProfileSetupProps) {
           autoComplete="name"
           className="settings-input"
           onChange={(event) => setName(event.target.value)}
-          placeholder="What should we call you?"
+          placeholder={emailNickname || 'What should we call you?'}
           type="text"
           value={name}
         />
