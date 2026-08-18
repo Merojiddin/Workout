@@ -7,10 +7,7 @@ import {
   useState,
 } from 'react'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
-import {
-  claimLegacyLocalDataForUser,
-  setStorageNamespace,
-} from '../utils/storageUtils'
+import { setStorageNamespace } from '../utils/storageUtils'
 
 /**
  * Step 12 - Auth context.
@@ -38,13 +35,11 @@ export function AuthProvider({ children }) {
 
   // Applied during render, not in an effect: pages read localStorage while
   // they render, so an effect would let the first render of a newly signed-in
-  // user read the PREVIOUS user's data. Both calls are idempotent.
+  // user read the PREVIOUS user's data. The call is idempotent, and nothing is
+  // copied into the new namespace - a new account sees only what it creates.
   const activeUserId = user?.id ?? null
   if (appliedNamespaceRef.current !== activeUserId) {
     setStorageNamespace(activeUserId)
-    if (activeUserId) {
-      claimLegacyLocalDataForUser(activeUserId)
-    }
     appliedNamespaceRef.current = activeUserId
   }
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { createServer } from 'vite'
 
 class MemoryStorage {
@@ -65,31 +66,40 @@ try {
     '/src/utils/userWorkoutPrograms.ts',
   )
 
-  // The registry default is the plan normalizer's fallback, so it is the most
-  // likely program to leak into a reset day. Probing with its content proves
-  // reset follows installed identity rather than the default.
-  const defaultProgram = registry.getWorkoutProgramByIdAndVersion(
-    registry.CURRENT_DEFAULT_PROGRAM_ID,
-    '2.1.0',
+  // No program ships with the app, so nothing can leak into a reset day from a
+  // bundled fallback. The reference program is read straight off disk, exactly
+  // as a user would upload it, and never enters the registry under its own id.
+  assert.deepEqual(
+    registry.getWorkoutPrograms(),
+    [],
+    'No program may be bundled with the app.',
   )
-  assert.ok(defaultProgram, 'The registry default program must be available.')
+  const referenceProgram = JSON.parse(
+    await readFile(
+      new URL(
+        '../public/programs/research-recomp-boxing-v2.1.json',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  )
 
-  // A pasted program is now the only way to hold a non-default program, so the
-  // probe pastes one built from the default with a single exercise removed.
-  // That missing exercise is what a contaminated reset would reintroduce.
-  const probeExerciseId = defaultProgram.days
+  // An uploaded program is the only kind there is, so the probe uploads one
+  // built from the reference with a single exercise removed. That missing
+  // exercise is what a contaminated reset would reintroduce.
+  const probeExerciseId = referenceProgram.days
     .flatMap((day) => day.exercises.map((exercise) => exercise.id))
     .find(
       (id, _index, ids) => ids.filter((other) => other === id).length === 1,
     )
-  assert.ok(probeExerciseId, 'The default program needs a unique exercise id.')
+  assert.ok(probeExerciseId, 'The reference program needs a unique exercise id.')
 
   const pastedSource = {
-    ...defaultProgram,
+    ...referenceProgram,
     id: PROBE_PROGRAM_ID,
     version: PROBE_PROGRAM_VERSION,
     name: 'Plan Editor Reset Probe',
-    days: defaultProgram.days.map((day) => ({
+    days: referenceProgram.days.map((day) => ({
       ...day,
       exercises: day.exercises.filter(
         (exercise) => exercise.id !== probeExerciseId,
@@ -115,8 +125,8 @@ try {
   const expectedProbePlan = settings.normalizeCustomWorkoutPlan(
     probeProgram.days,
   )
-  const defaultOnlyIds = new Set(
-    defaultProgram.days
+  const referenceOnlyIds = new Set(
+    referenceProgram.days
       .flatMap((day) => day.exercises.map((exercise) => exercise.id))
       .filter(
         (id) =>
@@ -126,8 +136,8 @@ try {
       ),
   )
   assert.ok(
-    defaultOnlyIds.size > 0,
-    'The probe needs at least one exercise unique to the default program.',
+    referenceOnlyIds.size > 0,
+    'The probe needs at least one exercise unique to the reference program.',
   )
 
   const install = manager.installWorkoutProgramLocally({
@@ -163,8 +173,8 @@ try {
           focus: ['Default program contamination probe'],
           exercises: [
             {
-              ...defaultProgram.days[0].exercises[0],
-              formTips: [...defaultProgram.days[0].exercises[0].formTips],
+              ...referenceProgram.days[0].exercises[0],
+              formTips: [...referenceProgram.days[0].exercises[0].formTips],
             },
             ...[...day.exercises].reverse().map((exercise) => ({
               ...exercise,
@@ -197,7 +207,7 @@ try {
   assert.deepEqual(
     firstReload
       .flatMap((day) => day.exercises.map((exercise) => exercise.id))
-      .filter((id) => defaultOnlyIds.has(id)),
+      .filter((id) => referenceOnlyIds.has(id)),
     [],
   )
 

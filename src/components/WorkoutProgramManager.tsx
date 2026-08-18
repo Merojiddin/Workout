@@ -9,9 +9,10 @@ import {
   Package,
   RotateCcw,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type {
@@ -30,8 +31,6 @@ import {
 } from '../services/workoutProgramService'
 import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import {
-  CURRENT_DEFAULT_PROGRAM_ID,
-  getLatestWorkoutProgramById,
   getWorkoutProgramByIdAndVersion,
   getWorkoutPrograms,
   getWorkoutProgramValidationResults,
@@ -89,7 +88,7 @@ interface ManagerState {
   userPrograms: UserWorkoutProgram[]
 }
 
-type ProgramStatus = 'Current' | 'Available' | 'Dismissed' | 'Default'
+type ProgramStatus = 'Current' | 'Available' | 'Dismissed'
 type ManagerNotice = {
   message: string
   tone: 'success' | 'error'
@@ -145,8 +144,7 @@ export function WorkoutProgramManager({
     ? `${installedRegistryProgram.name}${modifiedAfterInstallation ? ' (modified)' : ''}`
     : managerState.hasStoredCustomPlan
       ? 'Custom workout plan'
-      : getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)?.name ??
-        'Original weekly workout plan'
+      : 'No program installed'
   const programs = managerState.programs
   const dismissedCount = programs.filter((program) =>
     dismissedIdentities.has(programIdentity(program.id, program.version)),
@@ -536,7 +534,7 @@ export function WorkoutProgramManager({
           const dismissed = dismissedIdentities.has(
             programIdentity(program.id, program.version),
           )
-          const status = getProgramStatus(program, current, dismissed)
+          const status = getProgramStatus(current, dismissed)
           const warnings = getValidationWarnings(program)
           const exerciseCount = countExercises(program.days)
 
@@ -1325,28 +1323,20 @@ function readManagerState(userId: string | null): ManagerState {
 }
 
 function isCurrentProgram(program: WorkoutProgram, state: ManagerState): boolean {
-  if (state.installed) {
-    return state.installed.id === program.id && state.installed.version === program.version
+  // Nothing installed means nothing is current: no program ships with the app,
+  // so there is no implicit fallback to mark.
+  if (!state.installed) {
+    return false
   }
-
-  const defaultProgram = getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)
   return (
-    !state.hasStoredCustomPlan &&
-    defaultProgram?.id === program.id &&
-    defaultProgram.version === program.version
+    state.installed.id === program.id &&
+    state.installed.version === program.version
   )
 }
 
-function getProgramStatus(
-  program: WorkoutProgram,
-  current: boolean,
-  dismissed: boolean,
-): ProgramStatus {
+function getProgramStatus(current: boolean, dismissed: boolean): ProgramStatus {
   if (current) return 'Current'
   if (dismissed) return 'Dismissed'
-  // Shown when another program is installed or a custom plan is in use: this
-  // is the program a full reset returns to.
-  if (program.id === CURRENT_DEFAULT_PROGRAM_ID) return 'Default'
   return 'Available'
 }
 
@@ -1414,11 +1404,12 @@ interface PasteProgramPanelProps {
 }
 
 /**
- * Paste-a-program panel.
+ * Upload-a-program panel.
  *
- * Programs pasted here are saved to this user's own program list and then
- * appear in the catalog above, so installing one goes through the same
- * backup-and-verify path as a program that shipped with the app.
+ * No program ships with the app, so this is how every account gets one.
+ * Uploading a .json file and pasting JSON text feed the exact same parser and
+ * the same per-user program list; the file picker is just the path that works
+ * when the program arrived as a file rather than on the clipboard.
  */
 function PasteProgramPanel({
   onDeleted,
@@ -1429,6 +1420,36 @@ function PasteProgramPanel({
   const [text, setText] = useState('')
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
   const [copyLabel, setCopyLabel] = useState('Copy AI prompt')
+  const [fileName, setFileName] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    // Clear immediately so re-picking the same file after a fix still fires.
+    event.target.value = ''
+    if (!file) {
+      return
+    }
+
+    setFileName(file.name)
+    let contents: string
+    try {
+      contents = await file.text()
+    } catch {
+      setText('')
+      setResult({
+        success: false,
+        program: null,
+        errors: [`Could not read "${file.name}". Try choosing the file again.`],
+        warnings: [],
+        repairs: [],
+      })
+      return
+    }
+
+    setText(contents)
+    setResult(parseWorkoutProgramInput(contents))
+  }
 
   function handleCheck() {
     setResult(parseWorkoutProgramInput(text))
@@ -1449,6 +1470,7 @@ function PasteProgramPanel({
 
     setText('')
     setResult(null)
+    setFileName(null)
     setOpen(false)
     onSaved(
       `${saved.message} Find it in the list below to install it.`,
@@ -1492,16 +1514,35 @@ function PasteProgramPanel({
         type="button"
       >
         <ClipboardPaste size={18} strokeWidth={2.4} aria-hidden="true" />
-        {open ? 'Close paste panel' : 'Paste a workout program'}
+        {open ? 'Close import panel' : 'Add a workout program'}
       </button>
 
       {open ? (
         <div className="paste-program__body">
           <p className="paste-program__hint">
-            Paste a program in JSON. If you have your plan as plain text, copy
-            the prompt below into ChatGPT (or any AI chat) along with your plan,
-            then paste the JSON it returns here.
+            Upload your program as a .json file. If you have your plan as plain
+            text, copy the prompt below into ChatGPT (or any AI chat) along with
+            your plan, then upload or paste the JSON it returns.
           </p>
+
+          <input
+            accept="application/json,.json"
+            className="paste-program__file-input"
+            onChange={handleFileChange}
+            ref={fileInputRef}
+            type="file"
+          />
+          <button
+            className="workout-primary-button paste-program__upload-button"
+            onClick={() => fileInputRef.current?.click()}
+            type="button"
+          >
+            <Upload size={17} strokeWidth={2.4} aria-hidden="true" />
+            Choose program file
+          </button>
+          {fileName ? (
+            <p className="paste-program__file-name">Loaded {fileName}</p>
+          ) : null}
 
           <button
             className="workout-secondary-button paste-program__prompt-button"
@@ -1513,7 +1554,7 @@ function PasteProgramPanel({
           </button>
 
           <label className="paste-program__label" htmlFor="paste-program-input">
-            Program JSON
+            Program JSON <span className="paste-program__label-note">(or paste it here)</span>
           </label>
           <textarea
             className="paste-program__textarea"
@@ -1521,6 +1562,7 @@ function PasteProgramPanel({
             onChange={(event) => {
               setText(event.target.value)
               setResult(null)
+              setFileName(null)
             }}
             placeholder={'{\n  "name": "My Program",\n  "days": [ ... ]\n}'}
             rows={10}

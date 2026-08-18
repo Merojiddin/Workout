@@ -1,10 +1,6 @@
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type { WorkoutDay } from '../data/workoutPlan'
-import {
-  CURRENT_DEFAULT_PROGRAM_ID,
-  getLatestWorkoutProgramById,
-  getWorkoutProgramByIdAndVersion,
-} from '../data/workoutProgramRegistry'
+import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
 import type { AuthUser } from '../context/AuthContext'
 import type { WorkoutProgram } from '../types/workoutProgram'
 import {
@@ -808,14 +804,12 @@ async function prepareCloudChange(
   options: CloudProgramOperationOptions,
 ): Promise<PreparedCloudChange> {
   const store = options.store ?? defaultStore
-  const defaultProgram = getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)
-  if (!defaultProgram) {
-    throw new Error('The current registry default program is unavailable.')
-  }
   const cloudPlanBefore = await store.fetchPlan(user)
+  // No program ships with the app, so an account with no cloud plan row starts
+  // from an empty plan rather than from somebody else's program.
   const cloudPlan = cloudPlanBefore.exists
     ? normalizePlanSnapshot(cloudPlanBefore)
-    : normalizePlan(defaultProgram.days)
+    : []
   const settingsSnapshot = await store.fetchSettings(user)
   const settingsBefore = settingsFromSnapshot(settingsSnapshot)
   const managerBefore = getValidatedCloudWorkoutProgramManagerMetadata(
@@ -956,8 +950,10 @@ async function verifyCloudState(
         details.push(`Required cloud backup ${requiredBackupId} is missing.`)
       }
     })
-    if (expectPlanAbsent && !areWorkoutPlansEquivalent(getDefaultPlan(), expectedPlan)) {
-      details.push('The registry fallback does not match the expected default program.')
+    // With no cloud plan row and no bundled program, the only correct local
+    // state is an empty plan.
+    if (expectPlanAbsent && expectedPlan.length > 0) {
+      details.push('A plan is expected locally but no cloud plan row exists.')
     }
     return {
       success: details.length === 0,
@@ -1269,11 +1265,6 @@ function normalizePlanSnapshot(snapshot: CloudDocumentSnapshot<unknown>): Workou
 
 function normalizePlan(plan: unknown): WorkoutDay[] {
   return clone(normalizeCustomWorkoutPlan(plan)) as WorkoutDay[]
-}
-
-function getDefaultPlan(): WorkoutDay[] {
-  const defaultProgram = getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)
-  return defaultProgram ? normalizePlan(defaultProgram.days) : []
 }
 
 function localProgramSnapshots(): Array<[string, JsonStorageSnapshot]> {

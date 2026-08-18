@@ -1,16 +1,18 @@
 import { exerciseLibrary } from './exerciseLibrary'
-import type { WorkoutDay } from './workoutPlan'
 import type { WorkoutProgram } from '../types/workoutProgram'
 import type { WorkoutProgramValidationResult } from '../types/workoutProgram'
 import { getUserWorkoutPrograms } from '../utils/userWorkoutPrograms'
 import { validateWorkoutProgram } from '../utils/workoutProgramValidation'
 
 /**
- * Program used by anyone who has not installed one and has no custom plan.
- * The retired `legacy-workout-v1` program held this slot until its content was
- * superseded; nothing else should hard-code a program ID.
+ * No program ships with the app.
+ *
+ * Every program is uploaded by the person using it and stored under their own
+ * namespaced key, so one account can never see, install, or inherit another
+ * account's plan. The glob below stays because the loading and validation path
+ * is shared with uploaded programs, but src/data/workout-programs/ now holds
+ * only the ignored authoring template.
  */
-export const CURRENT_DEFAULT_PROGRAM_ID = 'research-recomp-boxing-v2'
 
 export interface WorkoutProgramRegistryValidationResult
   extends WorkoutProgramValidationResult {
@@ -73,12 +75,11 @@ if (import.meta.env.DEV) {
 }
 
 /**
- * Bundled programs plus the current user's pasted programs.
+ * The current user's uploaded programs.
  *
- * Read on every call rather than cached at module load, because pasted
+ * Read on every call rather than cached at module load, because uploaded
  * programs are stored per user and can be added, replaced, or removed while
- * the app is running. A pasted program shadows a bundled one with the same
- * id and version, so re-pasting a fixed copy of a shipped program wins.
+ * the app is running.
  */
 function allPrograms(): RegisteredProgram[] {
   const userPrograms = getUserWorkoutPrograms().map((program) => ({
@@ -127,18 +128,6 @@ export function getLatestWorkoutProgramById(
 
 export function getWorkoutProgramValidationResults(): WorkoutProgramRegistryValidationResult[] {
   return candidates.map(({ validation }) => cloneValidationResult(validation))
-}
-
-/**
- * Days of the program that applies when nothing is installed.
- *
- * This is the baseline every stored plan is normalized against, so it is read
- * fresh rather than cached: a pasted program can shadow the bundled default.
- * Returns an empty array only if the default program fails validation, which
- * callers must treat as "no default day to fall back to".
- */
-export function getDefaultWorkoutPlanDays(): WorkoutDay[] {
-  return getLatestWorkoutProgramById(CURRENT_DEFAULT_PROGRAM_ID)?.days ?? []
 }
 
 function createCandidate(filename: string, source: string): ProgramCandidate {

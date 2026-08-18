@@ -53,10 +53,11 @@ const APP_KEY_SUFFIXES = ['__cloudBackup']
  * This is what keeps two people sharing one browser from reading, overwriting,
  * or uploading each other's history: signing in switches the namespace, so the
  * previous user's data is not merely hidden but unreachable through the normal
- * read path.
+ * read path. Nothing is ever migrated across namespaces - a new account starts
+ * empty, including its workout program, and never adopts data it did not
+ * create.
  */
 const NAMESPACE_PREFIX = 'u:'
-const LEGACY_CLAIM_KEY = 'legacyLocalDataClaim'
 
 let activeStorageNamespace = null
 
@@ -100,65 +101,6 @@ function toLogicalKey(physicalKey) {
   return physicalKey.startsWith(prefix) ? physicalKey.slice(prefix.length) : null
 }
 
-/**
- * One-time migration for data written before namespacing existed.
- *
- * The un-namespaced data belongs to whoever was using the app locally, so the
- * FIRST account to sign in on this device adopts it. Later accounts get a clean
- * slate instead of inheriting someone else's history.
- */
-export function claimLegacyLocalDataForUser(userId) {
-  const namespace = normalizeNamespace(userId)
-  if (!namespace || !canUseLocalStorage()) {
-    return { claimed: false, keys: [] }
-  }
-
-  try {
-    const existingClaim = window.localStorage.getItem(LEGACY_CLAIM_KEY)
-    if (existingClaim !== null) {
-      return { claimed: false, keys: [], claimedBy: existingClaim }
-    }
-
-    const legacyKeys = []
-    for (let index = 0; index < window.localStorage.length; index += 1) {
-      const key = window.localStorage.key(index)
-      if (
-        key &&
-        !key.startsWith(NAMESPACE_PREFIX) &&
-        key !== LEGACY_CLAIM_KEY &&
-        isFitnessStorageKey(key)
-      ) {
-        legacyKeys.push(key)
-      }
-    }
-
-    // Always record the claim, even with nothing to move, so a second account
-    // signing in later can never adopt data the first account creates.
-    window.localStorage.setItem(LEGACY_CLAIM_KEY, namespace)
-
-    const moved = []
-    legacyKeys.forEach((key) => {
-      try {
-        const value = window.localStorage.getItem(key)
-        if (value === null) {
-          return
-        }
-        window.localStorage.setItem(
-          `${NAMESPACE_PREFIX}${namespace}:${key}`,
-          value,
-        )
-        window.localStorage.removeItem(key)
-        moved.push(key)
-      } catch {
-        // Best effort: a quota failure leaves the original key in place.
-      }
-    })
-
-    return { claimed: true, keys: moved, claimedBy: namespace }
-  } catch {
-    return { claimed: false, keys: [] }
-  }
-}
 /**
  * @param {string} key
  * @param {any} fallback

@@ -7056,3 +7056,106 @@ body {
     font-size: 72px;
   }
 }
+
+/* Program upload: file picker in the Program tab and on the first-run screen. */
+.paste-program__file-input {
+  display: none;
+}
+
+.paste-program__upload-button {
+  justify-self: start;
+}
+
+.paste-program__file-name {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.paste-program__label-note {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* First-run screen shown until this account installs a program of its own. */
+.program-setup {
+  /* Rows must not stretch to fill the viewport, or the screen reads as four
+     disconnected blocks instead of one form. */
+  align-content: start;
+  display: grid;
+  gap: 12px;
+  justify-items: stretch;
+  margin: 0 auto;
+  max-width: 520px;
+  min-height: 100svh;
+  padding: 32px 16px 48px;
+}
+
+.program-setup__brand {
+  align-items: center;
+  background: var(--green-soft);
+  border: 1px solid rgba(50, 213, 131, 0.28);
+  border-radius: 12px;
+  color: var(--green);
+  display: flex;
+  height: 48px;
+  justify-content: center;
+  width: 48px;
+}
+
+.program-setup h1 {
+  color: var(--text);
+  font-size: 26px;
+  line-height: 1.15;
+  margin: 4px 0 0;
+}
+
+.program-setup__subtitle {
+  color: var(--soft);
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+
+.program-setup__upload,
+.program-setup__install {
+  justify-content: center;
+  width: 100%;
+}
+
+.program-setup__file-name {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.program-setup__paste {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.program-setup__paste summary {
+  color: var(--soft);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.program-setup__paste[open] summary {
+  margin-bottom: 10px;
+}
+
+.program-setup__paste .workout-secondary-button {
+  margin-bottom: 10px;
+}
+
+.program-setup__hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0 0 10px;
+}

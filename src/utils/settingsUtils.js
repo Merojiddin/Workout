@@ -8,7 +8,6 @@ import {
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { userProfile } from '../data/userProfile'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
-import { getDefaultWorkoutPlanDays } from '../data/workoutProgramRegistry'
 import {
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
@@ -165,9 +164,14 @@ export function normalizeCustomWorkoutPlan(plan) {
   return normalizeWorkoutPlan(plan)
 }
 
+/**
+ * Clears the edited plan. No program ships with the app, so there is nothing
+ * to fall back to: the caller is left with no plan until a program is
+ * uploaded and installed.
+ */
 export function resetCustomWorkoutPlan() {
   removeStorageItem(CUSTOM_WORKOUT_PLAN_KEY)
-  return clone(getDefaultWorkoutPlanDays())
+  return []
 }
 
 export function hasCustomWorkoutPlan() {
@@ -588,10 +592,9 @@ function normalizeUserProfileSettings(value) {
 }
 
 /**
- * Day used to fill in missing display fields when the default program supplies
- * no counterpart. The default program is read from the registry rather than
- * bundled here, so it can legitimately be empty and every lookup must survive
- * that without throwing.
+ * Day used to fill in missing display fields on an uploaded program. Nothing
+ * is inherited from another program, so every lookup has to survive a day that
+ * declares only part of itself.
  */
 const emptyDefaultDay = {
   day: 1,
@@ -603,27 +606,17 @@ const emptyDefaultDay = {
 
 function normalizeWorkoutPlan(value) {
   const source = Array.isArray(value) ? value.filter(isPlainObject) : []
-  const defaultDays = getDefaultWorkoutPlanDays()
 
-  // With nothing stored, the default program is the plan.
+  // Nothing stored means no plan at all. The app ships no program, so an empty
+  // result is the honest answer and callers must render an upload prompt
+  // rather than a workout.
   if (source.length === 0) {
-    return defaultDays.map((defaultDay, index) =>
-      normalizeWorkoutDay(defaultDay, defaultDay, index),
-    )
+    return []
   }
 
-  // A stored plan defines its own length and order. Previously this mapped over
-  // the seven bundled days, which padded shorter programs with legacy days and
-  // silently dropped anything past day seven - both wrong for pasted programs.
-  // A default day is now only consulted to fill in missing display fields.
-  return source.map((day, index) => {
-    const dayNumber = Number(day?.day)
-    const defaultDay =
-      defaultDays.find((entry) => entry.day === dayNumber) ??
-      defaultDays[index] ??
-      defaultDays[0]
-    return normalizeWorkoutDay(day, defaultDay, index)
-  })
+  // A stored plan defines its own length and order, and missing display fields
+  // are filled from emptyDefaultDay rather than from another program.
+  return source.map((day, index) => normalizeWorkoutDay(day, null, index))
 }
 
 function normalizeWorkoutDay(value, fallback, index) {

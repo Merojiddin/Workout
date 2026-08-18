@@ -1,4 +1,5 @@
 import nodeAssert from 'node:assert/strict'
+import { readFile } from 'node:fs/promises'
 import { createServer } from 'vite'
 
 const PROGRAM_ID = 'research-recomp-boxing-v2'
@@ -98,30 +99,56 @@ try {
     '/src/services/workoutProgramService.ts',
   )
 
-  assert.equal(
-    registry.CURRENT_DEFAULT_PROGRAM_ID,
-    PROGRAM_ID,
-    'V2.1 must be the registry default program.',
+  const userPrograms = await server.ssrLoadModule(
+    '/src/utils/userWorkoutPrograms.ts',
   )
 
-  // With nothing installed and no custom plan, V2.1 is the active program by
-  // default rather than only after an explicit install.
+  // Nothing ships with the app, so a fresh account has no program at all and
+  // cannot inherit one. This is the state the first-run upload screen exists
+  // for, and it must hold before anything is uploaded.
+  assert.deepEqual(
+    registry.getWorkoutPrograms(),
+    [],
+    'No workout program may be bundled with the app.',
+  )
   const initialActiveProgram = activePrograms.getActiveWorkoutProgram()
-  assert.equal(initialActiveProgram.programId, PROGRAM_ID)
-  assert.equal(initialActiveProgram.programVersion, PROGRAM_VERSION)
+  assert.equal(initialActiveProgram.programId, null)
+  assert.equal(initialActiveProgram.programVersion, null)
   assert.equal(initialActiveProgram.installed, false)
-  assert.equal(initialActiveProgram.source, 'registry-default')
+  assert.equal(initialActiveProgram.source, 'none')
+  assert.deepEqual(initialActiveProgram.days, [])
+  assert.equal(activePrograms.hasActiveWorkoutProgram(), false)
+  assert.deepEqual(settings.getCustomWorkoutPlan(), [])
 
   assert.equal(
     registry.getWorkoutProgramByIdAndVersion('legacy-workout-v1', '1.0.0'),
     undefined,
     'The retired legacy program must no longer be registered.',
   )
-  assert.deepEqual(
-    registry.getDefaultWorkoutPlanDays().map((day) => day.day),
-    [1, 2, 3, 4, 5, 6, 7],
-    'The default plan days must come from V2.1.',
+
+  // V2.1 enters the registry the only way any program now can: uploaded by
+  // this user, into this user's own program list.
+  const uploadedSource = await readFile(
+    new URL(
+      '../public/programs/research-recomp-boxing-v2.1.json',
+      import.meta.url,
+    ),
+    'utf8',
   )
+  const uploaded = userPrograms.parseWorkoutProgramInput(uploadedSource)
+  assert.ok(
+    uploaded.success && uploaded.program,
+    `The V2.1 program file must parse: ${uploaded.errors.join(' ')}`,
+  )
+  assert.equal(uploaded.program.id, PROGRAM_ID)
+  assert.equal(uploaded.program.version, PROGRAM_VERSION)
+  assert.equal(
+    userPrograms.saveUserWorkoutProgram(uploaded.program).success,
+    true,
+  )
+
+  // Uploading is not installing: the account still has no active program.
+  assert.equal(activePrograms.hasActiveWorkoutProgram(), false)
 
   const version21 = registry.getWorkoutProgramByIdAndVersion(
     PROGRAM_ID,
@@ -151,19 +178,14 @@ try {
   )
   assert.deepEqual(directValidation.errors, [])
 
-  const registryValidation = registry
-    .getWorkoutProgramValidationResults()
-    .find(
-      (result) =>
-        result.programId === PROGRAM_ID &&
-        result.version === PROGRAM_VERSION,
-    )
-  assert.ok(registryValidation, 'V2.1 must have a registry validation result.')
-  assert.equal(
-    registryValidation.valid,
-    true,
-    registryValidation.errors.join('\n'),
+  // Bundled-file validation results now cover nothing, because nothing is
+  // bundled. The upload parser is what stands between a bad file and the app.
+  assert.deepEqual(
+    registry.getWorkoutProgramValidationResults(),
+    [],
+    'No bundled program files may be validated at build time.',
   )
+  assert.deepEqual(uploaded.errors, [], uploaded.errors.join('\n'))
 
   assert.equal(version21.durationWeeks, 12)
   assert.equal(version21.normalWeeklyDays, 7)

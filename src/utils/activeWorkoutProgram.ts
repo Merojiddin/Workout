@@ -1,11 +1,7 @@
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import { resolveExerciseLibraryEntry } from '../data/exerciseIdentity'
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
-import {
-  CURRENT_DEFAULT_PROGRAM_ID,
-  getLatestWorkoutProgramById,
-  getWorkoutProgramByIdAndVersion,
-} from '../data/workoutProgramRegistry'
+import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
 import type {
   StandaloneWorkout,
   WorkoutProgram,
@@ -22,10 +18,8 @@ import {
   getInstalledWorkoutProgram,
 } from './workoutProgramManager'
 
-export type ActiveWorkoutProgramSource =
-  | 'registry'
-  | 'custom'
-  | 'registry-default'
+/** `none` means this account has not uploaded and installed a program yet. */
+export type ActiveWorkoutProgramSource = 'registry' | 'custom' | 'none'
 
 /** Active-plan normalization always supplies the editable day notes field. */
 export interface ActiveWorkoutDay extends WorkoutDay {
@@ -137,25 +131,23 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
     }
   }
 
-  const defaultProgram = getLatestWorkoutProgramById(
-    CURRENT_DEFAULT_PROGRAM_ID,
-  )
-  if (defaultProgram) {
-    return fromRegistryProgram(defaultProgram, days, {
-      installed: false,
-      modifiedAfterInstallation: false,
-      source: 'registry-default',
-    })
-  }
+  return emptyActiveWorkoutProgram()
+}
 
+/**
+ * The state a brand-new account is in: no program, no plan, nothing inherited
+ * from anyone else. Callers must check `hasActiveWorkoutProgram()` and send
+ * the user to the upload screen rather than rendering an empty workout.
+ */
+export function emptyActiveWorkoutProgram(): ActiveWorkoutProgram {
   return {
     programId: null,
     programVersion: null,
-    programName: 'Workout Program',
-    description: 'Your active weekly workout plan.',
+    programName: 'No program yet',
+    description: 'Upload a program file to start training.',
     durationWeeks: null,
-    normalWeeklyDays: days.length,
-    days,
+    normalWeeklyDays: 0,
+    days: [],
     standaloneWorkouts: [],
     progressionPhases: [],
     coaching: {},
@@ -165,14 +157,19 @@ export function getActiveWorkoutProgram(): ActiveWorkoutProgram {
     installed: false,
     installedAt: null,
     modifiedAfterInstallation: false,
-    source: 'registry-default',
+    source: 'none',
   }
 }
 
+/** True once this account has a program of its own to train against. */
+export function hasActiveWorkoutProgram(): boolean {
+  return getActiveWorkoutProgram().source !== 'none'
+}
+
 /**
- * Resolve the immutable registry definition that owns Plan Editor defaults.
- * Installed metadata is authoritative and fails closed: a missing build-time
- * definition must never fall through to the legacy registry default.
+ * Resolve the immutable program definition that owns Plan Editor defaults.
+ * Installed metadata is authoritative and fails closed: with nothing installed
+ * there is no baseline at all, because no program ships with the app.
  */
 export function resolveActiveWorkoutProgramBaseline(): ActiveWorkoutProgramBaselineResolution {
   const activeProgram = getActiveWorkoutProgram()
@@ -208,22 +205,12 @@ export function resolveActiveWorkoutProgramBaseline(): ActiveWorkoutProgramBasel
         }
   }
 
-  const defaultProgram = getLatestWorkoutProgramById(
-    CURRENT_DEFAULT_PROGRAM_ID,
-  )
-  return defaultProgram
-    ? {
-        activeProgram,
-        managed: false,
-        program: defaultProgram,
-        error: null,
-      }
-    : {
-        activeProgram,
-        managed: false,
-        program: null,
-        error: 'The current registry default program is unavailable.',
-      }
+  return {
+    activeProgram,
+    managed: false,
+    program: null,
+    error: 'No workout program is installed. Upload one to edit your plan.',
+  }
 }
 
 /**

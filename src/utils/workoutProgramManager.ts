@@ -537,11 +537,17 @@ export function installWorkoutProgramLocally(
   const installedSnapshot = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
   const dismissedSnapshot = readJsonStorageSnapshot(DISMISSED_WORKOUT_PROGRAMS_KEY)
   const currentPlan = normalizePlan(getCustomWorkoutPlan())
-  const backupResult = createWorkoutPlanBackupInternal(
-    currentPlan,
-    `Before installing ${registeredProgram.id} ${registeredProgram.version}`,
-  )
-  if (!backupResult.success || !backupResult.data) {
+  // A first install has no plan to protect: an empty plan is not a valid
+  // backup, and failing the install over it would leave a new account unable
+  // to set up the program it just uploaded.
+  const backupResult =
+    currentPlan.length > 0
+      ? createWorkoutPlanBackupInternal(
+          currentPlan,
+          `Before installing ${registeredProgram.id} ${registeredProgram.version}`,
+        )
+      : null
+  if (backupResult && (!backupResult.success || !backupResult.data)) {
     return fail(
       dataWithProgram,
       backupResult.code ?? 'backup-save-failed',
@@ -552,7 +558,7 @@ export function installWorkoutProgramLocally(
 
   const dataAfterBackup: InstallWorkoutProgramData = {
     ...dataWithProgram,
-    backup: backupResult.data,
+    backup: backupResult?.data ?? null,
   }
   const savedPlan = saveCustomWorkoutPlanSafely(registeredProgram.days)
   if (!savedPlan.success) {

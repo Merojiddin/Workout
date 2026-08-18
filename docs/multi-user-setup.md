@@ -52,15 +52,30 @@ uploaded into the wrong cloud account.
 
 Two consequences worth knowing:
 
-- **Existing data on a device is adopted by the first account that signs in
-  there.** That is deliberate: the un-namespaced data predates accounts and
-  belongs to whoever was using the app. Every later account starts clean. The
-  decision is recorded in the `legacyLocalDataClaim` key.
+- **Nothing is ever adopted across accounts.** No data is migrated into a new
+  namespace, so an account only ever sees what it created itself. A new account
+  starts completely empty - including its workout program, which it must upload
+  before the app will show a workout.
 - **Signing out does not delete anything.** The data stays under that user's
   namespace and comes back when they sign in again.
 
 Each person can safely share one phone, though everyone having their own
 device is still the smoother experience.
+
+## Workout programs are per account
+
+No program ships with the app. On first sign-in an account lands on **Add your
+workout program** and must upload a program `.json` file (or paste the JSON);
+it is saved under that account's own namespace and synced to that account's
+cloud row only. One person's program is never visible or installable by
+another.
+
+The exercise **library** is the exception and is shared by everyone: it is
+bundled with the app, and uploaded programs are validated against it.
+
+A reference program is kept at `public/programs/research-recomp-boxing-v2.1.json`
+and can be downloaded from the running app at `/programs/research-recomp-boxing-v2.1.json`
+if you want to re-upload it.
 
 ## Password resets
 

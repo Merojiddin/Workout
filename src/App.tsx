@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useState,
 } from 'react'
@@ -18,9 +19,11 @@ import { useAuth } from './context/AuthContext'
 import { useAutoSync } from './hooks/useAutoSync'
 import { More } from './pages/More'
 import { Nutrition } from './pages/Nutrition'
+import { ProgramSetup } from './pages/ProgramSetup'
 import { TodayWorkout } from './pages/TodayWorkout'
 import { syncCloudToLocal } from './services/syncService'
 import type { PageId } from './types/navigation'
+import { hasActiveWorkoutProgram } from './utils/activeWorkoutProgram'
 
 // Today's Workout and Nutrition are the two screens the app is for, so they
 // stay eager and never wait on a chunk download. The More pages are all
@@ -124,6 +127,15 @@ function AuthedApp() {
   const { activePage } = navigation
   // Bumped after cloud->local hydration so pages re-read the refreshed mirror.
   const [dataVersion, setDataVersion] = useState(0)
+  // No program ships with the app and none is inherited from another account,
+  // so an account with nothing installed has no workout to show. Re-read on
+  // every dataVersion bump: a cloud pull can deliver the program this account
+  // installed on another device.
+  const hasProgram = useMemo(
+    () => hasActiveWorkoutProgram(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userId, dataVersion],
+  )
   const handleNavigate = useCallback((page: PageId) => {
     dispatchNavigation({ type: 'navigate', page })
   }, [])
@@ -184,6 +196,22 @@ function AuthedApp() {
       default:
         return <TodayWorkout onNavigate={handleNavigate} />
     }
+  }
+
+  if (!hasProgram) {
+    return (
+      <ErrorBoundary
+        onGoHome={() => dispatchNavigation({ type: 'reset', page: HOME_PAGE })}
+      >
+        <ProgramSetup
+          key={userId ?? 'local'}
+          onInstalled={() => {
+            dispatchNavigation({ type: 'reset', page: HOME_PAGE })
+            setDataVersion((version) => version + 1)
+          }}
+        />
+      </ErrorBoundary>
+    )
   }
 
   return (
