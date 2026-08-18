@@ -302,7 +302,7 @@ export function getWorkoutPlanBackups(): ProgramManagerResult<
   if (!snapshot.exists) {
     return succeed([], 'No workout plan backups were found.')
   }
-  if (!Array.isArray(snapshot.value) || !snapshot.value.every(isWorkoutPlanBackup)) {
+  if (!Array.isArray(snapshot.value)) {
     return fail(
       [],
       'invalid-storage-data',
@@ -310,11 +310,24 @@ export function getWorkoutPlanBackups(): ProgramManagerResult<
     )
   }
 
-  const sorted = [...snapshot.value]
+  // Unreadable entries are skipped rather than failing the whole list. Backups
+  // are read on the way into every program install, so rejecting the list
+  // outright let a single bad entry block installs permanently - with no way
+  // to clear it from inside the app. Survivors are rewritten by the next
+  // backup write, which builds its list from what was read here.
+  const usable = snapshot.value.filter(isWorkoutPlanBackup)
+  const skipped = snapshot.value.length - usable.length
+
+  const sorted = [...usable]
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
     .slice(0, MAX_WORKOUT_PLAN_BACKUPS)
     .map((backup) => clone(backup))
-  return succeed(sorted, `${sorted.length} workout plan backup(s) loaded.`)
+  return succeed(
+    sorted,
+    skipped > 0
+      ? `${sorted.length} workout plan backup(s) loaded; ${skipped} unreadable backup(s) skipped.`
+      : `${sorted.length} workout plan backup(s) loaded.`,
+  )
 }
 
 export function createWorkoutPlanBackup(
@@ -727,6 +740,17 @@ function createWorkoutPlanBackupInternal(
     },
     plan: normalizePlan(plan),
   }
+  // Checked before the write, not only after it: the old order persisted the
+  // bad entry and only then reported failure, so a single unusable backup
+  // stayed in storage.
+  if (!isWorkoutPlanBackup(backup)) {
+    return fail(
+      null,
+      'invalid-backup',
+      'The current workout plan cannot be backed up because it is empty or incomplete.',
+    )
+  }
+
   const candidates = [
     backup,
     ...existingResult.data.filter((candidate) => candidate.id !== backup.id),
@@ -895,6 +919,15 @@ function isWorkoutPlanBackup(value: unknown): value is WorkoutPlanBackup {
       (isNonEmptyString(id) && isNonEmptyString(version)))
   if (!previousProgramValid) {
     return false
+  }
+
+  // An empty plan is a real state to return to - it is what an account has
+  // before its first program is installed - so it is a valid *snapshot* even
+  // though it would not be a valid *program*. Conflating the two is what made
+  // a first-install backup unreadable the moment it was written, and then
+  // blocked the very install that wrote it.
+  if (value.plan.length === 0) {
+    return true
   }
 
   return validateWorkoutProgram({

@@ -120,7 +120,7 @@ interface PreparedCloudChange {
   cloudSettingsBefore: CloudDocumentSnapshot<Record<string, unknown>>
   cloudSettingsWithBackup: Record<string, unknown>
   managerBefore: CloudWorkoutProgramManagerMetadata
-  localBackup: WorkoutPlanBackup
+  localBackup: WorkoutPlanBackup | null
 }
 
 interface JsonStorageSnapshot {
@@ -833,11 +833,18 @@ async function prepareCloudChange(
   ) {
     throw new Error('A unique cloud backup ID could not be created.')
   }
-  const localBackupResult = createWorkoutPlanBackup(
-    normalizePlan(getCustomWorkoutPlan()),
-    reason,
-  )
-  if (!localBackupResult.success || !localBackupResult.data) {
+  // A first install has no local plan to protect: an empty plan is not a valid
+  // backup, and failing the install over it would leave a new account unable to
+  // set up the program it just uploaded. Mirrors installWorkoutProgramLocally.
+  const localPlanBefore = normalizePlan(getCustomWorkoutPlan())
+  const localBackupResult =
+    localPlanBefore.length > 0
+      ? createWorkoutPlanBackup(localPlanBefore, reason)
+      : null
+  if (
+    localBackupResult &&
+    (!localBackupResult.success || !localBackupResult.data)
+  ) {
     throw new Error(localBackupResult.message)
   }
 
@@ -868,7 +875,7 @@ async function prepareCloudChange(
     cloudSettingsBefore: settingsSnapshot,
     cloudSettingsWithBackup,
     managerBefore,
-    localBackup: localBackupResult.data,
+    localBackup: localBackupResult?.data ?? null,
   }
 
   try {
@@ -1374,6 +1381,15 @@ function isCloudWorkoutPlanBackup(value: unknown): value is CloudWorkoutPlanBack
   ) {
     return false
   }
+  // An empty plan is a real state to return to - it is what an account has
+  // before its first program is installed - so it is a valid *snapshot* even
+  // though it would not be a valid *program*. Conflating the two is what made
+  // a first-install backup unreadable the moment it was written, and then
+  // blocked the very install that wrote it.
+  if (value.plan.length === 0) {
+    return true
+  }
+
   return validateWorkoutProgram({
     id: 'cloud-backup-validation',
     name: 'Cloud backup validation',
