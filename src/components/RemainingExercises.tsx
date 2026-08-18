@@ -23,9 +23,13 @@ export function RemainingExercises({
   onToggle,
   onSelect,
 }: RemainingExercisesProps) {
+  // What is left *after* the exercise on screen: the label reads "Rest of the
+  // workout", so counting the current one makes the number never go down.
   const remainingCount = exercises.reduce(
     (count, exercise, index) =>
-      index > currentIndex || !exercise.sets.every(isDoneSet) ? count + 1 : count,
+      index !== currentIndex && (index > currentIndex || !exercise.sets.every(isDoneSet))
+        ? count + 1
+        : count,
     0,
   )
 

@@ -25,6 +25,7 @@ import * as bodyCheckInService from '../services/bodyCheckInService'
 import { isCloudPhotoEnabled } from '../services/photoService'
 import { exportBodyCheckInsCSV } from '../utils/exportUtils'
 import { printElement } from '../utils/printUtils'
+import { SHOW_DEMO_DATA } from '../utils/devFlags'
 import {
   addDemoCheckIns,
   formatCheckInDate,
@@ -214,7 +215,7 @@ export function BodyCheckIn() {
             <Printer size={19} strokeWidth={2.4} aria-hidden="true" />
             Print Body Progress
           </button>
-          {!hasCheckIns ? (
+          {SHOW_DEMO_DATA && !hasCheckIns ? (
             <button
               className="demo-data-button"
               onClick={handleAddDemo}
@@ -347,15 +348,21 @@ export function BodyCheckIn() {
           <Target size={26} strokeWidth={2.4} aria-hidden="true" />
           <div>
             <h2>No body check-in yet</h2>
-            <p>Save your first check-in above, or load demo check-ins to explore.</p>
+            <p>
+              {SHOW_DEMO_DATA
+                ? 'Save your first check-in above, or load demo check-ins to explore.'
+                : 'Save your first check-in above to start tracking progress.'}
+            </p>
           </div>
-          <button
-            className="workout-primary-button"
-            onClick={handleAddDemo}
-            type="button"
-          >
-            Add Demo Check-ins
-          </button>
+          {SHOW_DEMO_DATA ? (
+            <button
+              className="workout-primary-button"
+              onClick={handleAddDemo}
+              type="button"
+            >
+              Add Demo Check-ins
+            </button>
+          ) : null}
         </article>
       )}
 

@@ -4379,9 +4379,44 @@
 
 /* --- Sticky live-workout action bar (mobile) ------------------------------ */
 
-/* Keep content clear of the sticky bar on mobile. */
+/* Keep content clear of the pinned bar on mobile. */
 .workout-page--live {
   padding-bottom: 88px;
+}
+
+/*
+ * The next/finish button is pressed between every set, so it has to stay
+ * reachable without scrolling.
+ *
+ * This is `fixed`, not `sticky`: `.app-shell` sets `overflow-y: auto`, which
+ * makes it the sticky scrollport even though the document is what actually
+ * scrolls, so a sticky bar here never engages. Below 920px the bottom nav is
+ * itself fixed, so the bar is pinned directly above it; 75px is the nav's
+ * height before its own safe-area padding is added.
+ */
+@media (max-width: 919.98px) {
+  .workout-page--live {
+    padding-bottom: calc(190px + env(safe-area-inset-bottom));
+  }
+
+  /*
+   * Full-bleed rather than inset: the bar sits flush on top of the nav as one
+   * solid band, so nothing shows through between the two and the content
+   * scrolling underneath is clearly behind chrome rather than clipped.
+   */
+  .workout-page--live .live-actions {
+    background: var(--bg);
+    border-top: 1px solid var(--line);
+    bottom: calc(75px + env(safe-area-inset-bottom));
+    left: 0;
+    padding-bottom: 10px;
+    padding-left: calc(14px + env(safe-area-inset-left));
+    padding-right: calc(14px + env(safe-area-inset-right));
+    padding-top: 10px;
+    position: fixed;
+    right: 0;
+    z-index: 5;
+  }
 }
 
 /* --- Settings: workout display panel -------------------------------------- */

@@ -36,6 +36,7 @@ import {
   saveActiveWorkoutSession,
   updateActiveSet,
   type ActiveExercise,
+  type ActiveSet,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
@@ -291,6 +292,20 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
             setScreen('active')
           }}
           onDiscard={() => {
+            // Sits next to "Continue" and cannot be undone, so name what is
+            // about to be thrown away before doing it.
+            const doneSets = getDoneSetsCount(session)
+            const confirmed = window.confirm(
+              doneSets > 0
+                ? `Discard this workout? ${doneSets} completed ${
+                    doneSets === 1 ? 'set' : 'sets'
+                  } will be deleted and cannot be recovered.`
+                : 'Discard this workout? It cannot be recovered.',
+            )
+            if (!confirmed) {
+              return
+            }
+
             clearActiveWorkoutSession()
             setSession(null)
             setScreen('intro')
@@ -636,7 +651,7 @@ function LiveWorkoutScreen({
       ) : null}
 
       <OptionalSetLog
-        initialData={exercise.sets[setIndex]}
+        initialData={seedSetFromPrevious(exercise.sets, setIndex)}
         isOpen={logOpen}
         loggingMode={exercise.loggingMode}
         onChange={setPendingLog}
@@ -824,4 +839,31 @@ function resumeSetIndex(exercise: ActiveExercise | undefined): number {
 
   const firstOpen = exercise.sets.findIndex((set) => !isDoneSet(set))
   return firstOpen === -1 ? Math.max(0, exercise.sets.length - 1) : firstOpen
+}
+
+/**
+ * Seeds the log inputs for the set about to be worked.
+ *
+ * Reps are left blank because they genuinely change set to set, but the weight
+ * on the bar usually does not: carrying the last one forward within the same
+ * exercise saves retyping it for every set. An untouched seed is never written
+ * back on its own -- `advance` only stores what the inputs report.
+ */
+function seedSetFromPrevious(
+  sets: ActiveSet[],
+  setIndex: number,
+): ActiveSet | undefined {
+  const current = sets[setIndex]
+  if (!current || current.weightKg !== null) {
+    return current
+  }
+
+  for (let index = setIndex - 1; index >= 0; index -= 1) {
+    const previous = sets[index]
+    if (previous && previous.weightKg !== null) {
+      return { ...current, weightKg: previous.weightKg }
+    }
+  }
+
+  return current
 }

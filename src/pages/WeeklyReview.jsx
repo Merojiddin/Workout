@@ -12,6 +12,7 @@ import { PrintableWeeklyReview } from '../print/PrintableWeeklyReview'
 import { getProgressionSuggestion } from '../utils/progressionUtils'
 import { getWeeklyCoachConclusion } from '../utils/coachUtils'
 import { printElement } from '../utils/printUtils'
+import { SHOW_DEMO_DATA } from '../utils/devFlags'
 import { addDemoCheckIns, getBodyCheckIns } from '../utils/bodyCheckInUtils'
 import { addDemoNutritionLogs, getNutritionLogs } from '../utils/nutritionUtils'
 import { addDemoSessions, getWorkoutSessions } from '../utils/progressUtils'
@@ -162,10 +163,14 @@ export function WeeklyReview() {
           <PlusCircle size={26} strokeWidth={2.4} aria-hidden="true" />
           <div>
             <h2>Missing local data</h2>
-            <p>Complete workouts and logs to improve this review, or load demos.</p>
+            <p>
+              {SHOW_DEMO_DATA
+                ? 'Complete workouts and logs to improve this review, or load demos.'
+                : 'Complete workouts and logs to improve this review.'}
+            </p>
           </div>
           <div className="weekly-review-demo-actions">
-            {sessions.length === 0 ? (
+            {SHOW_DEMO_DATA && sessions.length === 0 ? (
               <button
                 className="workout-primary-button"
                 onClick={handleAddDemoWorkouts}
@@ -174,7 +179,7 @@ export function WeeklyReview() {
                 Add Demo Workouts
               </button>
             ) : null}
-            {checkIns.length === 0 ? (
+            {SHOW_DEMO_DATA && checkIns.length === 0 ? (
               <button
                 className="workout-secondary-button"
                 onClick={handleAddDemoCheckIns}
@@ -183,7 +188,7 @@ export function WeeklyReview() {
                 Add Demo Body Check-ins
               </button>
             ) : null}
-            {nutritionLogs.length === 0 ? (
+            {SHOW_DEMO_DATA && nutritionLogs.length === 0 ? (
               <button
                 className="workout-secondary-button"
                 onClick={handleAddDemoNutrition}

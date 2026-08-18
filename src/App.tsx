@@ -146,6 +146,14 @@ function AuthedApp() {
   const handlePendingSynced = useCallback(() => {
     setDataVersion((version) => version + 1)
   }, [])
+  // Clearing local data removes the installed program, so the program gate has
+  // to be re-asked and the pages re-mounted -- otherwise the app keeps showing
+  // the profile and plan that were just deleted, with no route back to setup.
+  const handleDataCleared = useCallback(() => {
+    setDataVersion((version) => version + 1)
+    dispatchNavigation({ type: 'reset', page: HOME_PAGE })
+    notifyUserProfileSettingsChanged()
+  }, [])
   const autoSync = useAutoSync(user, { onSynced: handlePendingSynced })
 
   // On login (cloud mode) pull the user's cloud data into the local mirror so
@@ -189,7 +197,9 @@ function AuthedApp() {
       case 'weekly-review':
         return <WeeklyReview />
       case 'settings':
-        return <Settings onNavigate={handleNavigate} />
+        return (
+          <Settings onDataCleared={handleDataCleared} onNavigate={handleNavigate} />
+        )
       case 'privacy':
         return <Privacy />
       case 'disclaimer':

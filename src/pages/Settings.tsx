@@ -38,6 +38,7 @@ import {
   resetUserProfileSettings,
 } from '../utils/settingsUtils'
 import type { PageId } from '../types/navigation'
+import { SHOW_DEV_PAGES } from '../utils/devFlags'
 
 type SettingsTab =
   | 'profile'
@@ -51,6 +52,8 @@ type SettingsTab =
 
 interface SettingsProps {
   onNavigate: (page: PageId) => void
+  /** Lets App re-ask whether a program is still installed after a wipe. */
+  onDataCleared?: () => void
 }
 
 const tabs: Array<{
@@ -87,7 +90,7 @@ const goalFields = [
   ['injuryLimitation', 'Injury limitation'],
 ] as const
 
-export function Settings({ onNavigate }: SettingsProps) {
+export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
   const { isSupabaseConfigured, signOut, user } = useAuth()
   const [activeTab, setActiveTab] = useState<SettingsTab>(() =>
     getInitialSettingsTab(),
@@ -247,6 +250,9 @@ export function Settings({ onNavigate }: SettingsProps) {
     clearAllData()
     setSettings(getUserProfileSettings())
     setNotice('All local app data cleared.')
+    // The installed program went with it, so hand control back to App: it
+    // re-checks for a program and sends the user to the setup screen.
+    onDataCleared?.()
   }
 
   return (
@@ -818,13 +824,15 @@ export function Settings({ onNavigate }: SettingsProps) {
         >
           Disclaimer
         </button>
-        <button
-          className="settings-footer-link"
-          onClick={() => onNavigate('pre-deploy-checklist')}
-          type="button"
-        >
-          Pre-Deploy Checklist
-        </button>
+        {SHOW_DEV_PAGES ? (
+          <button
+            className="settings-footer-link"
+            onClick={() => onNavigate('pre-deploy-checklist')}
+            type="button"
+          >
+            Pre-Deploy Checklist
+          </button>
+        ) : null}
       </footer>
     </section>
   )
