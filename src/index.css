@@ -1,21 +1,35 @@
 :root {
-  --bg: #07090c;
-  --surface: #10151b;
-  --surface-2: #151c24;
-  --surface-3: #1b2530;
-  --text: #edf4f1;
-  --muted: #98a7a3;
-  --soft: #c7d3d0;
-  --line: #24313c;
-  --green: #32d583;
-  --green-soft: rgba(50, 213, 131, 0.12);
-  --blue: #5da8ff;
-  --blue-soft: rgba(93, 168, 255, 0.13);
-  --orange: #ff8a4c;
-  --orange-soft: rgba(255, 138, 76, 0.14);
-  --red: #f2617a;
-  --red-soft: rgba(242, 97, 122, 0.14);
-  --shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  /* ForgeFit palette: near-black ground, cyan accent, from the v2 mockup. */
+  --bg: #050708;
+  --surface: #0d1113;
+  --surface-2: #121719;
+  --surface-3: #171d20;
+  --text: #f4f7f8;
+  --muted: #8f9a9f;
+  --soft: #c6ced1;
+  --line: #252d31;
+  /* The accent stays named --green so every existing accent rule follows it. */
+  --green: #1bd2dc;
+  --green-2: #0daab3;
+  --green-soft: rgba(27, 210, 220, 0.12);
+  --green-ink: #001215;
+  --blue: #4aa8ff;
+  --blue-soft: rgba(74, 168, 255, 0.13);
+  --orange: #ff6d4a;
+  --orange-soft: rgba(255, 109, 74, 0.14);
+  --red: #ff3f43;
+  --red-soft: rgba(255, 63, 67, 0.14);
+  --yellow: #f7bd4b;
+  --purple: #9877ff;
+  /* Card surface, one gradient everywhere so panels read as one material. */
+  --card: linear-gradient(180deg, rgba(19, 24, 27, 0.96), rgba(12, 16, 18, 0.96));
+  --card-line: #222a2e;
+  /* Radii. --r-md is the app-wide default; --r-lg is for cards and sheets. */
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   --font:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
     sans-serif;
@@ -40,7 +54,11 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(25, 210, 220, 0.1), transparent 34%),
+    radial-gradient(circle at 100% 78%, rgba(25, 210, 220, 0.06), transparent 30%),
+    var(--bg);
+  background-attachment: fixed;
   margin: 0;
   min-width: 320px;
 }

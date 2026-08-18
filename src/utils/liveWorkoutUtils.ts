@@ -416,6 +416,26 @@ export function getDoneSetsCount(
   )
 }
 
+/**
+ * How many exercises are left *after* the one on screen. The screen labels
+ * this "Rest of the workout", so counting the current one would make the
+ * number never go down. Earlier exercises still count while unfinished:
+ * jumping around the list leaves gaps that are genuinely still to do.
+ */
+export function countRemainingExercises(
+  exercises: ActiveExercise[],
+  currentIndex: number,
+): number {
+  return safeArray<ActiveExercise>(exercises).reduce(
+    (count, exercise, index) =>
+      index !== currentIndex &&
+      (index > currentIndex || !safeArray<ActiveSet>(exercise?.sets).every(isDoneSet))
+        ? count + 1
+        : count,
+    0,
+  )
+}
+
 function normalizeActiveSession(value: unknown): ActiveWorkoutSession | null {
   if (!isObject(value)) {
     return null

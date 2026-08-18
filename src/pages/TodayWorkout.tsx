@@ -1,15 +1,19 @@
 import {
   ArrowLeft,
-  ArrowRight,
   BookOpen,
   Building2,
   Check,
   Clock3,
+  Dumbbell,
   Flag,
   Home,
+  Layers,
   ListChecks,
+  PencilLine,
   Play,
   ShieldAlert,
+  SkipForward,
+  Square,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
@@ -26,6 +30,7 @@ import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import {
   clearActiveWorkoutSession,
   completeActiveWorkoutSession,
+  countRemainingExercises,
   createActiveWorkoutSession,
   getActiveWorkoutSession,
   getCurrentExercise,
@@ -49,6 +54,7 @@ import {
 } from '../utils/settingsUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 import { useAuth } from '../context/AuthContext'
+import { useProfileIdentity } from '../hooks/useProfileIdentity'
 import * as workoutService from '../services/workoutService'
 import type { PageId } from '../types/navigation'
 import type { StandaloneWorkout } from '../types/workoutProgram'
@@ -325,6 +331,10 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
         nowTs={nowTs}
         onAdvance={advance}
         onBack={goBack}
+        // Leaving the training screen is not the same as ending the workout:
+        // the session stays saved and the prompt screen offers it straight
+        // back, with the app's own nav visible again behind it.
+        onExit={() => setScreen('prompt')}
         onFinish={() => finishWorkout()}
         onGoToExercise={goToExercise}
         restSignal={restSignal}
@@ -369,6 +379,7 @@ function PreWorkoutScreen({
   programWeek,
   selectedDay,
 }: PreWorkoutScreenProps) {
+  const { firstName } = useProfileIdentity()
   const [location, setLocation] = useState<TrainingLocation>('home')
   const [showPicker, setShowPicker] = useState(false)
 
@@ -390,21 +401,83 @@ function PreWorkoutScreen({
   )
   const easyWeek = Boolean(phase?.setVolumeMultiplier)
 
+  const totalSets = exercises.reduce(
+    (total, exercise) => total + Math.max(1, Number(exercise.sets) || 1),
+    0,
+  )
+
   return (
     <section className="workout-page workout-page--intro">
-      <header className="today-intro">
-        <p className="eyebrow">Today</p>
-        <h1>{selectedDay.name}</h1>
-        <p className="today-intro__meta">
-          <span>
-            <Clock3 size={15} strokeWidth={2.4} aria-hidden="true" />
-            {selectedDay.estimatedTime}
-          </span>
-          <span>
-            <ListChecks size={15} strokeWidth={2.4} aria-hidden="true" />
-            {exercises.length} exercises
-          </span>
-        </p>
+      <header className="home-greeting">
+        <div>
+          <h1>{firstName ? `Hi, ${firstName}` : 'Ready to train'}</h1>
+          <p>Ready for today&apos;s session?</p>
+        </div>
+      </header>
+
+      {/* The plan card: which program is running and how far into it you are. */}
+      <article className="plan-card">
+        <div className="plan-card__top">
+          <div>
+            <p className="eyebrow">Current plan</p>
+            <h2>{activeProgram.programName}</h2>
+          </div>
+          <Dumbbell
+            aria-hidden="true"
+            className="plan-card__glyph"
+            size={26}
+            strokeWidth={2.1}
+          />
+        </div>
+        {programWeek && activeProgram.durationWeeks ? (
+          <>
+            <div className="plan-card__rail">
+              <span
+                style={{
+                  width: `${Math.min(
+                    100,
+                    Math.round((programWeek / activeProgram.durationWeeks) * 100),
+                  )}%`,
+                }}
+              />
+            </div>
+            <div className="plan-card__foot">
+              <span>
+                Week {programWeek} of {activeProgram.durationWeeks}
+              </span>
+              <span>
+                {Math.min(
+                  100,
+                  Math.round((programWeek / activeProgram.durationWeeks) * 100),
+                )}
+                %
+              </span>
+            </div>
+          </>
+        ) : null}
+      </article>
+
+      <div className="section-title">
+        <h2>Today&apos;s workout</h2>
+        <span>Day {selectedDay.day}</span>
+      </div>
+
+      <article className="today-card">
+        <div className="today-card__head">
+          <div>
+            <h3>{selectedDay.name}</h3>
+            <p className="today-card__pills">
+              <span>
+                <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
+                {exercises.length} exercises
+              </span>
+              <span>
+                <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
+                {selectedDay.estimatedTime}
+              </span>
+            </p>
+          </div>
+        </div>
 
         {easyWeek && phase ? (
           <p className="today-intro__notice">
@@ -435,10 +508,60 @@ function PreWorkoutScreen({
             </button>
           </div>
         ) : null}
-      </header>
+
+        {hasExercises ? (
+          <button
+            className="workout-primary-button workout-primary-button--large"
+            onClick={() => onStart(resolvedDay)}
+            type="button"
+          >
+            <Play size={21} strokeWidth={2.4} aria-hidden="true" />
+            Start workout
+          </button>
+        ) : null}
+      </article>
 
       {hasExercises ? (
         <>
+          {/* Three numbers about the session ahead, the mockup's summary row. */}
+          <div className="summary-grid">
+            <div className="summary-stat">
+              <ListChecks
+                aria-hidden="true"
+                className="summary-stat__icon summary-stat__icon--accent"
+                size={19}
+                strokeWidth={2.2}
+              />
+              <strong>{exercises.length}</strong>
+              <span>exercises</span>
+            </div>
+            <div className="summary-stat">
+              <Layers
+                aria-hidden="true"
+                className="summary-stat__icon summary-stat__icon--warm"
+                size={19}
+                strokeWidth={2.2}
+              />
+              <strong>{totalSets}</strong>
+              <span>working sets</span>
+            </div>
+            <div className="summary-stat">
+              <Clock3
+                aria-hidden="true"
+                className="summary-stat__icon summary-stat__icon--cool"
+                size={19}
+                strokeWidth={2.2}
+              />
+              <strong>{selectedDay.estimatedTime.replace(/\s*min\s*$/i, '')}</strong>
+              <span>minutes</span>
+            </div>
+          </div>
+
+          <div className="section-title">
+            <h2>Exercises</h2>
+            <span>{exercises.length}</span>
+          </div>
+
           <ol className="today-exercise-list">
             {exercises.map((exercise, index) => (
               <li key={`${exercise.id}-${index}`}>
@@ -453,15 +576,6 @@ function PreWorkoutScreen({
               </li>
             ))}
           </ol>
-
-          <button
-            className="workout-primary-button workout-primary-button--large"
-            onClick={() => onStart(resolvedDay)}
-            type="button"
-          >
-            <Play size={21} strokeWidth={2.4} aria-hidden="true" />
-            Start workout
-          </button>
         </>
       ) : (
         <article className="today-empty">
@@ -533,6 +647,7 @@ interface LiveWorkoutScreenProps {
   nowTs: number
   onAdvance: (log: OptionalSetLogValues) => void
   onBack: () => void
+  onExit: () => void
   onFinish: () => void
   onGoToExercise: (index: number) => void
   restSignal: number
@@ -552,12 +667,13 @@ function LiveWorkoutScreen({
   nowTs,
   onAdvance,
   onBack,
+  onExit,
   onFinish,
   onGoToExercise,
   restSignal,
   session,
 }: LiveWorkoutScreenProps) {
-  // Once opened, the log stays open for the rest of the workout.
+  // Once switched on, the log stays on for the rest of the workout.
   const [logOpen, setLogOpen] = useState(false)
   const [listOpen, setListOpen] = useState(false)
   const [showFormGuide, setShowFormGuide] = useState(false)
@@ -574,8 +690,10 @@ function LiveWorkoutScreen({
   }, [setKey])
 
   if (!exercise) {
+    // Not the training layout: there is nothing to train, so the app's own
+    // nav should stay on screen rather than be covered by a full-screen dock.
     return (
-      <section className="workout-page workout-page--live">
+      <section className="workout-page workout-page--intro">
         <article className="today-empty">
           <p>This workout has no exercises to work through.</p>
           <button className="workout-primary-button" onClick={onFinish} type="button">
@@ -591,6 +709,7 @@ function LiveWorkoutScreen({
   const isLastSet = setIndex >= totalSets - 1
   const isLastExercise = exerciseIndex >= session.exercises.length - 1
   const atStart = setIndex === 0 && exerciseIndex === 0
+  const remainingCount = countRemainingExercises(session.exercises, exerciseIndex)
   const formGuideExercise = findLibraryExerciseForWorkout(
     {
       id: exercise.exerciseId,
@@ -601,124 +720,184 @@ function LiveWorkoutScreen({
     exerciseLibrary,
   )
 
+  /**
+   * "End" is one small button in a row of four now, so a stray tap must not
+   * silently cut the session short. Only asks when there is something left:
+   * ending on the last set is the normal way to finish.
+   */
+  function endWorkout() {
+    const left = getTotalPlannedSets(session) - getDoneSetsCount(session)
+    if (left > 0) {
+      const confirmed = window.confirm(
+        `End the workout here? ${left} planned ${
+          left === 1 ? 'set is' : 'sets are'
+        } still left. Everything you have already done is saved.`,
+      )
+      if (!confirmed) {
+        return
+      }
+    }
+
+    onFinish()
+  }
+
   return (
     <section className="workout-page workout-page--live">
-      {finishError ? (
-        <div className="live-finish-error" role="alert">
-          <ShieldAlert size={18} strokeWidth={2.4} aria-hidden="true" />
-          <span>{finishError}</span>
-        </div>
-      ) : null}
-
       <LiveWorkoutHeader
         currentExerciseIndex={exerciseIndex}
         doneSets={getDoneSetsCount(session)}
         duration={getWorkoutDuration(session, new Date(nowTs))}
+        onExit={onExit}
         totalExercises={session.exercises.length}
         totalSets={getTotalPlannedSets(session)}
         workoutName={session.workoutName}
       />
 
-      <article className="live-exercise">
-        <p className="eyebrow">{exercise.muscleGroup || 'Exercise'}</p>
-        <h1>{exercise.exerciseName}</h1>
-        <p className="live-exercise__target">
-          Set {Math.min(setIndex + 1, totalSets)} of {totalSets} ·{' '}
-          {getExerciseTarget(exercise)}
-        </p>
+      {/* The only part of the screen that scrolls. Everything needed between
+          sets is in the dock below, which never moves. */}
+      <div className="live-body">
+        {finishError ? (
+          <div className="live-finish-error" role="alert">
+            <ShieldAlert size={18} strokeWidth={2.4} aria-hidden="true" />
+            <span>{finishError}</span>
+          </div>
+        ) : null}
 
-        {formGuideExercise && displaySettings.showExerciseImages !== false ? (
-          <LiveExerciseImage
-            exercise={formGuideExercise}
-            onOpenFormGuide={() => setShowFormGuide(true)}
+        <article className="live-exercise">
+          <p className="eyebrow">{exercise.muscleGroup || 'Exercise'}</p>
+          <h1>{exercise.exerciseName}</h1>
+          <p className="live-exercise__target">
+            Set {Math.min(setIndex + 1, totalSets)} of {totalSets} ·{' '}
+            {getExerciseTarget(exercise)}
+          </p>
+
+          {formGuideExercise && displaySettings.showExerciseImages !== false ? (
+            <LiveExerciseImage
+              exercise={formGuideExercise}
+              onOpenFormGuide={() => setShowFormGuide(true)}
+            />
+          ) : null}
+
+          {formGuideExercise ? (
+            <button
+              className="live-exercise__guide"
+              onClick={() => setShowFormGuide(true)}
+              type="button"
+            >
+              <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
+              Form guide, tips and video
+            </button>
+          ) : null}
+        </article>
+      </div>
+
+      {/* One dock for every control pressed between sets: the rest countdown
+          and its buttons, back/next, and the four occasional tools. */}
+      <div className="live-dock">
+        {logOpen ? (
+          <OptionalSetLog
+            initialData={seedSetFromPrevious(exercise.sets, setIndex)}
+            loggingMode={exercise.loggingMode}
+            onChange={setPendingLog}
+            setKey={setKey}
           />
         ) : null}
 
-        {formGuideExercise ? (
+        {exercise.restSeconds > 0 ? (
+          <RestTimer autoStartSignal={restSignal} restSeconds={exercise.restSeconds} />
+        ) : null}
+
+        <div className="live-dock__main">
           <button
-            className="live-exercise__guide"
-            onClick={() => setShowFormGuide(true)}
+            aria-label="Go back one set"
+            className="live-dock__back"
+            disabled={atStart}
+            onClick={onBack}
             type="button"
           >
-            <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
-            Form guide, tips and video
+            <ArrowLeft size={19} strokeWidth={2.4} aria-hidden="true" />
           </button>
-        ) : null}
-      </article>
 
-      {exercise.restSeconds > 0 ? (
-        <RestTimer autoStartSignal={restSignal} restSeconds={exercise.restSeconds} />
-      ) : null}
+          <button
+            className="workout-primary-button"
+            onClick={() => onAdvance(pendingLog)}
+            type="button"
+          >
+            {isLastSet && isLastExercise ? (
+              <>
+                <Flag size={20} strokeWidth={2.4} aria-hidden="true" />
+                Finish workout
+              </>
+            ) : isLastSet ? (
+              <>
+                <Check size={20} strokeWidth={2.4} aria-hidden="true" />
+                Next exercise
+              </>
+            ) : (
+              <>
+                <Check size={20} strokeWidth={2.4} aria-hidden="true" />
+                Next set
+              </>
+            )}
+          </button>
+        </div>
 
-      <OptionalSetLog
-        initialData={seedSetFromPrevious(exercise.sets, setIndex)}
-        isOpen={logOpen}
-        loggingMode={exercise.loggingMode}
-        onChange={setPendingLog}
-        onOpenChange={setLogOpen}
-        setKey={setKey}
-      />
+        <div className="live-dock__tools">
+          <button
+            aria-pressed={logOpen}
+            className={`live-tool${logOpen ? ' live-tool--on' : ''}`}
+            onClick={() => setLogOpen((open) => !open)}
+            type="button"
+          >
+            <PencilLine size={17} strokeWidth={2.4} aria-hidden="true" />
+            <span>{logOpen ? 'Hide log' : 'Log set'}</span>
+          </button>
 
-      <div className="live-actions">
-        <button
-          aria-label="Go back one set"
-          className="live-actions__back"
-          disabled={atStart}
-          onClick={onBack}
-          type="button"
-        >
-          <ArrowLeft size={19} strokeWidth={2.4} aria-hidden="true" />
-        </button>
+          <button
+            aria-label="Skip to the next exercise"
+            className="live-tool"
+            disabled={isLastExercise}
+            onClick={() => onGoToExercise(exerciseIndex + 1)}
+            type="button"
+          >
+            <SkipForward size={17} strokeWidth={2.4} aria-hidden="true" />
+            <span>Skip</span>
+          </button>
 
-        <button
-          className="workout-primary-button workout-primary-button--large"
-          onClick={() => onAdvance(pendingLog)}
-          type="button"
-        >
-          {isLastSet && isLastExercise ? (
-            <>
-              <Flag size={20} strokeWidth={2.4} aria-hidden="true" />
-              Finish workout
-            </>
-          ) : isLastSet ? (
-            <>
-              <Check size={20} strokeWidth={2.4} aria-hidden="true" />
-              Next exercise
-            </>
-          ) : (
-            <>
-              <Check size={20} strokeWidth={2.4} aria-hidden="true" />
-              Next set
-            </>
-          )}
-        </button>
+          <button
+            aria-label={`Rest of the workout, ${remainingCount} left`}
+            aria-pressed={listOpen}
+            className={`live-tool${listOpen ? ' live-tool--on' : ''}`}
+            onClick={() => setListOpen((open) => !open)}
+            type="button"
+          >
+            <ListChecks size={17} strokeWidth={2.4} aria-hidden="true" />
+            <span>List ({remainingCount})</span>
+          </button>
+
+          <button
+            aria-label="End the workout here"
+            className="live-tool live-tool--end"
+            onClick={endWorkout}
+            type="button"
+          >
+            <Square size={16} strokeWidth={2.6} aria-hidden="true" />
+            <span>End</span>
+          </button>
+        </div>
       </div>
 
-      {!isLastExercise ? (
-        <button
-          className="live-skip"
-          onClick={() => onGoToExercise(exerciseIndex + 1)}
-          type="button"
-        >
-          Skip to next exercise
-          <ArrowRight size={16} strokeWidth={2.4} aria-hidden="true" />
-        </button>
+      {listOpen ? (
+        <RemainingExercises
+          currentIndex={exerciseIndex}
+          exercises={session.exercises}
+          onClose={() => setListOpen(false)}
+          onSelect={(index) => {
+            onGoToExercise(index)
+            setListOpen(false)
+          }}
+        />
       ) : null}
-
-      <RemainingExercises
-        currentIndex={exerciseIndex}
-        exercises={session.exercises}
-        isOpen={listOpen}
-        onSelect={(index) => {
-          onGoToExercise(index)
-          setListOpen(false)
-        }}
-        onToggle={() => setListOpen((open) => !open)}
-      />
-
-      <button className="live-end" onClick={onFinish} type="button">
-        End workout here
-      </button>
 
       {showFormGuide && formGuideExercise ? (
         <ExerciseDetailModal

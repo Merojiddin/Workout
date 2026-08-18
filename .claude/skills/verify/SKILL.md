@@ -55,12 +55,21 @@ then launch with an explicit `executablePath` for the cached headless shell
   on mobile and `.nav-button` in the sidebar at >=920px. Everything else
   (Weekly Plan, Exercise Library, Weekly Review, Body Check-in, Settings) is a
   `.more-list__item` on the More page.
-- The nav stays visible during a live workout; Today's Workout is the home page.
-- Workout flow: `Start workout` -> live screen (`.live-exercise`,
-  `.rest-timer`, `.live-actions .workout-primary-button` labelled Next set /
-  Next exercise / Finish workout) -> `End workout here` -> `.finish-screen`
-  -> `Done`. Optional logging is behind `Log this set (optional)`
-  (`#optional-log-primary`, `#optional-log-weight`).
+- Today's Workout is the home page. The nav is visible everywhere **except**
+  the live workout screen, which is a full-screen `position: fixed` layer
+  (`.workout-page--live`) covering the top bar and bottom nav.
+- Workout flow: `Start workout` -> live screen -> `.live-tool--end` (the "End"
+  tool, which `window.confirm`s while sets are left) -> `.finish-screen` ->
+  `Done`. The live screen is three fixed rows: `.live-header` (with
+  `.live-header__exit`, which leaves for the unfinished-workout prompt without
+  ending the session), the scrolling `.live-body`, and `.live-dock`.
+- Everything pressed between sets is in `.live-dock`: the `.rest-timer` line
+  (`.timer-button` x3), `.live-dock__main` (`.live-dock__back` +
+  `.workout-primary-button` labelled Next set / Next exercise / Finish
+  workout), and `.live-dock__tools` (four `.live-tool` buttons: Log set, Skip,
+  List, End). Optional logging is behind the first `.live-tool`
+  (`#optional-log-primary`, `#optional-log-weight`); the exercise list opens as
+  a `.live-sheet` over the screen.
 - Playwright contexts have isolated localStorage — the user's real data is
   never touched. Seed test data via
   `localStorage.setItem('customExerciseLibrary', ...)` + reload.

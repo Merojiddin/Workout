@@ -1,4 +1,3 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { ExerciseLoggingMode } from '../utils/exerciseLoggingUtils'
 import type { ActiveSet } from '../utils/liveWorkoutUtils'
@@ -14,26 +13,22 @@ interface OptionalSetLogProps {
   setKey: string
   loggingMode: ExerciseLoggingMode
   initialData?: Partial<ActiveSet>
-  /** Kept open for the rest of the workout once the user opens it. */
-  isOpen: boolean
-  onOpenChange: (open: boolean) => void
   onChange: (values: OptionalSetLogValues) => void
 }
 
 /**
- * Reps and kg, and nothing else. Collapsed by default because logging is
- * optional: the workout is fully usable without ever opening this.
+ * Reps and kg, and nothing else. The caller only mounts this once the "Log
+ * set" tool is switched on, because logging is optional: the workout is fully
+ * usable without ever opening it.
  *
  * There is no Save button. Values are reported upward as they are typed and
- * the screen's single "Next" button is what commits them, so the user never
- * has to press two things to move on.
+ * the dock's single "Next" button is what commits them, so the user never has
+ * to press two things to move on.
  */
 export function OptionalSetLog({
   setKey,
   loggingMode,
   initialData,
-  isOpen,
-  onOpenChange,
   onChange,
 }: OptionalSetLogProps) {
   const [reps, setReps] = useState('')
@@ -66,71 +61,47 @@ export function OptionalSetLog({
 
   const timed = loggingMode === 'duration'
 
-  if (!isOpen) {
-    return (
-      <button
-        className="optional-log__toggle"
-        onClick={() => onOpenChange(true)}
-        type="button"
-      >
-        <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
-        Log this set (optional)
-      </button>
-    )
-  }
-
   return (
     <section className="optional-log" aria-label="Log this set (optional)">
-      <div className="optional-log__fields">
-        <label className="optional-log__field" htmlFor="optional-log-primary">
-          <span>{timed ? 'Seconds' : 'Reps'}</span>
-          <input
-            id="optional-log-primary"
-            inputMode="numeric"
-            min={0}
-            onChange={(event) => {
-              const value = sanitize(event.target.value)
-              if (timed) {
-                setSeconds(value)
-                report({ seconds: value })
-              } else {
-                setReps(value)
-                report({ reps: value })
-              }
-            }}
-            placeholder="-"
-            type="number"
-            value={timed ? seconds : reps}
-          />
-        </label>
+      <label className="optional-log__field" htmlFor="optional-log-primary">
+        <span>{timed ? 'Sec' : 'Reps'}</span>
+        <input
+          id="optional-log-primary"
+          inputMode="numeric"
+          min={0}
+          onChange={(event) => {
+            const value = sanitize(event.target.value)
+            if (timed) {
+              setSeconds(value)
+              report({ seconds: value })
+            } else {
+              setReps(value)
+              report({ reps: value })
+            }
+          }}
+          placeholder="-"
+          type="number"
+          value={timed ? seconds : reps}
+        />
+      </label>
 
-        <label className="optional-log__field" htmlFor="optional-log-weight">
-          <span>Weight kg</span>
-          <input
-            id="optional-log-weight"
-            inputMode="decimal"
-            min={0}
-            onChange={(event) => {
-              const value = sanitize(event.target.value)
-              setWeight(value)
-              report({ weight: value })
-            }}
-            placeholder="-"
-            step="0.5"
-            type="number"
-            value={weight}
-          />
-        </label>
-      </div>
-
-      <button
-        className="optional-log__toggle optional-log__toggle--close"
-        onClick={() => onOpenChange(false)}
-        type="button"
-      >
-        <ChevronUp size={16} strokeWidth={2.4} aria-hidden="true" />
-        Hide
-      </button>
+      <label className="optional-log__field" htmlFor="optional-log-weight">
+        <span>Kg</span>
+        <input
+          id="optional-log-weight"
+          inputMode="decimal"
+          min={0}
+          onChange={(event) => {
+            const value = sanitize(event.target.value)
+            setWeight(value)
+            report({ weight: value })
+          }}
+          placeholder="-"
+          step="0.5"
+          type="number"
+          value={weight}
+        />
+      </label>
     </section>
   )
 }

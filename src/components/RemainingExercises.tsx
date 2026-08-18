@@ -1,55 +1,72 @@
-import { Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Check, X } from 'lucide-react'
+import { useEffect } from 'react'
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
-import { isDoneSet, type ActiveExercise } from '../utils/liveWorkoutUtils'
+import {
+  countRemainingExercises,
+  isDoneSet,
+  type ActiveExercise,
+} from '../utils/liveWorkoutUtils'
 
 interface RemainingExercisesProps {
   exercises: ActiveExercise[]
   currentIndex: number
-  isOpen: boolean
-  onToggle: () => void
+  onClose: () => void
   /** Jump straight to an exercise from the list. */
   onSelect: (index: number) => void
 }
 
 /**
- * The "what else is left" answer, collapsed by default. This is the only place
- * the full exercise list appears during a workout, which keeps the training
- * screen down to the current exercise.
+ * The "what else is left" answer, as a sheet over the training screen. It is
+ * the only place the full exercise list appears during a workout, which keeps
+ * the screen itself down to the current exercise and its controls.
  */
 export function RemainingExercises({
   exercises,
   currentIndex,
-  isOpen,
-  onToggle,
+  onClose,
   onSelect,
 }: RemainingExercisesProps) {
-  // What is left *after* the exercise on screen: the label reads "Rest of the
-  // workout", so counting the current one makes the number never go down.
-  const remainingCount = exercises.reduce(
-    (count, exercise, index) =>
-      index !== currentIndex && (index > currentIndex || !exercise.sets.every(isDoneSet))
-        ? count + 1
-        : count,
-    0,
-  )
+  // Escape closes it, the way the backdrop tap does.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
 
   return (
-    <section className="remaining-exercises">
+    <div className="live-sheet">
       <button
-        aria-expanded={isOpen}
-        className="remaining-exercises__toggle"
-        onClick={onToggle}
+        aria-label="Close the exercise list"
+        className="live-sheet__backdrop"
+        onClick={onClose}
         type="button"
-      >
-        {isOpen ? (
-          <ChevronUp size={16} strokeWidth={2.4} aria-hidden="true" />
-        ) : (
-          <ChevronDown size={16} strokeWidth={2.4} aria-hidden="true" />
-        )}
-        {isOpen ? 'Hide exercise list' : `Rest of the workout (${remainingCount})`}
-      </button>
+      />
 
-      {isOpen ? (
+      <section
+        aria-label="Rest of the workout"
+        className="live-sheet__panel"
+        role="dialog"
+        aria-modal="true"
+      >
+        <header className="live-sheet__head">
+          <strong>
+            Rest of the workout ({countRemainingExercises(exercises, currentIndex)})
+          </strong>
+          <button
+            aria-label="Close the exercise list"
+            className="live-sheet__close"
+            onClick={onClose}
+            type="button"
+          >
+            <X size={17} strokeWidth={2.6} aria-hidden="true" />
+          </button>
+        </header>
+
         <ol className="remaining-exercises__list">
           {exercises.map((exercise, index) => {
             const done = exercise.sets.length > 0 && exercise.sets.every(isDoneSet)
@@ -83,7 +100,7 @@ export function RemainingExercises({
             )
           })}
         </ol>
-      ) : null}
-    </section>
+      </section>
+    </div>
   )
 }
