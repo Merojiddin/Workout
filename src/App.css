@@ -6493,6 +6493,41 @@ body {
   width: auto;
 }
 
+/* The movement itself, inline. Tapping it opens the full form guide. */
+.live-exercise__figure {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: block;
+  margin: 10px 0 2px;
+  overflow: hidden;
+  padding: 0;
+  width: 100%;
+}
+
+.live-exercise__figure--button {
+  cursor: pointer;
+}
+
+.live-exercise__figure--button:focus-visible {
+  border-color: var(--green);
+  outline: none;
+}
+
+.live-exercise__image {
+  display: block;
+  height: auto;
+  max-height: 210px;
+  object-fit: contain;
+  width: 100%;
+}
+
+@media (min-width: 620px) {
+  .live-exercise__image {
+    max-height: 260px;
+  }
+}
+
 /* The countdown is the focal point of the screen while training. */
 .workout-page--live .rest-timer {
   gap: 12px;

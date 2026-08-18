@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
+import { LiveExerciseImage } from '../components/LiveExerciseImage'
 import { LiveWorkoutHeader } from '../components/LiveWorkoutHeader'
 import { OptionalSetLog, type OptionalSetLogValues } from '../components/OptionalSetLog'
 import { RemainingExercises } from '../components/RemainingExercises'
@@ -42,8 +43,10 @@ import { getNutritionGuidance } from '../utils/postWorkoutNutrition'
 import {
   findLibraryExerciseForWorkout,
   getEffectiveExerciseLibrary,
+  getWorkoutDisplaySettings,
   getWorkoutForDate,
 } from '../utils/settingsUtils'
+import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 import { useAuth } from '../context/AuthContext'
 import * as workoutService from '../services/workoutService'
 import type { PageId } from '../types/navigation'
@@ -75,6 +78,10 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   )
   const exerciseLibrary = useMemo(
     () => getEffectiveExerciseLibrary() as LibraryExercise[],
+    [],
+  )
+  const displaySettings = useMemo(
+    () => getWorkoutDisplaySettings() as WorkoutDisplaySettings,
     [],
   )
   const nutrition = useMemo(
@@ -297,6 +304,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   if (screen === 'active' && session) {
     return (
       <LiveWorkoutScreen
+        displaySettings={displaySettings}
         exerciseLibrary={exerciseLibrary}
         finishError={finishError}
         nowTs={nowTs}
@@ -504,6 +512,7 @@ function PreWorkoutScreen({
 // ---------------------------------------------------------------------------
 
 interface LiveWorkoutScreenProps {
+  displaySettings: WorkoutDisplaySettings
   exerciseLibrary: LibraryExercise[]
   finishError: string | null
   nowTs: number
@@ -522,6 +531,7 @@ const EMPTY_LOG: OptionalSetLogValues = {
 }
 
 function LiveWorkoutScreen({
+  displaySettings,
   exerciseLibrary,
   finishError,
   nowTs,
@@ -602,6 +612,13 @@ function LiveWorkoutScreen({
           {getExerciseTarget(exercise)}
         </p>
 
+        {formGuideExercise && displaySettings.showExerciseImages !== false ? (
+          <LiveExerciseImage
+            exercise={formGuideExercise}
+            onOpenFormGuide={() => setShowFormGuide(true)}
+          />
+        ) : null}
+
         {formGuideExercise ? (
           <button
             className="live-exercise__guide"
@@ -609,7 +626,7 @@ function LiveWorkoutScreen({
             type="button"
           >
             <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
-            Form guide
+            Form guide, tips and video
           </button>
         ) : null}
       </article>
