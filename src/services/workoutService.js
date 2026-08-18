@@ -59,16 +59,6 @@ function flattenSets(session) {
   return rows
 }
 
-function overallRpe(session) {
-  const rpes = flattenSets(session)
-    .map((set) => set.rpe)
-    .filter((value) => value !== null && value > 0)
-  if (rpes.length === 0) {
-    return null
-  }
-  return Math.round((rpes.reduce((sum, value) => sum + value, 0) / rpes.length) * 10) / 10
-}
-
 function sessionToRow(user, session) {
   return {
     user_id: user.id,
@@ -83,8 +73,6 @@ function sessionToRow(user, session) {
     finished_at: session.finishedAt ?? null,
     duration_minutes: durationMinutes(session.startedAt, session.finishedAt),
     completed: session.completed ?? false,
-    overall_rpe: overallRpe(session),
-    notes: typeof session.notes === 'string' ? session.notes : null,
     raw_data: session,
   }
 }
@@ -99,9 +87,6 @@ function setToRow(user, cloudSessionId, set) {
     reps: set.reps,
     weight_kg: set.weightKg,
     time_seconds: set.timeSeconds,
-    rpe: set.rpe,
-    pain_level: set.painLevel,
-    notes: set.notes,
     completed_at: set.completedAt,
     raw_data: set.raw,
   }

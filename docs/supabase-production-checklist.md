@@ -13,9 +13,10 @@ real Vercel production URL (do not hardcode it in the repo).
       safe; the app never needs it.
 - [ ] **2. `supabase/schema.sql` executed** — dashboard → SQL Editor → paste
       the full contents of [`supabase/schema.sql`](../supabase/schema.sql) →
-      Run. Creates `profiles`, `workout_sessions`, `workout_sets`,
-      `body_check_ins`, `nutrition_logs`, `custom_workout_plans`,
-      `custom_exercise_libraries`, `user_settings`.
+      Run. Safe to re-run. Creates `workout_sessions`, `workout_sets`, `body_check_ins`,
+      `nutrition_logs`, `custom_workout_plans`,
+      `custom_exercise_libraries`, `user_settings`,
+      `user_workout_programs`.
 - [ ] **3. `supabase/storage.sql` executed** — same SQL Editor, contents of
       [`supabase/storage.sql`](../supabase/storage.sql). Creates the private
       `progress-photos` bucket and its policies.

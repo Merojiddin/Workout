@@ -1,30 +1,4 @@
-import {
-  getEffectiveExerciseLibrary,
-  getWorkoutForDate,
-} from './settingsUtils'
-import { getProgressionSuggestion } from './progressionUtils'
-import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
-import {
-  getActiveWorkoutProgram,
-  getProgramBenchmarkExercises,
-  getProgramBenchmarkExercisesWithFallback,
-  getProgramNutritionTargets,
-} from './activeWorkoutProgram'
-import {
-  calculateWeeklyScore,
-  formatWeekRange,
-  generateNextWeekFocus,
-  generateWarnings,
-  getBodyProgressSummary,
-  getCheckInsForWeek,
-  getMuscleVolumeSummary,
-  getNutritionForWeek,
-  getNutritionSummary,
-  getSessionsForWeek,
-  getStrengthComparison,
-  getWeekRange,
-  getWorkoutCompletionSummary,
-} from './weeklyReviewUtils'
+import { getActiveWorkoutProgram } from './activeWorkoutProgram'
 
 export function printElement(elementId) {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
@@ -64,10 +38,6 @@ export function printElement(elementId) {
   return true
 }
 
-export function getTodayWorkoutForPrint(workoutPlan) {
-  return getWorkoutForDate(new Date(), workoutPlan)
-}
-
 export function getLatestWorkoutSession(sessions = []) {
   return [...safeArray(sessions)]
     .filter((session) => session?.completed || safeArray(session?.exercises).length > 0)
@@ -83,119 +53,6 @@ export function prepareWeeklyPlanPrintData(workoutPlan, profile, activeProgram) 
   }
 }
 
-export function buildWeeklyReviewPrintData({
-  date = new Date(),
-  sessions = [],
-  checkIns = [],
-  nutritionLogs = [],
-  workoutPlan = [],
-  activeProgram = getActiveWorkoutProgram(),
-  exerciseLibrary = getEffectiveExerciseLibrary(),
-} = {}) {
-  const week = getWeekRange(date)
-  const previousAnchor = new Date(week.start)
-  previousAnchor.setDate(week.start.getDate() - 7)
-  const previousWeek = getWeekRange(previousAnchor)
-  const weekSessions = getSessionsForWeek(sessions, week.start, week.end)
-  const previousWeekSessions = getSessionsForWeek(
-    sessions,
-    previousWeek.start,
-    previousWeek.end,
-  )
-  const weekNutrition = getNutritionForWeek(nutritionLogs, week.start, week.end)
-  const weekCheckIns = getCheckInsForWeek(checkIns, week.start, week.end)
-  const program = {
-    ...activeProgram,
-    days: safeArray(activeProgram?.days).length
-      ? activeProgram.days
-      : safeArray(workoutPlan),
-  }
-  const explicitBenchmarkExercises = getProgramBenchmarkExercises(
-    program,
-    exerciseLibrary,
-  )
-  const benchmarkExercises =
-    explicitBenchmarkExercises.length > 0 ||
-    safeArray(program.benchmarkExerciseIds).length > 0
-      ? explicitBenchmarkExercises
-      : getProgramBenchmarkExercisesWithFallback(program, exerciseLibrary)
-  const workoutSummary = getWorkoutCompletionSummary(weekSessions, program)
-  const muscleVolume = getMuscleVolumeSummary(weekSessions, program, {
-    library: exerciseLibrary,
-  })
-  const strengthComparison = getStrengthComparison(
-    weekSessions,
-    previousWeekSessions,
-    benchmarkExercises,
-    { library: exerciseLibrary },
-  )
-  const bodySummary = getBodyProgressSummary(weekCheckIns, checkIns)
-  const nutritionSummary = getNutritionSummary(
-    weekNutrition,
-    getProgramNutritionTargets(program),
-  )
-  const progressionSuggestions = benchmarkExercises
-    .map((benchmark) =>
-      safeArray(program.days)
-        .flatMap((day) => safeArray(day?.exercises))
-        .find((exercise) =>
-          exerciseIdentitiesMatch(
-            { exerciseId: exercise?.id, exerciseName: exercise?.name },
-            { exerciseId: benchmark.id, exerciseName: benchmark.name },
-            { library: exerciseLibrary },
-          ),
-        ),
-    )
-    .filter(Boolean)
-    .map((exercise) =>
-      getProgressionSuggestion(exercise, sessions, {
-        library: exerciseLibrary,
-      }),
-    )
-  const weeklyScore = calculateWeeklyScore({
-    workoutSummary,
-    nutritionSummary,
-    bodySummary,
-    muscleVolume,
-    strengthComparison,
-  })
-  const focusItems = generateNextWeekFocus({
-    workoutSummary,
-    nutritionSummary,
-    bodySummary,
-    muscleVolume,
-    strengthComparison,
-    progressionSuggestions,
-    activeProgram: program,
-  })
-  const warnings = generateWarnings({
-    workoutSummary,
-    nutritionSummary,
-    bodySummary,
-    muscleVolume,
-    strengthComparison,
-    weekSessions,
-    activeProgram: program,
-  })
-
-  return {
-    week,
-    weekEnd: dateKey(week.end),
-    weekLabel: formatWeekRange(week.start, week.end),
-    weekStart: dateKey(week.start),
-    workoutSummary,
-    muscleVolume,
-    strengthComparison,
-    bodySummary,
-    nutritionSummary,
-    weeklyScore,
-    focusItems,
-    warnings,
-    program,
-    generatedAt: new Date().toISOString(),
-  }
-}
-
 function safeArray(value) {
   return Array.isArray(value) ? value : []
 }
@@ -204,11 +61,6 @@ function sessionTime(session) {
   const timestamp = session?.finishedAt || session?.date
   const parsed = new Date(timestamp).getTime()
   return Number.isFinite(parsed) ? parsed : 0
-}
-
-function dateKey(date) {
-  const parsed = date instanceof Date ? date : new Date(date)
-  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
 }
 
 const printDocumentCss = `

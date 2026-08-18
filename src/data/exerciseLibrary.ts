@@ -5367,6 +5367,277 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
     videoType: 'none',
     videoTitle: '',
   },
+
+  // ------------------------------------------------------- Images sourced
+  // from training.fit exercise pages (hotlinked to their CDN, so these need
+  // a connection; the bundled PNGs above stay offline-capable). Added to
+  // cover library entries that shipped without their own photo.
+  'assisted-pull-up': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/klimmzuege-maschine-unterstuetzt.png',
+    imageAlt: 'Assisted pull-up on a counterweighted machine',
+  },
+  'neutral-grip-lat-pulldown': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/latzug-enger-griff.png',
+    imageAlt: 'Close/neutral-grip lat pulldown at a cable station',
+  },
+  'neutral-grip-pull-up': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/klimmzuege-hammergriff.png',
+    imageAlt: 'Pull-up with a neutral hammer grip on parallel handles',
+  },
+  'chest-supported-machine-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-geraet.png',
+    imageAlt: 'Seated chest-supported row on a machine',
+  },
+  'chest-supported-t-bar-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-tstange.png',
+    imageAlt: 'T-bar row with the chest supported on the pad',
+  },
+  'cable-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-kabelzug.png',
+    imageAlt: 'Seated cable row with an upright torso',
+  },
+  'machine-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-geraet.png',
+    imageAlt: 'Seated machine row with the chest against the pad',
+  },
+  'one-arm-cable-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-kabelzug.png',
+    imageAlt: 'Seated cable row station used one arm at a time',
+  },
+  'one-arm-machine-row': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-geraet.png',
+    imageAlt: 'Chest-supported machine row worked one arm at a time',
+  },
+  'incline-bench-rear-delt-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/reverse-flys-schraegbank.png',
+    imageAlt: 'Rear-delt raise lying chest-down on an incline bench',
+  },
+  'reverse-pec-deck': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/reverse-butterfly-maschine.png',
+    imageAlt: 'Reverse pec deck machine opening the arms back',
+  },
+  'cable-rear-delt-fly': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/reverse-butterfly-maschine.png',
+    imageAlt: 'Rear-delt fly pulling the arms back and apart',
+  },
+  'cable-lateral-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/seitenheben-kurzhanteln.png',
+    imageAlt: 'Lateral raise to shoulder height with the elbows soft',
+  },
+  'lateral-raise-machine': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/seitenheben-kurzhanteln.png',
+    imageAlt: 'Lateral raise driving the elbows out to the sides',
+  },
+  'supported-seated-dumbbell-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/schulterdruecken-kurzhanteln.png',
+    imageAlt: 'Seated dumbbell shoulder press against a back pad',
+  },
+  'high-incline-one-arm-dumbbell-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/bankdruecken-kurzhantel-schraeg.png',
+    imageAlt: 'High-incline dumbbell press pressing overhead',
+  },
+  'machine-shoulder-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/schulterdruecken-fitnessband.png',
+    imageAlt: 'Seated overhead press pressing straight up',
+  },
+  'push-up-plus': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/liegestuetze.png',
+    imageAlt: 'Push-up position with an added shoulder-blade protraction',
+  },
+  'band-face-pull': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/rudern-fitnessband.png',
+    imageAlt: 'Band pulled toward the face with the elbows high',
+  },
+  'band-pull-apart': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/reverse-flys-fitnessbank.png',
+    imageAlt: 'Band pulled apart across the chest with straight arms',
+  },
+  'bayesian-cable-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/bizepscurls-kabelzug.png',
+    imageAlt: 'Cable curl with the arm behind the body',
+  },
+  'preacher-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/preacher-curls-machine.png',
+    imageAlt: 'Preacher curl with the upper arm on the pad',
+  },
+  'cable-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/bizepscurls-kabelzug.png',
+    imageAlt: 'Standing cable curl with the elbows pinned',
+  },
+  'rope-hammer-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/bizeps-hammercurls.png',
+    imageAlt: 'Hammer curl with a neutral thumbs-up grip',
+  },
+  'resistance-band-overhead-triceps-extension': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/trizepsdruecken-langhantel.png',
+    imageAlt: 'Overhead triceps extension with the elbows tracking forward',
+  },
+  'cable-overhead-triceps-extension': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/trizepsdruecken-kabelzug-einarmig-ueberkopf.png',
+    imageAlt: 'Cable overhead triceps extension facing away from the stack',
+  },
+  'resistance-band-triceps-pressdown': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/trizepsdruecken-kabelzug.png',
+    imageAlt: 'Triceps pressdown with the elbows fixed at the sides',
+  },
+  'cable-triceps-pressdown': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/trizepsdruecken-kabelzug.png',
+    imageAlt: 'Cable triceps pressdown to a straight-arm finish',
+  },
+  'double-dumbbell-squat': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/kniebeugen-kurzhanteln.png',
+    imageAlt: 'Squat holding a dumbbell in each hand',
+  },
+  'hack-squat': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/hackenschmidt-kniebeugen-geraet.png',
+    imageAlt: 'Hack squat machine with the back on the pad',
+  },
+  'pendulum-squat': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/hackenschmidt-kniebeugen-geraet.png',
+    imageAlt: 'Machine squat with the back supported on a pad',
+  },
+  'leg-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/beinpresse.png',
+    imageAlt: 'Leg press with the feet mid-platform',
+  },
+  'smith-machine-squat': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/kniebeugen-langhantel.png',
+    imageAlt: 'Back squat with the bar on the upper back',
+  },
+  'leg-extension': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/beinstrecken-geraet-1.png',
+    imageAlt: 'Seated leg extension machine',
+  },
+  'seated-leg-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/beinbeugen-liegend-geraet.png',
+    imageAlt: 'Machine leg curl bending the knees against the pad',
+  },
+  'lying-leg-curl': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/beinbeugen-liegend-geraet.png',
+    imageAlt: 'Lying leg curl machine with the pad above the heels',
+  },
+  'weighted-single-leg-calf-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/wadenheben-langhantel-stehend-2.png',
+    imageAlt: 'Loaded standing calf raise through a full ankle range',
+  },
+  'standing-calf-machine-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/wadenheben-stehend-geraet.png',
+    imageAlt: 'Standing calf raise machine with the shoulders under the pads',
+  },
+  'seated-calf-machine-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/wadenheben-sitzend-geraet.png',
+    imageAlt: 'Seated calf raise machine with the pads on the thighs',
+  },
+  'leg-press-calf-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/beinpresse.png',
+    imageAlt: 'Calf raise pressing the platform with the balls of the feet',
+  },
+  'dumbbell-romanian-deadlift': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/kreuzheben-gestreckte-beine-kurzhantel.png',
+    imageAlt: 'Romanian deadlift with dumbbells and long hamstrings',
+  },
+  'smith-machine-romanian-deadlift': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/kreuzheben-gestreckte-beine.png',
+    imageAlt: 'Romanian deadlift hinging with a near-straight bar path',
+  },
+  'front-foot-elevated-dumbbell-reverse-lunge': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/ausfallschritt-kurzhanteln-1.png',
+    imageAlt: 'Reverse lunge holding dumbbells at the sides',
+  },
+  'front-foot-elevated-smith-reverse-lunge': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/03/ausfallschritt-langhantel.png',
+    imageAlt: 'Reverse lunge with the bar on the upper back',
+  },
+  'high-incline-dumbbell-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/bankdruecken-kurzhantel-schraeg.png',
+    imageAlt: 'High-incline dumbbell press with the elbows tucked',
+  },
+  'incline-smith-machine-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/schraegbankdruecken-langhantel.png',
+    imageAlt: 'Incline barbell press to the upper chest',
+  },
+  'incline-chest-press-machine': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/schraegbankdruecken-maschine.png',
+    imageAlt: 'Incline chest press machine',
+  },
+  'dumbbell-bench-press': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2019/07/bankdruecken-kurzhantel-flachbank.png',
+    imageAlt: 'Flat dumbbell bench press',
+  },
+  'chest-press-machine': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/brustpresse-flach.png',
+    imageAlt: 'Seated chest press machine',
+  },
+  'cable-chest-fly': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/fliegende-kabelzug.png',
+    imageAlt: 'Cable fly bringing the handles together in front of the chest',
+  },
+  'pec-deck': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/02/butterflys.png',
+    imageAlt: 'Pec deck machine closing the arms in front of the chest',
+  },
+  'resistance-band-kneeling-crunch': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/01/kabelzugcrunches.png',
+    imageAlt: 'Kneeling crunch curling the ribs toward the hips',
+  },
+  'cable-kneeling-crunch': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/01/kabelzugcrunches.png',
+    imageAlt: 'Kneeling cable crunch with the rope by the head',
+  },
+  'captains-chair-knee-raise': {
+    imageUrl: 'https://training.fit/wp-content/uploads/2020/01/knieheben.png',
+    imageAlt: 'Knee raise on a captain\'s chair with the back supported',
+  },
+
+  // Close variants that reuse a bundled photo of the same movement pattern.
+  'goblet-squat': {
+    imageUrl: '/exercise-images/heels-elevated-goblet-squat.png',
+    imageAlt: 'Goblet squat holding a dumbbell at the chest',
+  },
+  'smith-machine-bulgarian-split-squat': {
+    imageUrl: '/exercise-images/bulgarian-split-squat.png',
+    imageAlt: 'Split squat with the rear foot elevated on a bench',
+  },
+  'resistance-band-leg-curl': {
+    imageUrl: '/exercise-images/sliding-hamstring-curl.png',
+    imageAlt: 'Leg curl bending the knees against resistance',
+  },
+  'dumbbell-hip-thrust': {
+    imageUrl: '/exercise-images/hip-thrust.png',
+    imageAlt: 'Hip thrust with the shoulders on a bench and load across the hips',
+  },
+  'smith-machine-hip-thrust': {
+    imageUrl: '/exercise-images/hip-thrust.png',
+    imageAlt: 'Hip thrust driven to a level, locked-out finish',
+  },
+  'hip-thrust-machine': {
+    imageUrl: '/exercise-images/hip-thrust.png',
+    imageAlt: 'Hip thrust with the load across the hips and ribs down',
+  },
+  'suitcase-hold': {
+    imageUrl: '/exercise-images/suitcase-carry.png',
+    imageAlt: 'Suitcase hold with a load in one hand and the torso square',
+  },
+  'brisk-walking': {
+    imageUrl: '/exercise-images/light-walking-only.png',
+    imageAlt: 'Brisk walking at a conversational-plus pace',
+  },
+  'shadowboxing': {
+    imageUrl: '/exercise-images/vr-boxing.png',
+    imageAlt: 'Boxing stance with the guard up, throwing punches at air',
+  },
+  'boxing-footwork-drill': {
+    imageUrl: '/exercise-images/vr-boxing.png',
+    imageAlt: 'Boxing stance moving on the balls of the feet',
+  },
+  'boxing-defense-drill': {
+    imageUrl: '/exercise-images/vr-boxing.png',
+    imageAlt: 'Boxing guard position for slips and rolls',
+  },
+  'heavy-bag-boxing': {
+    imageUrl: '/exercise-images/vr-boxing.png',
+    imageAlt: 'Boxing stance with the guard up in front of a target',
+  },
 }
 
 /** Default library with its bundled image plus any richer media metadata. */

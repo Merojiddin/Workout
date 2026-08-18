@@ -98,7 +98,6 @@ const appStorageKeys = [
   'lastOfflineSyncAt',
 ]
 
-const defaultExerciseIds = new Set(exerciseLibrary.map((exercise) => exercise.id))
 const defaultExercisesById = new Map(
   exerciseLibrary.map((exercise) => [exercise.id, exercise]),
 )
@@ -440,29 +439,6 @@ export function findLibraryExerciseForWorkout(
   return (
     library.find((exercise) => exercise.id === defaultMatch.id) ?? defaultMatch
   )
-}
-
-export function isDefaultLibraryExercise(id) {
-  return defaultExerciseIds.has(id)
-}
-
-export function createPlanExerciseFromLibrary(libraryExercise) {
-  const name = toText(libraryExercise?.name, 'Custom Exercise')
-
-  return {
-    equipment: toStringArray(libraryExercise?.equipment, ['Bodyweight']).join(' / '),
-    formTips: toStringArray(libraryExercise?.formTips, [
-      'Keep control',
-      'Stop before form breaks',
-    ]),
-    id: toText(libraryExercise?.id, slugify(name)),
-    muscleGroup: toStringArray(libraryExercise?.primaryMuscles, ['Other']).join(' / '),
-    name,
-    repRange: '',
-    restSeconds: 60,
-    sets: 3,
-    notes: '',
-  }
 }
 
 function normalizeUserProfileSettings(value) {

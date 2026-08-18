@@ -1,8 +1,3 @@
-import {
-  exerciseIdentitiesMatch,
-  type ExerciseIdentityOptions,
-  type ExerciseIdentityInput,
-} from './exerciseIdentity'
 import { safeGetJSON, safeSetJSON } from '../utils/storageUtils'
 
 export const WORKOUT_SESSIONS_KEY = 'workoutSessions'
@@ -66,29 +61,6 @@ export function getWorkoutSessions(): WorkoutSession[] {
 export function saveWorkoutSession(session: WorkoutSession): boolean {
   const sessions = getWorkoutSessions()
   return safeSetJSON(WORKOUT_SESSIONS_KEY, [session, ...sessions])
-}
-
-export function findPreviousExercisePerformance(
-  exercise: string | ExerciseIdentityInput,
-  sessions = getWorkoutSessions(),
-  options: Pick<ExerciseIdentityOptions, 'library'> = {},
-) {
-  const target = typeof exercise === 'string'
-    ? { exerciseName: exercise }
-    : exercise
-
-  for (const session of sessions) {
-    const exercise = session.exercises.find(
-      (loggedExercise) =>
-        exerciseIdentitiesMatch(loggedExercise, target, options),
-    )
-
-    if (exercise) {
-      return exercise
-    }
-  }
-
-  return null
 }
 
 export function getLatestWorkoutSession(sessions = getWorkoutSessions()) {

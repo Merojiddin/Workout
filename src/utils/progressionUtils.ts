@@ -1,9 +1,6 @@
-import type { Exercise, WorkoutDay } from '../data/workoutPlan'
-import { getDefaultWorkoutPlanDays } from '../data/workoutProgramRegistry'
 import type { WorkoutSession } from '../data/workoutSessions'
 import {
   exerciseIdentitiesMatch,
-  normalizeExerciseName,
   type ExerciseIdentityOptions,
   type ExerciseIdentityInput,
 } from '../data/exerciseIdentity'
@@ -474,27 +471,6 @@ function isProgressionBaselineSession(session: WorkoutSession): boolean {
   )
 }
 
-/** The most actionable suggestions for today's workout (for the dashboard). */
-export function getTodayProgressionFocus(
-  sessions: WorkoutSession[],
-  todayExercises: Exercise[],
-  limit = 3,
-  options: Pick<ExerciseIdentityOptions, 'library'> = {},
-): ProgressionSuggestion[] {
-  const priority: Record<SuggestionType, number> = {
-    'form-warning': 0,
-    reduce: 1,
-    increase: 2,
-    keep: 3,
-    'no-data': 4,
-  }
-
-  return todayExercises
-    .map((exercise) => getProgressionSuggestion(exercise, sessions, options))
-    .sort((a, b) => priority[a.type] - priority[b.type])
-    .slice(0, limit)
-}
-
 /**
  * General "how to progress this kind of exercise" advice for the library
  * detail modal. Static rules keyed by exercise type - no session data needed.
@@ -844,37 +820,6 @@ function getTargetRange(
     latest?.targetReps ??
     null
   return parseRepRange(target)
-}
-
-export function findPlanExercise(
-  exerciseName: string,
-  plan: WorkoutDay[] = getDefaultWorkoutPlanDays(),
-): Exercise | undefined {
-  const normalizedTarget = normalizeExerciseName(exerciseName)
-
-  for (const day of plan) {
-    const exactNameMatch = day.exercises.find(
-      (exercise) => normalizeExerciseName(exercise.name) === normalizedTarget,
-    )
-    if (exactNameMatch) {
-      return exactNameMatch
-    }
-  }
-
-  for (const day of plan) {
-    const aliasMatch = day.exercises.find(
-      (exercise) =>
-        exerciseIdentitiesMatch(
-          { exerciseId: exercise.id, exerciseName: exercise.name },
-          { exerciseName },
-        ),
-    )
-    if (aliasMatch) {
-      return aliasMatch
-    }
-  }
-
-  return undefined
 }
 
 function getSessionExercises(

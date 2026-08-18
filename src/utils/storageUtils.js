@@ -42,8 +42,6 @@ export const FITNESS_APP_STORAGE_KEYS = [
 ]
 
 const APP_KEY_SUFFIXES = ['__cloudBackup']
-const FIVE_MB = 5 * 1024 * 1024
-
 /**
  * Per-user storage namespacing.
  *
@@ -273,62 +271,6 @@ export function downloadLocalStorageBackup() {
   return backup
 }
 
-export function getStorageUsageEstimate() {
-  const keys = getFitnessStorageKeys()
-  const items = keys.map((key) => {
-    const value = getRawStorageValue(key) ?? ''
-    return {
-      key,
-      bytes: estimateBytes(key) + estimateBytes(value),
-    }
-  })
-  const bytes = items.reduce((total, item) => total + item.bytes, 0)
-
-  return {
-    bytes,
-    kilobytes: bytes / 1024,
-    megabytes: bytes / (1024 * 1024),
-    percentOfFiveMb: (bytes / FIVE_MB) * 100,
-    itemCount: items.length,
-    items: items.sort((a, b) => b.bytes - a.bytes),
-  }
-}
-
-export function cleanupCorruptedStorage(keysToDelete = null) {
-  const keys = getFitnessStorageKeys()
-    .filter((key) => key.startsWith('corrupted_'))
-    .map((key) => ({
-      key,
-      bytes: estimateBytes(getRawStorageValue(key) ?? ''),
-      createdAt: parseCorruptedTimestamp(key),
-    }))
-    .sort((a, b) => a.key.localeCompare(b.key))
-
-  if (!Array.isArray(keysToDelete)) {
-    return {
-      keys,
-      removed: [],
-      count: keys.length,
-    }
-  }
-
-  const allowed = new Set(keys.map((item) => item.key))
-  const removed = []
-
-  keysToDelete.forEach((key) => {
-    if (allowed.has(key) && safeRemove(key)) {
-      removed.push(key)
-    }
-  })
-
-  const remaining = keys.filter((item) => !removed.includes(item.key))
-  return {
-    keys: remaining,
-    removed,
-    count: remaining.length,
-  }
-}
-
 export function getFitnessStorageKeys() {
   if (!canUseLocalStorage()) {
     return []
@@ -413,26 +355,6 @@ function getRawStorageValue(key) {
   } catch {
     return null
   }
-}
-
-function estimateBytes(value) {
-  if (typeof Blob !== 'undefined') {
-    return new Blob([String(value)]).size
-  }
-  return String(value).length * 2
-}
-
-function parseCorruptedTimestamp(key) {
-  const parts = key.split('_')
-  const timestamp = parts
-    .slice(2)
-    .join('_')
-    .replace(
-      /^(\d{4}-\d{2}-\d{2}T\d{2})-(\d{2})-(\d{2})-(\d{3}Z)$/,
-      '$1:$2:$3.$4',
-    )
-  const parsed = new Date(timestamp)
-  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString()
 }
 
 function canUseLocalStorage() {

@@ -3,7 +3,6 @@ import {
   getHistoricalExerciseIdAliases,
   type LibraryExercise,
 } from './exerciseLibrary'
-import type { WorkoutSession } from './workoutSessions'
 import type { Exercise } from './workoutPlan'
 
 export interface ExerciseIdentityInput {
@@ -268,60 +267,6 @@ export function exerciseIdentitiesMatch(
   )
 }
 
-/**
- * Active-plan exercises first, followed by conservatively de-duplicated
- * historical identities. Stored session objects are read only and every
- * returned catalog record is newly allocated.
- */
-export function getHistoricalExerciseCatalog(
-  sessions: WorkoutSession[] | null | undefined,
-  activePlan: readonly ExerciseContainer[] | null | undefined,
-  options: Pick<ExerciseIdentityOptions, 'library'> = {},
-): HistoricalExerciseCatalogEntry[] {
-  const library = options.library ?? exerciseLibrary
-  const plan = Array.isArray(activePlan) ? activePlan : []
-  const catalog: HistoricalExerciseCatalogEntry[] = []
-
-  plan.forEach((day) => {
-    safeExercises(day?.exercises).flatMap(expandPlanExercise).forEach((exercise) => {
-      const input = toIdentityInput(exercise)
-      if (catalog.some((entry) => exerciseIdentitiesMatch(entry, input, { library }))) {
-        return
-      }
-
-      const identity = resolveExerciseIdentity(input, {
-        activePlan: plan,
-        library,
-      })
-      catalog.push(
-        toCatalogEntry(
-          exercise,
-          { ...identity, archived: false },
-          true,
-          library,
-        ),
-      )
-    })
-  })
-
-  safeSessions(sessions).forEach((session) => {
-    safeCatalogExercises(session?.exercises).forEach((exercise) => {
-      const input = toIdentityInput(exercise)
-      if (catalog.some((entry) => exerciseIdentitiesMatch(entry, input, { library }))) {
-        return
-      }
-
-      const identity = resolveExerciseIdentity(input, {
-        activePlan: plan,
-        library,
-      })
-      catalog.push(toCatalogEntry(exercise, identity, false, library))
-    })
-  })
-
-  return catalog
-}
-
 function resolveExerciseIdentityInternal(
   input: ExerciseIdentityInput,
   library: readonly LibraryExercise[],
@@ -492,44 +437,6 @@ function buildLibraryIndexes(library: readonly LibraryExercise[]) {
   }
 }
 
-function toCatalogEntry(
-  exercise: CatalogExercise,
-  identity: ResolvedExerciseIdentity,
-  active: boolean,
-  library: readonly LibraryExercise[],
-): HistoricalExerciseCatalogEntry {
-  const exerciseName = typeof (exercise.exerciseName ?? exercise.name) === 'string'
-    ? (exercise.exerciseName ?? exercise.name ?? '')
-    : ''
-  const displayName = exerciseName || identity.originalName || identity.canonicalName || 'Unnamed exercise'
-  const authoritativeId = identity.originalId
-    ? resolveCanonicalIdFromIdOnly(identity.originalId, library)
-    : null
-  const key = authoritativeId
-    ? `id:${authoritativeId}`
-    : identity.originalId
-      ? `unknown-id:${identity.originalId}`
-      : identity.canonicalId
-        ? `id:${identity.canonicalId}`
-        : `name:${normalizeExerciseName(displayName) || `raw:${displayName}`}`
-
-  return {
-    ...identity,
-    key,
-    displayName,
-    active,
-    unknown: identity.source === 'unknown',
-    exerciseId: cleanId(exercise.exerciseId ?? exercise.id),
-    exerciseName,
-    equipment: copyText(exercise.equipment),
-    muscleGroup: copyText(exercise.muscleGroup),
-    targetDuration: copyText(exercise.targetDuration ?? exercise.duration),
-    targetReps: copyText(exercise.targetReps ?? exercise.repRange),
-    targetRir: copyText(exercise.targetRir),
-    targetSets: finiteNumber(exercise.targetSets ?? exercise.sets),
-  }
-}
-
 function toIdentityInput(
   exercise: Exercise | CatalogExercise | HistoricalExerciseCatalogEntry,
 ): ExerciseIdentityInput {
@@ -544,29 +451,12 @@ function safeExercises(value: unknown): Exercise[] {
   return Array.isArray(value) ? value : []
 }
 
-function safeCatalogExercises(value: unknown): CatalogExercise[] {
-  return Array.isArray(value) ? value : []
-}
-
-function safeSessions(value: unknown): WorkoutSession[] {
-  return Array.isArray(value) ? value : []
-}
-
 function cleanId(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function rawExerciseName(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
-}
-
-function copyText(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined
-}
-
-function finiteNumber(value: unknown): number | undefined {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : undefined
 }
 
 function cloneLibraryExercise(entry: LibraryExercise): LibraryExercise {

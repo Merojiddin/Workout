@@ -1,28 +1,11 @@
 import { WORKOUT_SESSIONS_KEY, type WorkoutSession } from '../data/workoutSessions'
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
-import { exerciseLibrary, type LibraryExercise } from '../data/exerciseLibrary'
-import {
-  exerciseIdentitiesMatch,
-  resolveExerciseLibraryEntry,
-  type ExerciseIdentityInput,
-} from '../data/exerciseIdentity'
 import { isRestDay } from './activeWorkoutProgram'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
-
-export interface ExerciseProgressPoint {
-  date: string
-  label: string
-  value: number
-}
 
 export interface WeeklyCompletionPoint {
   completed: number
   day: string
-}
-
-export interface MuscleVolumePoint {
-  muscle: string
-  sets: number
 }
 
 type FlexibleSet = {
@@ -49,18 +32,6 @@ type FlexibleSession = WorkoutSession & {
   exercises?: FlexibleExercise[]
 }
 
-const muscleGroups = [
-  'Chest',
-  'Back',
-  'Shoulders',
-  'Arms',
-  'Legs',
-  'Abs',
-  'Posture',
-  'Cardio',
-  'Other',
-] as const
-
 export function getWorkoutSessions(): WorkoutSession[] {
   if (typeof window === 'undefined') {
     return []
@@ -74,10 +45,6 @@ export function saveWorkoutSessions(sessions: WorkoutSession[]) {
   safeSetJSON(WORKOUT_SESSIONS_KEY, Array.isArray(sessions) ? sessions : [])
 }
 
-export function getTotalWorkouts(sessions: WorkoutSession[]) {
-  return sessions.filter(isWorkoutCompleted).length
-}
-
 export function getThisWeekSessions(sessions: WorkoutSession[], date = new Date()) {
   const start = getStartOfWeek(date)
   const end = new Date(start)
@@ -87,75 +54,6 @@ export function getThisWeekSessions(sessions: WorkoutSession[], date = new Date(
     const sessionDate = getSessionDate(session)
     return sessionDate >= start && sessionDate < end
   })
-}
-
-export function getTotalSets(sessions: WorkoutSession[]) {
-  return sessions.reduce(
-    (total, session) =>
-      total +
-      getSessionExercises(session).reduce(
-        (exerciseTotal, exercise) =>
-          exerciseTotal + getExerciseSets(exercise).filter(isCompletedSet).length,
-        0,
-      ),
-    0,
-  )
-}
-
-export function getExerciseProgress(
-  sessions: WorkoutSession[],
-  exercise: string | ExerciseIdentityInput,
-  library: readonly LibraryExercise[] = exerciseLibrary,
-): ExerciseProgressPoint[] {
-  const target = typeof exercise === 'string'
-    ? { exerciseName: exercise }
-    : exercise
-
-  return [...sessions]
-    .filter(isWorkoutCompleted)
-    .sort((a, b) => getSessionDate(a).getTime() - getSessionDate(b).getTime())
-    .flatMap((session) => {
-      const matchingExercises = getSessionExercises(session).filter(
-        (candidate) => exerciseIdentitiesMatch(candidate, target, { library }),
-      )
-
-      if (matchingExercises.length === 0) {
-        return []
-      }
-
-      // Strength charts intentionally exclude timed-only work, including
-      // weighted carries and swimming duration.
-      const sets = matchingExercises.flatMap((matchingExercise) =>
-        getExerciseSets(matchingExercise).filter(
-          (set) => toNumber(set.reps) > 0,
-        ),
-      )
-      if (sets.length === 0) {
-        return []
-      }
-
-      const bestWeight = Math.max(
-        ...sets.map((set) => toNumber(set.weightKg)).filter((value) => value > 0),
-        0,
-      )
-      const bestReps = Math.max(
-        ...sets.map((set) => toNumber(set.reps)).filter((value) => value > 0),
-        0,
-      )
-
-      const value = bestWeight > 0 ? bestWeight : bestReps
-      if (value <= 0) {
-        return []
-      }
-
-      return [
-        {
-          date: session.date,
-          label: bestWeight > 0 ? `${value} kg` : `${value} reps`,
-          value,
-        },
-      ]
-    })
 }
 
 export function getWeeklyCompletion(
@@ -181,44 +79,6 @@ export function getWeeklyCompletion(
   })
 }
 
-export function getWeeklyMuscleVolume(
-  sessions: WorkoutSession[],
-  _workoutPlan: WorkoutDay[],
-  date = new Date(),
-  library: readonly LibraryExercise[] = exerciseLibrary,
-): MuscleVolumePoint[] {
-  const volume = Object.fromEntries(
-    muscleGroups.map((muscle) => [muscle, 0]),
-  ) as Record<(typeof muscleGroups)[number], number>
-
-  getThisWeekSessions(sessions, date)
-    .filter(isWorkoutCompleted)
-    .forEach((session) => {
-      getSessionExercises(session).forEach((exercise) => {
-        const muscleGroup = exercise.muscleGroup
-          ? normalizeMuscleGroup(exercise.muscleGroup)
-          : getResolvedMuscleGroup(exercise, library)
-        const completedSets = getExerciseSets(exercise).filter(isCompletedSet)
-        volume[muscleGroup] += completedSets.length
-      })
-    })
-
-  return muscleGroups.map((muscle) => ({ muscle, sets: volume[muscle] }))
-}
-
-export function getMostTrainedMuscle(volumeData: MuscleVolumePoint[]) {
-  const topMuscle = volumeData.reduce<MuscleVolumePoint | null>(
-    (top, item) => (!top || item.sets > top.sets ? item : top),
-    null,
-  )
-
-  if (!topMuscle || topMuscle.sets === 0) {
-    return 'None yet'
-  }
-
-  return topMuscle.muscle
-}
-
 export function getLatestWorkoutSession(sessions: WorkoutSession[]) {
   return [...sessions].filter(isWorkoutCompleted).sort(
     (a, b) => getSessionDate(b).getTime() - getSessionDate(a).getTime(),
@@ -239,44 +99,6 @@ export function getCurrentWorkoutStreak(sessions: WorkoutSession[]) {
   }
 
   return streak
-}
-
-export function getSessionDuration(session: WorkoutSession) {
-  const startedAt = new Date(session.startedAt).getTime()
-  const finishedAt = new Date(session.finishedAt).getTime()
-
-  if (!Number.isFinite(startedAt) || !Number.isFinite(finishedAt)) {
-    return '-'
-  }
-
-  const totalMinutes = Math.max(Math.round((finishedAt - startedAt) / 60000), 1)
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  if (hours === 0) {
-    return `${minutes} min`
-  }
-
-  return `${hours}h ${minutes}m`
-}
-
-export function getSessionSetCount(session: WorkoutSession) {
-  return getSessionExercises(session).reduce(
-    (total, exercise) =>
-      total + getExerciseSets(exercise).filter(isCompletedSet).length,
-    0,
-  )
-}
-
-export function getAverageRpe(sets: FlexibleSet[]) {
-  const rpes = sets.map((set) => toNumber(set.rpe)).filter((value) => value > 0)
-
-  if (rpes.length === 0) {
-    return null
-  }
-
-  const average = rpes.reduce((sum, value) => sum + value, 0) / rpes.length
-  return Math.round(average * 10) / 10
 }
 
 export function isWorkoutCompleted(session: WorkoutSession) {
@@ -333,14 +155,6 @@ export function addDemoSessions(workoutPlan: WorkoutDay[]) {
   return nextSessions
 }
 
-export function formatSessionDate(date: string) {
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(new Date(`${date}T00:00:00`))
-}
-
 function isSessionLike(session: unknown): session is WorkoutSession {
   return Boolean(
     session &&
@@ -392,80 +206,6 @@ function toNumber(value: number | string | null | undefined) {
 
   const parsed = Number(value)
   return Number.isFinite(parsed) ? parsed : 0
-}
-
-function normalizeMuscleGroup(muscleGroup: string) {
-  const value = muscleGroup.toLowerCase()
-
-  if (value.includes('chest')) {
-    return 'Chest'
-  }
-
-  if (value.includes('back') || value.includes('lat')) {
-    return 'Back'
-  }
-
-  if (value.includes('shoulder') || value.includes('delt')) {
-    return 'Shoulders'
-  }
-
-  if (
-    value.includes('biceps') ||
-    value.includes('triceps') ||
-    value.includes('arms') ||
-    value.includes('forearms')
-  ) {
-    return 'Arms'
-  }
-
-  if (
-    value.includes('leg') ||
-    value.includes('glute') ||
-    value.includes('hamstring') ||
-    value.includes('calf') ||
-    value.includes('calves') ||
-    value.includes('quad') ||
-    value.includes('adductor') ||
-    value.includes('tibialis')
-  ) {
-    return 'Legs'
-  }
-
-  if (value.includes('abs') || value.includes('oblique') || value.includes('core')) {
-    return 'Abs'
-  }
-
-  if (value.includes('posture') || value.includes('mobility')) {
-    return 'Posture'
-  }
-
-  if (
-    value.includes('conditioning') ||
-    value.includes('cardio') ||
-    value.includes('recovery')
-  ) {
-    return 'Cardio'
-  }
-
-  return 'Other'
-}
-
-function getResolvedMuscleGroup(
-  exercise: FlexibleExercise,
-  library: readonly LibraryExercise[],
-): (typeof muscleGroups)[number] {
-  const libraryEntry = resolveExerciseLibraryEntry(exercise, { library })
-  if (!libraryEntry) {
-    return 'Other'
-  }
-
-  if (libraryEntry.category === 'Conditioning') {
-    return 'Cardio'
-  }
-
-  const reliableMuscles = libraryEntry.primaryMuscles.join(' ')
-  const primaryGroup = normalizeMuscleGroup(reliableMuscles)
-  return primaryGroup === 'Other' ? libraryEntry.category : primaryGroup
 }
 
 function addDays(date: Date, days: number) {

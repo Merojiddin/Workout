@@ -20,9 +20,10 @@ Review before every production deployment.
 
 ## Supabase
 
-- [ ] **RLS enabled** on every app table (`profiles`, `workout_sessions`,
-      `workout_sets`, `body_check_ins`, `nutrition_logs`,
-      `custom_workout_plans`, `custom_exercise_libraries`, `user_settings`).
+- [ ] **RLS enabled** on every app table (`workout_sessions`, `workout_sets`, `body_check_ins`,
+      `nutrition_logs`, `custom_workout_plans`,
+      `custom_exercise_libraries`, `user_settings`,
+      `user_workout_programs`).
 - [ ] **Users can only access their own rows.** All policies compare
       `auth.uid()` to the row's `user_id` (see
       [supabase/schema.sql](../supabase/schema.sql)).

@@ -172,12 +172,6 @@ function scaleExerciseSets(
   return Math.max(1, Math.round(exercise.sets * multiplier))
 }
 
-export function workoutHasChoices(workout: WorkoutDefinitionLike): boolean {
-  return workout.exercises.some(
-    (exercise) => Boolean(exercise.alternatives) || exercise.optional,
-  )
-}
-
 function materializeVariant(
   prescription: Exercise,
   variant: ExerciseVariant,

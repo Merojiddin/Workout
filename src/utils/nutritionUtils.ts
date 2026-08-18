@@ -2,38 +2,6 @@ import { NUTRITION_LOGS_KEY, type NutritionLog } from '../data/nutritionLogs'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
 import { toLocalIsoDate, todayIsoDate } from './dateUtils'
 
-export type NutritionNumericKey =
-  | 'bodyWeightKg'
-  | 'proteinGrams'
-  | 'waterLiters'
-  | 'caloriesEstimate'
-  | 'coffeeCups'
-
-export interface NutritionPoint {
-  date: string
-  value: number
-}
-
-export interface WeeklyConsistencyPoint {
-  week: string
-  value: number
-}
-
-export interface WeeklyNutritionSummary {
-  averageProtein: number
-  averageWater: number
-  creatineDays: number
-  wheyDays: number
-  proteinTargetDays: number
-  seafoodMeals: number
-  oysterMeals: number
-  averageCoffee: number
-  logCount: number
-}
-
-export type ProteinStatus = 'low' | 'target' | 'high'
-export type WaterStatus = 'low' | 'target' | 'high'
-
 /** Daily targets used across the Nutrition page. */
 export const nutritionTargets = {
   proteinMin: 120,
@@ -119,162 +87,6 @@ export function getTodayNutritionLog(logs: NutritionLog[]): NutritionLog | null 
   return logs.find((log) => log.date === today) ?? null
 }
 
-/** Returns logs that fall inside the current Monday–Sunday week. */
-export function getThisWeekNutritionLogs(
-  logs: NutritionLog[],
-  date = new Date(),
-): NutritionLog[] {
-  if (!Array.isArray(logs)) {
-    return []
-  }
-
-  const start = getStartOfWeek(date)
-  const end = new Date(start)
-  end.setDate(start.getDate() + 7)
-
-  return logs.filter((log) => {
-    const logDate = new Date(`${log.date}T00:00:00`)
-    return logDate >= start && logDate < end
-  })
-}
-
-/** Classifies a protein amount as low / target / high. */
-export function getProteinStatus(
-  proteinGrams: number | null,
-  targets: Pick<typeof nutritionTargets, 'proteinMin' | 'proteinHigh'> =
-    nutritionTargets,
-): ProteinStatus {
-  const value = toNumber(proteinGrams)
-  if (value < targets.proteinMin) {
-    return 'low'
-  }
-  if (value > targets.proteinHigh) {
-    return 'high'
-  }
-  return 'target'
-}
-
-/** Classifies a water amount as low / target / high. */
-export function getWaterStatus(waterLiters: number | null): WaterStatus {
-  const value = toNumber(waterLiters)
-  if (value < nutritionTargets.waterMin) {
-    return 'low'
-  }
-  if (value > nutritionTargets.waterMax) {
-    return 'high'
-  }
-  return 'target'
-}
-
-/** Short human message for a protein status. */
-export function getProteinStatusMessage(status: ProteinStatus): string {
-  switch (status) {
-    case 'low':
-      return 'Protein low today.'
-    case 'high':
-      return 'Protein high. Make sure calories are controlled.'
-    default:
-      return 'Protein target reached.'
-  }
-}
-
-/** Short human message for a water status. */
-export function getWaterStatusMessage(status: WaterStatus): string {
-  switch (status) {
-    case 'low':
-      return 'Drink more water.'
-    case 'high':
-      return 'Plenty of water today.'
-    default:
-      return 'Water target reached.'
-  }
-}
-
-/** Aggregates this week's logs into simple averages and counts. */
-export function getWeeklyNutritionSummary(
-  logs: NutritionLog[],
-  proteinMin = nutritionTargets.proteinMin,
-): WeeklyNutritionSummary {
-  const week = getThisWeekNutritionLogs(logs)
-
-  const summary: WeeklyNutritionSummary = {
-    averageProtein: average(week.map((log) => log.proteinGrams)),
-    averageWater: average(week.map((log) => log.waterLiters), 1),
-    creatineDays: week.filter((log) => log.creatineTaken).length,
-    wheyDays: week.filter((log) => log.wheyTaken).length,
-    proteinTargetDays: week.filter(
-      (log) => toNumber(log.proteinGrams) >= proteinMin,
-    ).length,
-    seafoodMeals: week.filter((log) => log.seafoodMeal).length,
-    oysterMeals: week.filter((log) => log.oystersMeal).length,
-    averageCoffee: average(week.map((log) => log.coffeeCups), 1),
-    logCount: week.length,
-  }
-
-  return summary
-}
-
-/** Returns chart-ready [{ date, value }] data for a numeric key, oldest first. */
-export function getNutritionChartData(
-  logs: NutritionLog[],
-  key: NutritionNumericKey,
-): NutritionPoint[] {
-  return sortByDateAsc(logs).flatMap((log) => {
-    const value = log[key]
-    return typeof value === 'number' && Number.isFinite(value)
-      ? [{ date: log.date, value }]
-      : []
-  })
-}
-
-/** Counts creatine days per week for a simple consistency bar chart. */
-export function getCreatineWeeklyConsistency(
-  logs: NutritionLog[],
-): WeeklyConsistencyPoint[] {
-  const buckets = new Map<string, number>()
-
-  sortByDateAsc(logs).forEach((log) => {
-    const logDate = new Date(`${log.date}T00:00:00`)
-    if (Number.isNaN(logDate.getTime())) {
-      return
-    }
-
-    const weekKey = toDateKey(getStartOfWeek(logDate))
-    const current = buckets.get(weekKey) ?? 0
-    buckets.set(weekKey, current + (log.creatineTaken ? 1 : 0))
-  })
-
-  return [...buckets.entries()].map(([weekKey, value]) => ({
-    week: formatWeekLabel(weekKey),
-    value,
-  }))
-}
-
-/** Builds an empty log for a given date (used by the checklist and new form). */
-export function createEmptyNutritionLog(date = todayIso()): NutritionLog {
-  return {
-    id: generateNutritionId(),
-    date,
-    bodyWeightKg: null,
-    proteinGrams: null,
-    waterLiters: null,
-    caloriesEstimate: null,
-    creatineTaken: false,
-    creatineGrams: null,
-    wheyTaken: false,
-    wheyScoops: null,
-    eggsCount: null,
-    seafoodMeal: false,
-    oystersMeal: false,
-    nutsServing: false,
-    darkChocolate: false,
-    fruits: '',
-    coffeeCups: null,
-    notes: '',
-    createdAt: new Date().toISOString(),
-  }
-}
-
 /** Inserts 5 demo logs (replacing any previous demo rows) and returns the list. */
 export function addDemoNutritionLogs(reference = new Date()): NutritionLog[] {
   const demo = createDemoNutritionLogs(reference)
@@ -295,20 +107,6 @@ export function generateNutritionId(): string {
   }
 
   return `nutrition-${Date.now()}-${Math.random().toString(16).slice(2)}`
-}
-
-/** Formats an ISO date (YYYY-MM-DD) as a readable label. */
-export function formatNutritionDate(date: string): string {
-  const parsed = new Date(`${date}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) {
-    return date || '-'
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(parsed)
 }
 
 /** Today's date as a local YYYY-MM-DD string. */
@@ -491,42 +289,6 @@ function toSyncStatus(value: unknown): NutritionLog['syncStatus'] {
     : undefined
 }
 
-function average(values: Array<number | null>, decimals = 0): number {
-  const numbers = values.filter(
-    (value): value is number => typeof value === 'number' && Number.isFinite(value),
-  )
-
-  if (numbers.length === 0) {
-    return 0
-  }
-
-  const mean = numbers.reduce((sum, value) => sum + value, 0) / numbers.length
-  const factor = 10 ** decimals
-  return Math.round(mean * factor) / factor
-}
-
-function sortByDateAsc(logs: NutritionLog[]): NutritionLog[] {
-  if (!Array.isArray(logs)) {
-    return []
-  }
-
-  return [...logs].sort((a, b) => getLogTime(a) - getLogTime(b))
-}
-
-function getLogTime(log: NutritionLog): number {
-  const dateTime = new Date(`${log.date}T00:00:00`).getTime()
-  if (Number.isFinite(dateTime)) {
-    return dateTime
-  }
-
-  const createdTime = new Date(log.createdAt).getTime()
-  return Number.isFinite(createdTime) ? createdTime : 0
-}
-
-function toNumber(value: number | null): number {
-  return typeof value === 'number' && Number.isFinite(value) ? value : 0
-}
-
 function toNullableNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === '') {
     return null
@@ -540,15 +302,6 @@ function toNullableString(value: unknown): string | null {
   return typeof value === 'string' && value ? value : null
 }
 
-function getStartOfWeek(date: Date): Date {
-  const start = new Date(date)
-  const day = start.getDay()
-  const diff = day === 0 ? -6 : 1 - day
-  start.setDate(start.getDate() + diff)
-  start.setHours(0, 0, 0, 0)
-  return start
-}
-
 function addDays(date: Date, days: number): Date {
   const next = new Date(date)
   next.setDate(date.getDate() + days)
@@ -559,14 +312,3 @@ function toDateKey(date: Date): string {
   return toLocalIsoDate(date)
 }
 
-function formatWeekLabel(dateKey: string): string {
-  const parsed = new Date(`${dateKey}T00:00:00`)
-  if (Number.isNaN(parsed.getTime())) {
-    return dateKey
-  }
-
-  return new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'short',
-  }).format(parsed)
-}

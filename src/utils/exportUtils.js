@@ -235,105 +235,6 @@ export function exportBodyCheckInsCSV(checkIns = []) {
   return rows
 }
 
-export function exportNutritionLogsCSV(logs = []) {
-  const rows = [
-    [
-      'Date',
-      'Body Weight Kg',
-      'Protein Grams',
-      'Water Liters',
-      'Calories Estimate',
-      'Creatine Taken',
-      'Creatine Grams',
-      'Whey Taken',
-      'Whey Scoops',
-      'Eggs Count',
-      'Seafood Meal',
-      'Oysters Meal',
-      'Nuts Serving',
-      'Dark Chocolate',
-      'Fruits',
-      'Coffee Cups',
-      'Notes',
-    ],
-  ]
-
-  safeArray(logs).forEach((log) => {
-    rows.push([
-      log?.date ?? '',
-      log?.bodyWeightKg ?? '',
-      log?.proteinGrams ?? '',
-      log?.waterLiters ?? '',
-      log?.caloriesEstimate ?? '',
-      yesNo(log?.creatineTaken),
-      log?.creatineGrams ?? '',
-      yesNo(log?.wheyTaken),
-      log?.wheyScoops ?? '',
-      log?.eggsCount ?? '',
-      yesNo(log?.seafoodMeal),
-      yesNo(log?.oystersMeal),
-      yesNo(log?.nutsServing),
-      yesNo(log?.darkChocolate),
-      log?.fruits ?? '',
-      log?.coffeeCups ?? '',
-      log?.notes ?? '',
-    ])
-  })
-
-  downloadCSV(`nutrition-logs-${fileDate()}.csv`, rows)
-  return rows
-}
-
-export function exportWeeklySummaryCSV(data = {}) {
-  const rows = [
-    [
-      'Week Start',
-      'Week End',
-      'Weekly Score',
-      'Workouts Completed',
-      'Scheduled Workouts Completed',
-      'Standalone Workouts Completed',
-      'Target Workouts',
-      'Total Sets',
-      'Chest Sets',
-      'Back Sets',
-      'Abs Sets',
-      'Posture Sets',
-      'Average Protein',
-      'Average Water',
-      'Creatine Days',
-      'Body Weight Change',
-      'Waist Change',
-      'Chest Change',
-    ],
-    [
-      data.weekStart ?? dateKey(data.week?.start),
-      data.weekEnd ?? dateKey(data.week?.end),
-      data.weeklyScore?.score ?? '',
-      data.workoutSummary?.completedWorkouts ?? 0,
-      data.workoutSummary?.scheduledCompletedWorkouts ??
-        data.workoutSummary?.completedWorkouts ??
-        0,
-      data.workoutSummary?.standaloneWorkoutsCompleted ?? 0,
-      data.workoutSummary?.targetWorkouts ?? 0,
-      data.workoutSummary?.totalSets ?? 0,
-      muscleSets(data.muscleVolume, 'Chest'),
-      muscleSets(data.muscleVolume, 'Back'),
-      muscleSets(data.muscleVolume, 'Abs'),
-      muscleSets(data.muscleVolume, 'Posture'),
-      data.nutritionSummary?.averageProtein ?? 0,
-      data.nutritionSummary?.averageWater ?? 0,
-      data.nutritionSummary?.creatineDays ?? 0,
-      metricChange(data.bodySummary, 'Body weight'),
-      metricChange(data.bodySummary, 'Waist'),
-      metricChange(data.bodySummary, 'Chest'),
-    ],
-  ]
-
-  downloadCSV(`weekly-summary-${fileDate()}.csv`, rows)
-  return rows
-}
-
 export function exportAllDataJSON() {
   const data = {
     exportedAt: new Date().toISOString(),
@@ -421,29 +322,6 @@ function yesNo(value) {
 
 function fileDate(date = new Date()) {
   return toLocalIsoDate(date)
-}
-
-function dateKey(date) {
-  if (!date) {
-    return ''
-  }
-
-  return toLocalIsoDate(date)
-}
-
-function muscleSets(volume = [], muscle) {
-  return safeArray(volume).find((item) => item?.muscle === muscle)?.sets ?? 0
-}
-
-function metricChange(bodySummary, label) {
-  const metric = safeArray(bodySummary?.metrics).find(
-    (item) => item?.label === label,
-  )
-  if (!metric || typeof metric.change !== 'number') {
-    return ''
-  }
-
-  return metric.change
 }
 
 function readJson(key) {
