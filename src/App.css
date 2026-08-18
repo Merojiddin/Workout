@@ -333,8 +333,7 @@
 }
 
 .workout-primary-button,
-.workout-secondary-button,
-.timer-button {
+.workout-secondary-button {
   align-items: center;
   border: 1px solid transparent;
   border-radius: var(--r-md);
@@ -360,8 +359,7 @@
   width: 100%;
 }
 
-.workout-secondary-button,
-.timer-button {
+.workout-secondary-button {
   background: var(--surface-3);
   border-color: rgba(255, 255, 255, 0.08);
   color: var(--text);
@@ -371,42 +369,17 @@
 .workout-primary-button:hover,
 .workout-primary-button:focus-visible,
 .workout-secondary-button:hover,
-.workout-secondary-button:focus-visible,
-.timer-button:hover,
-.timer-button:focus-visible {
+.workout-secondary-button:focus-visible {
   border-color: rgba(27, 210, 220, 0.54);
   outline: none;
   transform: translateY(-1px);
 }
 
 .workout-primary-button:disabled,
-.workout-secondary-button:disabled,
-.timer-button:disabled {
+.workout-secondary-button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
   transform: none;
-}
-
-.rest-timer {
-  background: linear-gradient(180deg, rgba(17, 33, 30, 0.98), rgba(14, 21, 25, 0.98));
-  border: 1px solid rgba(27, 210, 220, 0.24);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow);
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-}
-
-.timer-actions {
-  display: grid;
-  gap: 9px;
-}
-
-.timer-button--primary {
-  background: linear-gradient(180deg, #28d5de, #13b7c1);
-  border-color: transparent;
-  box-shadow: 0 10px 22px rgba(27, 210, 220, 0.14);
-  color: var(--green-ink);
 }
 
 /* The finish screen is styled in the "Simple mode" section at the end of this
@@ -738,7 +711,6 @@
     grid-template-columns: 80px repeat(3, minmax(0, 1fr));
   }
 
-  .timer-actions,
   .finish-actions {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -3064,15 +3036,6 @@
 
 /* Exercise summary */
 
-/* Rest timer additions */
-.timer-actions {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.rest-timer--done {
-  border-color: rgba(27, 210, 220, 0.55);
-}
-
 /* Control panel */
 
 /* Unfinished workout prompt */
@@ -4811,8 +4774,7 @@
 
   /* Buttons: 52-56px tall down to 42-44px. */
   .workout-primary-button,
-  .workout-secondary-button,
-  .timer-button {
+  .workout-secondary-button {
     min-height: 44px;
   }
 
@@ -6750,34 +6712,13 @@ body {
   padding-top: 10px;
 }
 
-/* Rest controls only. The countdown itself is the ring above, so the dock
-   carries the three buttons and nothing else. */
-.workout-page--live .rest-timer {
-  align-items: center;
-  background: none;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-}
-
-.workout-page--live .timer-actions {
+/* Every between-set control on one line: back, the primary, skip and the
+   list. Next set is the only flexible cell, so it absorbs the width that is
+   left over on any screen. */
+.live-dock__row {
+  align-items: stretch;
+  display: flex;
   gap: 6px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.workout-page--live .timer-button {
-  font-size: 12px;
-  gap: 5px;
-  min-height: 44px;
-  padding: 0 6px;
-}
-
-/* Back and next: the pair pressed on every single set. */
-.live-dock__main {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: 54px minmax(0, 1fr);
 }
 
 .live-dock__back {
@@ -6788,8 +6729,10 @@ body {
   color: var(--text);
   cursor: pointer;
   display: inline-flex;
+  flex: 0 0 auto;
   justify-content: center;
   min-height: 54px;
+  width: 46px;
 }
 
 .live-dock__back:hover:not(:disabled),
@@ -6803,16 +6746,55 @@ body {
   opacity: 0.4;
 }
 
-.workout-page--live .live-dock__main .workout-primary-button {
-  font-size: 17px;
+.workout-page--live .live-dock__row .workout-primary-button {
+  flex: 1 1 auto;
+  font-size: 16px;
+  gap: 6px;
   min-height: 54px;
+  min-width: 0;
+  padding: 0 8px;
+  white-space: nowrap;
 }
 
-/* The four occasional actions, on one row instead of four stacked links. */
-.live-dock__tools {
-  display: grid;
-  gap: 6px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+/* Skip and list share one compact width so the row reads as a set of equal
+   tools flanking the primary. */
+.live-dock__row .live-tool {
+  flex: 0 0 auto;
+  min-height: 54px;
+  width: 50px;
+}
+
+/* Under about 380px the cells cannot all carry text: the tools give up their
+   labels first, because the primary's has to stay readable. */
+@media (max-width: 379px) {
+  .live-dock__row {
+    gap: 4px;
+  }
+
+  .live-dock__back {
+    width: 38px;
+  }
+
+  .live-dock__row .live-tool {
+    width: 40px;
+  }
+
+  .live-dock__row .live-tool span {
+    display: none;
+  }
+
+  .workout-page--live .live-dock__row .workout-primary-button {
+    font-size: 14px;
+    gap: 4px;
+    padding: 0 4px;
+  }
+
+  /* "Finish workout" is the longest label the primary ever carries, and at
+     this width its icon is what pushes it over the edge. */
+  .workout-page--live .live-dock__row .workout-primary-button svg {
+    height: 17px;
+    width: 17px;
+  }
 }
 
 .live-tool {
@@ -6856,14 +6838,33 @@ body {
   color: var(--green);
 }
 
-.live-tool--end {
+/* Ending the workout lives past the sets, not in the dock: reaching it takes
+   a scroll, which is the point. */
+.live-end-workout {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255, 63, 67, 0.28);
+  border-radius: var(--r-md);
   color: rgba(255, 63, 67, 0.82);
+  cursor: pointer;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 2px;
+  min-height: 46px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
-.live-tool--end:hover,
-.live-tool--end:focus-visible {
+.live-end-workout:hover,
+.live-end-workout:focus-visible {
   background: var(--red-soft);
   color: var(--red);
+  outline: none;
 }
 
 .live-tool:disabled {
@@ -7149,14 +7150,20 @@ body {
 .round-meter {
   align-items: center;
   aspect-ratio: 1;
+  background: transparent;
   border: 5px solid var(--line);
   border-radius: 50%;
+  color: inherit;
   display: flex;
+  flex-direction: column;
+  font-family: inherit;
   font-size: 19px;
   font-weight: 800;
+  gap: 3px;
   justify-content: center;
   margin: 0 auto;
   max-width: 92px;
+  padding: 0;
   width: 100%;
 }
 
@@ -7170,10 +7177,35 @@ body {
   color: var(--green);
 }
 
+/* The rest ring is a button: tapping it runs or holds the countdown, so it
+   carries the play/pause glyph under the clock and reacts to the press. */
 .round-meter--rest {
   border-color: #2f4a44;
   color: var(--soft);
+  cursor: pointer;
   font-size: 17px;
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.round-meter--rest svg {
+  opacity: 0.75;
+}
+
+.round-meter--rest:hover:not(:disabled),
+.round-meter--rest:focus-visible:not(:disabled) {
+  border-color: #5a897a;
+  outline: none;
+}
+
+.round-meter--rest:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+.round-meter--rest:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .round-meter--rest-active {

@@ -492,8 +492,8 @@ export function getTotalPlannedSets(
   )
 }
 
-/** Duration in whole minutes (at least 0). */
-export function getWorkoutDuration(
+/** Elapsed time in whole seconds (at least 0), for a mm:ss clock. */
+export function getWorkoutElapsedSeconds(
   session: ActiveWorkoutSession | null,
   endTime: Date = new Date(),
 ): number {
@@ -510,7 +510,7 @@ export function getWorkoutDuration(
     ? new Date(session.finishedAt).getTime()
     : endTime.getTime()
 
-  return Math.max(0, Math.round((end - started) / 60000))
+  return Math.max(0, Math.floor((end - started) / 1000))
 }
 // ---------------------------------------------------------------------------
 // Small internal helpers

@@ -1,11 +1,17 @@
+import { Pause, Play } from 'lucide-react'
+
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
 import type { ActiveExercise } from '../utils/liveWorkoutUtils'
 import { isDoneSet } from '../utils/liveWorkoutUtils'
 
 interface LiveRoundStatsProps {
   exercise: ActiveExercise
-  /** Seconds left on the rest countdown, or null when it is not running. */
+  /** Seconds left on the rest countdown, or null before it reports in. */
   restSecondsLeft: number | null
+  /** Whether that countdown is ticking, as opposed to paused or untouched. */
+  restRunning: boolean
+  /** Runs or holds the rest countdown - the ring is the only control for it. */
+  onToggleRest: () => void
 }
 
 /**
@@ -15,10 +21,22 @@ interface LiveRoundStatsProps {
  * Each is a ring rather than a line of text because they are read at arm's
  * length, mid-set, without your reading glasses on.
  */
-export function LiveRoundStats({ exercise, restSecondsLeft }: LiveRoundStatsProps) {
+export function LiveRoundStats({
+  exercise,
+  onToggleRest,
+  restRunning,
+  restSecondsLeft,
+}: LiveRoundStatsProps) {
   const doneSets = exercise.sets.filter(isDoneSet).length
   const totalSets = exercise.sets.length
-  const resting = restSecondsLeft !== null && restSecondsLeft > 0
+  // A finished or untouched countdown shows the rest this exercise asks for;
+  // anything part-way through shows where it actually stands.
+  const started =
+    restSecondsLeft !== null &&
+    restSecondsLeft > 0 &&
+    restSecondsLeft < exercise.restSeconds
+  const resting = restRunning && restSecondsLeft !== null && restSecondsLeft > 0
+  const showClock = resting || started
 
   return (
     <div className="round-stats">
@@ -30,16 +48,29 @@ export function LiveRoundStats({ exercise, restSecondsLeft }: LiveRoundStatsProp
       </div>
 
       <div className="round-stat">
-        <div
+        {/* The ring is the rest timer's only control: the clock you read
+            between sets is the thing you tap to hold or restart it. */}
+        <button
+          aria-label={
+            resting ? 'Pause the rest countdown' : 'Start the rest countdown'
+          }
           className={`round-meter round-meter--rest${
             resting ? ' round-meter--rest-active' : ''
           }`}
+          disabled={exercise.restSeconds <= 0}
+          onClick={onToggleRest}
+          type="button"
         >
           <span aria-live="polite">
-            {resting ? formatClock(restSecondsLeft) : formatClock(exercise.restSeconds)}
+            {formatClock(showClock ? (restSecondsLeft as number) : exercise.restSeconds)}
           </span>
-        </div>
-        <small>{resting ? 'Resting' : 'Rest'}</small>
+          {resting ? (
+            <Pause size={13} strokeWidth={2.6} aria-hidden="true" />
+          ) : (
+            <Play size={13} strokeWidth={2.6} aria-hidden="true" />
+          )}
+        </button>
+        <small>{resting ? 'Resting' : started ? 'Paused' : 'Rest'}</small>
       </div>
 
       <div className="round-stat">

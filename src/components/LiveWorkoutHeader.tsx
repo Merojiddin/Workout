@@ -1,12 +1,15 @@
 import { ChevronDown, Clock3 } from 'lucide-react'
 
+import { formatDuration } from '../utils/exerciseLoggingUtils'
+
 interface LiveWorkoutHeaderProps {
   workoutName: string
   currentExerciseIndex: number
   totalExercises: number
   doneSets: number
   totalSets: number
-  duration: number
+  /** Time on the workout so far, shown as a mm:ss clock. */
+  elapsedSeconds: number
   /** Leaves the training screen without ending the workout. */
   onExit: () => void
 }
@@ -25,7 +28,7 @@ export function LiveWorkoutHeader({
   totalExercises,
   doneSets,
   totalSets,
-  duration,
+  elapsedSeconds,
   onExit,
 }: LiveWorkoutHeaderProps) {
   const progress = Math.min((doneSets / Math.max(totalSets, 1)) * 100, 100)
@@ -54,7 +57,7 @@ export function LiveWorkoutHeader({
 
         <span className="live-header__timer">
           <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
-          {duration}m
+          {formatDuration(elapsedSeconds)}
         </span>
       </div>
 

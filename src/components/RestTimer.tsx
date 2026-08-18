@@ -1,4 +1,3 @@
-import { Pause, Play, Plus, SkipForward } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sendReminder } from '../services/reminderService'
 import { getReminderSettings } from '../utils/reminderUtils'
@@ -11,12 +10,13 @@ interface RestTimerProps {
   skipSignal?: number
   /** Increment to add 30 seconds from outside (sticky action bar). */
   extendSignal?: number
+  /** Increment to run or hold the countdown - the rest ring is the button. */
+  toggleSignal?: number
   /** Reports whether the countdown is actively running. */
   onRunningChange?: (isRunning: boolean) => void
   /** Reports the seconds left, so the round meter can show the same clock. */
   onTick?: (secondsLeft: number, isRunning: boolean) => void
   onComplete?: () => void
-  onSkip?: () => void
 }
 
 export function RestTimer({
@@ -24,22 +24,30 @@ export function RestTimer({
   autoStartSignal,
   skipSignal,
   extendSignal,
+  toggleSignal,
   onRunningChange,
   onTick,
   onComplete,
-  onSkip,
 }: RestTimerProps) {
   const safeRest = Math.max(1, Math.round(restSeconds || 90))
   const [duration, setDuration] = useState(safeRest)
   const [secondsLeft, setSecondsLeft] = useState(safeRest)
   const [isRunning, setIsRunning] = useState(false)
-  const [isComplete, setIsComplete] = useState(false)
   const onCompleteRef = useRef(onComplete)
   onCompleteRef.current = onComplete
   const onRunningChangeRef = useRef(onRunningChange)
   onRunningChangeRef.current = onRunningChange
   const onTickRef = useRef(onTick)
   onTickRef.current = onTick
+  const toggleRef = useRef<() => void>(() => {})
+  toggleRef.current = () => {
+    if (isRunning) {
+      setIsRunning(false)
+      return
+    }
+
+    start()
+  }
 
   useEffect(() => {
     onRunningChangeRef.current?.(isRunning)
@@ -57,7 +65,6 @@ export function RestTimer({
     }
     setIsRunning(false)
     setSecondsLeft(0)
-    setIsComplete(true)
   }, [skipSignal])
 
   // External +30 sec (sticky action bar).
@@ -67,15 +74,24 @@ export function RestTimer({
     }
     setSecondsLeft((current) => current + 30)
     setDuration((current) => current + 30)
-    setIsComplete(false)
   }, [extendSignal])
+
+  // Tap on the rest ring. The click is still the live user gesture here, so
+  // start() can unlock audio from inside this effect.
+  useEffect(() => {
+    if (!toggleSignal) {
+      return
+    }
+
+    toggleRef.current()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toggleSignal])
 
   // Reset when the target rest changes (new exercise selected).
   useEffect(() => {
     setDuration(safeRest)
     setSecondsLeft(safeRest)
     setIsRunning(false)
-    setIsComplete(false)
   }, [safeRest])
 
   // Auto-start after a set is saved. The signal comes from the Save Set
@@ -88,7 +104,6 @@ export function RestTimer({
     unlockAudio()
     setDuration(safeRest)
     setSecondsLeft(safeRest)
-    setIsComplete(false)
     setIsRunning(true)
     // safeRest is intentionally excluded: only the signal should retrigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -104,7 +119,6 @@ export function RestTimer({
         if (current <= 1) {
           window.clearInterval(intervalId)
           setIsRunning(false)
-          setIsComplete(true)
           notifyRestComplete()
           onCompleteRef.current?.()
           return 0
@@ -122,61 +136,12 @@ export function RestTimer({
     if (secondsLeft <= 0) {
       setSecondsLeft(duration)
     }
-    setIsComplete(false)
     setIsRunning(true)
   }
 
-  function addThirty() {
-    setSecondsLeft((current) => current + 30)
-    setDuration((current) => current + 30)
-    setIsComplete(false)
-  }
-
-  function skip() {
-    setIsRunning(false)
-    setSecondsLeft(0)
-    setIsComplete(true)
-    onSkip?.()
-  }
-
-  return (
-    <section
-      className={`rest-timer${isComplete ? ' rest-timer--done' : ''}`}
-      aria-label="Rest timer"
-    >
-      {/* Three controls only: run it, stretch it, or leave it. "Reset" was a
-          fourth button that did what pause + start already does. */}
-      <div className="timer-actions">
-        {isRunning ? (
-          <button
-            className="timer-button"
-            onClick={() => setIsRunning(false)}
-            type="button"
-          >
-            <Pause size={18} strokeWidth={2.4} aria-hidden="true" />
-            Pause
-          </button>
-        ) : (
-          <button
-            className="timer-button timer-button--primary"
-            onClick={start}
-            type="button"
-          >
-            <Play size={18} strokeWidth={2.4} aria-hidden="true" />
-            {isComplete ? 'Again' : 'Start'}
-          </button>
-        )}
-        <button className="timer-button" onClick={addThirty} type="button">
-          <Plus size={18} strokeWidth={2.4} aria-hidden="true" />
-          30s
-        </button>
-        <button className="timer-button" onClick={skip} type="button">
-          <SkipForward size={18} strokeWidth={2.4} aria-hidden="true" />
-          Skip
-        </button>
-      </div>
-    </section>
-  )
+  // No UI of its own: the rest ring in the round stats is both the clock and
+  // the run/hold button, and it drives this through onTick / toggleSignal.
+  return null
 }
 
 /** Beep (Web Audio) + vibrate on mobile - no audio files required. */

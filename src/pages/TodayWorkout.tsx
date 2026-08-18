@@ -41,7 +41,7 @@ import {
   getCurrentExercise,
   getDoneSetsCount,
   getTotalPlannedSets,
-  getWorkoutDuration,
+  getWorkoutElapsedSeconds,
   isDoneSet,
   saveActiveWorkoutSession,
   swapActiveExercise,
@@ -123,7 +123,8 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
       return undefined
     }
 
-    const intervalId = window.setInterval(() => setNowTs(Date.now()), 15000)
+    // Once a second, because the header clock counts seconds.
+    const intervalId = window.setInterval(() => setNowTs(Date.now()), 1000)
     return () => window.clearInterval(intervalId)
   }, [screen])
 
@@ -727,8 +728,13 @@ function LiveWorkoutScreen({
   const [swapOpen, setSwapOpen] = useState(false)
   const [showFormGuide, setShowFormGuide] = useState(false)
   const [pendingLog, setPendingLog] = useState<OptionalSetLogValues>(EMPTY_LOG)
-  // Mirrored out of the rest timer so the round meter shows the same clock.
-  const [restLeft, setRestLeft] = useState<number | null>(null)
+  // The rest ring is the only countdown on screen, so it mirrors the timer's
+  // state exactly -- including a paused clock, which must not snap back.
+  const [rest, setRest] = useState<{ secondsLeft: number; running: boolean } | null>(
+    null,
+  )
+  // Bumped by a tap on the rest ring, which runs or holds the countdown.
+  const [restToggle, setRestToggle] = useState(0)
 
   const exercise = getCurrentExercise(session)
   const exerciseIndex = session.currentExerciseIndex
@@ -798,7 +804,7 @@ function LiveWorkoutScreen({
       <LiveWorkoutHeader
         currentExerciseIndex={exerciseIndex}
         doneSets={getDoneSetsCount(session)}
-        duration={getWorkoutDuration(session, new Date(nowTs))}
+        elapsedSeconds={getWorkoutElapsedSeconds(session, new Date(nowTs))}
         onExit={onExit}
         totalExercises={session.exercises.length}
         totalSets={getTotalPlannedSets(session)}
@@ -831,7 +837,9 @@ function LiveWorkoutScreen({
               />
 
               {/* The two things you reach for while looking at the movement:
-                  swap it, or read how to do it. */}
+                  swap it, or read how to do it. Swap lives here rather than in
+                  the dock so the movement and its alternatives sit together,
+                  stacked in the mockup's order. */}
               <div className="live-side-actions">
                 {canSwap ? (
                   <button
@@ -884,7 +892,25 @@ function LiveWorkoutScreen({
           ) : null}
         </article>
 
-        <LiveRoundStats exercise={exercise} restSecondsLeft={restLeft} />
+        {/* Headless: the countdown it keeps is drawn and driven by the rest
+            ring in the round stats below. */}
+        {exercise.restSeconds > 0 ? (
+          <RestTimer
+            autoStartSignal={restSignal}
+            onTick={(secondsLeft, isRunning) =>
+              setRest({ running: isRunning, secondsLeft })
+            }
+            restSeconds={exercise.restSeconds}
+            toggleSignal={restToggle}
+          />
+        ) : null}
+
+        <LiveRoundStats
+          exercise={exercise}
+          onToggleRest={() => setRestToggle((signal) => signal + 1)}
+          restRunning={rest?.running ?? false}
+          restSecondsLeft={rest?.secondsLeft ?? null}
+        />
 
         {/* Every set of this exercise, so what you lifted two sets ago is one
             glance away rather than a trip into history. */}
@@ -893,10 +919,23 @@ function LiveWorkoutScreen({
           exercise={exercise}
           onSelectSet={onGoToSet}
         />
+
+        {/* Ending the workout is deliberate, not something to fumble into
+            next to Next set, so it sits down here past the sets. */}
+        <button
+          aria-label="End the workout here"
+          className="live-end-workout"
+          onClick={endWorkout}
+          type="button"
+        >
+          <Square size={15} strokeWidth={2.6} aria-hidden="true" />
+          End workout
+        </button>
       </div>
 
-      {/* One dock for every control pressed between sets: the rest countdown
-          and its buttons, back/next, and the four occasional tools. */}
+      {/* One dock for every control pressed between sets: the set entry, then
+          a single row of back, next, skip and the exercise list. Rest is not
+          here - its ring above is its own button. */}
       <div className="live-dock">
         <OptionalSetLog
           initialData={seedSetFromPrevious(exercise.sets, setIndex)}
@@ -906,17 +945,7 @@ function LiveWorkoutScreen({
           setKey={setKey}
         />
 
-        {exercise.restSeconds > 0 ? (
-          <RestTimer
-            autoStartSignal={restSignal}
-            onTick={(secondsLeft, isRunning) =>
-              setRestLeft(isRunning ? secondsLeft : null)
-            }
-            restSeconds={exercise.restSeconds}
-          />
-        ) : null}
-
-        <div className="live-dock__main">
+        <div className="live-dock__row">
           <button
             aria-label="Go back one set"
             className="live-dock__back"
@@ -949,19 +978,6 @@ function LiveWorkoutScreen({
               </>
             )}
           </button>
-        </div>
-
-        <div className="live-dock__tools">
-          <button
-            aria-pressed={swapOpen}
-            className={`live-tool${swapOpen ? ' live-tool--on' : ''}`}
-            disabled={!canSwap}
-            onClick={() => setSwapOpen((open) => !open)}
-            type="button"
-          >
-            <Repeat size={17} strokeWidth={2.4} aria-hidden="true" />
-            <span>Swap</span>
-          </button>
 
           <button
             aria-label="Skip to the next exercise"
@@ -983,16 +999,6 @@ function LiveWorkoutScreen({
           >
             <ListChecks size={17} strokeWidth={2.4} aria-hidden="true" />
             <span>List ({remainingCount})</span>
-          </button>
-
-          <button
-            aria-label="End the workout here"
-            className="live-tool live-tool--end"
-            onClick={endWorkout}
-            type="button"
-          >
-            <Square size={16} strokeWidth={2.6} aria-hidden="true" />
-            <span>End</span>
           </button>
         </div>
       </div>
