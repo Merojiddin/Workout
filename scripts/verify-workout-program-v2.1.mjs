@@ -51,6 +51,17 @@ class MemoryStorage {
 
 const storage = new MemoryStorage()
 globalThis.window = globalThis
+// `window` here is Node's globalThis, which is not an EventTarget. Modules under
+// test dispatch change notifications, so delegate the event methods to a real
+// EventTarget instead of leaving them undefined.
+const eventTarget = new EventTarget()
+for (const method of ['addEventListener', 'removeEventListener', 'dispatchEvent']) {
+  Object.defineProperty(globalThis, method, {
+    configurable: true,
+    writable: true,
+    value: (...args) => eventTarget[method](...args),
+  })
+}
 globalThis.localStorage = storage
 globalThis.sessionStorage = new MemoryStorage()
 Object.defineProperty(globalThis, 'navigator', {

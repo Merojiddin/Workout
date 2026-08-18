@@ -128,7 +128,9 @@ export function saveUserProfileSettings(settings) {
  * mirror.
  */
 export function notifyUserProfileSettingsChanged() {
-  if (typeof window === 'undefined') {
+  // Non-DOM hosts (SSR, the verification harness) may define `window` without
+  // defining the event target on it, so presence alone is not enough.
+  if (typeof window === 'undefined' || typeof window.dispatchEvent !== 'function') {
     return
   }
 
