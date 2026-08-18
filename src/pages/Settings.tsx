@@ -7,6 +7,7 @@ import {
   LogIn,
   LogOut,
   MonitorPlay,
+  Pencil,
   RotateCcw,
   Save,
   Settings as SettingsIcon,
@@ -14,14 +15,19 @@ import {
   Upload,
   UserRound,
   Wrench,
+  X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { CloudHealthPanel } from '../components/CloudHealthPanel'
 import { CloudSyncPanel } from '../components/CloudSyncPanel'
+import { ImageUploadPreview } from '../components/ImageUploadPreview'
+import { ProfileAvatar } from '../components/ProfileAvatar'
 import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
 import { useAuth } from '../context/AuthContext'
+import { profileInitials } from '../hooks/useProfileIdentity'
 import type { WorkoutDay } from '../data/workoutPlan'
 import * as settingsService from '../services/settingsService'
+import { fileToBase64, resizeImageFile } from '../utils/imageUtils'
 import {
   clearAllData,
   equipmentSettingsOptions,
@@ -92,6 +98,10 @@ export function Settings({ onNavigate }: SettingsProps) {
   )
   const [notice, setNotice] = useState('')
   const [signingOut, setSigningOut] = useState(false)
+  // The profile reads as a summary card; the inputs only appear once you ask
+  // to edit. profileDraft is the snapshot Cancel restores.
+  const [editingProfile, setEditingProfile] = useState(false)
+  const [profileDraft, setProfileDraft] = useState<any>(null)
   const importInputRef = useRef<HTMLInputElement | null>(null)
 
   function updateProfile(field: string, value: string | number) {
@@ -146,6 +156,44 @@ export function Settings({ onNavigate }: SettingsProps) {
     }
   }
 
+  function startEditingProfile() {
+    setProfileDraft(settings.profile)
+    setEditingProfile(true)
+  }
+
+  function cancelEditingProfile() {
+    if (profileDraft) {
+      setSettings((current: any) => ({ ...current, profile: profileDraft }))
+    }
+    setProfileDraft(null)
+    setEditingProfile(false)
+  }
+
+  async function saveProfile() {
+    await saveSettings('Profile saved.')
+    setProfileDraft(null)
+    setEditingProfile(false)
+  }
+
+  /**
+   * Profile photos are stored inline in the settings document, so they are
+   * downscaled hard first: 256px wide is all the avatar ever renders at, and
+   * it keeps the JSON small enough for localStorage and cloud sync.
+   */
+  async function handleAvatarSelect(file: File, previewUrl: string | null) {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+
+    try {
+      const square: File = await resizeImageFile(file, 256, 0.82)
+      const dataUrl: string = await fileToBase64(square)
+      updateProfile('avatarDataUrl', dataUrl)
+    } catch {
+      setNotice('Could not read that photo. Try another one.')
+    }
+  }
+
   async function handleSignOut() {
     setSigningOut(true)
     const result = await signOut()
@@ -158,6 +206,8 @@ export function Settings({ onNavigate }: SettingsProps) {
   function resetProfile() {
     const next = resetUserProfileSettings()
     setSettings(next)
+    setProfileDraft(null)
+    setEditingProfile(false)
     setNotice('Profile settings reset.')
   }
 
@@ -236,30 +286,6 @@ export function Settings({ onNavigate }: SettingsProps) {
           })}
         </div>
 
-        {/* Account action, not a settings section, so it sits outside the
-            tablist instead of reading as one more tab. */}
-        {isSupabaseConfigured ? (
-          user ? (
-            <button
-              className="settings-auth-button"
-              disabled={signingOut}
-              onClick={handleSignOut}
-              type="button"
-            >
-              <LogOut size={17} strokeWidth={2.4} aria-hidden="true" />
-              {signingOut ? 'Signing out...' : 'Logout'}
-            </button>
-          ) : (
-            <button
-              className="settings-auth-button"
-              onClick={() => window.location.reload()}
-              type="button"
-            >
-              <LogIn size={17} strokeWidth={2.4} aria-hidden="true" />
-              Login
-            </button>
-          )
-        ) : null}
       </div>
 
       {notice ? (
@@ -279,130 +305,190 @@ export function Settings({ onNavigate }: SettingsProps) {
             <UserRound size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
 
-          <div className="settings-form-grid">
-            <label className="settings-field">
-              Name
-              <input
-                className="settings-input"
-                onChange={(event) => updateProfile('name', event.target.value)}
-                type="text"
-                value={settings.profile.name}
-              />
-            </label>
-            <label className="settings-field">
-              Height cm
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateProfile('heightCm', event.target.value)
-                }
-                type="number"
-                value={settings.profile.heightCm}
-              />
-            </label>
-            <label className="settings-field">
-              Current weight kg
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateProfile('currentWeightKg', event.target.value)
-                }
-                step="0.1"
-                type="number"
-                value={settings.profile.currentWeightKg}
-              />
-            </label>
-            <label className="settings-field">
-              Goal weight min kg
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateProfile('goalWeightMinKg', event.target.value)
-                }
-                step="0.1"
-                type="number"
-                value={settings.profile.goalWeightMinKg}
-              />
-            </label>
-            <label className="settings-field">
-              Goal weight max kg
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateProfile('goalWeightMaxKg', event.target.value)
-                }
-                step="0.1"
-                type="number"
-                value={settings.profile.goalWeightMaxKg}
-              />
-            </label>
-            <label className="settings-field settings-field--wide">
-              Training goal
-              <textarea
-                className="settings-textarea"
-                onChange={(event) =>
-                  updateProfile('trainingGoal', event.target.value)
-                }
-                value={settings.profile.trainingGoal}
-              />
-            </label>
-            <label className="settings-field settings-field--wide">
-              Main focus
-              <input
-                className="settings-input"
-                onChange={(event) =>
-                  updateProfile('mainFocus', event.target.value)
-                }
-                type="text"
-                value={settings.profile.mainFocus}
-              />
-            </label>
-            <label className="settings-field">
-              Training time per day
-              <input
-                className="settings-input"
-                onChange={(event) =>
-                  updateProfile('trainingTimePerDay', event.target.value)
-                }
-                type="text"
-                value={settings.profile.trainingTimePerDay}
-              />
-            </label>
-            <label className="settings-field">
-              Experience level
-              <input
-                className="settings-input"
-                onChange={(event) =>
-                  updateProfile('experienceLevel', event.target.value)
-                }
-                type="text"
-                value={settings.profile.experienceLevel}
-              />
-            </label>
-          </div>
+          {editingProfile ? (
+            <>
+              <div className="settings-avatar-upload">
+                <ImageUploadPreview
+                  label="Profile photo"
+                  onRemove={() => updateProfile('avatarDataUrl', '')}
+                  onSelect={handleAvatarSelect}
+                  previewSrc={settings.profile.avatarDataUrl || null}
+                />
+              </div>
 
-          <div className="settings-actions">
-            <button
-              className="workout-primary-button"
-              onClick={() => saveSettings('Profile saved.')}
-              type="button"
-            >
-              <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Profile
-            </button>
-            <button
-              className="workout-secondary-button"
-              onClick={resetProfile}
-              type="button"
-            >
-              <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-              Reset Profile
-            </button>
-          </div>
+              <div className="settings-form-grid">
+                <label className="settings-field">
+                  Name
+                  <input
+                    className="settings-input"
+                    onChange={(event) => updateProfile('name', event.target.value)}
+                    type="text"
+                    value={settings.profile.name}
+                  />
+                </label>
+                <label className="settings-field">
+                  Height cm
+                  <input
+                    className="settings-input"
+                    min={0}
+                    onChange={(event) =>
+                      updateProfile('heightCm', event.target.value)
+                    }
+                    type="number"
+                    value={settings.profile.heightCm}
+                  />
+                </label>
+                <label className="settings-field">
+                  Current weight kg
+                  <input
+                    className="settings-input"
+                    min={0}
+                    onChange={(event) =>
+                      updateProfile('currentWeightKg', event.target.value)
+                    }
+                    step="0.1"
+                    type="number"
+                    value={settings.profile.currentWeightKg}
+                  />
+                </label>
+                <label className="settings-field">
+                  Goal weight min kg
+                  <input
+                    className="settings-input"
+                    min={0}
+                    onChange={(event) =>
+                      updateProfile('goalWeightMinKg', event.target.value)
+                    }
+                    step="0.1"
+                    type="number"
+                    value={settings.profile.goalWeightMinKg}
+                  />
+                </label>
+                <label className="settings-field">
+                  Goal weight max kg
+                  <input
+                    className="settings-input"
+                    min={0}
+                    onChange={(event) =>
+                      updateProfile('goalWeightMaxKg', event.target.value)
+                    }
+                    step="0.1"
+                    type="number"
+                    value={settings.profile.goalWeightMaxKg}
+                  />
+                </label>
+                <label className="settings-field settings-field--wide">
+                  Training goal
+                  <textarea
+                    className="settings-input settings-textarea"
+                    onChange={(event) =>
+                      updateProfile('trainingGoal', event.target.value)
+                    }
+                    rows={2}
+                    value={settings.profile.trainingGoal}
+                  />
+                </label>
+                <label className="settings-field settings-field--wide">
+                  Main focus
+                  <input
+                    className="settings-input"
+                    onChange={(event) =>
+                      updateProfile('mainFocus', event.target.value)
+                    }
+                    type="text"
+                    value={settings.profile.mainFocus}
+                  />
+                </label>
+                <label className="settings-field">
+                  Training time per day
+                  <input
+                    className="settings-input"
+                    onChange={(event) =>
+                      updateProfile('trainingTimePerDay', event.target.value)
+                    }
+                    type="text"
+                    value={settings.profile.trainingTimePerDay}
+                  />
+                </label>
+                <label className="settings-field">
+                  Experience level
+                  <input
+                    className="settings-input"
+                    onChange={(event) =>
+                      updateProfile('experienceLevel', event.target.value)
+                    }
+                    type="text"
+                    value={settings.profile.experienceLevel}
+                  />
+                </label>
+              </div>
+
+              <div className="settings-actions">
+                <button
+                  className="workout-primary-button"
+                  onClick={saveProfile}
+                  type="button"
+                >
+                  <Save size={19} strokeWidth={2.4} aria-hidden="true" />
+                  Save Profile
+                </button>
+                <button
+                  className="workout-secondary-button"
+                  onClick={cancelEditingProfile}
+                  type="button"
+                >
+                  <X size={19} strokeWidth={2.4} aria-hidden="true" />
+                  Cancel
+                </button>
+                <button
+                  className="workout-secondary-button"
+                  onClick={resetProfile}
+                  type="button"
+                >
+                  <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
+                  Reset Profile
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="settings-identity">
+                <ProfileAvatar
+                  avatarDataUrl={settings.profile.avatarDataUrl}
+                  initials={profileInitials(settings.profile.name)}
+                  size={62}
+                />
+                <div className="settings-identity__text">
+                  <strong>{settings.profile.name}</strong>
+                  <span>{settings.profile.experienceLevel}</span>
+                </div>
+                <button
+                  className="settings-edit-button"
+                  onClick={startEditingProfile}
+                  type="button"
+                >
+                  <Pencil size={16} strokeWidth={2.4} aria-hidden="true" />
+                  Edit
+                </button>
+              </div>
+
+              <dl className="settings-info-grid">
+                {buildProfileFacts(settings.profile).map((fact) => (
+                  <div
+                    className={
+                      fact.wide
+                        ? 'settings-info settings-info--wide'
+                        : 'settings-info'
+                    }
+                    key={fact.label}
+                  >
+                    <dt>{fact.label}</dt>
+                    <dd>{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </>
+          )}
         </article>
       ) : null}
 
@@ -690,6 +776,33 @@ export function Settings({ onNavigate }: SettingsProps) {
         </article>
       ) : null}
 
+      {/* Account action, not a settings section: it sits at the very bottom
+          where sign-out lives in most apps, not among the tabs. */}
+      {isSupabaseConfigured ? (
+        <div className="settings-account-actions">
+          {user ? (
+            <button
+              className="settings-auth-button"
+              disabled={signingOut}
+              onClick={handleSignOut}
+              type="button"
+            >
+              <LogOut size={17} strokeWidth={2.4} aria-hidden="true" />
+              {signingOut ? 'Signing out...' : 'Logout'}
+            </button>
+          ) : (
+            <button
+              className="settings-auth-button"
+              onClick={() => window.location.reload()}
+              type="button"
+            >
+              <LogIn size={17} strokeWidth={2.4} aria-hidden="true" />
+              Login
+            </button>
+          )}
+        </div>
+      ) : null}
+
       <footer className="settings-footer">
         <button
           className="settings-footer-link"
@@ -715,6 +828,28 @@ export function Settings({ onNavigate }: SettingsProps) {
       </footer>
     </section>
   )
+}
+
+interface ProfileFact {
+  label: string
+  value: string
+  /** Long free-text answers get a full-width row instead of a tile. */
+  wide?: boolean
+}
+
+/** The read-only view of the profile: every stored field, nothing editable. */
+function buildProfileFacts(profile: any): ProfileFact[] {
+  return [
+    { label: 'Height', value: `${profile.heightCm} cm` },
+    { label: 'Current weight', value: `${profile.currentWeightKg} kg` },
+    {
+      label: 'Goal weight',
+      value: `${profile.goalWeightMinKg}-${profile.goalWeightMaxKg} kg`,
+    },
+    { label: 'Training time', value: profile.trainingTimePerDay },
+    { label: 'Main focus', value: profile.mainFocus, wide: true },
+    { label: 'Training goal', value: profile.trainingGoal, wide: true },
+  ]
 }
 
 function getInitialSettingsTab(): SettingsTab {

@@ -20,6 +20,12 @@ import {
 } from './storageUtils'
 
 export const USER_PROFILE_SETTINGS_KEY = 'userProfileSettings'
+/**
+ * Fired whenever the profile settings document changes. The nav shows the
+ * user's photo and name, so it has to re-read after a save, a reset, or a
+ * cloud pull instead of only at mount.
+ */
+export const USER_PROFILE_SETTINGS_EVENT = 'fitness-user-profile-settings-updated'
 export const CUSTOM_WORKOUT_PLAN_KEY = 'customWorkoutPlan'
 export const CUSTOM_EXERCISE_LIBRARY_KEY = 'customExerciseLibrary'
 
@@ -38,6 +44,7 @@ export const equipmentSettingsOptions = [
 export const defaultUserProfileSettings = {
   profile: {
     name: 'Mike',
+    avatarDataUrl: '',
     heightCm: 188,
     currentWeightKg: 76,
     goalWeightMinKg: 78,
@@ -116,6 +123,19 @@ export function saveUserProfileSettings(settings) {
 }
 
 /**
+ * Tells the rest of the app that the profile document changed. Called by every
+ * write here, and by the cloud->local hydration once it has replaced the
+ * mirror.
+ */
+export function notifyUserProfileSettingsChanged() {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.dispatchEvent(new CustomEvent(USER_PROFILE_SETTINGS_EVENT))
+}
+
+/**
  * Saves normalized settings while exposing whether localStorage accepted the
  * write. Transactional cloud callers can use this to avoid treating an
  * in-memory normalized value as a successful local mirror.
@@ -126,11 +146,14 @@ export function saveUserProfileSettingsSafely(settings) {
     typeof window !== 'undefined' &&
     safeSetJSON(USER_PROFILE_SETTINGS_KEY, normalized)
 
+  notifyUserProfileSettingsChanged()
+
   return { success, settings: normalized }
 }
 
 export function resetUserProfileSettings() {
   removeStorageItem(USER_PROFILE_SETTINGS_KEY)
+  notifyUserProfileSettingsChanged()
   return clone(defaultUserProfileSettings)
 }
 
@@ -387,6 +410,7 @@ export function importAllData(jsonData) {
 
 export function clearAllData() {
   appStorageKeys.forEach(removeStorageItem)
+  notifyUserProfileSettingsChanged()
 }
 
 export function getWorkoutForDate(date = new Date(), plan = getCustomWorkoutPlan()) {
@@ -462,6 +486,7 @@ function normalizeUserProfileSettings(value) {
     profile: {
       ...clone(profile),
       name: toText(profile.name, defaultUserProfileSettings.profile.name),
+      avatarDataUrl: toImageDataUrl(profile.avatarDataUrl),
       heightCm: toPositiveNumber(
         profile.heightCm,
         numberFromText(userProfile.height) ?? defaultUserProfileSettings.profile.heightCm,
@@ -982,6 +1007,15 @@ function libraryExercisesEqual(left, right) {
 
 function isPlainObject(value) {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+}
+
+/**
+ * Profile photos live inline in the settings document as a small data URL, so
+ * the avatar survives a reload and rides along with cloud sync. Anything that
+ * is not an image data URL is dropped rather than rendered.
+ */
+function toImageDataUrl(value) {
+  return typeof value === 'string' && value.startsWith('data:image/') ? value : ''
 }
 
 function toText(value, fallback) {

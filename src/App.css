@@ -19,7 +19,7 @@
   bottom: 0;
   display: grid;
   gap: 4px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   left: 0;
   padding: 8px 8px 10px;
   position: fixed;
@@ -61,6 +61,46 @@
   border-color: rgba(50, 213, 131, 0.24);
   color: var(--green);
   outline: none;
+}
+
+/* The account tab carries a name, which can be long. Keep it on one line
+   instead of letting it wrap and shove the bar taller. */
+.bottom-nav__button--profile span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-avatar {
+  align-items: center;
+  background: var(--surface-3);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  color: var(--text);
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 950;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+}
+
+.profile-avatar--photo {
+  object-fit: cover;
+}
+
+/* Mirrors what the icon tabs do on hover/active, since an <img> cannot take
+   the parent's currentColor. */
+.bottom-nav__button--profile[aria-current='page'] .profile-avatar,
+.bottom-nav__button--profile:focus-visible .profile-avatar,
+.bottom-nav__button--profile:hover .profile-avatar,
+.nav-button--profile[aria-current='page'] .profile-avatar,
+.nav-button--profile:focus-visible .profile-avatar,
+.nav-button--profile:hover .profile-avatar {
+  border-color: rgba(50, 213, 131, 0.54);
+  color: var(--green);
 }
 
 .dashboard {
@@ -2510,6 +2550,139 @@
   cursor: progress;
   opacity: 0.6;
   transform: none;
+}
+
+/* Sidebar account row: sits under the nav buttons, same shape, plus the
+   photo and a name that has to truncate rather than wrap. */
+.nav-button--profile span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-button--profile .profile-avatar {
+  font-size: 12px;
+}
+
+.settings-identity {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.settings-identity .profile-avatar {
+  font-size: 22px;
+}
+
+.settings-identity__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.settings-identity__text strong {
+  font-size: 21px;
+  font-weight: 950;
+}
+
+.settings-identity__text span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.settings-edit-button {
+  align-items: center;
+  background: var(--surface-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 900;
+  gap: 6px;
+  margin-left: auto;
+  min-height: 38px;
+  padding: 0 12px;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.settings-edit-button:hover,
+.settings-edit-button:focus-visible {
+  border-color: rgba(50, 213, 131, 0.54);
+  color: var(--green);
+  outline: none;
+}
+
+/* Read-only profile: label above value, tiles for short facts and a full-width
+   row for the free-text answers. */
+.settings-info-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+}
+
+.settings-info {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 10px 12px;
+}
+
+.settings-info--wide {
+  grid-column: 1 / -1;
+}
+
+.settings-info dt {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.settings-info dd {
+  font-size: 15px;
+  font-weight: 900;
+  margin: 0;
+}
+
+/* Round preview for the profile photo picker, which otherwise renders as the
+   wide progress-photo thumbnail. */
+.settings-avatar-upload .image-upload__preview {
+  justify-items: start;
+}
+
+.settings-avatar-upload .image-upload__thumb {
+  border-radius: 50%;
+  height: 104px;
+  max-height: none;
+  width: 104px;
+}
+
+.settings-avatar-upload .image-upload__dropzone {
+  min-height: 96px;
+}
+
+.settings-avatar-upload .image-upload__remove {
+  justify-self: start;
+  padding: 0 16px;
+}
+
+.settings-account-actions {
+  display: grid;
+}
+
+.settings-account-actions .settings-auth-button {
+  justify-content: center;
+  width: 100%;
 }
 
 .settings-notice {

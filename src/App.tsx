@@ -24,6 +24,7 @@ import { TodayWorkout } from './pages/TodayWorkout'
 import { syncCloudToLocal } from './services/syncService'
 import type { PageId } from './types/navigation'
 import { hasActiveWorkoutProgram } from './utils/activeWorkoutProgram'
+import { notifyUserProfileSettingsChanged } from './utils/settingsUtils'
 
 // Today's Workout and Nutrition are the two screens the app is for, so they
 // stay eager and never wait on a chunk download. The More pages are all
@@ -161,6 +162,9 @@ function AuthedApp() {
       .finally(() => {
         if (active) {
           setDataVersion((version) => version + 1)
+          // The nav lives outside the re-keyed page tree, so tell it the
+          // profile mirror it read at mount may have just been replaced.
+          notifyUserProfileSettingsChanged()
         }
       })
 

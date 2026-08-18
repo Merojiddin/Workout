@@ -1,5 +1,7 @@
 import { Dumbbell } from 'lucide-react'
 import { navigationItems } from '../data/navigation'
+import { useProfileIdentity } from '../hooks/useProfileIdentity'
+import { ProfileAvatar } from './ProfileAvatar'
 import type { PageId } from '../types/navigation'
 
 interface SidebarProps {
@@ -8,6 +10,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
+  const { avatarDataUrl, initials, name } = useProfileIdentity()
+
   return (
     <aside className="sidebar" aria-label="Main navigation">
       <div className="brand-mark">
@@ -34,6 +38,22 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             </button>
           )
         })}
+
+        {/* Same account entry as the mobile bar, so both navs agree. */}
+        <button
+          aria-current={activePage === 'settings' ? 'page' : undefined}
+          aria-label={`${name || 'Profile'} - open settings`}
+          className="nav-button nav-button--profile"
+          onClick={() => onNavigate('settings')}
+          type="button"
+        >
+          <ProfileAvatar
+            avatarDataUrl={avatarDataUrl}
+            initials={initials}
+            size={26}
+          />
+          <span>{name || 'Profile'}</span>
+        </button>
       </nav>
     </aside>
   )
