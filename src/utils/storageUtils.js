@@ -18,6 +18,8 @@ export const SENT_REMINDER_LOG_KEY = 'sentReminderLog'
 export const LAST_OFFLINE_SYNC_AT_KEY = 'lastOfflineSyncAt'
 export const PRE_DEPLOY_CHECKLIST_KEY = 'preDeployChecklist'
 export const CLOUD_HEALTH_LAST_CHECK_KEY = 'cloudHealthLastCheck'
+/** Set once this account has seen the profile step, even if it skipped it. */
+export const PROFILE_ONBOARDING_KEY = 'profileOnboardingCompleted'
 
 export const FITNESS_APP_STORAGE_KEYS = [
   WORKOUT_SESSIONS_KEY,
@@ -39,6 +41,7 @@ export const FITNESS_APP_STORAGE_KEYS = [
   LAST_OFFLINE_SYNC_AT_KEY,
   PRE_DEPLOY_CHECKLIST_KEY,
   CLOUD_HEALTH_LAST_CHECK_KEY,
+  PROFILE_ONBOARDING_KEY,
 ]
 
 const APP_KEY_SUFFIXES = ['__cloudBackup']

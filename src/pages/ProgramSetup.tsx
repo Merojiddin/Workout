@@ -10,6 +10,7 @@ import {
   saveUserWorkoutProgram,
   type ParsedWorkoutProgramResult,
 } from '../utils/userWorkoutPrograms'
+import { getUserProfileSettings } from '../utils/settingsUtils'
 import { installWorkoutProgramLocally } from '../utils/workoutProgramManager'
 
 interface ProgramSetupProps {
@@ -114,11 +115,13 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
 
   async function handleCopyPrompt() {
     try {
-      await navigator.clipboard.writeText(buildProgramAuthoringPrompt())
+      await navigator.clipboard.writeText(
+        buildProgramAuthoringPrompt(getUserProfileSettings()),
+      )
       setCopyLabel('Copied')
     } catch {
       setCopyLabel('Press Ctrl/Cmd+C')
-      setText(buildProgramAuthoringPrompt())
+      setText(buildProgramAuthoringPrompt(getUserProfileSettings()))
     }
     window.setTimeout(() => setCopyLabel('Copy AI prompt'), 2500)
   }
@@ -130,6 +133,7 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
       <div className="program-setup__brand" aria-hidden="true">
         <Dumbbell size={26} strokeWidth={2.4} />
       </div>
+      <p className="profile-setup__step">Step 1 of 2</p>
       <h1>Add your workout program</h1>
       <p className="program-setup__subtitle">
         This app does not come with a program, and it never shows you anyone

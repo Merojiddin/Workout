@@ -49,6 +49,7 @@ import {
 import {
   getCustomWorkoutPlan,
   getExerciseTargetLabel,
+  getUserProfileSettings,
   hasCustomWorkoutPlan,
 } from '../utils/settingsUtils'
 import {
@@ -1479,7 +1480,7 @@ function PasteProgramPanel({
   }
 
   async function handleCopyPrompt() {
-    const prompt = buildProgramAuthoringPrompt()
+    const prompt = buildProgramAuthoringPrompt(getUserProfileSettings())
     try {
       await navigator.clipboard.writeText(prompt)
       setCopyLabel('Copied')

@@ -6,12 +6,12 @@ import {
   findLibraryExerciseForWorkout as findDefaultLibraryExerciseForWorkout,
 } from '../data/exerciseLibrary'
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
-import { userProfile } from '../data/userProfile'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
 import {
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   INSTALLED_WORKOUT_PROGRAM_KEY,
+  PROFILE_ONBOARDING_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
   USER_WORKOUT_PROGRAMS_KEY,
   safeGetJSON,
@@ -41,39 +41,55 @@ export const equipmentSettingsOptions = [
   'VR Quest 2',
 ]
 
+/**
+ * A brand new profile: empty.
+ *
+ * The first-run screen promises this app "never shows you anyone else's"
+ * profile, so nothing personal is seeded here. Every field starts unset and
+ * stays unset until this user fills it in, either in the onboarding step or in
+ * Settings > Profile.
+ *
+ * Numbers are null rather than 0 so a consumer can tell "not set yet" apart
+ * from a real measurement, and text fields use '' for the same reason. Only
+ * impersonal values survive: generic nutrition guidance (the same numbers
+ * reminderUtils and the Nutrition page already use as standard targets) and
+ * the workout display preferences, which are UI choices, not body data.
+ */
 export const defaultUserProfileSettings = {
   profile: {
-    name: 'Mike',
+    name: '',
     avatarDataUrl: '',
-    heightCm: 188,
-    currentWeightKg: 76,
-    goalWeightMinKg: 78,
-    goalWeightMaxKg: 82,
-    trainingGoal: 'Bigger upper body, visible abs, better posture',
-    mainFocus: 'Chest, shoulders, abs, posture',
-    trainingTimePerDay: '30-60 minutes/day',
-    experienceLevel: 'Intermediate/Advanced',
+    heightCm: null,
+    currentWeightKg: null,
+    goalWeightMinKg: null,
+    goalWeightMaxKg: null,
+    trainingGoal: '',
+    mainFocus: '',
+    trainingTimePerDay: '',
+    experienceLevel: '',
   },
-  equipment: [...equipmentSettingsOptions],
+  equipment: [],
   goals: {
-    primaryGoal: 'Build bigger upper body',
-    secondaryGoal: 'Visible abs',
-    bodyGoal: 'Lean muscle gain / recomposition',
-    weakPoint: 'Chest',
-    cardioPreference: 'Incline walking',
-    injuryLimitation: 'Shins hurt after around 1 km running',
+    primaryGoal: '',
+    secondaryGoal: '',
+    bodyGoal: '',
+    weakPoint: '',
+    cardioPreference: '',
+    injuryLimitation: '',
   },
   supplements: {
-    creatineMonohydrate: true,
-    wheyProtein: true,
+    // Off by default: owning these is a purchase, not an assumption to make
+    // on someone's behalf.
+    creatineMonohydrate: false,
+    wheyProtein: false,
     proteinTargetMin: 120,
     proteinTargetMax: 160,
     waterTargetMin: 2,
     waterTargetMax: 3,
   },
   coach: {
-    coachingStyle: 'Direct',
-    mainPriority: 'Bigger chest + visible abs',
+    coachingStyle: 'Balanced',
+    mainPriority: '',
     warningSensitivity: 'Normal',
   },
   workoutDisplay: {
@@ -96,6 +112,7 @@ const appStorageKeys = [
   WORKOUT_SESSIONS_KEY,
   BODY_CHECK_INS_KEY,
   NUTRITION_LOGS_KEY,
+  PROFILE_ONBOARDING_KEY,
   'reminderSettings',
   'reminderHistory',
   'sentReminderLog',
@@ -151,6 +168,32 @@ export function saveUserProfileSettingsSafely(settings) {
   notifyUserProfileSettingsChanged()
 
   return { success, settings: normalized }
+}
+
+/**
+ * Whether the profile step has already been answered for this account.
+ *
+ * True once the user completes or skips it. Also true when the stored profile
+ * already carries a name or height: an account that predates this step, or one
+ * whose profile just arrived from the cloud on a second device, has effectively
+ * answered it and must not be asked again.
+ */
+export function hasCompletedProfileOnboarding() {
+  if (typeof window === 'undefined') {
+    return true
+  }
+
+  if (safeGetJSON(PROFILE_ONBOARDING_KEY, false) === true) {
+    return true
+  }
+
+  const { profile } = getUserProfileSettings()
+  return Boolean(profile.name || profile.heightCm)
+}
+
+/** Records that the profile step was answered, whether filled in or skipped. */
+export function markProfileOnboardingCompleted() {
+  safeSetJSON(PROFILE_ONBOARDING_KEY, true)
 }
 
 export function resetUserProfileSettings() {
@@ -489,23 +532,12 @@ function normalizeUserProfileSettings(value) {
       ...clone(profile),
       name: toText(profile.name, defaultUserProfileSettings.profile.name),
       avatarDataUrl: toImageDataUrl(profile.avatarDataUrl),
-      heightCm: toPositiveNumber(
-        profile.heightCm,
-        numberFromText(userProfile.height) ?? defaultUserProfileSettings.profile.heightCm,
-      ),
-      currentWeightKg: toPositiveNumber(
-        profile.currentWeightKg,
-        numberFromText(userProfile.currentWeight) ??
-          defaultUserProfileSettings.profile.currentWeightKg,
-      ),
-      goalWeightMinKg: toPositiveNumber(
-        profile.goalWeightMinKg,
-        defaultUserProfileSettings.profile.goalWeightMinKg,
-      ),
-      goalWeightMaxKg: toPositiveNumber(
-        profile.goalWeightMaxKg,
-        defaultUserProfileSettings.profile.goalWeightMaxKg,
-      ),
+      // Body measurements are optional, so these keep null for "not set" and
+      // must not collapse to 0 the way toPositiveNumber would for '' or null.
+      heightCm: toOptionalPositiveNumber(profile.heightCm),
+      currentWeightKg: toOptionalPositiveNumber(profile.currentWeightKg),
+      goalWeightMinKg: toOptionalPositiveNumber(profile.goalWeightMinKg),
+      goalWeightMaxKg: toOptionalPositiveNumber(profile.goalWeightMaxKg),
       trainingGoal: toText(
         profile.trainingGoal,
         defaultUserProfileSettings.profile.trainingGoal,
@@ -579,15 +611,10 @@ function normalizeUserProfileSettings(value) {
         ['Direct', 'Balanced', 'Detailed'],
         defaultUserProfileSettings.coach.coachingStyle,
       ),
-      mainPriority: toChoice(
+      // Free text: the user names their own priority rather than picking from
+      // a list built around one person's goals.
+      mainPriority: toText(
         coach.mainPriority,
-        [
-          'Bigger chest + visible abs',
-          'Bigger chest',
-          'Visible abs',
-          'Lean muscle gain',
-          'Posture correction',
-        ],
         defaultUserProfileSettings.coach.mainPriority,
       ),
       warningSensitivity: toChoice(
@@ -1081,18 +1108,24 @@ function toPositiveNumber(value, fallback) {
   return parsed
 }
 
-function numberFromText(value) {
-  if (typeof value !== 'string') {
+/**
+ * A measurement the user may simply not have entered yet.
+ *
+ * Returns null for anything that is not a real positive number, including ''
+ * and null -- Number('') is 0, so the plain toPositiveNumber above would turn
+ * a blank height field into a claimed 0 cm.
+ */
+function toOptionalPositiveNumber(value) {
+  if (value === null || value === undefined || value === '') {
     return null
   }
 
-  const match = value.match(/\d+(\.\d+)?/)
-  if (!match) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed) || parsed <= 0) {
     return null
   }
 
-  const parsed = Number(match[0])
-  return Number.isFinite(parsed) ? parsed : null
+  return parsed
 }
 
 function toBoolean(value, fallback) {

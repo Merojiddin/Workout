@@ -65,6 +65,34 @@ export function BodyCheckIn() {
 
   const latest = useMemo(() => getLatestCheckIn(checkIns), [checkIns])
   const profileSettings = getUserProfileSettings()
+  // The profile starts empty for a new account, so every line of the goal card
+  // has to read as "not set yet" rather than as a measurement of 0 kg.
+  const { currentWeightKg, goalWeightMinKg, goalWeightMaxKg } =
+    profileSettings.profile
+  const currentWeightLabel =
+    latest?.bodyWeightKg != null
+      ? `${latest.bodyWeightKg} kg`
+      : currentWeightKg
+        ? `${currentWeightKg} kg`
+        : 'Not set'
+  const goalWeightLabel =
+    goalWeightMinKg && goalWeightMaxKg
+      ? `${goalWeightMinKg}\u2013${goalWeightMaxKg} kg lean`
+      : goalWeightMinKg || goalWeightMaxKg
+        ? `${goalWeightMinKg ?? goalWeightMaxKg} kg lean`
+        : 'Not set'
+  // The heading is whatever this user said they are training for. No preset
+  // goal stands in for it -- a goal nobody chose is someone else's.
+  const bodyGoalLabel =
+    profileSettings.goals.bodyGoal ||
+    profileSettings.profile.trainingGoal ||
+    'No goal set yet'
+  const hasProfileGoal = Boolean(
+    currentWeightKg ||
+      goalWeightMinKg ||
+      goalWeightMaxKg ||
+      profileSettings.profile.trainingGoal,
+  )
   const trends = useMemo(() => getBodyTrendSummary(checkIns), [checkIns])
   const hasCheckIns = checkIns.length > 0
 
@@ -233,30 +261,29 @@ export function BodyCheckIn() {
           <div className="card-heading">
             <div>
               <p className="eyebrow">Current Goal</p>
-              <h2>Lean recomposition</h2>
+              <h2>{bodyGoalLabel}</h2>
             </div>
             <Target size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
           <div className="goal-list">
             <div className="goal-line">
               <span>Current weight</span>
-              <strong>
-                {latest?.bodyWeightKg != null
-                  ? `${latest.bodyWeightKg} kg`
-                  : `${profileSettings.profile.currentWeightKg} kg`}
-              </strong>
+              <strong>{currentWeightLabel}</strong>
             </div>
             <div className="goal-line">
               <span>Goal</span>
-              <strong>
-                {profileSettings.profile.goalWeightMinKg}–
-                {profileSettings.profile.goalWeightMaxKg} kg lean
-              </strong>
+              <strong>{goalWeightLabel}</strong>
             </div>
             <div className="goal-line">
               <span>Main focus</span>
-              <strong>{profileSettings.profile.trainingGoal}</strong>
+              <strong>{profileSettings.profile.trainingGoal || 'Not set'}</strong>
             </div>
+            {hasProfileGoal ? null : (
+              <p className="goal-empty-hint">
+                Add your height, weight and goal in Settings &rsaquo; Profile to
+                fill this in.
+              </p>
+            )}
           </div>
           <p className="card-copy">
             Reminder: do not judge progress by weight only.
@@ -267,15 +294,16 @@ export function BodyCheckIn() {
           <div className="card-heading">
             <div>
               <p className="eyebrow">How to read progress</p>
-              <h2>Recomposition</h2>
+              <h2>Reading the numbers</h2>
             </div>
             <Info size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
           <p className="card-copy">
-            Your goal is recomposition: bigger upper body while keeping waist
-            controlled. Weight may go up if muscle increases. The best signs are:
-            chest/shoulders increasing, waist/belly stable or decreasing, strength
-            improving, and abs rating improving.
+            No single number tells the story. Body weight moves with water,
+            food and sleep, so read it next to your measurements, your strength
+            on the big lifts, and how you rate posture and energy. A change you
+            can see across two or three of those, over a few weeks, is real
+            progress; one reading is noise.
           </p>
         </article>
       </div>

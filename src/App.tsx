@@ -19,12 +19,16 @@ import { useAuth } from './context/AuthContext'
 import { useAutoSync } from './hooks/useAutoSync'
 import { More } from './pages/More'
 import { Nutrition } from './pages/Nutrition'
+import { ProfileSetup } from './pages/ProfileSetup'
 import { ProgramSetup } from './pages/ProgramSetup'
 import { TodayWorkout } from './pages/TodayWorkout'
 import { syncCloudToLocal } from './services/syncService'
 import type { PageId } from './types/navigation'
 import { hasActiveWorkoutProgram } from './utils/activeWorkoutProgram'
-import { notifyUserProfileSettingsChanged } from './utils/settingsUtils'
+import {
+  hasCompletedProfileOnboarding,
+  notifyUserProfileSettingsChanged,
+} from './utils/settingsUtils'
 
 // Today's Workout and Nutrition are the two screens the app is for, so they
 // stay eager and never wait on a chunk download. The More pages are all
@@ -137,6 +141,16 @@ function AuthedApp() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [userId, dataVersion],
   )
+  // The profile ships empty, so a new account is offered one step to fill in
+  // the few measurements the progress screens use. Asked once and skippable;
+  // re-read on a dataVersion bump because a cloud pull can arrive with the
+  // profile this account already filled in on another device.
+  const [profileAsked, setProfileAsked] = useState(false)
+  const needsProfileSetup = useMemo(
+    () => !hasCompletedProfileOnboarding(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [userId, dataVersion, profileAsked],
+  )
   const handleNavigate = useCallback((page: PageId) => {
     dispatchNavigation({ type: 'navigate', page })
   }, [])
@@ -153,6 +167,7 @@ function AuthedApp() {
     setDataVersion((version) => version + 1)
     dispatchNavigation({ type: 'reset', page: HOME_PAGE })
     notifyUserProfileSettingsChanged()
+    setProfileAsked(false)
   }, [])
   const autoSync = useAutoSync(user, { onSynced: handlePendingSynced })
 
@@ -222,6 +237,24 @@ function AuthedApp() {
           onInstalled={() => {
             dispatchNavigation({ type: 'reset', page: HOME_PAGE })
             setDataVersion((version) => version + 1)
+          }}
+        />
+      </ErrorBoundary>
+    )
+  }
+
+  if (needsProfileSetup) {
+    return (
+      <ErrorBoundary
+        onGoHome={() => dispatchNavigation({ type: 'reset', page: HOME_PAGE })}
+      >
+        <ProfileSetup
+          key={userId ?? 'local'}
+          onDone={() => {
+            setProfileAsked(true)
+            setDataVersion((version) => version + 1)
+            // The nav reads the name straight from the profile mirror.
+            notifyUserProfileSettingsChanged()
           }}
         />
       </ErrorBoundary>

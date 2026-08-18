@@ -7367,3 +7367,43 @@ body {
   line-height: 1.55;
   margin: 0 0 10px;
 }
+
+/* Step 2 of first-run setup: the optional profile. Rides on .program-setup for
+   the page frame, and only adds what the form itself needs. */
+.profile-setup__step {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 4px 0 0;
+  text-transform: uppercase;
+}
+
+.profile-setup__grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-setup__skip {
+  background: none;
+  border: 0;
+  color: var(--soft);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 8px;
+  text-decoration: underline;
+}
+
+.profile-setup__skip:hover {
+  color: var(--text);
+}
+
+/* Body Check-in: shown while the profile has no goal to compare against. */
+.goal-empty-hint {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 4px 0 0;
+}

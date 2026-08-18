@@ -217,10 +217,23 @@ export function parseWorkoutProgramInput(
  * block behind the Nutrition screen - and names the ones to leave out, because
  * a program that trips validation is worse than one without an extra.
  */
-export function buildProgramAuthoringPrompt(): string {
-  return `Convert my workout plan into JSON for my fitness tracker app.
+/**
+ * The prompt the user copies into a chat to get a program back.
+ *
+ * Built from this user's own profile, never from a preset trainee: every line
+ * of ABOUT ME is either something they entered or a blank marked for them to
+ * fill in. Pass the profile settings in - the util stays free of storage reads
+ * so the caller decides which user it is describing.
+ */
+export function buildProgramAuthoringPrompt(
+  profileSettings?: UserProfileSettingsLike,
+): string {
+  return `Write me a workout program as JSON for my fitness tracker app.
 
 Reply with ONLY the JSON object - no explanation, no markdown fences.
+
+ABOUT ME
+${buildAboutMeSection(profileSettings)}
 
 REQUIRED SHAPE
 {
@@ -270,7 +283,7 @@ RULES
 - Do not invent fields. Anything not described here is either ignored or rejected.
 
 NUTRITION ("coaching")
-The Nutrition screen reads this block, so always include it. The protein numbers are grams per day and must satisfy min <= default <= max. "creatineDailyGrams" and "sleepHours" are short strings shown as written. Use my plan's numbers where it gives them, otherwise sensible ones for the goal.
+The Nutrition screen reads this block, so always include it. The protein numbers are grams per day and must satisfy min <= default <= max. "creatineDailyGrams" and "sleepHours" are short strings shown as written. Use my plan's numbers where it gives them, otherwise my protein target from ABOUT ME, otherwise sensible ones for the goal stated there.
 
 EXERCISE IDS
 Reuse one of these ids wherever a movement matches - that is what gives the exercise its picture and form guide in the app:
@@ -285,8 +298,87 @@ OPTIONAL EXTRAS - only if my plan actually contains them
 - "standaloneWorkouts" only if every exercise id in them comes from the list above; unknown ids are rejected there.
 - Never use "optional": true or "alternatives". This app version hides optional exercises and rejects most alternatives blocks.
 
-My plan:
+BUILDING IT FOR ME
+Use ABOUT ME above as the brief: fit the split, exercise choice, volume and
+rest to the equipment, experience, time per day and goal stated there, and work
+around anything listed under limits. Where a line says "(not set - fill this in
+or say what to assume)", either I will complete it before sending or you should
+state the assumption you made in the "description" field rather than silently
+picking one. Never substitute goals, measurements or equipment I did not give.
+
+If I paste an existing plan below, convert that plan instead and use ABOUT ME
+only to fill gaps it leaves.
+
+My plan (optional - leave blank to have one written from ABOUT ME):
 [PASTE YOUR PLAN HERE]`
+}
+
+/** The profile shape this prompt reads. Structural, so callers stay decoupled. */
+interface UserProfileSettingsLike {
+  profile?: Record<string, unknown>
+  goals?: Record<string, unknown>
+  supplements?: Record<string, unknown>
+  equipment?: unknown
+}
+
+/**
+ * The ABOUT ME block.
+ *
+ * A blank field is written out as an explicit "(not set ...)" line rather than
+ * dropped. Dropping it invites the chat to invent a plausible stand-in, which
+ * is how someone else's numbers end up in your program; naming the gap puts the
+ * answer back with the only person who has it.
+ */
+function buildAboutMeSection(settings?: UserProfileSettingsLike): string {
+  const profile = (settings?.profile ?? {}) as Record<string, unknown>
+  const goals = (settings?.goals ?? {}) as Record<string, unknown>
+  const supplements = (settings?.supplements ?? {}) as Record<string, unknown>
+  const equipment = Array.isArray(settings?.equipment)
+    ? (settings.equipment as unknown[]).map(String).filter(Boolean)
+    : []
+
+  const text = (value: unknown): string =>
+    typeof value === 'string' ? value.trim() : ''
+  const measure = (value: unknown, unit: string): string =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0
+      ? `${value} ${unit}`
+      : ''
+
+  const goalWeight = (() => {
+    const min = measure(profile.goalWeightMinKg, 'kg')
+    const max = measure(profile.goalWeightMaxKg, 'kg')
+    if (min && max) return `${profile.goalWeightMinKg}-${profile.goalWeightMaxKg} kg`
+    return min || max
+  })()
+
+  const protein =
+    typeof supplements.proteinTargetMin === 'number' &&
+    typeof supplements.proteinTargetMax === 'number'
+      ? `${supplements.proteinTargetMin}-${supplements.proteinTargetMax} g/day`
+      : ''
+
+  const lines: [string, string][] = [
+    ['Main goal', text(profile.trainingGoal) || text(goals.primaryGoal)],
+    ['Also working on', text(profile.mainFocus) || text(goals.secondaryGoal)],
+    ['Body goal', text(goals.bodyGoal)],
+    ['Experience level', text(profile.experienceLevel)],
+    ['Time per session', text(profile.trainingTimePerDay)],
+    ['Height', measure(profile.heightCm, 'cm')],
+    ['Current weight', measure(profile.currentWeightKg, 'kg')],
+    ['Goal weight', goalWeight],
+    ['Equipment I have', equipment.join(', ')],
+    ['Weak point to prioritise', text(goals.weakPoint)],
+    ['Injuries or limits', text(goals.injuryLimitation)],
+    ['Cardio I prefer', text(goals.cardioPreference)],
+    ['Protein target', protein],
+  ]
+
+  return lines
+    .map(
+      ([label, value]) =>
+        `- ${label}: ${value || '(not set - fill this in or say what to assume)'}`,
+    )
+    .join('\n')
 }
 
 // --- internal --------------------------------------------------------------

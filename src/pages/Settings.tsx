@@ -72,13 +72,6 @@ const tabs: Array<{
 ]
 
 const coachStyleOptions = ['Direct', 'Balanced', 'Detailed'] as const
-const coachPriorityOptions = [
-  'Bigger chest + visible abs',
-  'Bigger chest',
-  'Visible abs',
-  'Lean muscle gain',
-  'Posture correction',
-] as const
 const warningSensitivityOptions = ['Low', 'Normal', 'High'] as const
 
 const goalFields = [
@@ -341,7 +334,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                       updateProfile('heightCm', event.target.value)
                     }
                     type="number"
-                    value={settings.profile.heightCm}
+                    value={settings.profile.heightCm ?? ''}
                   />
                 </label>
                 <label className="settings-field">
@@ -354,7 +347,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                     }
                     step="0.1"
                     type="number"
-                    value={settings.profile.currentWeightKg}
+                    value={settings.profile.currentWeightKg ?? ''}
                   />
                 </label>
                 <label className="settings-field">
@@ -367,7 +360,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                     }
                     step="0.1"
                     type="number"
-                    value={settings.profile.goalWeightMinKg}
+                    value={settings.profile.goalWeightMinKg ?? ''}
                   />
                 </label>
                 <label className="settings-field">
@@ -380,7 +373,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                     }
                     step="0.1"
                     type="number"
-                    value={settings.profile.goalWeightMaxKg}
+                    value={settings.profile.goalWeightMaxKg ?? ''}
                   />
                 </label>
                 <label className="settings-field settings-field--wide">
@@ -465,8 +458,10 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   size={62}
                 />
                 <div className="settings-identity__text">
-                  <strong>{settings.profile.name}</strong>
-                  <span>{settings.profile.experienceLevel}</span>
+                  <strong>{settings.profile.name || 'Your profile'}</strong>
+                  <span>
+                    {settings.profile.experienceLevel || 'Tap Edit to add your details'}
+                  </span>
                 </div>
                 <button
                   className="settings-edit-button"
@@ -674,19 +669,17 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
             </label>
             <label className="settings-field">
               Main priority
-              <select
+              {/* Free text, not a preset list: a fixed menu of goals only ever
+                  fits the person it was written for. */}
+              <input
                 className="settings-input"
                 onChange={(event) =>
                   updateCoach('mainPriority', event.target.value)
                 }
+                placeholder="What are you training for?"
+                type="text"
                 value={settings.coach.mainPriority}
-              >
-                {coachPriorityOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              />
             </label>
             <label className="settings-field">
               Warning sensitivity
@@ -845,18 +838,31 @@ interface ProfileFact {
   wide?: boolean
 }
 
+/** A measurement with its unit, or 'Not set' when the user has not entered it. */
+function measurement(value: number | null, unit: string): string {
+  return value ? `${value} ${unit}` : 'Not set'
+}
+
 /** The read-only view of the profile: every stored field, nothing editable. */
 function buildProfileFacts(profile: any): ProfileFact[] {
+  const { goalWeightMinKg: min, goalWeightMaxKg: max } = profile
+  const goalWeight =
+    min && max ? `${min}-${max} kg` : measurement(min || max, 'kg')
+
   return [
-    { label: 'Height', value: `${profile.heightCm} cm` },
-    { label: 'Current weight', value: `${profile.currentWeightKg} kg` },
+    { label: 'Height', value: measurement(profile.heightCm, 'cm') },
     {
-      label: 'Goal weight',
-      value: `${profile.goalWeightMinKg}-${profile.goalWeightMaxKg} kg`,
+      label: 'Current weight',
+      value: measurement(profile.currentWeightKg, 'kg'),
     },
-    { label: 'Training time', value: profile.trainingTimePerDay },
-    { label: 'Main focus', value: profile.mainFocus, wide: true },
-    { label: 'Training goal', value: profile.trainingGoal, wide: true },
+    { label: 'Goal weight', value: goalWeight },
+    { label: 'Training time', value: profile.trainingTimePerDay || 'Not set' },
+    { label: 'Main focus', value: profile.mainFocus || 'Not set', wide: true },
+    {
+      label: 'Training goal',
+      value: profile.trainingGoal || 'Not set',
+      wide: true,
+    },
   ]
 }
 

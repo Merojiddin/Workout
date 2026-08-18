@@ -18,7 +18,7 @@ export default defineConfig({
         'pwa-maskable-512.png',
       ],
       manifest: {
-        name: 'Mike Fitness Tracker',
+        name: 'Fitness Tracker',
         short_name: 'Fitness Tracker',
         description:
           'Personal workout, body progress, nutrition, and smart coach tracker.',

@@ -6,7 +6,7 @@
  * LOCAL MODE (localStorage only) and validateEnv() reports it as a warning.
  */
 
-const DEFAULT_APP_NAME = 'Mike Fitness Tracker'
+const DEFAULT_APP_NAME = 'Fitness Tracker'
 
 function readEnv() {
   try {

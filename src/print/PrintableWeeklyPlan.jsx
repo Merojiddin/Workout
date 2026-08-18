@@ -34,19 +34,19 @@ export function PrintableWeeklyPlan({ data }) {
         </div>
         <div className="print-meta">
           <span className="print-label">Name</span>
-          <strong>{profile.name ?? 'Mike'}</strong>
+          <strong>{printable(profile.name)}</strong>
         </div>
         <div className="print-meta">
           <span className="print-label">Goal</span>
-          <strong>{profile.trainingGoal ?? goals.primaryGoal ?? '-'}</strong>
+          <strong>{printable(profile.trainingGoal || goals.primaryGoal)}</strong>
         </div>
         <div className="print-meta">
           <span className="print-label">Main focus</span>
-          <strong>{profile.mainFocus ?? '-'}</strong>
+          <strong>{printable(profile.mainFocus)}</strong>
         </div>
         <div className="print-meta">
           <span className="print-label">Training time</span>
-          <strong>{profile.trainingTimePerDay ?? '-'}</strong>
+          <strong>{printable(profile.trainingTimePerDay)}</strong>
         </div>
         {program?.durationWeeks ? (
           <div className="print-meta">
@@ -354,6 +354,16 @@ function formatWeeks(weeks) {
 
 function safeArray(value) {
   return Array.isArray(value) ? value : []
+}
+
+/**
+ * Profile fields are optional, so a printed plan has to cope with a user who
+ * never filled them in. '' is the unset value, which ?? would happily print as
+ * an empty cell, so this checks for blank rather than for nullish.
+ */
+function printable(value) {
+  const text = typeof value === 'string' ? value.trim() : value
+  return text ? text : 'Not set'
 }
 
 function formatDate(value) {

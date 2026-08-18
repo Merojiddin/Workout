@@ -189,6 +189,166 @@ try {
   )
   assert.deepEqual(directValidation.errors, [])
 
+  // ---------------------------------------------------------------------
+  // Rejection paths. Until now validateWorkoutProgram was only ever called on
+  // a known-good program, so every error branch below was unasserted: deleting
+  // a required-field check did not fail this suite. Upload/paste is the app's
+  // only way in, so this validator is the whole barrier between a bad file and
+  // the app.
+  // ---------------------------------------------------------------------
+  const validateMutated = (mutate) => {
+    const candidate = structuredClone(version21)
+    mutate(candidate)
+    return validation.validateWorkoutProgram(candidate, { knownExerciseIds })
+  }
+
+  const notAnObject = validation.validateWorkoutProgram(null)
+  assert.equal(notAnObject.valid, false)
+  assert.deepEqual(notAnObject.errors, ['Program is not an object.'])
+  assert.deepEqual(
+    validation.validateWorkoutProgram([]).errors,
+    ['Program is not an object.'],
+    'An array is not a program.',
+  )
+  assert.deepEqual(
+    validation.validateWorkoutProgram('{"id":"x"}').errors,
+    ['Program is not an object.'],
+    'A JSON string must be parsed before validation, never accepted as-is.',
+  )
+
+  for (const [field, message] of [
+    ['id', 'Missing or empty program id.'],
+    ['name', 'Missing or empty name.'],
+    ['version', 'Missing or empty version.'],
+  ]) {
+    const missing = validateMutated((program) => {
+      delete program[field]
+    })
+    assert.equal(
+      missing.valid,
+      false,
+      `A program with no ${field} must be rejected.`,
+    )
+    assert.ok(
+      missing.errors.includes(message),
+      `Removing ${field} must report "${message}"; got: ${missing.errors.join(' | ')}`,
+    )
+    const blank = validateMutated((program) => {
+      program[field] = '   '
+    })
+    assert.equal(
+      blank.valid,
+      false,
+      `A whitespace-only ${field} must be rejected.`,
+    )
+    assert.ok(blank.errors.includes(message))
+  }
+
+  const badDate = validateMutated((program) => {
+    program.updatedAt = '2026-02-30'
+  })
+  assert.equal(
+    badDate.valid,
+    false,
+    'A date that passes the shape regex but is not a real day must be rejected.',
+  )
+  assert.ok(badDate.errors.includes('Missing or invalid updatedAt.'))
+
+  const noDays = validateMutated((program) => {
+    program.days = []
+  })
+  assert.equal(noDays.valid, false)
+  assert.ok(noDays.errors.includes('Missing or empty days array.'))
+
+  const duplicateDay = validateMutated((program) => {
+    program.days[1].day = program.days[0].day
+  })
+  assert.equal(duplicateDay.valid, false)
+  assert.ok(
+    duplicateDay.errors.some((error) => /Duplicate day number/.test(error)),
+    'Two days sharing a day number must be rejected.',
+  )
+
+  const duplicateExercise = validateMutated((program) => {
+    program.days[0].exercises[1].id = program.days[0].exercises[0].id
+  })
+  assert.equal(duplicateExercise.valid, false)
+  assert.ok(
+    duplicateExercise.errors.some((error) =>
+      /Duplicate exercise ID inside the same day/.test(error),
+    ),
+  )
+
+  const bothTargets = validateMutated((program) => {
+    const exercise = program.days[0].exercises[0]
+    exercise.repRange = '8-12'
+    exercise.duration = '60 sec'
+  })
+  assert.equal(bothTargets.valid, false)
+  assert.ok(
+    bothTargets.errors.some((error) =>
+      /has both repRange and duration/.test(error),
+    ),
+    'The data model cannot hold both, so both together must be rejected.',
+  )
+
+  const neitherTarget = validateMutated((program) => {
+    const exercise = program.days[0].exercises[0]
+    delete exercise.repRange
+    delete exercise.duration
+  })
+  assert.equal(neitherTarget.valid, false)
+  assert.ok(
+    neitherTarget.errors.some((error) =>
+      /neither repRange nor duration/.test(error),
+    ),
+  )
+
+  const zeroSets = validateMutated((program) => {
+    program.days[0].exercises[0].sets = 0
+  })
+  assert.equal(zeroSets.valid, false)
+  assert.ok(zeroSets.errors.some((error) => /Sets less than 1/.test(error)))
+
+  const negativeRest = validateMutated((program) => {
+    program.days[0].exercises[0].restSeconds = -1
+  })
+  assert.equal(negativeRest.valid, false)
+  assert.ok(
+    negativeRest.errors.some((error) => /Negative restSeconds/.test(error)),
+  )
+
+  // An unknown exercise ID is a warning by default and an error only when the
+  // caller demands a known library. That split is what lets upload stay
+  // permissive while a stricter caller can refuse.
+  const withUnknownExerciseId = (options) =>
+    validation.validateWorkoutProgram(
+      (() => {
+        const candidate = structuredClone(version21)
+        candidate.days[0].exercises[0].id = 'not-a-real-exercise'
+        return candidate
+      })(),
+      options,
+    )
+  const unknownWarns = withUnknownExerciseId({ knownExerciseIds })
+  assert.ok(
+    unknownWarns.warnings.some((warning) =>
+      /not found in the supplied exercise library/.test(warning),
+    ),
+    'An unfamiliar exercise ID must at least warn.',
+  )
+  const unknownFails = withUnknownExerciseId({
+    knownExerciseIds,
+    requireKnownExercises: true,
+  })
+  assert.equal(unknownFails.valid, false)
+  assert.ok(
+    unknownFails.errors.some((error) =>
+      /not found in the supplied exercise library/.test(error),
+    ),
+    'requireKnownExercises must promote the warning to an error.',
+  )
+
   // Bundled-file validation results now cover nothing, because nothing is
   // bundled. The upload parser is what stands between a bad file and the app.
   assert.deepEqual(
@@ -1000,6 +1160,123 @@ try {
   assert.match(sessionCsv, /Program ID,Program Version,Program Week/)
   assert.match(sessionCsv, /full-body-reentry/)
   assert.match(sessionCsv, /research-recomp-boxing-v2/)
+
+  // ---------------------------------------------------------------------
+  // Escaping. Every value fed to the CSV above happens to contain no comma,
+  // quote or newline, so escapeCsvCell's quoting path was entirely
+  // unexercised: removing its quote-doubling did not fail this suite. Notes
+  // and workout names are free text, so a comma here is ordinary use, not a
+  // hypothetical.
+  // ---------------------------------------------------------------------
+  const hostileNote = 'Felt "easy", then hard\nsecond line'
+  // A cell whose ONLY hostile character is a newline. Without this case a
+  // quoting rule narrowed to /[",]/ still passes, because the note above is
+  // quoted for its comma anyway and carries its newline along for free.
+  const newlineOnlyNote = 'first line\nsecond line'
+  const hostileWorkoutName = 'Push, Pull, Legs'
+  const hostileSession = {
+    ...finishedReentry,
+    workoutName: hostileWorkoutName,
+    exercises: [
+      {
+        ...finishedReentry.exercises[0],
+        sets: [
+          { ...finishedReentry.exercises[0].sets[0], notes: hostileNote },
+          {
+            ...finishedReentry.exercises[0].sets[0],
+            notes: newlineOnlyNote,
+            setNumber: 2,
+          },
+        ],
+      },
+    ],
+  }
+  const hostileRows = exports.exportWorkoutSessionsCSV([hostileSession])
+  const hostileCsv = exports.downloadCSV('v2.1-escaping.csv', hostileRows)
+  const noteColumn = hostileRows[0].indexOf('Notes')
+  const nameColumn = hostileRows[0].indexOf('Workout Name')
+  assert.ok(noteColumn > -1 && nameColumn > -1)
+  assert.equal(
+    hostileRows[1][noteColumn],
+    hostileNote,
+    'The row model must carry the note verbatim; only serialization escapes.',
+  )
+  assert.match(
+    hostileCsv,
+    /"Push, Pull, Legs"/,
+    'A comma in a workout name must be quoted, or it silently becomes two columns.',
+  )
+  assert.match(
+    hostileCsv,
+    /""easy""/,
+    'An embedded double quote must be doubled, not emitted raw.',
+  )
+
+  // Round-trip through a strict RFC 4180 reader. This catches any escaping
+  // regression, not only the two shapes named above.
+  const parseCsv = (text) => {
+    const rows = [[]]
+    let cell = ''
+    let quoted = false
+    for (let index = 0; index < text.length; index += 1) {
+      const char = text[index]
+      if (quoted) {
+        if (char === '"' && text[index + 1] === '"') {
+          cell += '"'
+          index += 1
+        } else if (char === '"') {
+          quoted = false
+        } else {
+          cell += char
+        }
+        continue
+      }
+      if (char === '"') {
+        quoted = true
+      } else if (char === ',') {
+        rows[rows.length - 1].push(cell)
+        cell = ''
+      } else if (char === '\r' || char === '\n') {
+        // Real readers end a record at a bare CR or LF too, not only CRLF.
+        // Accepting only CRLF here would silently swallow an unquoted newline
+        // and make the round-trip below pass on broken output.
+        rows[rows.length - 1].push(cell)
+        cell = ''
+        rows.push([])
+        if (char === '\r' && text[index + 1] === '\n') {
+          index += 1
+        }
+      } else {
+        cell += char
+      }
+    }
+    rows[rows.length - 1].push(cell)
+    return rows
+  }
+
+  const reparsed = parseCsv(hostileCsv)
+  assert.equal(
+    reparsed.length,
+    hostileRows.length,
+    'A newline inside a note must not split one row into two.',
+  )
+  assert.deepEqual(
+    reparsed.map((row) => row.length),
+    hostileRows.map((row) => row.length),
+    'Escaped cells must not change any row width.',
+  )
+  assert.deepEqual(
+    reparsed,
+    hostileRows.map((row) => row.map((cell) => String(cell ?? ''))),
+    'Every exported cell must survive a CSV round-trip unchanged.',
+  )
+  assert.equal(reparsed[1][noteColumn], hostileNote)
+  assert.equal(reparsed[1][nameColumn], hostileWorkoutName)
+  assert.equal(
+    reparsed[2][noteColumn],
+    newlineOnlyNote,
+    'A newline is enough on its own to require quoting.',
+  )
 
   // The printable-session render used to be asserted here too. That component
   // went away with the Export/Print page; the CSV assertions directly above
