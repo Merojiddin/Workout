@@ -1,4 +1,5 @@
 import {
+  BarChart3,
   CalendarDays,
   ClipboardCheck,
   Dumbbell,
@@ -11,12 +12,13 @@ import {
 import type { NavItem } from '../types/navigation'
 
 /**
- * The whole app is three destinations. Today's Workout is the reason the app
- * exists, Nutrition is what you read after training, and everything else is a
- * reference page reached from More.
+ * Four destinations plus the account tab. Today's Workout is the reason the
+ * app exists, Progress is the glance back at it, Nutrition is what you read
+ * after training, and everything else is a reference page reached from More.
  */
 export const navigationItems: NavItem[] = [
   { id: 'today-workout', icon: Dumbbell, label: "Today's Workout", shortLabel: 'Workout' },
+  { id: 'progress', icon: BarChart3, label: 'Progress' },
   { id: 'nutrition', icon: Utensils, label: 'Nutrition' },
   { id: 'more', icon: MoreHorizontal, label: 'More' },
 ]

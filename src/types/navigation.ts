@@ -2,8 +2,10 @@ import type { LucideIcon } from 'lucide-react'
 
 export type PageId =
   | 'today-workout'
+  | 'progress'
   | 'nutrition'
   | 'more'
+  | 'profile'
   | 'weekly-plan'
   | 'body-check-in'
   | 'exercise-library'

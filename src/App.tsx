@@ -34,6 +34,12 @@ import {
 // stay eager and never wait on a chunk download. The More pages are all
 // code-split; Body Check-in is the last page pulling in recharts, the largest
 // dependency, and must not reach the entry bundle.
+const Progress = lazy(() =>
+  import('./pages/Progress').then((m) => ({ default: m.Progress })),
+)
+const Profile = lazy(() =>
+  import('./pages/Profile').then((m) => ({ default: m.Profile })),
+)
 const WeeklyPlan = lazy(() =>
   import('./pages/WeeklyPlan').then((m) => ({ default: m.WeeklyPlan })),
 )
@@ -199,6 +205,10 @@ function AuthedApp() {
 
   function renderPage() {
     switch (activePage) {
+      case 'progress':
+        return <Progress onNavigate={handleNavigate} />
+      case 'profile':
+        return <Profile onNavigate={handleNavigate} />
       case 'nutrition':
         return <Nutrition />
       case 'more':

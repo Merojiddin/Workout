@@ -50,11 +50,15 @@ then launch with an explicit `executablePath` for the cached headless shell
 (`chromium_headless_shell-<rev>/chrome-headless-shell-mac-arm64/chrome-headless-shell`)
 — the bundled revision is usually a version ahead of the cache.
 
-- SPA without URL routing: navigate by clicking nav buttons. There are exactly
-  three destinations — **Workout / Nutrition / More** — as `.bottom-nav__button`
-  on mobile and `.nav-button` in the sidebar at >=920px. Everything else
-  (Weekly Plan, Exercise Library, Weekly Review, Body Check-in, Settings) is a
-  `.more-list__item` on the More page.
+- SPA without URL routing: navigate by clicking nav buttons. Five tabs —
+  **Workout / Progress / Nutrition / More** plus the account tab
+  (`.bottom-nav__button--profile`, which opens the Profile page, *not*
+  Settings) — as `.bottom-nav__button` on mobile and `.nav-button` in the
+  sidebar at >=920px. Everything else (Weekly Plan, Exercise Library, Weekly
+  Review, Body Check-in, Settings) is a `.more-list__item` on the More page.
+- Progress and Profile derive everything from stored sessions / check-ins, so
+  seed `workoutSessions` and `bodyCheckIns` in localStorage before driving
+  them; with no data they render honest empty states, not zeros.
 - Today's Workout is the home page. The nav is visible everywhere **except**
   the live workout screen, which is a full-screen `position: fixed` layer
   (`.workout-page--live`) covering the top bar and bottom nav.
@@ -63,13 +67,23 @@ then launch with an explicit `executablePath` for the cached headless shell
   `Done`. The live screen is three fixed rows: `.live-header` (with
   `.live-header__exit`, which leaves for the unfinished-workout prompt without
   ending the session), the scrolling `.live-body`, and `.live-dock`.
-- Everything pressed between sets is in `.live-dock`: the `.rest-timer` line
-  (`.timer-button` x3), `.live-dock__main` (`.live-dock__back` +
-  `.workout-primary-button` labelled Next set / Next exercise / Finish
-  workout), and `.live-dock__tools` (four `.live-tool` buttons: Log set, Skip,
-  List, End). Optional logging is behind the first `.live-tool`
-  (`#optional-log-primary`, `#optional-log-weight`); the exercise list opens as
-  a `.live-sheet` over the screen.
+- `.live-body` scrolls and holds, in order: `.live-exercise` (name, target,
+  the illustration with two `.live-side-action` buttons over it -- swap and
+  form guide), `.round-stats` (three `.round-meter` rings: reps target, rest,
+  sets done), and `.set-table` (one `.set-row` per set, `.set-row--active` is
+  the current one, `.set-row--done` has a tick; clicking a row jumps to it).
+- Everything pressed between sets is in `.live-dock`: the always-visible set
+  entry (`#optional-log-primary`, `#optional-log-weight`, `.optional-log__add`
+  which appends a set), the `.rest-timer` line (`.timer-button` x3),
+  `.live-dock__main` (`.live-dock__back` + `.workout-primary-button` labelled
+  Next set / Next exercise / Finish workout), and `.live-dock__tools` (four
+  `.live-tool` buttons: Swap, Skip, List, End). Logging is no longer behind a
+  toggle -- it is optional because the fields may be left empty.
+- Two `.live-sheet` overlays: the exercise list (List tool) and the swap sheet
+  (Swap tool, `.swap-sheet__item`). Swap is disabled when the slot has no
+  alternatives. Swapping with sets already logged **splits** the exercise --
+  the original keeps its done sets and the replacement is inserted after it
+  with the sets that are left, so the exercise count goes up by one.
 - Playwright contexts have isolated localStorage — the user's real data is
   never touched. Seed test data via
   `localStorage.setItem('customExerciseLibrary', ...)` + reload.

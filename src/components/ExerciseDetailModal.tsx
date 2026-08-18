@@ -3,14 +3,16 @@ import {
   CalendarDays,
   CheckCircle2,
   ExternalLink,
+  Dumbbell,
   Lightbulb,
   ListOrdered,
+  Signal,
   ShieldAlert,
   TrendingDown,
   TrendingUp,
   X,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Difficulty, LibraryExercise } from '../data/exerciseLibrary'
 import {
   findProgramDay,
@@ -18,10 +20,25 @@ import {
   getDayLabel,
   type ActiveWorkoutProgram,
 } from '../utils/activeWorkoutProgram'
+import {
+  getExerciseHistory,
+  getExerciseTrend,
+} from '../utils/exerciseHistoryUtils'
+import { formatDuration } from '../utils/exerciseLoggingUtils'
 import { getGeneralProgressionAdvice } from '../utils/progressionUtils'
+import { ExerciseTrendChart } from './ExerciseTrendChart'
 import { ExerciseMedia } from './ExerciseMedia'
 import { ExerciseMediaEditor } from './ExerciseMediaEditor'
 import { Tag, type TagVariant } from './Tag'
+
+type DetailTab = 'info' | 'muscles' | 'history' | 'progress'
+
+const DETAIL_TABS: { id: DetailTab; label: string }[] = [
+  { id: 'info', label: 'Info' },
+  { id: 'muscles', label: 'Muscles' },
+  { id: 'history', label: 'History' },
+  { id: 'progress', label: 'Progress' },
+]
 
 interface ExerciseDetailModalProps {
   exercise: LibraryExercise
@@ -45,6 +62,13 @@ export function ExerciseDetailModal({
   onClose,
   onUpdateExercise,
 }: ExerciseDetailModalProps) {
+  const [tab, setTab] = useState<DetailTab>('info')
+  // Read once per open: history does not change while the sheet is on screen.
+  const history = useMemo(
+    () => getExerciseHistory(exercise.id, exercise.name),
+    [exercise.id, exercise.name],
+  )
+  const trend = useMemo(() => getExerciseTrend(history), [history])
   const activeProgram = getActiveWorkoutProgram()
   const progressionAdvice = getGeneralProgressionAdvice({
     name: exercise.name,
@@ -93,6 +117,31 @@ export function ExerciseDetailModal({
           </button>
         </header>
 
+        {/* Four tabs instead of one long scroll: how to do it, what it works,
+            what you have already done, and whether it is going anywhere. */}
+        <div className="detail-tabs" role="tablist" aria-label="Exercise details">
+          {DETAIL_TABS.map((item) => (
+            <button
+              aria-controls={`exercise-detail-panel-${item.id}`}
+              aria-selected={tab === item.id}
+              className={`detail-tab${tab === item.id ? ' detail-tab--active' : ''}`}
+              id={`exercise-detail-tab-${item.id}`}
+              key={item.id}
+              onClick={() => setTab(item.id)}
+              role="tab"
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+
+        <div
+          aria-labelledby="exercise-detail-tab-info"
+          hidden={tab !== 'info'}
+          id="exercise-detail-panel-info"
+          role="tabpanel"
+        >
         <div className="exercise-detail-media">
           <ExerciseMedia exercise={exercise} showVideoDefault />
           {onUpdateExercise ? (
@@ -103,49 +152,22 @@ export function ExerciseDetailModal({
           ) : null}
         </div>
 
-        <div className="exercise-detail-tags">
-          <div className="exercise-detail-taggroup">
-            <span className="exercise-card__label">Difficulty</span>
-            <div className="tag-row">
-              <Tag variant={difficultyVariant(exercise.difficulty)}>
-                {exercise.difficulty}
-              </Tag>
-              {exercise.postureFocus ? (
-                <Tag variant="posture">Posture focus</Tag>
-              ) : null}
-            </div>
+        {/* Level, category and kit, the three facts the mockup leads with. */}
+        <div className="info-grid">
+          <div className="info-cell">
+            <Signal size={17} strokeWidth={2.2} aria-hidden="true" />
+            <b>{exercise.difficulty}</b>
+            <span>Level</span>
           </div>
-          <div className="exercise-detail-taggroup">
-            <span className="exercise-card__label">Primary muscles</span>
-            <div className="tag-row">
-              {exercise.primaryMuscles.map((muscle) => (
-                <Tag key={muscle} variant="muscle">
-                  {muscle}
-                </Tag>
-              ))}
-            </div>
+          <div className="info-cell">
+            <Dumbbell size={17} strokeWidth={2.2} aria-hidden="true" />
+            <b>{exercise.category}</b>
+            <span>Category</span>
           </div>
-          {exercise.secondaryMuscles.length > 0 ? (
-            <div className="exercise-detail-taggroup">
-              <span className="exercise-card__label">Secondary muscles</span>
-              <div className="tag-row">
-                {exercise.secondaryMuscles.map((muscle) => (
-                  <Tag key={muscle} variant="secondary-muscle">
-                    {muscle}
-                  </Tag>
-                ))}
-              </div>
-            </div>
-          ) : null}
-          <div className="exercise-detail-taggroup">
-            <span className="exercise-card__label">Equipment</span>
-            <div className="tag-row">
-              {exercise.equipment.map((item) => (
-                <Tag key={item} variant="equipment">
-                  {item}
-                </Tag>
-              ))}
-            </div>
+          <div className="info-cell">
+            <ListOrdered size={17} strokeWidth={2.2} aria-hidden="true" />
+            <b>{exercise.equipment[0] ?? 'None'}</b>
+            <span>Equipment</span>
           </div>
         </div>
 
@@ -268,9 +290,154 @@ export function ExerciseDetailModal({
             )}
           </section>
         </div>
+        </div>
+
+        <div
+          aria-labelledby="exercise-detail-tab-muscles"
+          hidden={tab !== 'muscles'}
+          id="exercise-detail-panel-muscles"
+          role="tabpanel"
+        >
+          <div className="exercise-detail-tags">
+            <div className="exercise-detail-taggroup">
+              <span className="exercise-card__label">Primary muscles</span>
+              <div className="tag-row">
+                {exercise.primaryMuscles.map((muscle) => (
+                  <Tag key={muscle} variant="muscle">
+                    {muscle}
+                  </Tag>
+                ))}
+              </div>
+            </div>
+            {exercise.secondaryMuscles.length > 0 ? (
+              <div className="exercise-detail-taggroup">
+                <span className="exercise-card__label">Secondary muscles</span>
+                <div className="tag-row">
+                  {exercise.secondaryMuscles.map((muscle) => (
+                    <Tag key={muscle} variant="secondary-muscle">
+                      {muscle}
+                    </Tag>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div className="exercise-detail-taggroup">
+              <span className="exercise-card__label">Equipment</span>
+              <div className="tag-row">
+                {exercise.equipment.map((item) => (
+                  <Tag key={item} variant="equipment">
+                    {item}
+                  </Tag>
+                ))}
+              </div>
+            </div>
+            <div className="exercise-detail-taggroup">
+              <span className="exercise-card__label">Difficulty</span>
+              <div className="tag-row">
+                <Tag variant={difficultyVariant(exercise.difficulty)}>
+                  {exercise.difficulty}
+                </Tag>
+                {exercise.postureFocus ? (
+                  <Tag variant="posture">Posture focus</Tag>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <section className="exercise-detail-posture">
+            <p className="eyebrow">Posture &amp; arched-back notes</p>
+            <p>{exercise.postureNotes}</p>
+          </section>
+        </div>
+
+        <div
+          aria-labelledby="exercise-detail-tab-history"
+          hidden={tab !== 'history'}
+          id="exercise-detail-panel-history"
+          role="tabpanel"
+        >
+          {history.isEmpty ? (
+            <p className="exercise-detail-muted">
+              Nothing logged for this exercise yet. Reps and kg typed on the
+              live workout screen show up here.
+            </p>
+          ) : (
+            <ol className="detail-history">
+              {history.entries.slice(0, 12).map((entry) => (
+                <li key={entry.date}>
+                  <span className="detail-history__date">
+                    {formatShortDate(entry.date)}
+                  </span>
+                  <span className="detail-history__work">
+                    {entry.setCount} {entry.setCount === 1 ? 'set' : 'sets'}
+                    {entry.topWeightKg !== null
+                      ? ` · top ${entry.topWeightKg} kg${
+                          entry.topReps ? ` × ${entry.topReps}` : ''
+                        }`
+                      : entry.totalReps > 0
+                        ? ` · ${entry.totalReps} reps`
+                        : entry.totalSeconds > 0
+                          ? ` · ${formatDuration(entry.totalSeconds)}`
+                          : ''}
+                  </span>
+                  <span className="detail-history__volume">
+                    {entry.volumeKg !== null ? `${entry.volumeKg} kg` : '—'}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+
+        <div
+          aria-labelledby="exercise-detail-tab-progress"
+          hidden={tab !== 'progress'}
+          id="exercise-detail-panel-progress"
+          role="tabpanel"
+        >
+          {trend.points.length < 2 ? (
+            <p className="exercise-detail-muted">
+              Two logged sessions are needed before a trend means anything.
+              {history.isEmpty ? '' : ` So far there ${
+                history.entries.length === 1 ? 'is 1' : `are ${history.entries.length}`
+              }.`}
+            </p>
+          ) : (
+            <>
+              <div className="detail-progress__head">
+                <div>
+                  <p className="eyebrow">{trend.label}</p>
+                  <strong>
+                    {trend.points[trend.points.length - 1].value} {trend.unit}
+                  </strong>
+                </div>
+                {history.bestWeightKg !== null ? (
+                  <div className="detail-progress__best">
+                    <span>Best set</span>
+                    <b>
+                      {history.bestWeightKg} kg
+                      {history.bestReps ? ` × ${history.bestReps}` : ''}
+                    </b>
+                  </div>
+                ) : null}
+              </div>
+              <ExerciseTrendChart points={trend.points} unit={trend.unit} />
+            </>
+          )}
+        </div>
       </section>
     </div>
   )
+}
+
+/** "Aug 18" - the axis label the history list needs, nothing longer. */
+function formatShortDate(isoDate: string): string {
+  const parsed = new Date(`${isoDate}T00:00:00`)
+  if (Number.isNaN(parsed.getTime())) {
+    return isoDate
+  }
+
+  return parsed.toLocaleDateString(undefined, { month: 'short', day: '2-digit' })
 }
 
 function getRelatedDayLabel(

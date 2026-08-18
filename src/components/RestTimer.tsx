@@ -13,6 +13,8 @@ interface RestTimerProps {
   extendSignal?: number
   /** Reports whether the countdown is actively running. */
   onRunningChange?: (isRunning: boolean) => void
+  /** Reports the seconds left, so the round meter can show the same clock. */
+  onTick?: (secondsLeft: number, isRunning: boolean) => void
   onComplete?: () => void
   onSkip?: () => void
 }
@@ -23,6 +25,7 @@ export function RestTimer({
   skipSignal,
   extendSignal,
   onRunningChange,
+  onTick,
   onComplete,
   onSkip,
 }: RestTimerProps) {
@@ -35,10 +38,17 @@ export function RestTimer({
   onCompleteRef.current = onComplete
   const onRunningChangeRef = useRef(onRunningChange)
   onRunningChangeRef.current = onRunningChange
+  const onTickRef = useRef(onTick)
+  onTickRef.current = onTick
 
   useEffect(() => {
     onRunningChangeRef.current?.(isRunning)
   }, [isRunning])
+
+  // Reported through a ref so a parent re-render cannot restart the countdown.
+  useEffect(() => {
+    onTickRef.current?.(secondsLeft, isRunning)
+  }, [secondsLeft, isRunning])
 
   // External skip (sticky action bar).
   useEffect(() => {

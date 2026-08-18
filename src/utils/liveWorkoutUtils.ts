@@ -39,6 +39,15 @@ export interface ActiveSet {
   completedAt: string | null
 }
 
+/** One same-slot swap offered on the live screen. */
+export interface ActiveExerciseVariant {
+  id: string
+  name: string
+  equipment: string
+  repRange: string
+  duration: string
+}
+
 export interface ActiveExercise {
   exerciseId: string
   exerciseName: string
@@ -52,6 +61,8 @@ export interface ActiveExercise {
   equipment: string
   formTips: string[]
   guidance: string[]
+  /** Sibling movements for this slot. Empty when the slot has no choices. */
+  variants: ActiveExerciseVariant[]
   sets: ActiveSet[]
 }
 
@@ -173,10 +184,35 @@ function createActiveExercise(exercise: Exercise): ActiveExercise {
     guidance: safeArray<string>(exercise?.guidance).filter(
       (item) => typeof item === 'string',
     ),
+    variants: normalizeVariants(exercise?.slotVariants),
     sets: Array.from({ length: targetSets }, (_, index) =>
       createEmptySet(index + 1),
     ),
   }
+}
+
+function normalizeVariants(value: unknown): ActiveExerciseVariant[] {
+  return safeArray<unknown>(value).flatMap((entry) => {
+    if (!isObject(entry)) {
+      return []
+    }
+
+    const id = toText(entry.id, '')
+    const name = toText(entry.name, '')
+    if (!id || !name) {
+      return []
+    }
+
+    return [
+      {
+        id,
+        name,
+        equipment: toText(entry.equipment, ''),
+        repRange: toText(entry.repRange, ''),
+        duration: toText(entry.duration, ''),
+      },
+    ]
+  })
 }
 
 export function createEmptySet(setNumber: number): ActiveSet {
@@ -330,6 +366,106 @@ export function updateActiveSet(
         ),
       }
     }),
+  }
+}
+
+/**
+ * Adds one more set to an exercise, for the sets you decide to do on the day
+ * that the plan did not ask for. `targetSets` is left alone: it records what
+ * was prescribed, and the extra set should read as extra in the history.
+ */
+export function addSetToActiveExercise(
+  session: ActiveWorkoutSession,
+  exerciseIndex: number,
+): ActiveWorkoutSession {
+  return {
+    ...session,
+    exercises: session.exercises.map((exercise, index) =>
+      index === exerciseIndex
+        ? { ...exercise, sets: [...exercise.sets, createEmptySet(exercise.sets.length + 1)] }
+        : exercise,
+    ),
+  }
+}
+
+/**
+ * Swaps the movement in one slot for a sibling variant, mid-workout.
+ *
+ * Sets already done stay attributed to the movement they were actually done
+ * on: when there are any, the original exercise is truncated to those and the
+ * replacement is inserted straight after with the sets that are left. Nothing
+ * done yet means a plain in-place replacement, which is the common case --
+ * you decide the swap before the first set.
+ */
+export function swapActiveExercise(
+  session: ActiveWorkoutSession,
+  exerciseIndex: number,
+  variantId: string,
+): ActiveWorkoutSession {
+  const exercise = session.exercises[exerciseIndex]
+  if (!exercise) {
+    return session
+  }
+
+  const variant = exercise.variants.find((item) => item.id === variantId)
+  if (!variant || variant.id === exercise.exerciseId) {
+    return session
+  }
+
+  const targetReps = variant.repRange || (variant.duration ? '' : exercise.targetReps)
+  const targetDuration = variant.duration || (variant.repRange ? '' : exercise.targetDuration)
+  const swapped: ActiveExercise = {
+    ...exercise,
+    exerciseId: variant.id,
+    exerciseName: variant.name,
+    equipment: variant.equipment || exercise.equipment,
+    targetReps,
+    targetDuration,
+    loggingMode: getExerciseLoggingMode({ targetDuration, targetReps }),
+    // Variant-specific form tips live in the library, not in the slot.
+    formTips: [],
+  }
+
+  const doneSets = exercise.sets.filter(isDoneSet)
+  if (doneSets.length === 0) {
+    return {
+      ...session,
+      exercises: session.exercises.map((item, index) =>
+        index === exerciseIndex
+          ? { ...swapped, sets: exercise.sets.map((_, i) => createEmptySet(i + 1)) }
+          : item,
+      ),
+    }
+  }
+
+  const remaining = exercise.sets.length - doneSets.length
+  const kept: ActiveExercise = {
+    ...exercise,
+    targetSets: doneSets.length,
+    sets: doneSets.map((set, index) => ({ ...set, setNumber: index + 1 })),
+  }
+  const inserted: ActiveExercise = {
+    ...swapped,
+    targetSets: Math.max(1, remaining),
+    sets: Array.from({ length: Math.max(1, remaining) }, (_, index) =>
+      createEmptySet(index + 1),
+    ),
+  }
+
+  const exercises = [
+    ...session.exercises.slice(0, exerciseIndex),
+    kept,
+    inserted,
+    ...session.exercises.slice(exerciseIndex + 1),
+  ]
+
+  // The pointer has to follow the replacement, not stay on the truncated
+  // original, whose sets are all done.
+  return {
+    ...session,
+    exercises,
+    currentExerciseIndex: exerciseIndex + 1,
+    currentSetIndex: 0,
   }
 }
 
@@ -513,6 +649,7 @@ function normalizeExercise(value: unknown): ActiveExercise {
     guidance: safeArray<string>(source.guidance).filter(
       (item) => typeof item === 'string',
     ),
+    variants: normalizeVariants(source.variants),
     sets,
   }
 }

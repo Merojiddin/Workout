@@ -30,13 +30,12 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
         )
       })}
 
-      {/* The account tab: photo and name, the way every other app puts it, and
-          it opens Settings. */}
+      {/* The account tab: photo and name, the way every other app puts it. */}
       <button
-        aria-current={activePage === 'settings' ? 'page' : undefined}
-        aria-label={`${name || 'Profile'} - open settings`}
+        aria-current={activePage === 'profile' ? 'page' : undefined}
+        aria-label={`${name || 'Profile'} - open your profile`}
         className="bottom-nav__button bottom-nav__button--profile"
-        onClick={() => onNavigate('settings')}
+        onClick={() => onNavigate('profile')}
         type="button"
       >
         <ProfileAvatar

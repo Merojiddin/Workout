@@ -145,7 +145,7 @@ export function resolveWorkoutDefinition<T extends WorkoutDefinitionLike>(
 
     return completedIds.flatMap((id) => {
       const variant = availableById.get(id)
-      return variant ? [materializeVariant(prescribed, variant)] : []
+      return variant ? [materializeVariant(prescribed, variant, variants)] : []
     })
   })
 
@@ -175,21 +175,26 @@ function scaleExerciseSets(
 function materializeVariant(
   prescription: Exercise,
   variant: ExerciseVariant,
+  slotVariants: ExerciseVariant[] = [],
 ): Exercise {
   const repRange =
     variant.repRange ?? (variant.duration ? undefined : prescription.repRange)
   const duration = variant.duration ?? (variant.repRange ? undefined : prescription.duration)
-  return stripSlotFields({
-    ...prescription,
-    id: variant.id,
-    name: variant.name,
-    equipment: variant.equipment,
-    repRange,
-    duration,
-    formTips: variant.formTips?.length
-      ? [...variant.formTips]
-      : [...prescription.formTips],
-  })
+  return {
+    ...stripSlotFields({
+      ...prescription,
+      id: variant.id,
+      name: variant.name,
+      equipment: variant.equipment,
+      repRange,
+      duration,
+      formTips: variant.formTips?.length
+        ? [...variant.formTips]
+        : [...prescription.formTips],
+    }),
+    // Kept past stripSlotFields so a swap is still possible mid-workout.
+    ...(slotVariants.length > 1 ? { slotVariants: slotVariants.map(cloneVariant) } : {}),
+  }
 }
 
 function stripSlotFields(exercise: Exercise): Exercise {
@@ -201,6 +206,7 @@ function stripSlotFields(exercise: Exercise): Exercise {
     optional: _optional,
     phaseTargets: _phaseTargets,
     selectionMode: _selectionMode,
+    slotVariants: _slotVariants,
     ...resolved
   } = exercise
   return resolved

@@ -23,10 +23,10 @@
   bottom: calc(12px + env(safe-area-inset-bottom));
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
   display: grid;
-  gap: 4px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   left: 12px;
-  padding: 8px 6px;
+  padding: 8px 4px;
   position: fixed;
   right: 12px;
   z-index: 20;
@@ -49,14 +49,22 @@
 
 .bottom-nav__button {
   background: transparent;
-  border-radius: 22px;
+  border-radius: 20px;
   color: #a0a9ad;
   flex-direction: column;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   gap: 4px;
-  min-height: 60px;
-  padding: 6px 2px;
+  min-height: 58px;
+  min-width: 0;
+  padding: 6px 1px;
+}
+
+.bottom-nav__button span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bottom-nav__button[aria-current='page'],
@@ -606,8 +614,10 @@
 
 .modal-backdrop {
   align-items: start;
-  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(3px);
+  background: rgba(0, 0, 0, 0.82);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   inset: 0;
   overflow-y: auto;
   padding: 18px;
@@ -616,10 +626,13 @@
 }
 
 .workout-detail-modal {
+  background-color: var(--surface);
   display: grid;
   gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
   margin: auto;
   max-width: 960px;
+  min-width: 0;
   padding: 18px;
   width: min(100%, 960px);
 }
@@ -1901,9 +1914,10 @@
   display: inline-flex;
   font-size: 12px;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow-wrap: anywhere;
   padding: 6px 10px;
-  white-space: nowrap;
 }
 
 .tag--category {
@@ -2208,7 +2222,7 @@
 .exercise-detail-tags {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .exercise-detail-taggroup {
@@ -2219,7 +2233,7 @@
 .exercise-detail-columns {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .exercise-detail-block {
@@ -2228,6 +2242,8 @@
   border-radius: var(--r-md);
   display: grid;
   gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   padding: 14px;
 }
 
@@ -2311,12 +2327,14 @@
 .exercise-detail-footer {
   display: grid;
   gap: 12px;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .exercise-detail-links {
   display: grid;
   gap: 8px;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
 
 .exercise-demo-link {
@@ -2330,7 +2348,9 @@
   gap: 8px;
   justify-content: space-between;
   min-height: 46px;
-  padding: 0 14px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 10px 14px;
   text-decoration: none;
   transition:
     border-color 160ms ease,
@@ -6659,10 +6679,9 @@ body {
 
 .live-exercise {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   gap: 4px;
-  min-height: 0;
 }
 
 .live-exercise h1 {
@@ -6691,7 +6710,7 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   margin: 10px 0 2px;
   max-height: min(340px, 42svh);
   min-height: 110px;
@@ -6900,7 +6919,36 @@ body {
 .optional-log {
   display: grid;
   gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 58px;
+}
+
+/* Adds a set the plan did not ask for. Sized as a third field so the row
+   reads as one control strip rather than two inputs and a stray button. */
+.optional-log__add {
+  align-items: center;
+  background: var(--green-soft);
+  border: 1px solid rgba(27, 210, 220, 0.4);
+  border-radius: var(--r-md);
+  color: var(--green);
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 44px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.optional-log__add:hover,
+.optional-log__add:focus-visible {
+  background: rgba(27, 210, 220, 0.2);
+  border-color: var(--green);
+  outline: none;
+}
+
+.optional-log__add:active {
+  transform: scale(0.96);
 }
 
 .optional-log__field {
@@ -6941,6 +6989,454 @@ body {
 
 .optional-log__field input:focus {
   outline: none;
+}
+
+/* --- Exercise detail tabs -------------------------------------------------- */
+
+.detail-tabs {
+  display: grid;
+  gap: 7px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 4px 0 14px;
+}
+
+.detail-tab {
+  background: #111517;
+  border: 1px solid #283034;
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 800;
+  min-height: 38px;
+  padding: 8px 5px;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+.detail-tab:hover,
+.detail-tab:focus-visible {
+  border-color: rgba(27, 210, 220, 0.45);
+  color: var(--soft);
+  outline: none;
+}
+
+.detail-tab--active {
+  background: #071719;
+  border-color: var(--green);
+  color: #dffcff;
+}
+
+/* Level / category / equipment, split by hairlines rather than boxed. */
+.info-grid {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 14px 0;
+}
+
+.info-cell {
+  border-right: 1px solid var(--line);
+  display: grid;
+  justify-items: center;
+  padding: 12px 6px;
+  text-align: center;
+}
+
+.info-cell:last-child {
+  border-right: none;
+}
+
+.info-cell svg {
+  color: var(--green);
+}
+
+.info-cell b {
+  color: var(--text);
+  font-size: 12.5px;
+  margin-top: 6px;
+}
+
+.info-cell span {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.detail-history {
+  display: grid;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.detail-history li {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  font-size: 12.5px;
+  font-weight: 700;
+  gap: 10px;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  padding: 12px 2px;
+}
+
+.detail-history li:last-child {
+  border-bottom: none;
+}
+
+.detail-history__date {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.detail-history__work {
+  color: var(--soft);
+}
+
+.detail-history__volume {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.detail-progress__head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.detail-progress__head strong {
+  color: var(--text);
+  display: block;
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.5px;
+  margin-top: 4px;
+}
+
+.detail-progress__best {
+  text-align: right;
+}
+
+.detail-progress__best span {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.detail-progress__best b {
+  color: var(--green);
+  font-size: 15px;
+}
+
+.detail-chart {
+  margin: 0;
+}
+
+.detail-chart svg {
+  height: auto;
+  overflow: visible;
+  width: 100%;
+}
+
+.detail-chart__grid {
+  stroke: #20282c;
+  stroke-width: 1;
+}
+
+.detail-chart__line {
+  fill: none;
+  stroke: var(--green);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.3;
+}
+
+.detail-chart__dot {
+  fill: #071316;
+  stroke: var(--green);
+  stroke-width: 2;
+}
+
+.detail-chart__label {
+  fill: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+/* --- Round stats, set table and swap sheet -------------------------------- */
+
+/* Three rings: what to hit, how much rest is left, how far through the
+   exercise you are. Read at arm's length, so they are numbers not prose. */
+.round-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 16px 0 4px;
+}
+
+.round-stat {
+  text-align: center;
+}
+
+.round-meter {
+  align-items: center;
+  aspect-ratio: 1;
+  border: 5px solid var(--line);
+  border-radius: 50%;
+  display: flex;
+  font-size: 19px;
+  font-weight: 800;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 92px;
+  width: 100%;
+}
+
+.round-meter span {
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.round-meter--target {
+  border-color: #133d41;
+  color: var(--green);
+}
+
+.round-meter--rest {
+  border-color: #2f4a44;
+  color: var(--soft);
+  font-size: 17px;
+}
+
+.round-meter--rest-active {
+  border-color: #41665a;
+  color: #7cc6ac;
+}
+
+.round-meter--sets {
+  border-color: #4a2b2e;
+  color: var(--text);
+}
+
+.round-stat small {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+/* Every set of the current exercise. */
+.set-table {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 4px;
+}
+
+.set-row {
+  align-items: center;
+  background: #13181a;
+  border: 1px solid #232b2e;
+  border-radius: var(--r-sm);
+  color: var(--soft);
+  cursor: pointer;
+  display: grid;
+  font-size: 13px;
+  font-weight: 750;
+  gap: 8px;
+  grid-template-columns: 22px minmax(0, 1fr) minmax(0, 1fr) 22px;
+  padding: 11px 10px;
+  text-align: left;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.set-row b {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.set-row__mark {
+  color: var(--muted);
+  text-align: center;
+}
+
+/* Announced, never drawn: the tick and the ring already say this visually. */
+.set-row__label {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.set-row--done {
+  color: var(--text);
+}
+
+.set-row--done .set-row__mark {
+  color: var(--green);
+}
+
+.set-row--active {
+  border-color: var(--green);
+  box-shadow: 0 0 0 1px rgba(27, 210, 220, 0.12);
+}
+
+.set-row:hover,
+.set-row:focus-visible {
+  border-color: rgba(27, 210, 220, 0.45);
+  outline: none;
+}
+
+/* The two actions that belong next to the illustration, not in the dock. */
+.live-exercise__media {
+  display: flex;
+  position: relative;
+}
+
+.live-exercise__media .live-exercise__figure {
+  flex: 0 0 auto;
+  height: min(280px, 34svh);
+}
+
+.live-side-actions {
+  display: grid;
+  gap: 10px;
+  position: absolute;
+  right: 10px;
+  top: 14px;
+}
+
+.live-side-action {
+  align-items: center;
+  background: rgba(7, 17, 19, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(27, 210, 220, 0.5);
+  border-radius: var(--r-md);
+  color: var(--green);
+  cursor: pointer;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  transition:
+    background-color 160ms ease,
+    transform 160ms ease;
+  width: 44px;
+}
+
+.live-side-action:hover,
+.live-side-action:focus-visible {
+  background: rgba(27, 210, 220, 0.2);
+  outline: none;
+}
+
+.live-side-action:active {
+  transform: scale(0.96);
+}
+
+.live-exercise__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+/* --- Swap sheet ----------------------------------------------------------- */
+
+.swap-sheet__sub {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.swap-sheet__notice {
+  background: var(--orange-soft);
+  border: 1px solid rgba(255, 109, 74, 0.32);
+  border-radius: var(--r-md);
+  color: var(--soft);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+}
+
+.swap-sheet__list {
+  display: grid;
+  gap: 7px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.swap-sheet__item {
+  align-items: center;
+  background: #13181a;
+  border: 1px solid #232b2e;
+  border-radius: var(--r-md);
+  color: var(--text);
+  cursor: pointer;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) 26px;
+  padding: 13px 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.swap-sheet__item:hover,
+.swap-sheet__item:focus-visible {
+  border-color: rgba(27, 210, 220, 0.45);
+  outline: none;
+}
+
+.swap-sheet__copy strong {
+  display: block;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.swap-sheet__copy small {
+  color: var(--muted);
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.swap-sheet__check {
+  align-items: center;
+  border: 1px solid #3d494e;
+  border-radius: 50%;
+  color: var(--green-ink);
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.swap-sheet__item--selected {
+  border-color: rgba(27, 210, 220, 0.45);
+}
+
+.swap-sheet__item--selected .swap-sheet__check {
+  background: var(--green);
+  border-color: var(--green);
 }
 
 /* --- Exercise list sheet -------------------------------------------------- */
@@ -7332,6 +7828,377 @@ body {
   font-size: 12px;
   line-height: 1.55;
   margin: 0;
+}
+
+/* --- Progress -------------------------------------------------------------- */
+
+.progress-page,
+.profile-page {
+  display: grid;
+  gap: 14px;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.progress-page__head h1 {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: -0.7px;
+  margin: 0 0 6px;
+}
+
+.progress-page__head p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.progress-card {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.progress-card .eyebrow {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+.progress-card__top {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.progress-card__value {
+  color: var(--text);
+  display: block;
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: -0.6px;
+  margin-top: 4px;
+}
+
+.progress-card__value span {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.progress-card__aside {
+  text-align: right;
+}
+
+.progress-card__aside span {
+  color: var(--green);
+  font-size: 20px;
+  font-weight: 850;
+}
+
+.progress-card__aside small {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.progress-card--streak {
+  gap: 6px;
+}
+
+.progress-card__note {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: 0;
+}
+
+.progress-delta {
+  align-items: center;
+  color: var(--orange);
+  display: flex;
+  font-size: 13px;
+  font-weight: 850;
+  gap: 5px;
+  margin: 0;
+}
+
+.progress-delta--down {
+  color: var(--green);
+}
+
+.progress-empty {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.progress-empty button {
+  background: none;
+  border: none;
+  color: var(--green);
+  cursor: pointer;
+  font-weight: 850;
+  padding: 0;
+  text-decoration: underline;
+}
+
+/* Seven days as seven dots. */
+.week-strip {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.week-strip__day {
+  color: var(--muted);
+  display: grid;
+  font-size: 10px;
+  font-weight: 800;
+  justify-items: center;
+  text-align: center;
+}
+
+.week-strip__day i {
+  align-items: center;
+  border: 1px solid #30383b;
+  border-radius: 50%;
+  color: transparent;
+  display: flex;
+  height: 30px;
+  justify-content: center;
+  margin-top: 6px;
+  width: 30px;
+}
+
+.week-strip__day--done i {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--green-ink);
+}
+
+/* Announced, never drawn: the ring already says this visually. */
+.week-strip__label {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.focus-bars {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.focus-bars__head {
+  align-items: baseline;
+  color: var(--soft);
+  display: flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.focus-bars__head b {
+  color: var(--text);
+}
+
+.focus-bars__rail {
+  background: #262d30;
+  border-radius: var(--r-pill);
+  height: 6px;
+  margin: 6px 0 4px;
+  overflow: hidden;
+}
+
+.focus-bars__rail span {
+  border-radius: var(--r-pill);
+  display: block;
+  height: 100%;
+}
+
+.focus-bars small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.record-list {
+  display: grid;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.record-list li {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  font-size: 13.5px;
+  font-weight: 750;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 11px 0;
+}
+
+.record-list li:last-child {
+  border-bottom: none;
+}
+
+.record-list__name {
+  color: var(--soft);
+  min-width: 0;
+}
+
+.record-list__load {
+  color: var(--green);
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.progress-links {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* --- Profile ---------------------------------------------------------------- */
+
+.profile-page__head {
+  display: grid;
+  justify-items: center;
+  padding: 12px 0 4px;
+  text-align: center;
+}
+
+.profile-page__head h1 {
+  color: var(--text);
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.6px;
+  margin: 16px 0 4px;
+}
+
+.profile-page__head p {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.profile-avatar--page {
+  font-size: 30px;
+}
+
+.profile-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profile-stat {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  justify-items: center;
+  padding: 14px 8px;
+  text-align: center;
+}
+
+.profile-stat svg {
+  color: var(--green);
+}
+
+.profile-stat strong {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 850;
+  margin: 8px 0 2px;
+}
+
+.profile-stat span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.profile-card {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+}
+
+.profile-card h2 {
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.profile-card__meta {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.profile-rows {
+  display: grid;
+  margin: 0;
+}
+
+.profile-rows > div {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 11px 0;
+}
+
+.profile-rows > div:last-child {
+  border-bottom: none;
+}
+
+.profile-rows dt {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.profile-rows dd {
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 850;
+  margin: 0;
+  text-align: right;
 }
 
 /* --- More list ----------------------------------------------------------- */

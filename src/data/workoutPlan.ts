@@ -33,6 +33,13 @@ export interface ExercisePhaseTarget {
 export interface Exercise {
   /** Home/gym choices for one movement slot. Only selected variants are logged. */
   alternatives?: ExerciseAlternatives
+  /**
+   * The other variants of the same slot, for the location this exercise was
+   * resolved for. `alternatives` is a slot-level field and is stripped once a
+   * variant is chosen; this survives resolution so the live workout screen can
+   * still offer a swap to a sibling movement.
+   */
+  slotVariants?: ExerciseVariant[]
   /** Optional slots are excluded until the user explicitly includes them. */
   optional?: boolean
   /** Multi-select is reserved for short choose-a-few recovery routines. */

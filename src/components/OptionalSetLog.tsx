@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import type { ExerciseLoggingMode } from '../utils/exerciseLoggingUtils'
 import type { ActiveSet } from '../utils/liveWorkoutUtils'
@@ -14,22 +15,27 @@ interface OptionalSetLogProps {
   loggingMode: ExerciseLoggingMode
   initialData?: Partial<ActiveSet>
   onChange: (values: OptionalSetLogValues) => void
+  /** Adds one more set to this exercise than the plan asked for. */
+  onAddSet: () => void
 }
 
 /**
- * Reps and kg, and nothing else. The caller only mounts this once the "Log
- * set" tool is switched on, because logging is optional: the workout is fully
- * usable without ever opening it.
+ * Reps, kg, and one button that adds a set.
+ *
+ * Logging stays optional -- leaving both fields empty is a perfectly normal
+ * way to train -- but the fields are on screen rather than behind a toggle,
+ * because reaching for a number you are about to type should not cost a tap.
  *
  * There is no Save button. Values are reported upward as they are typed and
- * the dock's single "Next" button is what commits them, so the user never has
- * to press two things to move on.
+ * the single "Next" button is what commits them, so the user never has to
+ * press two things to move on.
  */
 export function OptionalSetLog({
   setKey,
   loggingMode,
   initialData,
   onChange,
+  onAddSet,
 }: OptionalSetLogProps) {
   const [reps, setReps] = useState('')
   const [seconds, setSeconds] = useState('')
@@ -102,6 +108,15 @@ export function OptionalSetLog({
           value={weight}
         />
       </label>
+
+      <button
+        aria-label="Add another set to this exercise"
+        className="optional-log__add"
+        onClick={onAddSet}
+        type="button"
+      >
+        <Plus size={22} strokeWidth={2.6} aria-hidden="true" />
+      </button>
     </section>
   )
 }

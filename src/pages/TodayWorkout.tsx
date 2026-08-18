@@ -7,10 +7,11 @@ import {
   Dumbbell,
   Flag,
   Home,
+  Info,
   Layers,
   ListChecks,
-  PencilLine,
   Play,
+  Repeat,
   ShieldAlert,
   SkipForward,
   Square,
@@ -20,6 +21,9 @@ import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
 import { LiveExerciseImage } from '../components/LiveExerciseImage'
 import { LiveWorkoutHeader } from '../components/LiveWorkoutHeader'
 import { OptionalSetLog, type OptionalSetLogValues } from '../components/OptionalSetLog'
+import { ExerciseSwapSheet } from '../components/ExerciseSwapSheet'
+import { LiveRoundStats } from '../components/LiveRoundStats'
+import { LiveSetTable } from '../components/LiveSetTable'
 import { RemainingExercises } from '../components/RemainingExercises'
 import { RestTimer } from '../components/RestTimer'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
@@ -28,6 +32,7 @@ import type { WorkoutSession } from '../data/workoutSessions'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import {
+  addSetToActiveExercise,
   clearActiveWorkoutSession,
   completeActiveWorkoutSession,
   countRemainingExercises,
@@ -39,6 +44,7 @@ import {
   getWorkoutDuration,
   isDoneSet,
   saveActiveWorkoutSession,
+  swapActiveExercise,
   updateActiveSet,
   type ActiveExercise,
   type ActiveSet,
@@ -210,6 +216,41 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     setRestSignal((signal) => signal + 1)
   }
 
+  /** Add one unplanned set to the exercise on screen. */
+  function addSet() {
+    if (!session) {
+      return
+    }
+
+    commit(addSetToActiveExercise(session, session.currentExerciseIndex))
+  }
+
+  /** Jump to any set of the current exercise, without marking anything done. */
+  function goToSet(setIndex: number) {
+    if (!session) {
+      return
+    }
+
+    const exercise = session.exercises[session.currentExerciseIndex]
+    if (!exercise) {
+      return
+    }
+
+    commit({
+      ...session,
+      currentSetIndex: Math.min(Math.max(setIndex, 0), exercise.sets.length - 1),
+    })
+  }
+
+  /** Swap the movement in the current slot for one of its alternatives. */
+  function swapExercise(variantId: string) {
+    if (!session) {
+      return
+    }
+
+    commit(swapActiveExercise(session, session.currentExerciseIndex, variantId))
+  }
+
   /** Jump to an exercise without marking anything done. */
   function goToExercise(index: number) {
     if (!session) {
@@ -329,6 +370,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
         exerciseLibrary={exerciseLibrary}
         finishError={finishError}
         nowTs={nowTs}
+        onAddSet={addSet}
         onAdvance={advance}
         onBack={goBack}
         // Leaving the training screen is not the same as ending the workout:
@@ -337,6 +379,8 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
         onExit={() => setScreen('prompt')}
         onFinish={() => finishWorkout()}
         onGoToExercise={goToExercise}
+        onGoToSet={goToSet}
+        onSwapExercise={swapExercise}
         restSignal={restSignal}
         session={session}
       />
@@ -645,11 +689,14 @@ interface LiveWorkoutScreenProps {
   exerciseLibrary: LibraryExercise[]
   finishError: string | null
   nowTs: number
+  onAddSet: () => void
   onAdvance: (log: OptionalSetLogValues) => void
   onBack: () => void
   onExit: () => void
   onFinish: () => void
   onGoToExercise: (index: number) => void
+  onGoToSet: (setIndex: number) => void
+  onSwapExercise: (variantId: string) => void
   restSignal: number
   session: ActiveWorkoutSession
 }
@@ -665,19 +712,23 @@ function LiveWorkoutScreen({
   exerciseLibrary,
   finishError,
   nowTs,
+  onAddSet,
   onAdvance,
   onBack,
   onExit,
   onFinish,
   onGoToExercise,
+  onGoToSet,
+  onSwapExercise,
   restSignal,
   session,
 }: LiveWorkoutScreenProps) {
-  // Once switched on, the log stays on for the rest of the workout.
-  const [logOpen, setLogOpen] = useState(false)
   const [listOpen, setListOpen] = useState(false)
+  const [swapOpen, setSwapOpen] = useState(false)
   const [showFormGuide, setShowFormGuide] = useState(false)
   const [pendingLog, setPendingLog] = useState<OptionalSetLogValues>(EMPTY_LOG)
+  // Mirrored out of the rest timer so the round meter shows the same clock.
+  const [restLeft, setRestLeft] = useState<number | null>(null)
 
   const exercise = getCurrentExercise(session)
   const exerciseIndex = session.currentExerciseIndex
@@ -706,6 +757,7 @@ function LiveWorkoutScreen({
   }
 
   const totalSets = exercise.sets.length
+  const canSwap = exercise.variants.length > 1
   const isLastSet = setIndex >= totalSets - 1
   const isLastExercise = exerciseIndex >= session.exercises.length - 1
   const atStart = setIndex === 0 && exerciseIndex === 0
@@ -772,39 +824,96 @@ function LiveWorkoutScreen({
           </p>
 
           {formGuideExercise && displaySettings.showExerciseImages !== false ? (
-            <LiveExerciseImage
-              exercise={formGuideExercise}
-              onOpenFormGuide={() => setShowFormGuide(true)}
-            />
+            <div className="live-exercise__media">
+              <LiveExerciseImage
+                exercise={formGuideExercise}
+                onOpenFormGuide={() => setShowFormGuide(true)}
+              />
+
+              {/* The two things you reach for while looking at the movement:
+                  swap it, or read how to do it. */}
+              <div className="live-side-actions">
+                {canSwap ? (
+                  <button
+                    aria-label="Swap this exercise for an alternative"
+                    className="live-side-action"
+                    onClick={() => setSwapOpen(true)}
+                    type="button"
+                  >
+                    <Repeat size={19} strokeWidth={2.2} aria-hidden="true" />
+                  </button>
+                ) : null}
+                {formGuideExercise ? (
+                  <button
+                    aria-label="Form guide, tips and video"
+                    className="live-side-action"
+                    onClick={() => setShowFormGuide(true)}
+                    type="button"
+                  >
+                    <Info size={19} strokeWidth={2.2} aria-hidden="true" />
+                  </button>
+                ) : null}
+              </div>
+            </div>
           ) : null}
 
-          {formGuideExercise ? (
-            <button
-              className="live-exercise__guide"
-              onClick={() => setShowFormGuide(true)}
-              type="button"
-            >
-              <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
-              Form guide, tips and video
-            </button>
+          {/* Same two actions as text, for when the illustration is off. */}
+          {!formGuideExercise || displaySettings.showExerciseImages === false ? (
+            <div className="live-exercise__links">
+              {canSwap ? (
+                <button
+                  className="live-exercise__guide"
+                  onClick={() => setSwapOpen(true)}
+                  type="button"
+                >
+                  <Repeat size={15} strokeWidth={2.4} aria-hidden="true" />
+                  Swap exercise ({exercise.variants.length})
+                </button>
+              ) : null}
+              {formGuideExercise ? (
+                <button
+                  className="live-exercise__guide"
+                  onClick={() => setShowFormGuide(true)}
+                  type="button"
+                >
+                  <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
+                  Form guide, tips and video
+                </button>
+              ) : null}
+            </div>
           ) : null}
         </article>
+
+        <LiveRoundStats exercise={exercise} restSecondsLeft={restLeft} />
+
+        {/* Every set of this exercise, so what you lifted two sets ago is one
+            glance away rather than a trip into history. */}
+        <LiveSetTable
+          currentSetIndex={setIndex}
+          exercise={exercise}
+          onSelectSet={onGoToSet}
+        />
       </div>
 
       {/* One dock for every control pressed between sets: the rest countdown
           and its buttons, back/next, and the four occasional tools. */}
       <div className="live-dock">
-        {logOpen ? (
-          <OptionalSetLog
-            initialData={seedSetFromPrevious(exercise.sets, setIndex)}
-            loggingMode={exercise.loggingMode}
-            onChange={setPendingLog}
-            setKey={setKey}
-          />
-        ) : null}
+        <OptionalSetLog
+          initialData={seedSetFromPrevious(exercise.sets, setIndex)}
+          loggingMode={exercise.loggingMode}
+          onAddSet={onAddSet}
+          onChange={setPendingLog}
+          setKey={setKey}
+        />
 
         {exercise.restSeconds > 0 ? (
-          <RestTimer autoStartSignal={restSignal} restSeconds={exercise.restSeconds} />
+          <RestTimer
+            autoStartSignal={restSignal}
+            onTick={(secondsLeft, isRunning) =>
+              setRestLeft(isRunning ? secondsLeft : null)
+            }
+            restSeconds={exercise.restSeconds}
+          />
         ) : null}
 
         <div className="live-dock__main">
@@ -844,13 +953,14 @@ function LiveWorkoutScreen({
 
         <div className="live-dock__tools">
           <button
-            aria-pressed={logOpen}
-            className={`live-tool${logOpen ? ' live-tool--on' : ''}`}
-            onClick={() => setLogOpen((open) => !open)}
+            aria-pressed={swapOpen}
+            className={`live-tool${swapOpen ? ' live-tool--on' : ''}`}
+            disabled={!canSwap}
+            onClick={() => setSwapOpen((open) => !open)}
             type="button"
           >
-            <PencilLine size={17} strokeWidth={2.4} aria-hidden="true" />
-            <span>{logOpen ? 'Hide log' : 'Log set'}</span>
+            <Repeat size={17} strokeWidth={2.4} aria-hidden="true" />
+            <span>Swap</span>
           </button>
 
           <button
@@ -896,6 +1006,20 @@ function LiveWorkoutScreen({
             onGoToExercise(index)
             setListOpen(false)
           }}
+        />
+      ) : null}
+
+      {swapOpen && canSwap ? (
+        <ExerciseSwapSheet
+          currentExerciseId={exercise.exerciseId}
+          doneSets={exercise.sets.filter(isDoneSet).length}
+          muscleGroup={exercise.muscleGroup}
+          onClose={() => setSwapOpen(false)}
+          onSelect={(variantId) => {
+            onSwapExercise(variantId)
+            setSwapOpen(false)
+          }}
+          variants={exercise.variants}
         />
       ) : null}
 

@@ -41,10 +41,10 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
 
         {/* Same account entry as the mobile bar, so both navs agree. */}
         <button
-          aria-current={activePage === 'settings' ? 'page' : undefined}
-          aria-label={`${name || 'Profile'} - open settings`}
+          aria-current={activePage === 'profile' ? 'page' : undefined}
+          aria-label={`${name || 'Profile'} - open your profile`}
           className="nav-button nav-button--profile"
-          onClick={() => onNavigate('settings')}
+          onClick={() => onNavigate('profile')}
           type="button"
         >
           <ProfileAvatar
