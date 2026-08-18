@@ -1,18 +1,16 @@
 import {
-  BellRing,
   Brain,
   Cloud,
   Database,
   Download,
-  Plus,
   Goal,
+  LogIn,
+  LogOut,
   MonitorPlay,
-  PackageCheck,
   RotateCcw,
   Save,
   Settings as SettingsIcon,
   SlidersHorizontal,
-  Trash2,
   Upload,
   UserRound,
   Wrench,
@@ -20,7 +18,6 @@ import {
 import { useRef, useState } from 'react'
 import { CloudHealthPanel } from '../components/CloudHealthPanel'
 import { CloudSyncPanel } from '../components/CloudSyncPanel'
-import { OfflineSyncPanel } from '../components/OfflineSyncPanel'
 import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
 import { useAuth } from '../context/AuthContext'
 import type { WorkoutDay } from '../data/workoutPlan'
@@ -34,15 +31,6 @@ import {
   importAllData,
   resetUserProfileSettings,
 } from '../utils/settingsUtils'
-import {
-  canUseNotifications,
-  getDayNames,
-  getNotificationPermissionStatus,
-  getReminderSettings,
-  requestNotificationPermission,
-  resetReminderSettings,
-  saveReminderSettings,
-} from '../utils/reminderUtils'
 import type { PageId } from '../types/navigation'
 
 type SettingsTab =
@@ -50,12 +38,9 @@ type SettingsTab =
   | 'program'
   | 'goals'
   | 'equipment'
-  | 'supplements'
-  | 'reminders'
   | 'workout-display'
   | 'coach'
   | 'cloud'
-  | 'offline'
   | 'backup'
 
 interface SettingsProps {
@@ -71,12 +56,9 @@ const tabs: Array<{
   { id: 'program', icon: SlidersHorizontal, label: 'Program' },
   { id: 'goals', icon: Goal, label: 'Goals' },
   { id: 'equipment', icon: Wrench, label: 'Equipment' },
-  { id: 'supplements', icon: PackageCheck, label: 'Supplements' },
-  { id: 'reminders', icon: BellRing, label: 'Reminders' },
   { id: 'workout-display', icon: MonitorPlay, label: 'Workout Display' },
   { id: 'coach', icon: Brain, label: 'Coach' },
   { id: 'cloud', icon: Cloud, label: 'Cloud Sync' },
-  { id: 'offline', icon: Database, label: 'Offline & Sync' },
   { id: 'backup', icon: Database, label: 'Backup' },
 ]
 
@@ -89,7 +71,6 @@ const coachPriorityOptions = [
   'Posture correction',
 ] as const
 const warningSensitivityOptions = ['Low', 'Normal', 'High'] as const
-const reminderDayOptions = getDayNames()
 
 const goalFields = [
   ['primaryGoal', 'Primary goal'],
@@ -101,7 +82,7 @@ const goalFields = [
 ] as const
 
 export function Settings({ onNavigate }: SettingsProps) {
-  const { user } = useAuth()
+  const { isSupabaseConfigured, signOut, user } = useAuth()
   const [activeTab, setActiveTab] = useState<SettingsTab>(() =>
     getInitialSettingsTab(),
   )
@@ -109,13 +90,8 @@ export function Settings({ onNavigate }: SettingsProps) {
   const [plan, setPlan] = useState<WorkoutDay[]>(
     () => getCustomWorkoutPlan() as WorkoutDay[],
   )
-  const [reminderSettings, setReminderSettings] = useState(() =>
-    getReminderSettings(),
-  )
-  const [notificationPermission, setNotificationPermission] = useState(() =>
-    getNotificationPermissionStatus(),
-  )
   const [notice, setNotice] = useState('')
+  const [signingOut, setSigningOut] = useState(false)
   const importInputRef = useRef<HTMLInputElement | null>(null)
 
   function updateProfile(field: string, value: string | number) {
@@ -132,13 +108,6 @@ export function Settings({ onNavigate }: SettingsProps) {
     }))
   }
 
-  function updateSupplements(field: string, value: boolean | number) {
-    setSettings((current: any) => ({
-      ...current,
-      supplements: { ...current.supplements, [field]: value },
-    }))
-  }
-
   function updateCoach(field: string, value: string) {
     setSettings((current: any) => ({
       ...current,
@@ -151,37 +120,6 @@ export function Settings({ onNavigate }: SettingsProps) {
       ...current,
       workoutDisplay: { ...current.workoutDisplay, [field]: value },
     }))
-  }
-
-  function updateReminder(field: string, value: boolean | number | string | string[]) {
-    setReminderSettings((current: any) => ({ ...current, [field]: value }))
-  }
-
-  function updateWaterReminderTime(index: number, value: string) {
-    setReminderSettings((current: any) => {
-      const nextTimes = [...current.waterReminderTimes]
-      nextTimes[index] = value
-      return { ...current, waterReminderTimes: nextTimes }
-    })
-  }
-
-  function addWaterReminderTime() {
-    setReminderSettings((current: any) => ({
-      ...current,
-      waterReminderTimes: [...current.waterReminderTimes, '12:00'],
-    }))
-  }
-
-  function removeWaterReminderTime(index: number) {
-    setReminderSettings((current: any) => {
-      const nextTimes = current.waterReminderTimes.filter(
-        (_time: string, timeIndex: number) => timeIndex !== index,
-      )
-      return {
-        ...current,
-        waterReminderTimes: nextTimes.length > 0 ? nextTimes : ['11:00'],
-      }
-    })
   }
 
   function toggleEquipment(item: string) {
@@ -208,46 +146,13 @@ export function Settings({ onNavigate }: SettingsProps) {
     }
   }
 
-  async function handleEnableNotifications() {
-    if (!canUseNotifications()) {
-      setNotificationPermission('unsupported')
-      setNotice('Browser notifications are not supported here.')
-      return
+  async function handleSignOut() {
+    setSigningOut(true)
+    const result = await signOut()
+    setSigningOut(false)
+    if (result && result.error) {
+      setNotice('Could not sign out. Try again.')
     }
-
-    const permission = await requestNotificationPermission()
-    setNotificationPermission(permission)
-
-    if (permission === 'granted') {
-      const saved = saveReminderSettings({
-        ...reminderSettings,
-        notificationsEnabled: true,
-      })
-      setReminderSettings(saved)
-      setNotice('Browser notifications enabled.')
-      return
-    }
-
-    if (permission === 'denied') {
-      setNotice('Notifications are blocked. Enable them in browser settings.')
-      return
-    }
-
-    setNotice('Notification permission was not enabled.')
-  }
-
-  function saveReminderPreferences() {
-    const saved = saveReminderSettings(reminderSettings)
-    setReminderSettings(saved)
-    setNotificationPermission(getNotificationPermissionStatus())
-    setNotice('Reminder settings saved.')
-  }
-
-  function resetReminderPreferences() {
-    const defaults = resetReminderSettings()
-    setReminderSettings(defaults)
-    setNotificationPermission(getNotificationPermissionStatus())
-    setNotice('Reminder settings reset.')
   }
 
   function resetProfile() {
@@ -301,29 +206,60 @@ export function Settings({ onNavigate }: SettingsProps) {
           <p className="eyebrow">Settings</p>
           <h1>Settings + data</h1>
           <p>
-            Edit your training profile, goals, equipment, supplement targets,
-            and local backup files.
+            Edit your training profile, goals, equipment, and local backup
+            files.
           </p>
         </div>
       </header>
 
-      <div className="settings-tabs" role="tablist" aria-label="Settings sections">
-        {tabs.map((tab) => {
-          const Icon = tab.icon
-          return (
+      <div className="settings-tabs-bar">
+        <div
+          className="settings-tabs"
+          role="tablist"
+          aria-label="Settings sections"
+        >
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            return (
+              <button
+                aria-selected={activeTab === tab.id}
+                className="settings-tab"
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                role="tab"
+                type="button"
+              >
+                <Icon size={17} strokeWidth={2.4} aria-hidden="true" />
+                {tab.label}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Account action, not a settings section, so it sits outside the
+            tablist instead of reading as one more tab. */}
+        {isSupabaseConfigured ? (
+          user ? (
             <button
-              aria-selected={activeTab === tab.id}
-              className="settings-tab"
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              role="tab"
+              className="settings-auth-button"
+              disabled={signingOut}
+              onClick={handleSignOut}
               type="button"
             >
-              <Icon size={17} strokeWidth={2.4} aria-hidden="true" />
-              {tab.label}
+              <LogOut size={17} strokeWidth={2.4} aria-hidden="true" />
+              {signingOut ? 'Signing out...' : 'Logout'}
+            </button>
+          ) : (
+            <button
+              className="settings-auth-button"
+              onClick={() => window.location.reload()}
+              type="button"
+            >
+              <LogIn size={17} strokeWidth={2.4} aria-hidden="true" />
+              Login
             </button>
           )
-        })}
+        ) : null}
       </div>
 
       {notice ? (
@@ -543,449 +479,6 @@ export function Settings({ onNavigate }: SettingsProps) {
         </article>
       ) : null}
 
-      {activeTab === 'supplements' ? (
-        <article className="dashboard-card settings-panel">
-          <div className="card-heading">
-            <div>
-              <p className="eyebrow">Supplement Settings</p>
-              <h2>Targets and checklist</h2>
-            </div>
-            <PackageCheck size={22} strokeWidth={2.4} aria-hidden="true" />
-          </div>
-
-          <div className="settings-check-grid">
-            <label className="settings-check">
-              <input
-                checked={settings.supplements.creatineMonohydrate}
-                onChange={(event) =>
-                  updateSupplements('creatineMonohydrate', event.target.checked)
-                }
-                type="checkbox"
-              />
-              <span>Creatine monohydrate</span>
-            </label>
-            <label className="settings-check">
-              <input
-                checked={settings.supplements.wheyProtein}
-                onChange={(event) =>
-                  updateSupplements('wheyProtein', event.target.checked)
-                }
-                type="checkbox"
-              />
-              <span>Whey protein</span>
-            </label>
-          </div>
-
-          <div className="settings-form-grid">
-            <label className="settings-field">
-              Protein target min
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateSupplements('proteinTargetMin', Number(event.target.value))
-                }
-                type="number"
-                value={settings.supplements.proteinTargetMin}
-              />
-            </label>
-            <label className="settings-field">
-              Protein target max
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateSupplements('proteinTargetMax', Number(event.target.value))
-                }
-                type="number"
-                value={settings.supplements.proteinTargetMax}
-              />
-            </label>
-            <label className="settings-field">
-              Water target min
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateSupplements('waterTargetMin', Number(event.target.value))
-                }
-                step="0.1"
-                type="number"
-                value={settings.supplements.waterTargetMin}
-              />
-            </label>
-            <label className="settings-field">
-              Water target max
-              <input
-                className="settings-input"
-                min={0}
-                onChange={(event) =>
-                  updateSupplements('waterTargetMax', Number(event.target.value))
-                }
-                step="0.1"
-                type="number"
-                value={settings.supplements.waterTargetMax}
-              />
-            </label>
-          </div>
-
-          <div className="settings-actions">
-            <button
-              className="workout-primary-button"
-              onClick={() => saveSettings('Supplements saved.')}
-              type="button"
-            >
-              <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Supplements
-            </button>
-          </div>
-        </article>
-      ) : null}
-
-      {activeTab === 'reminders' ? (
-        <article className="dashboard-card settings-panel reminders-settings-panel">
-          <div className="card-heading">
-            <div>
-              <p className="eyebrow">Reminder Settings</p>
-              <h2>Notifications + reminders</h2>
-            </div>
-            <BellRing size={22} strokeWidth={2.4} aria-hidden="true" />
-          </div>
-
-          <p className="settings-help-copy">
-            Browser reminders work while the app is open or active. Full
-            background push notifications can be added later.
-          </p>
-
-          <section className="reminder-settings-section" aria-label="Notification permission">
-            <div>
-              <p className="eyebrow">Notification Permission</p>
-              <div className="mini-stat-grid">
-                <div className="mini-stat">
-                  <span>Browser notification supported</span>
-                  <strong>{canUseNotifications() ? 'Yes' : 'No'}</strong>
-                </div>
-                <div className="mini-stat">
-                  <span>Permission status</span>
-                  <strong>{notificationPermission}</strong>
-                </div>
-              </div>
-            </div>
-
-            {notificationPermission === 'denied' ? (
-              <p className="settings-warning-copy">
-                Notifications are blocked. Enable them in browser settings.
-              </p>
-            ) : null}
-
-            <div className="settings-check-grid">
-              <label className="settings-check">
-                <input
-                  checked={
-                    reminderSettings.notificationsEnabled &&
-                    notificationPermission === 'granted'
-                  }
-                  disabled={notificationPermission !== 'granted'}
-                  onChange={(event) =>
-                    updateReminder('notificationsEnabled', event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>Send browser notifications when permission is granted</span>
-              </label>
-            </div>
-
-            <button
-              className="workout-primary-button"
-              disabled={!canUseNotifications()}
-              onClick={handleEnableNotifications}
-              type="button"
-            >
-              <BellRing size={19} strokeWidth={2.4} aria-hidden="true" />
-              Enable Notifications
-            </button>
-          </section>
-
-          <section className="reminder-settings-section" aria-label="Workout reminder">
-            <p className="eyebrow">Workout Reminder</p>
-            <div className="settings-check-grid">
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.workoutReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder('workoutReminderEnabled', event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>Daily workout reminder</span>
-              </label>
-            </div>
-            <div className="settings-form-grid">
-              <label className="settings-field">
-                Workout reminder time
-                <input
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('workoutReminderTime', event.target.value)
-                  }
-                  type="time"
-                  value={reminderSettings.workoutReminderTime}
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="reminder-settings-section" aria-label="Supplement reminders">
-            <p className="eyebrow">Supplement Reminders</p>
-            <div className="settings-check-grid">
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.creatineReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder('creatineReminderEnabled', event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>Creatine reminder</span>
-              </label>
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.proteinReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder('proteinReminderEnabled', event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>Protein target reminder</span>
-              </label>
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.waterReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder('waterReminderEnabled', event.target.checked)
-                  }
-                  type="checkbox"
-                />
-                <span>Water intake reminders</span>
-              </label>
-            </div>
-            <div className="settings-form-grid">
-              <label className="settings-field">
-                Creatine time
-                <input
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('creatineReminderTime', event.target.value)
-                  }
-                  type="time"
-                  value={reminderSettings.creatineReminderTime}
-                />
-              </label>
-              <label className="settings-field">
-                Protein time
-                <input
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('proteinReminderTime', event.target.value)
-                  }
-                  type="time"
-                  value={reminderSettings.proteinReminderTime}
-                />
-              </label>
-            </div>
-            <div className="reminder-times-list" aria-label="Water reminder times">
-              {reminderSettings.waterReminderTimes.map((time: string, index: number) => (
-                <div className="reminder-time-row" key={`${time}-${index}`}>
-                  <label className="settings-field">
-                    Water time {index + 1}
-                    <input
-                      className="settings-input"
-                      onChange={(event) =>
-                        updateWaterReminderTime(index, event.target.value)
-                      }
-                      type="time"
-                      value={time}
-                    />
-                  </label>
-                  <button
-                    aria-label={`Remove water reminder ${index + 1}`}
-                    className="icon-control-button"
-                    onClick={() => removeWaterReminderTime(index)}
-                    type="button"
-                  >
-                    <Trash2 size={18} strokeWidth={2.4} aria-hidden="true" />
-                  </button>
-                </div>
-              ))}
-              <button
-                className="workout-secondary-button"
-                onClick={addWaterReminderTime}
-                type="button"
-              >
-                <Plus size={19} strokeWidth={2.4} aria-hidden="true" />
-                Add Water Time
-              </button>
-            </div>
-          </section>
-
-          <section className="reminder-settings-section" aria-label="Body tracking reminders">
-            <p className="eyebrow">Body Tracking Reminders</p>
-            <div className="settings-check-grid">
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.bodyCheckInReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder(
-                      'bodyCheckInReminderEnabled',
-                      event.target.checked,
-                    )
-                  }
-                  type="checkbox"
-                />
-                <span>Weekly body check-in reminder</span>
-              </label>
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.weeklyReviewReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder(
-                      'weeklyReviewReminderEnabled',
-                      event.target.checked,
-                    )
-                  }
-                  type="checkbox"
-                />
-                <span>Weekly review reminder</span>
-              </label>
-            </div>
-            <div className="settings-form-grid">
-              <label className="settings-field">
-                Body check-in day
-                <select
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('bodyCheckInDay', event.target.value)
-                  }
-                  value={reminderSettings.bodyCheckInDay}
-                >
-                  {reminderDayOptions.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="settings-field">
-                Body check-in time
-                <input
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('bodyCheckInTime', event.target.value)
-                  }
-                  type="time"
-                  value={reminderSettings.bodyCheckInTime}
-                />
-              </label>
-              <label className="settings-field">
-                Weekly review day
-                <select
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('weeklyReviewDay', event.target.value)
-                  }
-                  value={reminderSettings.weeklyReviewDay}
-                >
-                  {reminderDayOptions.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="settings-field">
-                Weekly review time
-                <input
-                  className="settings-input"
-                  onChange={(event) =>
-                    updateReminder('weeklyReviewTime', event.target.value)
-                  }
-                  type="time"
-                  value={reminderSettings.weeklyReviewTime}
-                />
-              </label>
-            </div>
-          </section>
-
-          <section className="reminder-settings-section" aria-label="Workout safety reminders">
-            <p className="eyebrow">Workout Safety Reminders</p>
-            <div className="settings-check-grid">
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.unfinishedWorkoutReminderEnabled}
-                  onChange={(event) =>
-                    updateReminder(
-                      'unfinishedWorkoutReminderEnabled',
-                      event.target.checked,
-                    )
-                  }
-                  type="checkbox"
-                />
-                <span>Unfinished workout reminder</span>
-              </label>
-              <label className="settings-check">
-                <input
-                  checked={reminderSettings.restTimerNotificationEnabled}
-                  onChange={(event) =>
-                    updateReminder(
-                      'restTimerNotificationEnabled',
-                      event.target.checked,
-                    )
-                  }
-                  type="checkbox"
-                />
-                <span>Rest timer notification</span>
-              </label>
-            </div>
-            <div className="settings-form-grid">
-              <label className="settings-field">
-                Unfinished workout delay minutes
-                <input
-                  className="settings-input"
-                  min={5}
-                  onChange={(event) =>
-                    updateReminder(
-                      'unfinishedWorkoutDelayMinutes',
-                      Number(event.target.value),
-                    )
-                  }
-                  type="number"
-                  value={reminderSettings.unfinishedWorkoutDelayMinutes}
-                />
-              </label>
-            </div>
-          </section>
-
-          <div className="settings-actions">
-            <button
-              className="workout-primary-button"
-              onClick={saveReminderPreferences}
-              type="button"
-            >
-              <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Reminder Settings
-            </button>
-            <button
-              className="workout-secondary-button"
-              onClick={resetReminderPreferences}
-              type="button"
-            >
-              <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-              Reset Reminder Settings
-            </button>
-          </div>
-        </article>
-      ) : null}
-
       {activeTab === 'workout-display' ? (
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
@@ -1150,8 +643,6 @@ export function Settings({ onNavigate }: SettingsProps) {
           <CloudHealthPanel />
         </>
       ) : null}
-
-      {activeTab === 'offline' ? <OfflineSyncPanel /> : null}
 
       {activeTab === 'backup' ? (
         <article className="dashboard-card settings-panel">

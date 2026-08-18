@@ -32,6 +32,9 @@ class MemoryStorage {
   }
 }
 
+const PROBE_PROGRAM_ID = 'plan-editor-reset-probe'
+const PROBE_PROGRAM_VERSION = '1.0.0'
+
 const storage = new MemoryStorage()
 globalThis.window = globalThis
 globalThis.localStorage = storage
@@ -58,11 +61,10 @@ try {
     '/src/utils/workoutProgramManager.ts',
   )
   const settings = await server.ssrLoadModule('/src/utils/settingsUtils.js')
-
-  const version2 = registry.getWorkoutProgramByIdAndVersion(
-    'upper-recomposition',
-    '2.0.0',
+  const userPrograms = await server.ssrLoadModule(
+    '/src/utils/userWorkoutPrograms.ts',
   )
+
   // The registry default is the plan normalizer's fallback, so it is the most
   // likely program to leak into a reset day. Probing with its content proves
   // reset follows installed identity rather than the default.
@@ -70,19 +72,55 @@ try {
     registry.CURRENT_DEFAULT_PROGRAM_ID,
     '2.1.0',
   )
-  assert.ok(version2, 'Version 2 must be registered.')
   assert.ok(defaultProgram, 'The registry default program must be available.')
 
-  const registeredVersion2Before = JSON.stringify(version2)
-  const expectedVersion2Plan = settings.normalizeCustomWorkoutPlan(
-    version2.days,
+  // A pasted program is now the only way to hold a non-default program, so the
+  // probe pastes one built from the default with a single exercise removed.
+  // That missing exercise is what a contaminated reset would reintroduce.
+  const probeExerciseId = defaultProgram.days
+    .flatMap((day) => day.exercises.map((exercise) => exercise.id))
+    .find(
+      (id, _index, ids) => ids.filter((other) => other === id).length === 1,
+    )
+  assert.ok(probeExerciseId, 'The default program needs a unique exercise id.')
+
+  const pastedSource = {
+    ...defaultProgram,
+    id: PROBE_PROGRAM_ID,
+    version: PROBE_PROGRAM_VERSION,
+    name: 'Plan Editor Reset Probe',
+    days: defaultProgram.days.map((day) => ({
+      ...day,
+      exercises: day.exercises.filter(
+        (exercise) => exercise.id !== probeExerciseId,
+      ),
+    })),
+  }
+  const parsed = userPrograms.parseWorkoutProgramInput(
+    JSON.stringify(pastedSource),
+  )
+  assert.equal(parsed.success, true, parsed.errors.join(' '))
+  assert.equal(
+    userPrograms.saveUserWorkoutProgram(parsed.program).success,
+    true,
+  )
+
+  const probeProgram = registry.getWorkoutProgramByIdAndVersion(
+    PROBE_PROGRAM_ID,
+    PROBE_PROGRAM_VERSION,
+  )
+  assert.ok(probeProgram, 'The pasted program must be registered.')
+
+  const registeredProbeBefore = JSON.stringify(probeProgram)
+  const expectedProbePlan = settings.normalizeCustomWorkoutPlan(
+    probeProgram.days,
   )
   const defaultOnlyIds = new Set(
     defaultProgram.days
       .flatMap((day) => day.exercises.map((exercise) => exercise.id))
       .filter(
         (id) =>
-          !version2.days.some((day) =>
+          !probeProgram.days.some((day) =>
             day.exercises.some((exercise) => exercise.id === id),
           ),
       ),
@@ -93,23 +131,23 @@ try {
   )
 
   const install = manager.installWorkoutProgramLocally({
-    id: version2.id,
-    version: version2.version,
+    id: probeProgram.id,
+    version: probeProgram.version,
   })
   assert.equal(install.success, true, install.message)
 
   const baseline = activePrograms.resolveActiveWorkoutProgramBaseline()
   assert.equal(baseline.error, null)
   assert.equal(baseline.managed, true)
-  assert.equal(baseline.program?.id, 'upper-recomposition')
-  assert.equal(baseline.program?.version, '2.0.0')
+  assert.equal(baseline.program?.id, PROBE_PROGRAM_ID)
+  assert.equal(baseline.program?.version, PROBE_PROGRAM_VERSION)
   assert.deepEqual(
     baseline.program?.days.map((day) => day.day),
     [1, 2, 3, 4, 5, 6, 7],
   )
   assert.deepEqual(
     settings.normalizeCustomWorkoutPlan(baseline.program?.days),
-    expectedVersion2Plan,
+    expectedProbePlan,
   )
   assert.equal(activePrograms.getTrainingDays(baseline.program).length, 6)
   assert.equal(activePrograms.getRestDays(baseline.program).length, 1)
@@ -121,7 +159,7 @@ try {
     day.day === targetDayNumber
       ? {
           ...day,
-          name: 'Modified Version 2 Day',
+          name: 'Modified probe program day',
           focus: ['Default program contamination probe'],
           exercises: [
             {
@@ -151,7 +189,7 @@ try {
   assert.equal(settings.saveCustomWorkoutPlanSafely(firstReset.plan).success, true)
 
   const firstReload = settings.getCustomWorkoutPlan()
-  assert.deepEqual(firstReload[targetDayNumber - 1], expectedVersion2Plan[0])
+  assert.deepEqual(firstReload[targetDayNumber - 1], expectedProbePlan[0])
   assert.deepEqual(
     firstReload.filter((day) => day.day !== targetDayNumber),
     unrelatedDaysBeforeReset,
@@ -185,7 +223,7 @@ try {
   assert.equal(settings.saveCustomWorkoutPlanSafely(secondReset.plan).success, true)
 
   const secondReload = settings.getCustomWorkoutPlan()
-  assert.deepEqual(secondReload[targetDayNumber - 1], expectedVersion2Plan[0])
+  assert.deepEqual(secondReload[targetDayNumber - 1], expectedProbePlan[0])
   assert.deepEqual(
     secondReload.filter((day) => day.day !== targetDayNumber),
     unrelatedDaysBeforeSecondReset,
@@ -200,10 +238,10 @@ try {
       version: activeAfterReload.programVersion,
     },
     {
-      id: 'upper-recomposition',
+      id: PROBE_PROGRAM_ID,
       installed: true,
       source: 'registry',
-      version: '2.0.0',
+      version: PROBE_PROGRAM_VERSION,
     },
   )
   assert.equal(storage.getItem('installedWorkoutProgram'), installedMetadataRaw)
@@ -244,17 +282,17 @@ try {
   cloneProbe.plan[0].name = 'Mutation probe'
   cloneProbe.plan[0].exercises[0].formTips.push('Mutation probe')
 
-  const registeredVersion2After = registry.getWorkoutProgramByIdAndVersion(
-    'upper-recomposition',
-    '2.0.0',
+  const registeredProbeAfter = registry.getWorkoutProgramByIdAndVersion(
+    PROBE_PROGRAM_ID,
+    PROBE_PROGRAM_VERSION,
   )
-  assert.equal(JSON.stringify(registeredVersion2After), registeredVersion2Before)
+  assert.equal(JSON.stringify(registeredProbeAfter), registeredProbeBefore)
   assert.equal(storage.getItem('workoutSessions'), historyRaw)
 
   console.log(
     JSON.stringify(
       {
-        activeProgram: 'upper-recomposition@2.0.0',
+        activeProgram: `${PROBE_PROGRAM_ID}@${PROBE_PROGRAM_VERSION}`,
         daysResolved: 7,
         historyUnchanged: true,
         defaultOnlyExercisesAfterReset: 0,

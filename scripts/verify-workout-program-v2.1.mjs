@@ -123,16 +123,20 @@ try {
     'The default plan days must come from V2.1.',
   )
 
-  const version2 = registry.getWorkoutProgramByIdAndVersion(
-    'upper-recomposition',
-    '2.0.0',
-  )
   const version21 = registry.getWorkoutProgramByIdAndVersion(
     PROGRAM_ID,
     PROGRAM_VERSION,
   )
-  assert.ok(version2, 'The V2 registry program must remain available.')
   assert.ok(version21, 'The V2.1 registry program must be available.')
+
+  // Stand-in for "some other plan the user had before installing V2.1". This
+  // used to be the bundled upper-recomposition@2.0.0 program; that file is
+  // gone, so derive a distinct plan from V2.1 instead.
+  const priorPlanDays = version21.days.map((day) =>
+    day.day === 1
+      ? { ...day, exercises: [...day.exercises].reverse() }
+      : day,
+  )
 
   const knownExerciseIds = new Set(
     libraryModule.exerciseLibrary.map((exercise) => exercise.id),
@@ -1097,14 +1101,14 @@ try {
   )
 
   const existingBackup = manager.createWorkoutPlanBackup(
-    version2.days,
+    priorPlanDays,
     'Existing backup sentinel',
   )
   assert.equal(existingBackup.success, true, existingBackup.message)
   assert.ok(existingBackup.data)
 
   const customPlanBeforeInstall = settings.normalizeCustomWorkoutPlan(
-    version2.days,
+    priorPlanDays,
   )
   customPlanBeforeInstall[0].name = 'Custom plan sentinel before V2.1'
   assert.equal(
@@ -1217,7 +1221,7 @@ try {
   const priorCloudBackup = {
     createdAt: '2026-07-01T00:00:00.000Z',
     id: 'prior-cloud-backup',
-    plan: settings.normalizeCustomWorkoutPlan(version2.days),
+    plan: settings.normalizeCustomWorkoutPlan(priorPlanDays),
     previousProgram: null,
     reason: 'Cloud backup sentinel',
   }
@@ -1339,11 +1343,6 @@ try {
     'The cloud transaction must back up the exact prior custom plan.',
   )
   assert.equal(storage.getItem('workoutSessions'), historyBeforeCloudInstall)
-
-  assert.deepEqual(
-    registry.getWorkoutProgramByIdAndVersion('upper-recomposition', '2.0.0'),
-    version2,
-  )
 
   const historyBeforeReload = storage.getItem('workoutSessions')
   const backupsBeforeReload = storage.getItem('workoutPlanBackups')

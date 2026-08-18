@@ -2422,8 +2422,21 @@
   gap: 16px;
 }
 
+/* Tab list plus the account action beside it. The account button is pinned to
+   the end so it never scrolls away with the tabs. */
+.settings-tabs-bar {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  /* Grid items default to min-width: auto, which would let the tab row push
+     the bar past the page column instead of scrolling inside it. */
+  min-width: 0;
+}
+
 .settings-tabs {
   display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 2px;
@@ -2463,6 +2476,40 @@
   color: var(--green);
   outline: none;
   transform: translateY(-1px);
+}
+
+.settings-auth-button {
+  align-items: center;
+  background: var(--red-soft);
+  border: 1px solid rgba(242, 97, 122, 0.28);
+  border-radius: 8px;
+  color: var(--red);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 14px;
+  font-weight: 950;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 14px;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.settings-auth-button:hover,
+.settings-auth-button:focus-visible {
+  border-color: rgba(242, 97, 122, 0.58);
+  color: #ff9aac;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.settings-auth-button:disabled {
+  cursor: progress;
+  opacity: 0.6;
+  transform: none;
 }
 
 .settings-notice {
@@ -3266,39 +3313,6 @@
   color: var(--soft);
 }
 
-.reminders-settings-panel {
-  gap: 16px;
-}
-
-.reminder-settings-section {
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 8px;
-  display: grid;
-  gap: 14px;
-  padding: 14px;
-}
-
-.settings-warning-copy {
-  background: var(--orange-soft);
-  border: 1px solid rgba(255, 138, 76, 0.3);
-  border-radius: 8px;
-  color: #ffb488;
-  font-weight: 900;
-  padding: 10px 12px;
-}
-
-.reminder-times-list {
-  display: grid;
-  gap: 10px;
-}
-
-.reminder-time-row {
-  align-items: end;
-  display: grid;
-  gap: 8px;
-}
-
 .icon-control-button {
   color: var(--red);
   min-height: 52px;
@@ -3308,10 +3322,6 @@
 @media (min-width: 620px) {
   .dashboard-reminder-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .reminder-time-row {
-    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .icon-control-button {
@@ -3401,11 +3411,6 @@
 .install-pwa-button--compact,
 .install-pwa-hint--compact {
   min-height: 44px;
-}
-
-.offline-sync-panel .install-pwa-button,
-.offline-sync-panel .install-pwa-hint {
-  min-height: 56px;
 }
 
 /* Auth pages (login / register / forgot) */
@@ -5266,7 +5271,8 @@
   }
 
   /* Settings / plan editor tabs, checkboxes, library list. */
-  .settings-tab {
+  .settings-tab,
+  .settings-auth-button {
     min-height: 38px;
   }
 

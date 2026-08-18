@@ -5,7 +5,6 @@ import {
   Database,
   Download,
   Images,
-  LogOut,
   RefreshCw,
   TriangleAlert,
   Upload,
@@ -34,10 +33,10 @@ const SUMMARY_ROWS = [
 ]
 
 export function CloudSyncPanel() {
-  const { isSupabaseConfigured, user, signOut } = useAuth()
+  const { isSupabaseConfigured, user } = useAuth()
   const cloudActive = isSupabaseConfigured && Boolean(user)
 
-  const [busy, setBusy] = useState('') // '', 'up', 'down', 'local', 'cloud', 'logout'
+  const [busy, setBusy] = useState('') // '', 'up', 'down', 'local', 'cloud'
   const [status, setStatus] = useState(null) // { tone, text }
   const [localSummary, setLocalSummary] = useState(null)
   const [cloudSummary, setCloudSummary] = useState(null)
@@ -147,12 +146,6 @@ export function CloudSyncPanel() {
     }
   }
 
-  async function handleLogout() {
-    setBusy('logout')
-    await signOut()
-    setBusy('')
-  }
-
   return (
     <article className="dashboard-card settings-panel cloud-panel">
       <div className="card-heading">
@@ -256,18 +249,6 @@ export function CloudSyncPanel() {
           >
             <RefreshCw size={18} strokeWidth={2.4} aria-hidden="true" />
             {busy === 'cloud' ? 'Checking...' : 'View Cloud Data Summary'}
-          </button>
-        ) : null}
-
-        {cloudActive ? (
-          <button
-            className="workout-secondary-button workout-secondary-button--danger"
-            disabled={busy !== ''}
-            onClick={handleLogout}
-            type="button"
-          >
-            <LogOut size={18} strokeWidth={2.4} aria-hidden="true" />
-            {busy === 'logout' ? 'Signing out...' : 'Logout'}
           </button>
         ) : null}
       </div>
