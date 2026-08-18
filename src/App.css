@@ -4296,7 +4296,9 @@
   display: block;
   height: auto;
   max-width: 100%;
-  object-fit: cover;
+  /* contain, not cover: the ExerciseDB demo GIFs are square, and cover cut the
+     head and feet off every standing figure. */
+  object-fit: contain;
   width: 100%;
 }
 
@@ -7177,40 +7179,44 @@ body {
   color: var(--green);
 }
 
-/* The rest ring is a button: tapping it runs or holds the countdown, so it
-   carries the play/pause glyph under the clock and reacts to the press. */
-.round-meter--rest {
+/* The middle ring is a button: it counts the rest between sets, or the set
+   itself on a timed exercise, and tapping it runs or holds whichever clock is
+   on it. Hence the play/pause glyph under the number, and the press state. */
+.round-meter--timer {
   border-color: #2f4a44;
   color: var(--soft);
   cursor: pointer;
   font-size: 17px;
   transition:
     border-color 0.15s ease,
+    color 0.15s ease,
     transform 0.1s ease;
 }
 
-.round-meter--rest svg {
+.round-meter--timer svg {
   opacity: 0.75;
 }
 
-.round-meter--rest:hover:not(:disabled),
-.round-meter--rest:focus-visible:not(:disabled) {
+.round-meter--timer:hover,
+.round-meter--timer:focus-visible {
   border-color: #5a897a;
   outline: none;
 }
 
-.round-meter--rest:active:not(:disabled) {
+.round-meter--timer:active {
   transform: scale(0.96);
 }
 
-.round-meter--rest:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.round-meter--rest-active {
+.round-meter--timer-running {
   border-color: #41665a;
   color: #7cc6ac;
+}
+
+/* A timed set that has reached the time it asked for. The clock keeps
+   running past it, so this is the only thing that says "that is enough". */
+.round-meter--timer-goal {
+  border-color: rgba(27, 210, 220, 0.6);
+  color: var(--green);
 }
 
 .round-meter--sets {

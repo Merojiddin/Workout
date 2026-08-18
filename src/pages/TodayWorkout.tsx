@@ -16,16 +16,16 @@ import {
   SkipForward,
   Square,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
 import { LiveExerciseImage } from '../components/LiveExerciseImage'
 import { LiveWorkoutHeader } from '../components/LiveWorkoutHeader'
 import { OptionalSetLog, type OptionalSetLogValues } from '../components/OptionalSetLog'
 import { ExerciseSwapSheet } from '../components/ExerciseSwapSheet'
+import { useLiveTimer } from '../hooks/useLiveTimer'
 import { LiveRoundStats } from '../components/LiveRoundStats'
 import { LiveSetTable } from '../components/LiveSetTable'
 import { RemainingExercises } from '../components/RemainingExercises'
-import { RestTimer } from '../components/RestTimer'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
 import { WorkoutFinishSummary } from '../components/WorkoutFinishSummary'
 import type { WorkoutSession } from '../data/workoutSessions'
@@ -50,7 +50,10 @@ import {
   type ActiveSet,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
-import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
+import {
+  getExerciseTarget,
+  parseDurationTarget,
+} from '../utils/exerciseLoggingUtils'
 import { getNutritionGuidance } from '../utils/postWorkoutNutrition'
 import {
   findLibraryExerciseForWorkout,
@@ -728,23 +731,58 @@ function LiveWorkoutScreen({
   const [swapOpen, setSwapOpen] = useState(false)
   const [showFormGuide, setShowFormGuide] = useState(false)
   const [pendingLog, setPendingLog] = useState<OptionalSetLogValues>(EMPTY_LOG)
-  // The rest ring is the only countdown on screen, so it mirrors the timer's
-  // state exactly -- including a paused clock, which must not snap back.
-  const [rest, setRest] = useState<{ secondsLeft: number; running: boolean } | null>(
-    null,
-  )
-  // Bumped by a tap on the rest ring, which runs or holds the countdown.
-  const [restToggle, setRestToggle] = useState(0)
+  // What the stopwatch counted for this set, offered to the log's Sec field.
+  const [timedSeconds, setTimedSeconds] = useState<number | null>(null)
 
   const exercise = getCurrentExercise(session)
   const exerciseIndex = session.currentExerciseIndex
   const setIndex = session.currentSetIndex
   const setKey = `${exerciseIndex}-${setIndex}`
 
+  // A timed exercise names how long the work lasts ("2 min", "20-40 sec"):
+  // the low end of that is the mark the stopwatch chimes on.
+  const timed = exercise?.loggingMode === 'duration'
+  const goalSeconds = useMemo(() => {
+    if (!timed) {
+      return null
+    }
+
+    return parseDurationTarget(exercise?.targetDuration || exercise?.targetReps)
+      .minSeconds
+  }, [exercise?.targetDuration, exercise?.targetReps, timed])
+
+  const timer = useLiveTimer({
+    exerciseKey: `${exerciseIndex}-${exercise?.exerciseId ?? ''}`,
+    goalSeconds,
+    restSeconds: exercise?.restSeconds ?? 0,
+    timed,
+  })
+
   // The pending values belong to one set only.
   useEffect(() => {
     setPendingLog(EMPTY_LOG)
+    setTimedSeconds(null)
   }, [setKey])
+
+  // Holding the stopwatch is how a timed set ends, so what it counted is
+  // handed to the log rather than typed in again.
+  useEffect(() => {
+    if (timer.mode === 'work' && !timer.running && timer.seconds > 0) {
+      setTimedSeconds(timer.seconds)
+    }
+  }, [timer.mode, timer.running, timer.seconds])
+
+  // A saved set sends the ring into its rest, or back to a fresh 0:00.
+  const firstRestSignal = useRef(restSignal)
+  useEffect(() => {
+    if (restSignal === firstRestSignal.current) {
+      return
+    }
+
+    timer.startRest()
+    // Only the signal should retrigger this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restSignal])
 
   if (!exercise) {
     // Not the training layout: there is nothing to train, so the app's own
@@ -892,24 +930,10 @@ function LiveWorkoutScreen({
           ) : null}
         </article>
 
-        {/* Headless: the countdown it keeps is drawn and driven by the rest
-            ring in the round stats below. */}
-        {exercise.restSeconds > 0 ? (
-          <RestTimer
-            autoStartSignal={restSignal}
-            onTick={(secondsLeft, isRunning) =>
-              setRest({ running: isRunning, secondsLeft })
-            }
-            restSeconds={exercise.restSeconds}
-            toggleSignal={restToggle}
-          />
-        ) : null}
-
         <LiveRoundStats
           exercise={exercise}
-          onToggleRest={() => setRestToggle((signal) => signal + 1)}
-          restRunning={rest?.running ?? false}
-          restSecondsLeft={rest?.secondsLeft ?? null}
+          onToggleTimer={timer.toggle}
+          timer={timer}
         />
 
         {/* Every set of this exercise, so what you lifted two sets ago is one
@@ -943,6 +967,7 @@ function LiveWorkoutScreen({
           onAddSet={onAddSet}
           onChange={setPendingLog}
           setKey={setKey}
+          timeSecondsHint={timedSeconds}
         />
 
         <div className="live-dock__row">

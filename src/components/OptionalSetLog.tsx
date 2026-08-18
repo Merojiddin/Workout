@@ -14,6 +14,8 @@ interface OptionalSetLogProps {
   setKey: string
   loggingMode: ExerciseLoggingMode
   initialData?: Partial<ActiveSet>
+  /** Seconds the ring counted for this set, dropped into the Sec field. */
+  timeSecondsHint?: number | null
   onChange: (values: OptionalSetLogValues) => void
   /** Adds one more set to this exercise than the plan asked for. */
   onAddSet: () => void
@@ -34,6 +36,7 @@ export function OptionalSetLog({
   setKey,
   loggingMode,
   initialData,
+  timeSecondsHint,
   onChange,
   onAddSet,
 }: OptionalSetLogProps) {
@@ -50,6 +53,20 @@ export function OptionalSetLog({
     // Only the identity of the set should retrigger this.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setKey])
+
+  // A timed set is ended by holding the ring, not by reading its clock and
+  // typing the number in again.
+  useEffect(() => {
+    if (loggingMode !== 'duration' || !timeSecondsHint) {
+      return
+    }
+
+    const value = String(Math.round(timeSecondsHint))
+    setSeconds(value)
+    report({ seconds: value })
+    // The hint is what changes; report reads the rest off this render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeSecondsHint, loggingMode])
 
   function report(next: Partial<Record<'reps' | 'seconds' | 'weight', string>>) {
     const values = {

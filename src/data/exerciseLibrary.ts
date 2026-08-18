@@ -48,6 +48,13 @@ export interface ExerciseMedia {
   videoUrl?: string
   videoType?: VideoType
   videoTitle?: string
+  /**
+   * Looping animation of the movement, shown alongside the video behind a
+   * toggle. Bundled under "/exercise-gifs/<id>.gif" so it works offline.
+   * Source: ExerciseDB (https://oss.exercisedb.dev).
+   */
+  gifUrl?: string
+  gifAlt?: string
 }
 
 export interface LibraryExercise extends ExerciseMedia {
@@ -5111,11 +5118,13 @@ const baseExerciseLibrary: LibraryExercise[] = [
 const exerciseMedia: Record<string, ExerciseMedia> = {
   // ---------------------------------------------------------------- Chest
   'bench-press': {
-    imageUrl: '/exercise-images/bench-press.png',
-    imageAlt: 'Barbell bench press setup on a flat bench',
+    imageUrl: '/exercise-gifs/bench-press.gif',
+    imageAlt: 'Animated barbell bench press demonstration',
     videoUrl: 'https://www.youtube.com/embed/4Y2ZdHCOXok',
     videoType: 'youtube',
     videoTitle: 'Bench Press Form Guide',
+    gifUrl: '/exercise-gifs/bench-press.gif',
+    gifAlt: 'Barbell bench press animation',
   },
   'weighted-push-up': {
     imageUrl: '/exercise-images/weighted-push-up.png',
@@ -5151,6 +5160,8 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
     videoUrl: 'https://www.youtube.com/embed/QENKPHhQVi4',
     videoType: 'youtube',
     videoTitle: 'Dumbbell Fly Form Guide',
+    gifUrl: '/exercise-gifs/dumbbell-fly.gif',
+    gifAlt: 'Dumbbell fly animation',
   },
   'diamond-push-up': {
     imageUrl: '/exercise-placeholders/chest.svg',
@@ -5158,15 +5169,19 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
     videoUrl: 'https://www.youtube.com/embed/J0DnG1_S92I',
     videoType: 'youtube',
     videoTitle: 'Diamond Push-up Form Guide',
+    gifUrl: '/exercise-gifs/diamond-push-up.gif',
+    gifAlt: 'Diamond push-up animation',
   },
 
   // ----------------------------------------------------------------- Back
   'pull-up': {
-    imageUrl: '/exercise-placeholders/back.svg',
-    imageAlt: 'Pull-up on a bar with an overhand grip',
+    imageUrl: '/exercise-gifs/pull-up.gif',
+    imageAlt: 'Animated pull-up demonstration',
     videoUrl: 'https://www.youtube.com/embed/MhokcbRLP5w',
     videoType: 'youtube',
     videoTitle: 'Pull-up Form Guide',
+    gifUrl: '/exercise-gifs/pull-up.gif',
+    gifAlt: 'Pull-up animation',
   },
   'weighted-pull-up': {
     imageUrl: '/exercise-placeholders/back.svg',
@@ -5220,8 +5235,8 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
     videoTitle: 'Pike Push-up Form Guide',
   },
   'dumbbell-lateral-raise': {
-    imageUrl: '/exercise-placeholders/shoulders.svg',
-    imageAlt: 'Dumbbell lateral raise to shoulder height',
+    imageUrl: '/exercise-gifs/dumbbell-lateral-raise.gif',
+    imageAlt: 'Animated dumbbell lateral raise demonstration',
     videoUrl: 'https://www.youtube.com/embed/XNKqPCDtC1k',
     videoType: 'youtube',
     videoTitle: 'Dumbbell Lateral Raise Form Guide',
@@ -5591,8 +5606,8 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
 
   // Close variants that reuse a bundled photo of the same movement pattern.
   'goblet-squat': {
-    imageUrl: '/exercise-images/heels-elevated-goblet-squat.png',
-    imageAlt: 'Goblet squat holding a dumbbell at the chest',
+    imageUrl: '/exercise-gifs/goblet-squat.gif',
+    imageAlt: 'Animated goblet squat demonstration',
   },
   'smith-machine-bulgarian-split-squat': {
     imageUrl: '/exercise-images/bulgarian-split-squat.png',

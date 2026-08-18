@@ -1,42 +1,37 @@
 import { Pause, Play } from 'lucide-react'
 
+import type { LiveTimerView } from '../hooks/useLiveTimer'
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
 import type { ActiveExercise } from '../utils/liveWorkoutUtils'
 import { isDoneSet } from '../utils/liveWorkoutUtils'
 
 interface LiveRoundStatsProps {
   exercise: ActiveExercise
-  /** Seconds left on the rest countdown, or null before it reports in. */
-  restSecondsLeft: number | null
-  /** Whether that countdown is ticking, as opposed to paused or untouched. */
-  restRunning: boolean
-  /** Runs or holds the rest countdown - the ring is the only control for it. */
-  onToggleRest: () => void
+  /** What the middle ring is counting, and how far along it is. */
+  timer: LiveTimerView
+  /** Runs or holds that clock - the ring is the only control for it. */
+  onToggleTimer: () => void
 }
 
 /**
- * The three numbers you actually glance at between sets: what to hit, how long
- * is left of the rest, and how much of this exercise is behind you.
+ * The three numbers you actually glance at between sets: what to hit, the
+ * clock, and how much of this exercise is behind you.
  *
  * Each is a ring rather than a line of text because they are read at arm's
  * length, mid-set, without your reading glasses on.
  */
 export function LiveRoundStats({
   exercise,
-  onToggleRest,
-  restRunning,
-  restSecondsLeft,
+  onToggleTimer,
+  timer,
 }: LiveRoundStatsProps) {
   const doneSets = exercise.sets.filter(isDoneSet).length
   const totalSets = exercise.sets.length
-  // A finished or untouched countdown shows the rest this exercise asks for;
-  // anything part-way through shows where it actually stands.
-  const started =
-    restSecondsLeft !== null &&
-    restSecondsLeft > 0 &&
-    restSecondsLeft < exercise.restSeconds
-  const resting = restRunning && restSecondsLeft !== null && restSecondsLeft > 0
-  const showClock = resting || started
+  const timing = timer.mode === 'work'
+  // A clock that has been touched but is not moving is paused; one sitting at
+  // its starting value has simply not been run yet.
+  const held =
+    !timer.running && (timing ? timer.seconds > 0 : timer.seconds < exercise.restSeconds)
 
   return (
     <div className="round-stats">
@@ -48,29 +43,22 @@ export function LiveRoundStats({
       </div>
 
       <div className="round-stat">
-        {/* The ring is the rest timer's only control: the clock you read
-            between sets is the thing you tap to hold or restart it. */}
+        {/* The ring is the timer's only control: the clock you read between
+            sets is the thing you tap to run or hold it. */}
         <button
-          aria-label={
-            resting ? 'Pause the rest countdown' : 'Start the rest countdown'
-          }
-          className={`round-meter round-meter--rest${
-            resting ? ' round-meter--rest-active' : ''
-          }`}
-          disabled={exercise.restSeconds <= 0}
-          onClick={onToggleRest}
+          aria-label={timerLabel(timing, timer.running)}
+          className={meterClass(timer)}
+          onClick={onToggleTimer}
           type="button"
         >
-          <span aria-live="polite">
-            {formatClock(showClock ? (restSecondsLeft as number) : exercise.restSeconds)}
-          </span>
-          {resting ? (
+          <span aria-live="polite">{formatClock(timer.seconds)}</span>
+          {timer.running ? (
             <Pause size={13} strokeWidth={2.6} aria-hidden="true" />
           ) : (
             <Play size={13} strokeWidth={2.6} aria-hidden="true" />
           )}
         </button>
-        <small>{resting ? 'Resting' : started ? 'Paused' : 'Rest'}</small>
+        <small>{timerCaption(timer, held)}</small>
       </div>
 
       <div className="round-stat">
@@ -83,6 +71,39 @@ export function LiveRoundStats({
       </div>
     </div>
   )
+}
+
+function meterClass(timer: LiveTimerView): string {
+  const classes = ['round-meter', 'round-meter--timer']
+  if (timer.running) {
+    classes.push('round-meter--timer-running')
+  }
+  if (timer.pastGoal) {
+    classes.push('round-meter--timer-goal')
+  }
+
+  return classes.join(' ')
+}
+
+function timerLabel(timing: boolean, running: boolean): string {
+  if (timing) {
+    return running ? 'Pause the set timer' : 'Start the set timer'
+  }
+
+  return running ? 'Pause the rest countdown' : 'Start the rest countdown'
+}
+
+/** One word under the ring for what the clock is doing. */
+function timerCaption(timer: LiveTimerView, held: boolean): string {
+  if (timer.mode === 'rest') {
+    return timer.running ? 'Resting' : held ? 'Paused' : 'Rest'
+  }
+
+  if (timer.pastGoal) {
+    return timer.running ? 'Time hit' : 'Done'
+  }
+
+  return timer.running ? 'Timing' : held ? 'Paused' : 'Time'
 }
 
 /**
