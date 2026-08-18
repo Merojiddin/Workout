@@ -296,7 +296,34 @@ OPTIONAL EXTRAS - only if my plan actually contains them
 - "benchmarkExerciseIds": ["bench-press", "squat"] - the lifts progress is measured on. Use ids from the list above.
 - Per exercise: "targetRir": "1-2" and "guidance": ["short note"].
 - "standaloneWorkouts" only if every exercise id in them comes from the list above; unknown ids are rejected there.
-- Never use "optional": true or "alternatives". This app version hides optional exercises and rejects most alternatives blocks.
+- Never use "optional": true. This app version hides optional exercises, so anything marked optional simply will not appear.
+
+HOME/GYM ALTERNATIVES ("alternatives") - worth adding
+An exercise may offer the same movement done with different kit. The app uses these two ways: the Home/Gym switch on the workout screen picks the right variant, and during a workout a Swap button lets me change movement without leaving the session - so a busy rack or a sore shoulder does not end the workout. Add them wherever a movement has a sensible substitute.
+{
+  "id": "incline-dumbbell-press",
+  "name": "Incline Dumbbell Press",
+  "sets": 4, "repRange": "8-12", "restSeconds": 120,
+  "muscleGroup": "Chest", "equipment": "Dumbbells",
+  "formTips": ["A short cue"],
+  "alternatives": {
+    "home": [
+      {"id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "equipment": "Dumbbells"},
+      {"id": "feet-elevated-push-up", "name": "Feet-Elevated Push-Up", "equipment": "Bodyweight"}
+    ],
+    "gym": [
+      {"id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "equipment": "Dumbbells"},
+      {"id": "incline-smith-machine-press", "name": "Incline Smith Machine Press", "equipment": "Smith machine"}
+    ]
+  }
+}
+These rules are strict. All but the first reject the whole program; the first one is worse, because it fails quietly:
+- Give BOTH "home" and "gym". An exercise that has "alternatives" but no list for the location I am training in is dropped from that day entirely, without warning.
+- Every variant "id" MUST come from the EXERCISE IDS list above. Invented ids are allowed for a plain exercise, but inside "alternatives" they are a hard error.
+- The exercise's own "id" must itself appear as one of the variants. It is the default choice, not a separate thing.
+- Each variant needs "id", "name" and "equipment". It may add "repRange" OR "duration" (never both) when that variant uses a different target, and "formTips".
+- Variant ids must be unique within each location list.
+- Optional: "defaultVariantIds": ["incline-dumbbell-press"] to pick the starting variant. Every id in it must be one of the variants above.
 
 BUILDING IT FOR ME
 Use ABOUT ME above as the brief: fit the split, exercise choice, volume and

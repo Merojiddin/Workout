@@ -144,11 +144,6 @@ export function RestTimer({
       className={`rest-timer${isComplete ? ' rest-timer--done' : ''}`}
       aria-label="Rest timer"
     >
-      <strong aria-live="polite">{formatSeconds(secondsLeft)}</strong>
-      <span className="rest-timer__label">
-        {isRunning ? 'Resting' : isComplete ? 'Rest done' : `${duration} sec rest`}
-      </span>
-
       {/* Three controls only: run it, stretch it, or leave it. "Reset" was a
           fourth button that did what pause + start already does. */}
       <div className="timer-actions">
@@ -297,12 +292,4 @@ function beep() {
   } catch {
     // Audio is best-effort (autoplay policies, unsupported browsers).
   }
-}
-
-function formatSeconds(totalSeconds: number) {
-  const safe = Math.max(0, totalSeconds)
-  const minutes = Math.floor(safe / 60)
-  const seconds = safe % 60
-
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }

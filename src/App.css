@@ -397,14 +397,6 @@
   padding: 18px;
 }
 
-.rest-timer strong {
-  color: var(--text);
-  display: block;
-  font-size: 24px;
-  line-height: 1;
-  text-align: center;
-}
-
 .timer-actions {
   display: grid;
   gap: 9px;
@@ -6758,54 +6750,19 @@ body {
   padding-top: 10px;
 }
 
-/* The countdown and its three buttons share one line: at this size the timer
-   is still the loudest thing in the dock without costing a whole card. */
+/* Rest controls only. The countdown itself is the ring above, so the dock
+   carries the three buttons and nothing else. */
 .workout-page--live .rest-timer {
   align-items: center;
   background: none;
   border: none;
   border-radius: 0;
   box-shadow: none;
-  column-gap: 12px;
-  grid-template-areas:
-    'time actions'
-    'label actions';
-  grid-template-columns: auto minmax(0, 1fr);
   padding: 0;
-  row-gap: 0;
-}
-
-.workout-page--live .rest-timer strong {
-  font-size: 32px;
-  font-variant-numeric: tabular-nums;
-  font-weight: 900;
-  grid-area: time;
-  letter-spacing: -1px;
-  min-width: 78px;
-  text-align: left;
-}
-
-.workout-page--live .rest-timer--done strong {
-  color: var(--green);
-}
-
-.workout-page--live .rest-timer__label {
-  grid-area: label;
-  margin: -2px 0 0;
-  text-align: left;
-}
-
-.rest-timer__label {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .workout-page--live .timer-actions {
   gap: 6px;
-  grid-area: actions;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -8295,11 +8252,6 @@ body {
 @media (min-width: 620px) {
   .live-dock__main {
     grid-template-columns: 62px minmax(0, 1fr);
-  }
-
-  .workout-page--live .rest-timer strong {
-    font-size: 38px;
-    min-width: 94px;
   }
 }
 
