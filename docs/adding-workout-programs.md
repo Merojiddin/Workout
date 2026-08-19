@@ -26,11 +26,24 @@ and tells the chat to avoid the fields this app version hides or rejects
 (`optional`, `alternatives`). Keep it in step with
 `src/utils/workoutProgramValidation.ts` whenever the accepted shape changes.
 
+The prompt exists in both languages (`src/i18n/locales/{en,vi}/prompt.ts`) and
+asks for a bilingual program either way: every string a person reads comes back
+as `English (Tiếng Việt)` in one string, so the same JSON reads in both
+languages without a schema change or a language switch. Fields the app matches
+on or translates itself — every `id`, plus `muscleGroup`, `equipment`, `focus`,
+`repRange`, `duration`, `estimatedTime` and `targetRir` — stay English-only:
+`muscleGroup` is keyword-matched in `weeklyReviewUtils.js` and used verbatim as
+a chart label in `trainingProgressUtils.ts`, and `equipment` is translated for
+display through `src/i18n/exercises/terms.ts`.
+
 Exercise IDs that are not in the bundled Exercise Library are accepted with a
 warning. Those exercises track fully (sets, reps, rest, form tips come from the
 program JSON) but have no built-in form guide, image, or demo video. Reuse the
 IDs listed in the AI prompt wherever a movement matches to get that media; an
-exercise whose `name` matches a library entry exactly also resolves.
+exercise whose `name` matches a library entry exactly also resolves — and
+because `findLibraryExerciseForWorkout()` strips bracketed text before
+matching, the bilingual `Bench Press (Đẩy ngực nằm)` form resolves too. A
+Vietnamese-only name does not, which is why the prompt puts English first.
 
 ## 2. Bundle it with the app (requires a deploy)
 
