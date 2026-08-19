@@ -146,9 +146,9 @@ function demos(query: string): DemoLink[] {
   return [ytForm(query), ytMistakes(query)]
 }
 
-type V21ProgressionMode = 'load' | 'skill' | 'control'
+type ProgressionMode = 'load' | 'skill' | 'control'
 
-interface V21ExerciseSeed {
+interface ExerciseSeed {
   id: string
   name: string
   category: ExerciseCategory
@@ -161,7 +161,7 @@ interface V21ExerciseSeed {
   execution: string
   safety?: string
   relatedWorkoutDays: number[]
-  progressionMode?: V21ProgressionMode
+  progressionMode?: ProgressionMode
   progression?: string[]
   regression?: string[]
   postureNotes?: string
@@ -180,11 +180,13 @@ const categoryPlaceholder: Record<ExerciseCategory, string> = {
 }
 
 /**
- * V2.1 adds many equipment-specific variants. Keeping the shared guide copy in
- * one factory makes each variant a complete LibraryExercise without pretending
- * that machine, cable, Smith, band, and free-weight loads are interchangeable.
+ * Many entries are the same movement on different equipment (cable, machine,
+ * Smith, band, free weight). Keeping the shared guide copy in one factory makes
+ * each of them a complete LibraryExercise without pretending that those loads
+ * are interchangeable. This is the normal way to add an exercise; write a full
+ * LibraryExercise literal only when the movement needs bespoke coaching copy.
  */
-function createV21Exercise(seed: V21ExerciseSeed): LibraryExercise {
+function createExercise(seed: ExerciseSeed): LibraryExercise {
   const progressionMode = seed.progressionMode ?? 'load'
   const progression =
     seed.progression ??
@@ -252,9 +254,9 @@ function createV21Exercise(seed: V21ExerciseSeed): LibraryExercise {
   }
 }
 
-const v21ExerciseLibrary: LibraryExercise[] = [
+const templatedExercises: LibraryExercise[] = [
   // ----------------------------------------------------------------- Back
-  createV21Exercise({
+  createExercise({
     id: 'assisted-pull-up',
     name: 'Assisted Pull-Up',
     category: 'Back',
@@ -271,7 +273,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Keep the neck long; do not reach the chin toward the handles.',
     relatedWorkoutDays: [1],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'neutral-grip-lat-pulldown',
     name: 'Neutral-Grip Lat Pulldown',
     category: 'Back',
@@ -288,7 +290,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Finish with the arms and shoulder blades rather than extending the neck.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'neutral-grip-pull-up',
     name: 'Neutral-Grip Pull-Up',
     category: 'Back',
@@ -304,7 +306,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Keep the ribs controlled and do not finish by craning the neck.',
     relatedWorkoutDays: [6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'chest-supported-machine-row',
     name: 'Chest-Supported Machine Row',
     category: 'Back',
@@ -320,7 +322,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Do not jerk the load or poke the chin forward to finish.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'chest-supported-t-bar-row',
     name: 'Chest-Supported T-Bar Row',
     category: 'Back',
@@ -335,7 +337,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Keep the neck relaxed and stop before the shoulders roll forward uncontrollably.',
     relatedWorkoutDays: [1],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-row',
     name: 'Seated Cable Row',
     category: 'Back',
@@ -350,7 +352,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Do not create range by rounding or overextending the spine.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'machine-row',
     name: 'Seated Machine Row',
     category: 'Back',
@@ -367,7 +369,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Keep the head over the ribs rather than reaching the chin toward the pad.',
     relatedWorkoutDays: [6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'one-arm-cable-row',
     name: 'One-Arm Cable Row',
     category: 'Back',
@@ -382,7 +384,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Reduce the load if the torso twists or the shoulder shrugs.',
     relatedWorkoutDays: [1],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'one-arm-machine-row',
     name: 'One-Arm Machine Row',
     category: 'Back',
@@ -401,7 +403,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // ------------------------------------------------------------ Shoulders
-  createV21Exercise({
+  createExercise({
     id: 'incline-bench-rear-delt-raise',
     name: 'Incline-Bench Rear-Delt Dumbbell Raise',
     category: 'Shoulders',
@@ -418,7 +420,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Use a load that lets the neck and upper traps stay relaxed.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'reverse-pec-deck',
     name: 'Reverse Pec Deck',
     category: 'Shoulders',
@@ -433,7 +435,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Avoid forcing the handles behind a comfortable shoulder range.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-rear-delt-fly',
     name: 'Cable Rear-Delt Fly',
     category: 'Shoulders',
@@ -450,7 +452,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Keep the shoulders away from the ears and avoid a forceful end range.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-lateral-raise',
     name: 'Cable Lateral Raise',
     category: 'Shoulders',
@@ -465,7 +467,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Reduce the load if the torso sways or the shoulder shrugs.',
     relatedWorkoutDays: [1, 4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'lateral-raise-machine',
     name: 'Lateral Raise Machine',
     category: 'Shoulders',
@@ -480,7 +482,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Use a pain-free arc and keep the neck relaxed.',
     relatedWorkoutDays: [1, 4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'supported-seated-dumbbell-press',
     name: 'Supported Seated Dumbbell Press',
     category: 'Shoulders',
@@ -496,7 +498,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not gain range by jutting the chin or arching away from the backrest.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'high-incline-one-arm-dumbbell-press',
     name: 'High-Incline One-Arm Dumbbell Press',
     category: 'Shoulders',
@@ -513,7 +515,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use only symptom-free range and keep the ribs stacked over the pelvis.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'landmine-press',
     name: 'Landmine Press',
     category: 'Shoulders',
@@ -528,7 +530,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Do not lean back or twist to finish the press.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'machine-shoulder-press',
     name: 'Machine Shoulder Press',
     category: 'Shoulders',
@@ -544,7 +546,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Keep the ribs down and avoid forcing a deep bottom position.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'push-up-plus',
     name: 'Push-Up Plus',
     category: 'Posture',
@@ -564,7 +566,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     progressionMode: 'control',
     postureFocus: true,
   }),
-  createV21Exercise({
+  createExercise({
     id: 'band-face-pull',
     name: 'Light Band Face Pull',
     category: 'Posture',
@@ -584,7 +586,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     progressionMode: 'control',
     postureFocus: true,
   }),
-  createV21Exercise({
+  createExercise({
     id: 'band-pull-apart',
     name: 'Band Pull-Apart',
     category: 'Posture',
@@ -603,7 +605,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     progressionMode: 'control',
     postureFocus: true,
   }),
-  createV21Exercise({
+  createExercise({
     id: 'wall-slide',
     name: 'Wall Slide',
     category: 'Posture',
@@ -625,7 +627,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // ----------------------------------------------------------------- Arms
-  createV21Exercise({
+  createExercise({
     id: 'bayesian-cable-curl',
     name: 'Bayesian Cable Curl',
     category: 'Arms',
@@ -642,7 +644,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not force the shoulder farther behind the body than feels comfortable.',
     relatedWorkoutDays: [1],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'preacher-curl',
     name: 'Preacher Curl',
     category: 'Arms',
@@ -658,7 +660,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Avoid bouncing or relaxing suddenly at the bottom of the curl.',
     relatedWorkoutDays: [1, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-curl',
     name: 'Cable Curl',
     category: 'Arms',
@@ -674,7 +676,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Reduce the load if the shoulders roll forward or the torso leans back.',
     relatedWorkoutDays: [6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'rope-hammer-curl',
     name: 'Rope Hammer Curl',
     category: 'Arms',
@@ -690,7 +692,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Keep the wrists neutral and do not lean back to finish.',
     relatedWorkoutDays: [1],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'resistance-band-overhead-triceps-extension',
     name: 'Resistance-Band Overhead Triceps Extension',
     category: 'Arms',
@@ -708,7 +710,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use a band and range that do not irritate the elbows or shoulders.',
     relatedWorkoutDays: [4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-overhead-triceps-extension',
     name: 'Cable Overhead Triceps Extension',
     category: 'Arms',
@@ -724,7 +726,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Keep the ribs controlled and use symptom-free shoulder range.',
     relatedWorkoutDays: [4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'resistance-band-triceps-pressdown',
     name: 'Resistance-Band Triceps Pressdown',
     category: 'Arms',
@@ -741,7 +743,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Check the anchor before every set and keep the band away from the face.',
     relatedWorkoutDays: [4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-triceps-pressdown',
     name: 'Cable Triceps Pressdown',
     category: 'Arms',
@@ -761,7 +763,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // ----------------------------------------------------------------- Legs
-  createV21Exercise({
+  createExercise({
     id: 'countermovement-jump',
     name: 'Countermovement Jump',
     category: 'Legs',
@@ -785,7 +787,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Increase jump intent without adding fatigue',
     ],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'box-jump',
     name: 'Box Jump',
     category: 'Legs',
@@ -809,7 +811,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use a slightly higher box only if landing mechanics stay identical',
     ],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'goblet-squat',
     name: 'Heavy Goblet Squat',
     category: 'Legs',
@@ -826,7 +828,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Stop before the pelvis or lower back loses a comfortable neutral position.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'double-dumbbell-squat',
     name: 'Double-Dumbbell Squat',
     category: 'Legs',
@@ -842,7 +844,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Choose the loading position that keeps the wrists, shoulders, and back comfortable.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'hack-squat',
     name: 'Hack Squat',
     category: 'Legs',
@@ -858,7 +860,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not descend farther than the pelvis and lower back can remain supported.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'pendulum-squat',
     name: 'Pendulum Squat',
     category: 'Legs',
@@ -875,7 +877,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use the safety stops and a depth that remains comfortable for knees and hips.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'leg-press',
     name: 'Leg Press',
     category: 'Legs',
@@ -892,7 +894,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Stop the descent before the pelvis tucks or the lower back lifts from the pad.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'smith-machine-squat',
     name: 'Smith Machine Squat',
     category: 'Legs',
@@ -908,7 +910,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Test the rack hooks and safeties before loading working weight.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'smith-machine-bulgarian-split-squat',
     name: 'Smith Machine Bulgarian Split Squat',
     category: 'Legs',
@@ -924,7 +926,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Confirm the hooks can be engaged safely from the split stance.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'leg-extension',
     name: 'Leg Extension',
     category: 'Legs',
@@ -940,7 +942,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Use a pain-free range and avoid kicking the pad with momentum.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'resistance-band-leg-curl',
     name: 'Resistance-Band Leg Curl',
     category: 'Legs',
@@ -956,7 +958,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Check the band and anchor for damage before every set.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'seated-leg-curl',
     name: 'Seated Leg Curl',
     category: 'Legs',
@@ -973,7 +975,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not let the weight pull the knees into a forceful locked position.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'lying-leg-curl',
     name: 'Lying Leg Curl',
     category: 'Legs',
@@ -989,7 +991,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Reduce the load if the lower back arches or the pelvis leaves the pad.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'weighted-single-leg-calf-raise',
     name: 'Weighted Single-Leg Calf Raise',
     category: 'Legs',
@@ -1006,7 +1008,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Keep the ankle aligned and stop if the Achilles tendon or foot feels painful.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'standing-calf-machine-raise',
     name: 'Standing Calf Machine Raise',
     category: 'Legs',
@@ -1023,7 +1025,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Keep the machine safeties engaged and avoid bouncing out of the bottom.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'seated-calf-machine-raise',
     name: 'Seated Calf Machine Raise',
     category: 'Legs',
@@ -1039,7 +1041,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Release and engage the machine stop only while the heels are supported.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'leg-press-calf-raise',
     name: 'Leg-Press Calf Raise',
     category: 'Legs',
@@ -1056,7 +1058,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use safeties and never place the feet so low that they can slide off the platform.',
     relatedWorkoutDays: [2, 5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'dumbbell-romanian-deadlift',
     name: 'Dumbbell Romanian Deadlift',
     category: 'Legs',
@@ -1072,7 +1074,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Stop before lumbar position changes and keep the neck neutral throughout.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'smith-machine-romanian-deadlift',
     name: 'Smith Machine Romanian Deadlift',
     category: 'Legs',
@@ -1088,7 +1090,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Stop before the lower back rounds or the neck changes position.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'front-foot-elevated-dumbbell-reverse-lunge',
     name: 'Front-Foot-Elevated Dumbbell Reverse Lunge',
     category: 'Legs',
@@ -1105,7 +1107,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Use a low non-slip elevation and stop before balance or pelvic control changes.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'front-foot-elevated-smith-reverse-lunge',
     name: 'Front-Foot-Elevated Smith Reverse Lunge',
     category: 'Legs',
@@ -1122,7 +1124,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Confirm the hooks and safety height can be reached from the lunge stance.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'dumbbell-hip-thrust',
     name: 'Dumbbell Hip Thrust',
     category: 'Legs',
@@ -1139,7 +1141,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not hyperextend the lower back or let the dumbbell roll toward the abdomen.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'smith-machine-hip-thrust',
     name: 'Smith Machine Hip Thrust',
     category: 'Legs',
@@ -1156,7 +1158,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Check bench stability and do not finish by extending the neck or lower back.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'hip-thrust-machine',
     name: 'Hip-Thrust Machine',
     category: 'Legs',
@@ -1172,7 +1174,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not chase range by arching the lower back or throwing the head back.',
     relatedWorkoutDays: [5],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'suitcase-hold',
     name: 'Suitcase Hold',
     category: 'Abs',
@@ -1193,7 +1195,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Increase load only while the torso stays level',
     ],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'captains-chair-knee-raise',
     name: "Captain's Chair Knee Raise",
     category: 'Abs',
@@ -1211,7 +1213,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // ---------------------------------------------------------------- Chest
-  createV21Exercise({
+  createExercise({
     id: 'high-incline-dumbbell-press',
     name: 'High-Incline Dumbbell Press',
     category: 'Chest',
@@ -1228,7 +1230,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not gain range by jutting the chin or excessively arching the lower back.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'incline-smith-machine-press',
     name: 'Incline Smith Machine Press',
     category: 'Chest',
@@ -1244,7 +1246,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Test the hooks and safety stops before the working set.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'incline-chest-press-machine',
     name: 'Incline Chest Press Machine',
     category: 'Chest',
@@ -1260,7 +1262,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Avoid lifting the chest or head from the pad to gain range.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'dumbbell-bench-press',
     name: 'Dumbbell Bench Press',
     category: 'Chest',
@@ -1276,7 +1278,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Do not use lower-back arch or chin reach to create extra range.',
     relatedWorkoutDays: [4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'chest-press-machine',
     name: 'Chest Press Machine',
     category: 'Chest',
@@ -1292,7 +1294,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Avoid forcing a deep start position that rolls the shoulders forward.',
     relatedWorkoutDays: [4, 6],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-chest-fly',
     name: 'Cable Fly',
     category: 'Chest',
@@ -1308,7 +1310,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Do not let the cables pull the shoulders into an uncontrolled end range.',
     relatedWorkoutDays: [4],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'pec-deck',
     name: 'Pec Deck',
     category: 'Chest',
@@ -1327,7 +1329,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // ------------------------------------------------------------------ Abs
-  createV21Exercise({
+  createExercise({
     id: 'resistance-band-kneeling-crunch',
     name: 'Resistance-Band Kneeling Crunch',
     category: 'Abs',
@@ -1343,7 +1345,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Check the anchor and keep the band clear of the face.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-kneeling-crunch',
     name: 'Cable Kneeling Crunch',
     category: 'Abs',
@@ -1359,7 +1361,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     safety: 'Do not use a heavy load that turns the movement into a hip hinge.',
     relatedWorkoutDays: [2],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'resistance-band-pallof-press',
     name: 'Resistance-Band Pallof Press',
     category: 'Abs',
@@ -1377,7 +1379,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [2],
     progressionMode: 'control',
   }),
-  createV21Exercise({
+  createExercise({
     id: 'cable-pallof-press',
     name: 'Cable Pallof Press',
     category: 'Abs',
@@ -1396,7 +1398,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // --------------------------------------------------------- Conditioning
-  createV21Exercise({
+  createExercise({
     id: 'boxing-footwork-drill',
     name: 'Boxing Footwork Drill',
     category: 'Conditioning',
@@ -1415,7 +1417,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [3],
     progressionMode: 'skill',
   }),
-  createV21Exercise({
+  createExercise({
     id: 'shadowboxing',
     name: 'Shadowboxing',
     category: 'Conditioning',
@@ -1433,7 +1435,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [3],
     progressionMode: 'skill',
   }),
-  createV21Exercise({
+  createExercise({
     id: 'boxing-defense-drill',
     name: 'Boxing Defense Drill',
     category: 'Conditioning',
@@ -1452,7 +1454,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [3],
     progressionMode: 'skill',
   }),
-  createV21Exercise({
+  createExercise({
     id: 'heavy-bag-boxing',
     name: 'Heavy-Bag Boxing',
     category: 'Conditioning',
@@ -1471,7 +1473,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     relatedWorkoutDays: [3, 6],
     progressionMode: 'skill',
   }),
-  createV21Exercise({
+  createExercise({
     id: 'rotational-medicine-ball-throw',
     name: 'Rotational Medicine-Ball Throw',
     category: 'Conditioning',
@@ -1495,7 +1497,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'Increase intent before considering a heavier medicine ball',
     ],
   }),
-  createV21Exercise({
+  createExercise({
     id: 'brisk-walking',
     name: 'Brisk Walking',
     category: 'Conditioning',
@@ -1521,7 +1523,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
   }),
 
   // -------------------------------------------------------------- Posture
-  createV21Exercise({
+  createExercise({
     id: 'chin-tuck',
     name: 'Chin Tuck',
     category: 'Posture',
@@ -1541,7 +1543,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
       'This is a light movement-control drill, not a structural correction. Keep it symptom-free and avoid pressing the head forcefully backward.',
     postureFocus: true,
   }),
-  createV21Exercise({
+  createExercise({
     id: 'thoracic-extension-reach',
     name: 'Thoracic Extension / Reach',
     category: 'Posture',
@@ -1561,7 +1563,7 @@ const v21ExerciseLibrary: LibraryExercise[] = [
     progressionMode: 'control',
     postureFocus: true,
   }),
-  createV21Exercise({
+  createExercise({
     id: 'four-way-neck-isometric',
     name: 'Four-Way Neck Isometric',
     category: 'Posture',
@@ -5099,7 +5101,7 @@ const baseExerciseLibrary: LibraryExercise[] = [
     demoLinks: demos('easy recovery walking posture'),
     relatedWorkoutDays: [7],
   },
-  ...v21ExerciseLibrary,
+  ...templatedExercises,
 ]
 
 // ---------------------------------------------------------------------------
