@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import type { WorkoutProgramValidationResult } from '../types/workoutProgram'
 
 export interface WorkoutProgramValidationOptions {
@@ -15,34 +16,34 @@ export function validateWorkoutProgram(
   if (!isPlainObject(program)) {
     return {
       valid: false,
-      errors: ['Program is not an object.'],
+      errors: [t('valid.notObject')],
       warnings,
     }
   }
 
   if (!isNonEmptyString(program.id)) {
-    errors.push('Missing or empty program id.')
+    errors.push(t('valid.missingId'))
   }
   if (!isNonEmptyString(program.name)) {
-    errors.push('Missing or empty name.')
+    errors.push(t('valid.missingName'))
   }
   if (!isNonEmptyString(program.version)) {
-    errors.push('Missing or empty version.')
+    errors.push(t('valid.missingVersion'))
   }
   if (!isValidDateString(program.updatedAt)) {
-    errors.push('Missing or invalid updatedAt.')
+    errors.push(t('valid.missingUpdatedAt'))
   }
   if (
     program.durationWeeks !== undefined &&
     !isPositiveInteger(program.durationWeeks)
   ) {
-    errors.push('durationWeeks must be a positive integer when supplied.')
+    errors.push(t('valid.durationWeeks'))
   }
   if (
     program.normalWeeklyDays !== undefined &&
     !isPositiveInteger(program.normalWeeklyDays)
   ) {
-    errors.push('normalWeeklyDays must be a positive integer when supplied.')
+    errors.push(t('valid.normalWeeklyDays'))
   }
 
   if (
@@ -50,30 +51,30 @@ export function validateWorkoutProgram(
     (typeof program.description === 'string' &&
       program.description.trim().length === 0)
   ) {
-    warnings.push('Missing optional description.')
+    warnings.push(t('valid.missingDescription'))
   } else if (typeof program.description !== 'string') {
-    errors.push('Description must be a string when supplied.')
+    errors.push(t('valid.descriptionType'))
   }
   if (program.goals === undefined || program.goals === null) {
-    warnings.push('Empty goals.')
+    warnings.push(t('valid.emptyGoals'))
   } else if (!Array.isArray(program.goals)) {
-    errors.push('Goals must be an array of strings.')
+    errors.push(t('valid.goalsArray'))
   } else if (program.goals.length === 0) {
-    warnings.push('Empty goals.')
+    warnings.push(t('valid.emptyGoals'))
   } else if (!program.goals.every(isNonEmptyString)) {
-    errors.push('Goals must contain only non-empty strings.')
+    errors.push(t('valid.goalsStrings'))
   }
   if (
     program.benchmarkExerciseIds === undefined ||
     program.benchmarkExerciseIds === null
   ) {
-    warnings.push('Empty benchmark list.')
+    warnings.push(t('valid.emptyBenchmarks'))
   } else if (!Array.isArray(program.benchmarkExerciseIds)) {
-    errors.push('Benchmark exercise IDs must be an array of strings.')
+    errors.push(t('valid.benchmarksArray'))
   } else if (program.benchmarkExerciseIds.length === 0) {
-    warnings.push('Empty benchmark list.')
+    warnings.push(t('valid.emptyBenchmarks'))
   } else if (!program.benchmarkExerciseIds.every(isNonEmptyString)) {
-    errors.push('Benchmark exercise IDs must contain only non-empty strings.')
+    errors.push(t('valid.benchmarksStrings'))
   }
   validateRules(program.rules, errors)
   validateProgressionPhases(
@@ -85,12 +86,12 @@ export function validateWorkoutProgram(
   validateStandaloneWorkouts(program.standaloneWorkouts, options, errors)
 
   if (!Array.isArray(program.days) || program.days.length === 0) {
-    errors.push('Missing or empty days array.')
+    errors.push(t('valid.missingDays'))
     return { valid: false, errors, warnings }
   }
 
   if (program.days.length !== 7) {
-    warnings.push('Program does not have exactly seven days.')
+    warnings.push(t('valid.notSevenDays'))
   }
 
   const seenDayNumbers = new Set<number>()
@@ -215,7 +216,7 @@ export function validateWorkoutProgram(
   if (
     uniqueSortedDays.some((dayNumber, index) => dayNumber !== index + 1)
   ) {
-    warnings.push('Day numbers are not sequential.')
+    warnings.push(t('valid.daysNotSequential'))
   }
 
   return { valid: errors.length === 0, errors, warnings }
@@ -230,7 +231,7 @@ function validateStandaloneWorkouts(
     return
   }
   if (!Array.isArray(value)) {
-    errors.push('standaloneWorkouts must be an array when supplied.')
+    errors.push(t('valid.standaloneWorkouts'))
     return
   }
 
@@ -576,7 +577,7 @@ function validateRules(value: unknown, errors: string[]) {
     return
   }
   if (!isPlainObject(value)) {
-    errors.push('Rules must be an object.')
+    errors.push(t('valid.rulesObject'))
     return
   }
 
@@ -599,7 +600,7 @@ function validateRules(value: unknown, errors: string[]) {
     value.postureCue !== undefined &&
     !isNonEmptyString(value.postureCue)
   ) {
-    errors.push('rules.postureCue must be a non-empty string when supplied.')
+    errors.push(t('valid.postureCue'))
   }
 }
 
@@ -610,7 +611,7 @@ function validateProgressionPhases(
 ) {
   if (value === undefined) return
   if (!Array.isArray(value) || value.length === 0) {
-    errors.push('progressionPhases must be a non-empty array when supplied.')
+    errors.push(t('valid.progressionPhases'))
     return
   }
 
@@ -674,7 +675,7 @@ function validateProgressionPhases(
 function validateCoaching(value: unknown, errors: string[]) {
   if (value === undefined) return
   if (!isPlainObject(value)) {
-    errors.push('coaching must be an object when supplied.')
+    errors.push(t('valid.coachingObject'))
     return
   }
 
@@ -709,7 +710,7 @@ function validateCoaching(value: unknown, errors: string[]) {
     isFiniteNumber(max) &&
     (min > target || target > max)
   ) {
-    errors.push('coaching protein targets must satisfy min <= default <= max.')
+    errors.push(t('valid.coachingProtein'))
   }
 }
 

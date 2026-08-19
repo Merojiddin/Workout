@@ -1,4 +1,7 @@
+import { useT } from '../i18n'
+
 export function MuscleVolumeChart({ data }) {
+  const t = useT()
   const maxSets = Math.max(...(data ?? []).map((item) => item.sets), 1)
   const highlighted = (data ?? []).filter((item) =>
     ['Chest', 'Abs', 'Posture', 'Legs'].includes(item.muscle),
@@ -8,23 +11,23 @@ export function MuscleVolumeChart({ data }) {
     <article className="dashboard-card muscle-volume-card">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Muscle Volume</p>
-          <h2>Completed sets by muscle</h2>
+          <p className="eyebrow">{t('review.volume.eyebrow')}</p>
+          <h2>{t('review.volume.title')}</h2>
         </div>
       </div>
       {(data ?? []).length === 0 ? (
-        <div className="chart-empty-state">
-          No completed sets yet. Finish a workout to see muscle volume.
-        </div>
+        <div className="chart-empty-state">{t('review.volume.empty')}</div>
       ) : null}
       <div className="muscle-volume-list">
         {(data ?? []).map((item) => (
           <div className="muscle-volume-row" key={item.muscle}>
             <div>
-              <strong>{item.muscle}</strong>
+              <strong>{t(`muscle.${item.muscle}`)}</strong>
               <span>
-                {item.sets} sets
-                {item.sessions ? ` / ${item.sessions} ${pluralizeSession(item.sessions)}` : ''}
+                {t('review.volume.sets', { count: item.sets })}
+                {item.sessions
+                  ? ` / ${t('review.volume.sessions', { count: item.sessions })}`
+                  : ''}
               </span>
             </div>
             <div className="muscle-volume-track" aria-hidden="true">
@@ -46,6 +49,3 @@ export function MuscleVolumeChart({ data }) {
   )
 }
 
-function pluralizeSession(count) {
-  return count === 1 ? 'session' : 'sessions'
-}

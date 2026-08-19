@@ -17,10 +17,15 @@ import type { NavItem } from '../types/navigation'
  * after training, and everything else is a reference page reached from More.
  */
 export const navigationItems: NavItem[] = [
-  { id: 'today-workout', icon: Dumbbell, label: "Today's Workout", shortLabel: 'Workout' },
-  { id: 'progress', icon: BarChart3, label: 'Progress' },
-  { id: 'nutrition', icon: Utensils, label: 'Nutrition' },
-  { id: 'more', icon: MoreHorizontal, label: 'More' },
+  {
+    id: 'today-workout',
+    icon: Dumbbell,
+    labelKey: 'nav.todayWorkout',
+    shortLabelKey: 'nav.todayWorkoutShort',
+  },
+  { id: 'progress', icon: BarChart3, labelKey: 'nav.progress' },
+  { id: 'nutrition', icon: Utensils, labelKey: 'nav.nutrition' },
+  { id: 'more', icon: MoreHorizontal, labelKey: 'nav.more' },
 ]
 
 /** Pages listed on the More screen, in the order they appear. */
@@ -28,31 +33,31 @@ export const moreNavigationItems: NavItem[] = [
   {
     id: 'weekly-plan',
     icon: CalendarDays,
-    label: 'Weekly Plan',
-    description: 'The seven training days and what each one covers.',
+    labelKey: 'nav.weeklyPlan',
+    descriptionKey: 'nav.weeklyPlanDescription',
   },
   {
     id: 'exercise-library',
     icon: Library,
-    label: 'Exercise Library',
-    description: 'Form guides, demo videos and muscle groups.',
+    labelKey: 'nav.exerciseLibrary',
+    descriptionKey: 'nav.exerciseLibraryDescription',
   },
   {
     id: 'weekly-review',
     icon: ClipboardCheck,
-    label: 'Weekly Review',
-    description: 'How last week went and what to focus on next.',
+    labelKey: 'nav.weeklyReview',
+    descriptionKey: 'nav.weeklyReviewDescription',
   },
   {
     id: 'body-check-in',
     icon: NotebookPen,
-    label: 'Body Check-in',
-    description: 'Weight, measurements and progress photos.',
+    labelKey: 'nav.bodyCheckIn',
+    descriptionKey: 'nav.bodyCheckInDescription',
   },
   {
     id: 'settings',
     icon: Settings,
-    label: 'Settings',
-    description: 'Profile, program, reminders, backup and sync.',
+    labelKey: 'nav.settings',
+    descriptionKey: 'nav.settingsDescription',
   },
 ]

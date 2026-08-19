@@ -9,6 +9,7 @@ import { WarningsCard } from '../components/WarningsCard'
 import { WeeklyScoreCard } from '../components/WeeklyScoreCard'
 import { WeeklySummaryCard } from '../components/WeeklySummaryCard'
 import { PrintableWeeklyReview } from '../print/PrintableWeeklyReview'
+import { useLanguage } from '../i18n'
 import { getProgressionSuggestion } from '../utils/progressionUtils'
 import { getWeeklyCoachConclusion } from '../utils/coachUtils'
 import { printElement } from '../utils/printUtils'
@@ -40,6 +41,7 @@ import {
 } from '../utils/weeklyReviewUtils'
 
 export function WeeklyReview() {
+  const { language, t } = useLanguage()
   const [selectedDate, setSelectedDate] = useState(() => new Date())
   const [sessions, setSessions] = useState(() => getWorkoutSessions())
   const [checkIns, setCheckIns] = useState(() => getBodyCheckIns())
@@ -77,11 +79,14 @@ export function WeeklyReview() {
         benchmarkExercises,
         effectiveExerciseLibrary,
       ),
+    // The review is a set of written sentences, so it is rebuilt when the
+    // language changes, not only when the underlying data does.
     [
       activeProgram,
       benchmarkExercises,
       checkIns,
       effectiveExerciseLibrary,
+      language,
       nutritionLogs,
       selectedDate,
       sessions,
@@ -114,15 +119,14 @@ export function WeeklyReview() {
     <section className="weekly-review-page">
       <header className="progress-hero weekly-review-hero">
         <div>
-          <p className="eyebrow">Weekly Review</p>
-          <h1>Weekly Review</h1>
+          <p className="eyebrow">{t('review.eyebrow')}</p>
+          <h1>{t('review.title')}</h1>
           <p>
-            Review training, body changes, nutrition, and next-week focus for{' '}
-            {activeProgram.programName}
-            {activeProgram.programVersion
-              ? ` ${activeProgram.programVersion}`
-              : ''}
-            .
+            {t('review.subtitle', {
+              program: activeProgram.programVersion
+                ? `${activeProgram.programName} ${activeProgram.programVersion}`
+                : activeProgram.programName,
+            })}
           </p>
         </div>
         <div className="weekly-review-hero-controls">
@@ -132,16 +136,16 @@ export function WeeklyReview() {
             type="button"
           >
             <Printer size={19} strokeWidth={2.4} aria-hidden="true" />
-            Print Weekly Review
+            {t('review.print')}
           </button>
-          <div className="week-selector" aria-label="Week selector">
+          <div className="week-selector" aria-label={t('review.weekSelector')}>
             <button
               className="week-nav-button"
               onClick={() => moveWeek(-1)}
               type="button"
             >
               <ArrowLeft size={18} strokeWidth={2.4} aria-hidden="true" />
-              Previous
+              {t('review.previous')}
             </button>
             <strong className="week-range-pill">
               {formatWeekRange(review.week.start, review.week.end)}
@@ -151,7 +155,7 @@ export function WeeklyReview() {
               onClick={() => moveWeek(1)}
               type="button"
             >
-              Next
+              {t('review.next')}
               <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
             </button>
           </div>
@@ -162,11 +166,11 @@ export function WeeklyReview() {
         <article className="progress-empty-card weekly-review-empty">
           <PlusCircle size={26} strokeWidth={2.4} aria-hidden="true" />
           <div>
-            <h2>Missing local data</h2>
+            <h2>{t('review.missingTitle')}</h2>
             <p>
               {SHOW_DEMO_DATA
-                ? 'Complete workouts and logs to improve this review, or load demos.'
-                : 'Complete workouts and logs to improve this review.'}
+                ? t('review.missingCopyDemo')
+                : t('review.missingCopy')}
             </p>
           </div>
           <div className="weekly-review-demo-actions">
@@ -176,7 +180,7 @@ export function WeeklyReview() {
                 onClick={handleAddDemoWorkouts}
                 type="button"
               >
-                Add Demo Workouts
+                {t('review.demoWorkouts')}
               </button>
             ) : null}
             {SHOW_DEMO_DATA && checkIns.length === 0 ? (
@@ -185,7 +189,7 @@ export function WeeklyReview() {
                 onClick={handleAddDemoCheckIns}
                 type="button"
               >
-                Add Demo Body Check-ins
+                {t('review.demoCheckIns')}
               </button>
             ) : null}
             {SHOW_DEMO_DATA && nutritionLogs.length === 0 ? (
@@ -194,7 +198,7 @@ export function WeeklyReview() {
                 onClick={handleAddDemoNutrition}
                 type="button"
               >
-                Add Demo Nutrition Logs
+                {t('review.demoNutrition')}
               </button>
             ) : null}
           </div>
@@ -208,7 +212,7 @@ export function WeeklyReview() {
         score={review.weeklyScore.score}
       />
 
-      <section className="weekly-summary-grid" aria-label="Workout completion summary">
+      <section className="weekly-summary-grid" aria-label={t('review.summaryAria')}>
         <WeeklySummaryCard
           status={
             review.workoutSummary.scheduledCompletedWorkouts >=
@@ -216,16 +220,24 @@ export function WeeklyReview() {
               ? 'good'
               : 'warn'
           }
-          subtitle={`Target workouts: ${review.workoutSummary.targetWorkouts} · ${formatStandaloneWorkoutCount(
-            review.workoutSummary.standaloneWorkoutsCompleted,
-          )}`}
-          title="Scheduled workouts"
+          subtitle={t('review.targetWorkouts', {
+            count: review.workoutSummary.targetWorkouts,
+            standalone: t('review.standaloneCount', {
+              count: Math.max(
+                0,
+                Number(review.workoutSummary.standaloneWorkoutsCompleted) || 0,
+              ),
+            }),
+          })}
+          title={t('review.scheduledWorkouts')}
           value={`${review.workoutSummary.scheduledCompletedWorkouts}/${review.workoutSummary.targetWorkouts}`}
         />
         <WeeklySummaryCard
           status={review.workoutSummary.totalSets > 0 ? 'good' : 'neutral'}
-          subtitle={`${review.workoutSummary.totalExercises} exercises completed`}
-          title="Total sets"
+          subtitle={t('review.exercisesCompleted', {
+            count: review.workoutSummary.totalExercises,
+          })}
+          title={t('review.totalSets')}
           value={String(review.workoutSummary.totalSets)}
         />
         <WeeklySummaryCard
@@ -233,14 +245,14 @@ export function WeeklyReview() {
             review.workoutSummary.missedWorkoutDays.length === 0 ? 'good' : 'warn'
           }
           subtitle={
-            review.workoutSummary.missedWorkoutDays[0] ?? 'No target days missed'
+            review.workoutSummary.missedWorkoutDays[0] ?? t('review.noMissedDays')
           }
-          title="Missed"
+          title={t('review.missed')}
           value={String(review.workoutSummary.missedWorkoutDays.length)}
         />
         <WeeklySummaryCard
-          subtitle="From started and finished times"
-          title="Workout time"
+          subtitle={t('review.workoutTimeSub')}
+          title={t('review.workoutTime')}
           value={review.workoutSummary.totalDurationLabel}
         />
       </section>
@@ -261,8 +273,8 @@ export function WeeklyReview() {
 
       <article className="dashboard-card weekly-coach-conclusion-card">
         <div>
-          <p className="eyebrow">Coach Conclusion</p>
-          <h2>Next week direction</h2>
+          <p className="eyebrow">{t('review.conclusion.eyebrow')}</p>
+          <h2>{t('review.conclusion.title')}</h2>
         </div>
         <p>
           {getWeeklyCoachConclusion({
@@ -377,7 +389,3 @@ function buildReview(
   }
 }
 
-function formatStandaloneWorkoutCount(count) {
-  const total = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0
-  return `${total} standalone workout${total === 1 ? '' : 's'} completed`
-}

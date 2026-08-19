@@ -1,3 +1,4 @@
+import type { MessageKey } from '../i18n'
 import { getWorkoutSessions } from '../data/workoutSessions'
 import type { LoggedExercise, LoggedSet, WorkoutSession } from '../data/workoutSessions'
 
@@ -123,16 +124,17 @@ export function getExerciseHistory(
  * left to right.
  */
 export function getExerciseTrend(history: ExerciseHistory): {
-  label: string
-  unit: string
+  /** Message key rather than text: the chart is drawn in the reader's language. */
+  labelKey: MessageKey
+  unitKey: MessageKey
   points: { date: string; value: number }[]
 } {
   const chronological = [...history.entries].reverse()
   const hasVolume = chronological.some((entry) => entry.volumeKg !== null)
   if (hasVolume) {
     return {
-      label: 'Volume per session',
-      unit: 'kg',
+      labelKey: 'trend.volumePerSession',
+      unitKey: 'unit.kg',
       points: chronological
         .filter((entry) => entry.volumeKg !== null)
         .map((entry) => ({ date: entry.date, value: entry.volumeKg as number })),
@@ -142,8 +144,8 @@ export function getExerciseTrend(history: ExerciseHistory): {
   const hasReps = chronological.some((entry) => entry.totalReps > 0)
   if (hasReps) {
     return {
-      label: 'Reps per session',
-      unit: 'reps',
+      labelKey: 'trend.repsPerSession',
+      unitKey: 'unit.reps',
       points: chronological
         .filter((entry) => entry.totalReps > 0)
         .map((entry) => ({ date: entry.date, value: entry.totalReps })),
@@ -151,8 +153,8 @@ export function getExerciseTrend(history: ExerciseHistory): {
   }
 
   return {
-    label: 'Time per session',
-    unit: 'sec',
+    labelKey: 'trend.timePerSession',
+    unitKey: 'unit.seconds',
     points: chronological
       .filter((entry) => entry.totalSeconds > 0)
       .map((entry) => ({ date: entry.date, value: entry.totalSeconds })),

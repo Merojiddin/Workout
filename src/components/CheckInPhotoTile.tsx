@@ -6,6 +6,7 @@ import {
   getCheckInPhotoSrc,
 } from '../utils/bodyCheckInUtils'
 import { getProgressPhotoUrl } from '../services/photoService'
+import { useT } from '../i18n'
 
 interface CheckInPhotoTileProps {
   checkIn: BodyCheckIn
@@ -28,6 +29,7 @@ export function CheckInPhotoTile({
   variant = 'detail',
   allowFullSize = false,
 }: CheckInPhotoTileProps) {
+  const t = useT()
   const directSrc = getCheckInPhotoSrc(checkIn, slot)
   const path = getCheckInPhotoPath(checkIn, slot)
 
@@ -67,20 +69,24 @@ export function CheckInPhotoTile({
       <div className="checkin-photo-tile__frame">
         {src && !failed ? (
           <img
-            alt={`${label} check-in photo`}
+            alt={t('checkin.photoAlt', { label })}
             onError={() => setFailed(true)}
             src={src}
           />
         ) : (
           <div className="checkin-photo-tile__fallback">
             <ImageOff size={20} strokeWidth={2.2} aria-hidden="true" />
-            <span>{failed ? 'Unavailable' : 'Loading…'}</span>
+            <span>
+              {failed
+                ? t('checkin.photo.unavailable')
+                : t('checkin.photo.loading')}
+            </span>
           </div>
         )}
 
         {allowFullSize && src && !failed ? (
           <button
-            aria-label={`Open ${label} photo full size`}
+            aria-label={t('checkin.photoFullSize', { label })}
             className="checkin-photo-tile__expand"
             onClick={() => setFullSize(true)}
             type="button"

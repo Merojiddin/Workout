@@ -1,4 +1,5 @@
 import { Activity, HeartPulse, Stethoscope, Utensils } from 'lucide-react'
+import { useT } from '../i18n'
 
 /**
  * Step 20 - terms / disclaimer.
@@ -6,57 +7,42 @@ import { Activity, HeartPulse, Stethoscope, Utensils } from 'lucide-react'
  * Makes clear the app gives general fitness guidance, not medical advice.
  */
 export function Disclaimer() {
+  const t = useT()
+
   return (
     <section className="legal-page">
       <header className="progress-hero">
         <div>
-          <p className="eyebrow">Terms</p>
-          <h1>Disclaimer</h1>
-          <p>What this app is — and what it is not.</p>
+          <p className="eyebrow">{t('disclaimer.eyebrow')}</p>
+          <h1>{t('disclaimer.title')}</h1>
+          <p>{t('disclaimer.subtitle')}</p>
         </div>
       </header>
 
       <article className="dashboard-card legal-card">
         <h2>
           <Activity size={20} strokeWidth={2.4} aria-hidden="true" />
-          Fitness tracking, not medical advice
+          {t('disclaimer.notMedicalHeading')}
         </h2>
-        <p>
-          This app is for logging and reviewing your own training, body
-          measurements, and nutrition. Nothing in it — including the Smart
-          Coach suggestions — is medical advice, diagnosis, or treatment.
-        </p>
+        <p>{t('disclaimer.notMedicalCopy')}</p>
 
         <h2>
           <HeartPulse size={20} strokeWidth={2.4} aria-hidden="true" />
-          Pain and injury warnings are general guidance
+          {t('disclaimer.painHeading')}
         </h2>
-        <p>
-          Pain-level prompts and injury warnings are general safety reminders,
-          not a professional assessment. They cannot detect or rule out an
-          injury.
-        </p>
+        <p>{t('disclaimer.painCopy')}</p>
 
         <h2>
           <Stethoscope size={20} strokeWidth={2.4} aria-hidden="true" />
-          When to see a professional
+          {t('disclaimer.professionalHeading')}
         </h2>
-        <p>
-          If pain continues, gets worse, or limits normal movement, stop
-          training the affected area and consult a qualified medical
-          professional or physiotherapist before continuing.
-        </p>
+        <p>{t('disclaimer.professionalCopy')}</p>
 
         <h2>
           <Utensils size={20} strokeWidth={2.4} aria-hidden="true" />
-          Nutrition guidance is general
+          {t('disclaimer.nutritionHeading')}
         </h2>
-        <p>
-          Protein, water, and calorie targets in this app are general fitness
-          guidance, not a medical diet prescription. For medical conditions,
-          allergies, or clinical weight management, consult a doctor or
-          registered dietitian.
-        </p>
+        <p>{t('disclaimer.nutritionCopy')}</p>
       </article>
     </section>
   )

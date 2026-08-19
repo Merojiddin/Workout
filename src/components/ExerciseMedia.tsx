@@ -1,8 +1,21 @@
-import { BookOpen, Eye, EyeOff, ImageOff, Play, Video, WifiOff, X } from 'lucide-react'
+import {
+  BookOpen,
+  Eye,
+  EyeOff,
+  ImageOff,
+  Play,
+  Repeat,
+  Video,
+  WifiOff,
+  X,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { useT } from '../i18n'
 import {
   DEFAULT_EXERCISE_IMAGE,
+  getExerciseGifAlt,
+  getExerciseGifUrl,
   getExerciseImage,
   getExerciseImageAlt,
   getExerciseVideo,
@@ -37,25 +50,37 @@ export function ExerciseMedia({
   onOpenFormGuide,
 }: ExerciseMediaProps) {
   const { isOnline } = useOnlineStatus()
-  const [showVideo, setShowVideo] = useState(showVideoDefault)
-  const [videoLoaded, setVideoLoaded] = useState(false)
-  const [imageFailed, setImageFailed] = useState(false)
-  // Deliberately NOT reset per exercise: once hidden, media stays hidden
-  // for the rest of the session until the user shows it again.
-  const [mediaHidden, setMediaHidden] = useState(false)
+  const t = useT()
 
   const exerciseName = typeof exercise?.name === 'string' ? exercise.name : ''
   const videoUrl = getExerciseVideo(exercise)
   const hasVideo = videoUrl !== ''
+  const gifUrl = getExerciseGifUrl(exercise)
+
+  // When there is an animation it leads, even where the caller asked for the
+  // video: it starts instantly, works offline, and the switch is right there.
+  const videoDefault = showVideoDefault && gifUrl === ''
+
+  const [showVideo, setShowVideo] = useState(videoDefault)
+  const [videoLoaded, setVideoLoaded] = useState(false)
+  const [imageFailed, setImageFailed] = useState(false)
+  const [gifFailed, setGifFailed] = useState(false)
+  // Deliberately NOT reset per exercise: once hidden, media stays hidden
+  // for the rest of the session until the user shows it again.
+  const [mediaHidden, setMediaHidden] = useState(false)
+
+  // A broken animation falls back to the still image rather than a dead frame.
+  const hasGif = gifUrl !== '' && !gifFailed
 
   // Reset per-exercise state when the shown exercise changes.
   useEffect(() => {
-    setShowVideo(showVideoDefault)
+    setShowVideo(videoDefault)
     setVideoLoaded(false)
     setImageFailed(false)
+    setGifFailed(false)
     // Re-run only when the exercise (or default) actually changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exerciseName, videoUrl, showVideoDefault])
+  }, [exerciseName, videoUrl, gifUrl, videoDefault])
 
   if (!exercise) {
     return null
@@ -72,7 +97,9 @@ export function ExerciseMedia({
   return (
     <section
       className={`exercise-media${compact ? ' exercise-media--compact' : ''}`}
-      aria-label={`${exerciseName || 'Exercise'} media`}
+      aria-label={t('media.aria', {
+        name: exerciseName || t('media.exerciseFallback'),
+      })}
     >
       {!mediaHidden && (showImage || videoOpen) ? (
         <div className="exercise-media__panel">
@@ -81,7 +108,7 @@ export function ExerciseMedia({
               {!videoLoaded ? (
                 <div className="exercise-media__skeleton" aria-hidden="true">
                   <Play size={28} strokeWidth={2.2} />
-                  <span>Loading video...</span>
+                  <span>{t('media.loadingVideo')}</span>
                 </div>
               ) : null}
               <iframe
@@ -95,7 +122,7 @@ export function ExerciseMedia({
                 title={getExerciseVideoTitle(exercise)}
               />
               <button
-                aria-label="Back to image"
+                aria-label={t('media.backToImage')}
                 className="exercise-media__close"
                 onClick={toggleVideo}
                 type="button"
@@ -105,7 +132,21 @@ export function ExerciseMedia({
             </div>
           ) : (
             <>
-              {showImage ? (
+              {showImage && hasGif ? (
+                <figure className="exercise-media__figure exercise-media__figure--gif">
+                  <img
+                    alt={getExerciseGifAlt(exercise)}
+                    className="exercise-media__gif"
+                    loading="lazy"
+                    onError={() => setGifFailed(true)}
+                    src={gifUrl}
+                  />
+                  <figcaption className="exercise-media__caption">
+                    {exerciseName}
+                  </figcaption>
+                </figure>
+              ) : null}
+              {showImage && !hasGif ? (
                 <figure className="exercise-media__figure">
                   <img
                     alt={getExerciseImageAlt(exercise)}
@@ -125,11 +166,14 @@ export function ExerciseMedia({
                   <figcaption className="exercise-media__caption">
                     {exercise.imageUrl && !imageFailed
                       ? exerciseName
-                      : 'Exercise image coming soon'}
+                      : t('media.imageComingSoon')}
                   </figcaption>
                 </figure>
               ) : null}
-              {hasVideo && showImage ? (
+              {/* With an animation present the segmented switch below already
+                  offers the video, so this overlay would be a second control
+                  for the same thing. */}
+              {hasVideo && showImage && !hasGif ? (
                 <button
                   aria-expanded={false}
                   className="exercise-media__play"
@@ -138,12 +182,49 @@ export function ExerciseMedia({
                 >
                   <span>
                     <Play size={16} strokeWidth={2.4} aria-hidden="true" />
-                    Watch Video
+                    {t('media.watchVideo')}
                   </span>
                 </button>
               ) : null}
             </>
           )}
+        </div>
+      ) : null}
+
+      {!mediaHidden && showImage && hasGif && hasVideo ? (
+        <div
+          className="exercise-media__switch"
+          role="group"
+          aria-label={t('media.switchAria')}
+        >
+          <button
+            aria-pressed={!videoOpen}
+            className={`exercise-media__switch-option${
+              !videoOpen ? ' exercise-media__switch-option--active' : ''
+            }`}
+            onClick={() => {
+              setVideoLoaded(false)
+              setShowVideo(false)
+            }}
+            type="button"
+          >
+            <Repeat size={16} strokeWidth={2.4} aria-hidden="true" />
+            {t('media.animation')}
+          </button>
+          <button
+            aria-pressed={videoOpen}
+            className={`exercise-media__switch-option${
+              videoOpen ? ' exercise-media__switch-option--active' : ''
+            }`}
+            onClick={() => {
+              setVideoLoaded(false)
+              setShowVideo(true)
+            }}
+            type="button"
+          >
+            <Play size={16} strokeWidth={2.4} aria-hidden="true" />
+            {t('media.video')}
+          </button>
         </div>
       ) : null}
 
@@ -161,7 +242,7 @@ export function ExerciseMedia({
               ) : (
                 <EyeOff size={18} strokeWidth={2.4} aria-hidden="true" />
               )}
-              {mediaHidden ? 'Show Video / Image' : 'Hide Video / Image'}
+              {mediaHidden ? t('media.showMedia') : t('media.hideMedia')}
             </button>
           ) : null}
           {!mediaHidden && !showImage && hasVideo ? (
@@ -178,7 +259,7 @@ export function ExerciseMedia({
               ) : (
                 <Play size={18} strokeWidth={2.4} aria-hidden="true" />
               )}
-              {videoOpen ? 'Hide Video' : 'Watch Video'}
+              {videoOpen ? t('media.hideVideo') : t('media.watchVideo')}
             </button>
           ) : null}
           {onOpenFormGuide ? (
@@ -188,7 +269,7 @@ export function ExerciseMedia({
               type="button"
             >
               <BookOpen size={18} strokeWidth={2.4} aria-hidden="true" />
-              Open Form Guide
+              {t('media.openFormGuide')}
             </button>
           ) : null}
         </div>
@@ -197,13 +278,13 @@ export function ExerciseMedia({
       {!mediaHidden && !hasVideo ? (
         <p className="exercise-media__note">
           <Video size={15} strokeWidth={2.4} aria-hidden="true" />
-          Video guide not added yet.
+          {t('media.noVideoYet')}
           <a
             href={getYouTubeSearchUrl(exerciseName)}
             rel="noreferrer"
             target="_blank"
           >
-            Search on YouTube
+            {t('media.searchYouTube')}
           </a>
         </p>
       ) : null}
@@ -211,14 +292,14 @@ export function ExerciseMedia({
       {videoOpen && !isOnline ? (
         <p className="exercise-media__note exercise-media__note--offline">
           <WifiOff size={15} strokeWidth={2.4} aria-hidden="true" />
-          Video requires internet connection.
+          {t('media.needsInternet')}
         </p>
       ) : null}
 
       {!mediaHidden && showImage && imageFailed ? (
         <p className="exercise-media__note">
           <ImageOff size={15} strokeWidth={2.4} aria-hidden="true" />
-          Original image failed to load - showing placeholder.
+          {t('media.imageFailed')}
         </p>
       ) : null}
     </section>

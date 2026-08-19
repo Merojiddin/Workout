@@ -1,3 +1,5 @@
+import { t } from '../i18n/t'
+import { formatDate } from '../i18n/format'
 import { exerciseIdentitiesMatch } from '../data/exerciseIdentity'
 import {
   getRestDays,
@@ -71,7 +73,7 @@ export function getWorkoutCompletionSummary(weekSessions, programOrPlan) {
 
   const missedWorkoutDays = targetDays
     .filter((day) => !completedDayIds.has(day.day))
-    .map((day) => `Day ${day.day} ${day.name}`)
+    .map((day) => t('review.missedDay', { day: day.day, name: day.name }))
   const missedWorkoutDayDetails = targetDays
     .filter((day) => !completedDayIds.has(day.day))
     .map((day) => ({
@@ -172,7 +174,9 @@ export function getMuscleVolumeSummary(weekSessions, programOrPlan, options = {}
   targetMuscles.forEach((muscle) => {
     const summary = volume[muscle]
     if (summary.targetSessions === 0 && summary.targetSets === 0) {
-      summary.message = `${muscle} is not specifically scheduled in this program.`
+      summary.message = t('review.volume.notScheduled', {
+        muscle: t(`muscle.${muscle}`),
+      })
       summary.status = 'neutral'
       return
     }
@@ -180,10 +184,11 @@ export function getMuscleVolumeSummary(weekSessions, programOrPlan, options = {}
     const sessionsMet =
       summary.targetSessions === 0 || summary.sessions >= summary.targetSessions
     const setsMet = summary.targetSets === 0 || summary.sets >= summary.targetSets
+    const muscleLabel = t(`muscle.${muscle}`)
     summary.message =
       sessionsMet && setsMet
-        ? `${muscle} work is on target for the active program.`
-        : `${muscle} work is below the active program schedule.`
+        ? t('review.volume.onTarget', { muscle: muscleLabel })
+        : t('review.volume.belowTarget', { muscle: muscleLabel })
     summary.status = sessionsMet && setsMet ? 'good' : 'warn'
   })
 
@@ -213,8 +218,8 @@ export function getStrengthComparison(
       return {
         exerciseId: benchmark.exerciseId,
         exerciseName,
-        currentBest: 'No data',
-        previousBest: 'No data',
+        currentBest: t('review.strength.noData'),
+        previousBest: t('review.strength.noData'),
         change: '-',
         status: 'no data',
       }
@@ -224,7 +229,7 @@ export function getStrengthComparison(
       return {
         exerciseId: benchmark.exerciseId,
         exerciseName,
-        currentBest: 'No data',
+        currentBest: t('review.strength.noData'),
         previousBest: formatBest(previous),
         change: '-',
         status: 'no data',
@@ -236,8 +241,8 @@ export function getStrengthComparison(
         exerciseId: benchmark.exerciseId,
         exerciseName,
         currentBest: formatBest(current),
-        previousBest: 'No data',
-        change: 'New',
+        previousBest: t('review.strength.noData'),
+        change: t('review.strength.new'),
         status: 'no data',
       }
     }
@@ -265,7 +270,7 @@ export function getBodyProgressSummary(currentWeekCheckIns, allCheckIns) {
       previous: null,
       hasCurrent: false,
       metrics: [],
-      messages: ['No body check-in this week. Add one to track body changes.'],
+      messages: [t('review.body.noCheckIn')],
     }
   }
 
@@ -275,36 +280,39 @@ export function getBodyProgressSummary(currentWeekCheckIns, allCheckIns) {
       .filter((checkIn) => getCheckInTime(checkIn) < currentTime)
       .at(-1) ?? null
 
+  // Each metric carries a stable `key` for the lookups below plus a `label`
+  // for display: matching on the label would break the moment it is
+  // translated.
   const metrics = [
-    makeBodyMetric('Body weight', 'bodyWeightKg', 'kg', current, previous, 'either'),
-    makeBodyMetric('Waist', 'waistCm', 'cm', current, previous, 'down'),
-    makeBodyMetric('Belly', 'bellyCm', 'cm', current, previous, 'down'),
-    makeBodyMetric('Chest', 'chestCm', 'cm', current, previous, 'up'),
-    makeBodyMetric('Shoulders', 'shouldersCm', 'cm', current, previous, 'up'),
-    makeBodyMetric('Arms average', 'armAverage', 'cm', current, previous, 'up'),
-    makeBodyMetric('Abs rating', 'absVisibilityRating', '/10', current, previous, 'up'),
-    makeBodyMetric('Posture rating', 'postureRating', '/10', current, previous, 'up'),
+    makeBodyMetric('bodyWeightKg', t('measure.bodyWeightKg'), 'kg', current, previous, 'either'),
+    makeBodyMetric('waistCm', t('measure.waistCm'), 'cm', current, previous, 'down'),
+    makeBodyMetric('bellyCm', t('measure.bellyCm'), 'cm', current, previous, 'down'),
+    makeBodyMetric('chestCm', t('measure.chestCm'), 'cm', current, previous, 'up'),
+    makeBodyMetric('shouldersCm', t('measure.shouldersCm'), 'cm', current, previous, 'up'),
+    makeBodyMetric('armAverage', t('review.body.armsAverage'), 'cm', current, previous, 'up'),
+    makeBodyMetric('absVisibilityRating', t('review.body.absRating'), '/10', current, previous, 'up'),
+    makeBodyMetric('postureRating', t('measure.postureRating'), '/10', current, previous, 'up'),
   ]
 
   const messages = []
-  const chestChange = getMetricChange(metrics, 'Chest')
-  const waistChange = getMetricChange(metrics, 'Waist')
-  const weightChange = getMetricChange(metrics, 'Body weight')
+  const chestChange = getMetricChange(metrics, 'chestCm')
+  const waistChange = getMetricChange(metrics, 'waistCm')
+  const weightChange = getMetricChange(metrics, 'bodyWeightKg')
 
   if (previous) {
     if (chestChange > 0 && waistChange <= 0) {
-      messages.push('Good recomposition signal.')
+      messages.push(t('review.body.recomp'))
     }
 
     if (weightChange > 0.4 && waistChange > 1) {
-      messages.push('Muscle gain may be too aggressive. Control calories.')
+      messages.push(t('review.body.tooAggressive'))
     }
 
     if (waistChange < 0) {
-      messages.push('Waist is moving down. Keep strength stable.')
+      messages.push(t('review.body.waistDown'))
     }
   } else {
-    messages.push('This is the first check-in in the comparison window.')
+    messages.push(t('review.body.firstCheckIn'))
   }
 
   return {
@@ -340,24 +348,24 @@ export function getNutritionSummary(
   }
 
   if (summary.logCount === 0) {
-    summary.messages.push('No nutrition logs this week.')
+    summary.messages.push(t('review.nutrition.empty'))
     return summary
   }
 
   if (summary.averageProtein < targets.proteinMin) {
-    summary.messages.push('Protein too low for muscle gain.')
+    summary.messages.push(t('review.nutrition.proteinLow'))
   } else if (summary.averageProtein <= targets.proteinMax) {
-    summary.messages.push('Protein target good.')
+    summary.messages.push(t('review.nutrition.proteinGood'))
   } else {
-    summary.messages.push('Protein is high. Keep calories controlled.')
+    summary.messages.push(t('review.nutrition.proteinHigh'))
   }
 
   if (summary.creatineDays >= 5) {
-    summary.messages.push('Creatine consistency good.')
+    summary.messages.push(t('review.nutrition.creatineGood'))
   }
 
   if (summary.averageWater < nutritionTargets.waterMin) {
-    summary.messages.push('Water intake low.')
+    summary.messages.push(t('review.nutrition.waterLow'))
   }
 
   return summary
@@ -448,7 +456,16 @@ export function generateNextWeekFocus({
   if (missedCoreOrPostureDay) {
     const focus = safeArray(missedCoreOrPostureDay.focus).join(', ')
     add(
-      `Complete Day ${missedCoreOrPostureDay.day} — ${missedCoreOrPostureDay.name}${focus ? ` (${focus})` : ''}.`,
+      focus
+        ? t('review.focus.completeDayWithFocus', {
+            day: missedCoreOrPostureDay.day,
+            name: missedCoreOrPostureDay.name,
+            focus,
+          })
+        : t('review.focus.completeDay', {
+            day: missedCoreOrPostureDay.day,
+            name: missedCoreOrPostureDay.name,
+          }),
     )
   } else if (isBelowScheduledFrequency(abs) || isBelowScheduledFrequency(posture)) {
     const scheduledNames = getScheduledExerciseNames(activeProgram, [
@@ -457,44 +474,47 @@ export function generateNextWeekFocus({
     ]).slice(0, 3)
     add(
       scheduledNames.length > 0
-        ? `Complete the scheduled core/posture work: ${scheduledNames.join(', ')}.`
-        : 'Complete the active program’s scheduled core and posture work.',
+        ? t('review.focus.scheduledCore', { names: scheduledNames.join(', ') })
+        : t('review.focus.programCore'),
     )
   }
 
   if (chest.targetSets > 0 && chest.sets < chest.targetSets) {
-    add('Complete the active program’s remaining chest work with clean sets.')
+    add(t('review.focus.chestWork'))
   }
 
   if (nutritionSummary?.proteinTargetDays < 5) {
-    add('Hit protein target at least 5 days.')
+    add(t('review.focus.protein'))
   }
 
   if (nutritionSummary?.creatineDays < 5) {
-    add('Take creatine daily.')
+    add(t('review.focus.creatine'))
   }
 
   if (legs.targetSessions > 0 && legs.sessions === 0) {
-    add('Do not skip legs next week.')
+    add(t('review.focus.legs'))
   }
 
   if (decreasedLift) {
-    add(`Rebuild ${decreasedLift.exerciseName} before adding load.`)
+    add(t('review.focus.rebuild', { exercise: decreasedLift.exerciseName }))
   } else if (increaseSuggestion?.exerciseName) {
     add(
-      `Progress ${increaseSuggestion.exerciseName}: ${increaseSuggestion.nextTarget}.`,
+      t('review.focus.progress', {
+        exercise: increaseSuggestion.exerciseName,
+        target: increaseSuggestion.nextTarget,
+      }),
     )
   } else {
-    add('Progress only after every prescribed set is completed with clean form.')
+    add(t('review.focus.cleanForm'))
   }
 
   if (!bodySummary?.hasCurrent) {
-    add('Add one body check-in for the week.')
+    add(t('review.focus.checkIn'))
   }
 
   while (items.length < 3) {
-    add('Keep training consistent and log every session.')
-    add('Keep water at 2-3 L per day.')
+    add(t('review.focus.consistent'))
+    add(t('review.focus.water'))
   }
 
   return items.slice(0, 5)
@@ -520,26 +540,29 @@ export function generateWarnings({
   const posture = findMuscle(muscleVolume, 'Posture')
 
   if (hasPainLogged(weekSessions)) {
-    add('Pain logged. Do not progress load through pain.')
+    add(t('review.warnings.pain'))
   }
 
   if (hasTooMuchHighRpe(weekSessions)) {
-    add('RPE too high too often. Leave 1-2 reps in reserve.')
+    add(t('review.warnings.rpe'))
   }
 
   if (chest.targetSets > 0 && chest.sets > chest.targetSets * 1.4) {
-    add('Chest volume is very high. Watch shoulder fatigue.')
+    add(t('review.warnings.chestVolume'))
   }
 
   const completedRestDay = findCompletedRestDay(weekSessions, activeProgram)
   if (completedRestDay) {
     add(
-      `A workout was logged on scheduled rest day ${completedRestDay.day} — ${completedRestDay.name}. Protect recovery unless this was intentional.`,
+      t('review.warnings.restDay', {
+        day: completedRestDay.day,
+        name: completedRestDay.name,
+      }),
     )
   }
 
   if (legs.targetSessions > 0 && legs.sets === 0) {
-    add('No legs completed. Do not skip legs.')
+    add(t('review.warnings.legs'))
   }
 
   if (
@@ -548,9 +571,7 @@ export function generateWarnings({
     getMuscleCompletionRatio(chest) >= 1 &&
     getMuscleCompletionRatio(back) < 0.7
   ) {
-    add(
-      'You trained chest hard but did not log enough back work. Keep back volume strong to protect shoulders.',
-    )
+    add(t('review.warnings.backVolume'))
   }
 
   const proteinMinimum =
@@ -559,38 +580,38 @@ export function generateWarnings({
     nutritionSummary?.logCount > 0 &&
     nutritionSummary.averageProtein < proteinMinimum
   ) {
-    add(`Protein low. Aim for at least ${proteinMinimum} g per day.`)
+    add(t('review.warnings.proteinLow', { grams: proteinMinimum }))
   }
 
   if (nutritionSummary?.logCount > 0 && nutritionSummary.averageWater < 2) {
-    add('Water low. Hydration can affect training and recovery.')
+    add(t('review.warnings.waterLow'))
   }
 
   if (!bodySummary?.hasCurrent) {
-    add('No body check-in this week.')
+    add(t('review.warnings.noCheckIn'))
   }
 
   if (posture.targetSessions > 0 && posture.sessions === 0) {
-    add('Posture exercises skipped.')
+    add(t('review.warnings.postureSkipped'))
   }
 
   const waistDown = safeArray(bodySummary?.metrics).some(
-    (metric) => metric.label === 'Waist' && metric.change < 0,
+    (metric) => metric.key === 'waistCm' && metric.change < 0,
   )
   const strengthDropped = safeArray(strengthComparison).some(
     (item) => item?.status === 'decreased',
   )
 
   if (waistDown && strengthDropped) {
-    add('Waist dropped but strength also dropped. Possible under-eating.')
+    add(t('review.warnings.underEating'))
   }
 
   const waistUp = safeArray(bodySummary?.metrics).some(
-    (metric) => metric.label === 'Waist' && metric.change > 1,
+    (metric) => metric.key === 'waistCm' && metric.change > 1,
   )
 
   if (waistUp && nutritionSummary?.averageCalories > 0) {
-    add('Waist increased. Reduce snacks or nuts slightly.')
+    add(t('review.warnings.waistUp'))
   }
 
   return warnings
@@ -600,16 +621,13 @@ export function formatWeekRange(start, end) {
   const sameMonth =
     start.getMonth() === end.getMonth() &&
     start.getFullYear() === end.getFullYear()
-  const firstFormat = new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: 'long',
+  return t('review.weekRange', {
+    start: formatDate(start, { day: 'numeric', month: 'long' }),
+    end: formatDate(end, {
+      day: 'numeric',
+      ...(sameMonth ? {} : { month: 'long' }),
+    }),
   })
-  const endFormat = new Intl.DateTimeFormat('en', {
-    day: 'numeric',
-    month: sameMonth ? undefined : 'long',
-  })
-
-  return `${firstFormat.format(start)} - ${endFormat.format(end)}`
 }
 
 function filterByWeek(items, weekStart, weekEnd, getDate) {
@@ -853,14 +871,18 @@ function compareBestPerformances(current, previous) {
     const weightDelta = roundOne(current.weight - previous.weight)
     if (weightDelta !== 0) {
       return {
-        change: `${formatSigned(weightDelta)} kg`,
+        change: t('review.strength.changeKg', {
+          value: formatSigned(weightDelta),
+        }),
         status: weightDelta > 0 ? 'improved' : 'decreased',
       }
     }
 
     const repDelta = current.reps - previous.reps
     return {
-      change: `${formatSigned(repDelta)} reps`,
+      change: t('review.strength.changeReps', {
+        value: formatSigned(repDelta),
+      }),
       status: repDelta > 0 ? 'improved' : repDelta < 0 ? 'decreased' : 'same',
     }
   }
@@ -868,24 +890,27 @@ function compareBestPerformances(current, previous) {
   const delta = current.reps - previous.reps
 
   return {
-    change: `${formatSigned(delta)} reps`,
+    change: t('review.strength.changeReps', { value: formatSigned(delta) }),
     status: delta > 0 ? 'improved' : delta < 0 ? 'decreased' : 'same',
   }
 }
 
 function formatBest(best) {
   if (!best) {
-    return 'No data'
+    return t('review.strength.noData')
   }
 
   if (best.weight > 0) {
-    return `${roundOne(best.weight)} kg x ${best.reps || '-'}`
+    return t('review.strength.bestWeight', {
+      weight: roundOne(best.weight),
+      reps: best.reps || '-',
+    })
   }
 
-  return `${best.reps} reps`
+  return t('review.strength.bestReps', { reps: best.reps })
 }
 
-function makeBodyMetric(label, key, unit, current, previous, goodDirection) {
+function makeBodyMetric(key, label, unit, current, previous, goodDirection) {
   const currentValue = getBodyValue(current, key)
   const previousValue = previous ? getBodyValue(previous, key) : null
   const change =
@@ -895,6 +920,7 @@ function makeBodyMetric(label, key, unit, current, previous, goodDirection) {
   const status = getBodyMetricStatus(change, goodDirection)
 
   return {
+    key,
     label,
     current: currentValue,
     previous: previousValue,
@@ -915,8 +941,8 @@ function getBodyMetricStatus(change, goodDirection) {
     : 'warn'
 }
 
-function getMetricChange(metrics, label) {
-  const change = safeArray(metrics).find((metric) => metric.label === label)?.change
+function getMetricChange(metrics, key) {
+  const change = safeArray(metrics).find((metric) => metric.key === key)?.change
   return typeof change === 'number' ? change : 0
 }
 
@@ -982,42 +1008,45 @@ function buildScoreMessage(label, data) {
   const nutrition = data.nutritionSummary
 
   if ((data.workoutSummary?.completedWorkouts ?? 0) === 0 && nutrition?.logCount === 0) {
-    return 'Start logging workouts, nutrition, and check-ins to unlock the review.'
+    return t('review.score.unlock')
   }
 
   if (isMuscleTargetMet(chest) && isMuscleTargetMet(back)) {
-    messages.push('Chest and back volume were strong.')
+    messages.push(t('review.score.chestBackStrong'))
   } else if (chest.targetSets > 0 && chest.sets < chest.targetSets) {
-    messages.push('Chest volume was low.')
+    messages.push(t('review.score.chestLow'))
   }
 
   if (nutrition?.logCount === 0 || nutrition?.proteinTargetDays < 3) {
-    messages.push('Nutrition tracking was inconsistent.')
+    messages.push(t('review.score.nutritionInconsistent'))
   } else if (
     nutrition?.averageProtein >=
     (toNumber(nutrition?.proteinMin) || nutritionTargets.proteinMin)
   ) {
-    messages.push('Protein target was solid.')
+    messages.push(t('review.score.proteinSolid'))
   }
 
   if (!data.bodySummary?.hasCurrent) {
-    messages.push('Body check-in is missing.')
+    messages.push(t('review.score.checkInMissing'))
   }
 
-  return `${label} week. ${messages.slice(0, 2).join(' ')}`.trim()
+  return t('review.score.sentence', {
+    label,
+    details: messages.slice(0, 2).join(' '),
+  }).trim()
 }
 
 function getScoreLabel(score) {
   if (score >= 85) {
-    return 'Excellent'
+    return t('review.score.excellent')
   }
   if (score >= 70) {
-    return 'Good'
+    return t('review.score.good')
   }
   if (score >= 50) {
-    return 'Average'
+    return t('review.score.average')
   }
-  return 'Poor consistency'
+  return t('review.score.poor')
 }
 
 function hasPainLogged(sessions) {
@@ -1170,7 +1199,9 @@ function formatMinutes(minutes) {
 
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
-  return hours > 0 ? `${hours}h ${rest}m` : `${rest} min`
+  return hours > 0
+    ? t('review.durationHours', { hours, minutes: rest })
+    : t('review.durationMinutes', { minutes: rest })
 }
 
 function isWorkoutCompleted(session) {

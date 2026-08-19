@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { exerciseLibrary } from './exerciseLibrary'
 import type { WorkoutProgram } from '../types/workoutProgram'
 import type { WorkoutProgramValidationResult } from '../types/workoutProgram'
@@ -141,7 +142,7 @@ function createCandidate(filename: string, source: string): ProgramCandidate {
       validation: {
         filename,
         valid: false,
-        errors: ['Program file contains invalid JSON.'],
+        errors: [t('valid.invalidJson')],
         warnings: [],
       },
     }
@@ -153,7 +154,7 @@ function createCandidate(filename: string, source: string): ProgramCandidate {
   } catch {
     result = {
       valid: false,
-      errors: ['Program validation failed unexpectedly.'],
+      errors: [t('valid.unexpected')],
       warnings: [],
     }
   }

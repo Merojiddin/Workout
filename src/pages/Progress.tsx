@@ -1,6 +1,7 @@
 import { Check, Flame, TrendingDown, TrendingUp, Trophy } from 'lucide-react'
 import { useMemo } from 'react'
 import { ExerciseTrendChart } from '../components/ExerciseTrendChart'
+import { useT, type MessageKey } from '../i18n'
 import { getBodyCheckIns } from '../utils/bodyCheckInUtils'
 import {
   getCurrentWorkoutStreak,
@@ -36,6 +37,7 @@ const FOCUS_COLORS = [
  * narrative and Body Check-in still owns the measurements; this is the glance.
  */
 export function Progress({ onNavigate }: ProgressProps) {
+  const t = useT()
   const sessions = useMemo(() => getWorkoutSessions(), [])
   const checkIns = useMemo(() => getBodyCheckIns(), [])
 
@@ -66,42 +68,50 @@ export function Progress({ onNavigate }: ProgressProps) {
   return (
     <section className="progress-page">
       <header className="progress-page__head">
-        <h1>Progress</h1>
-        <p>Your training trend, from what you have already logged.</p>
+        <h1>{t('progress.title')}</h1>
+        <p>{t('progress.subtitle')}</p>
       </header>
 
       {/* This week: which days you trained, at a glance. */}
       <article className="progress-card">
         <div className="progress-card__top">
           <div>
-            <p className="eyebrow">This week</p>
+            <p className="eyebrow">{t('progress.thisWeek')}</p>
             <strong className="progress-card__value">
-              {doneThisWeek} <span>/ 7 days</span>
+              {doneThisWeek} <span>{t('progress.daysOfSeven')}</span>
             </strong>
           </div>
           <div className="progress-card__aside">
             <span>{weekSets}</span>
-            <small>sets</small>
+            <small>{t('progress.setsLabel')}</small>
           </div>
         </div>
 
         <ol className="week-strip">
-          {week.map((day) => (
-            <li
-              className={`week-strip__day${
-                day.completed > 0 ? ' week-strip__day--done' : ''
-              }`}
-              key={day.day}
-            >
-              <span>{day.day.charAt(0)}</span>
-              <i aria-hidden="true">
-                {day.completed > 0 ? <Check size={13} strokeWidth={3.2} /> : null}
-              </i>
-              <small className="week-strip__label">
-                {day.day}: {day.completed > 0 ? 'trained' : 'no workout'}
-              </small>
-            </li>
-          ))}
+          {week.map((day) => {
+            // The short weekday, and its first character as the initial the
+            // strip shows -- which is the right initial in any language.
+            const label = t(`day.short.${day.dayIndex}` as MessageKey)
+
+            return (
+              <li
+                className={`week-strip__day${
+                  day.completed > 0 ? ' week-strip__day--done' : ''
+                }`}
+                key={day.dayIndex}
+              >
+                <span>{label.charAt(0)}</span>
+                <i aria-hidden="true">
+                  {day.completed > 0 ? <Check size={13} strokeWidth={3.2} /> : null}
+                </i>
+                <small className="week-strip__label">
+                  {day.completed > 0
+                    ? t('progress.dayTrained', { day: label })
+                    : t('progress.dayRested', { day: label })}
+                </small>
+              </li>
+            )
+          })}
         </ol>
       </article>
 
@@ -109,16 +119,14 @@ export function Progress({ onNavigate }: ProgressProps) {
         <div>
           <p className="eyebrow">
             <Flame size={14} strokeWidth={2.4} aria-hidden="true" />
-            Current streak
+            {t('progress.streak')}
           </p>
           <strong className="progress-card__value">
-            {streak} <span>{streak === 1 ? 'day' : 'days'}</span>
+            {streak} <span>{t('progress.streakDays', { count: streak })}</span>
           </strong>
         </div>
         <p className="progress-card__note">
-          {streak > 0
-            ? 'Counted back from today, one day at a time.'
-            : 'Finish a workout today to start one.'}
+          {streak > 0 ? t('progress.streakNote') : t('progress.streakEmpty')}
         </p>
       </article>
 
@@ -126,15 +134,15 @@ export function Progress({ onNavigate }: ProgressProps) {
       <article className="progress-card">
         <div className="progress-card__top">
           <div>
-            <p className="eyebrow">Body weight</p>
+            <p className="eyebrow">{t('progress.bodyWeight')}</p>
             {weightPoints.length > 0 ? (
               <strong className="progress-card__value">
                 {weightPoints[weightPoints.length - 1].value}
-                <span> kg</span>
+                <span> {t('unit.kg')}</span>
               </strong>
             ) : (
               <strong className="progress-card__value">
-                <span>Not logged</span>
+                <span>{t('progress.notLogged')}</span>
               </strong>
             )}
           </div>
@@ -150,7 +158,7 @@ export function Progress({ onNavigate }: ProgressProps) {
                 <TrendingUp size={15} strokeWidth={2.4} aria-hidden="true" />
               )}
               {weightDelta > 0 ? '+' : ''}
-              {weightDelta.toFixed(1)} kg
+              {weightDelta.toFixed(1)} {t('unit.kg')}
             </p>
           ) : null}
         </div>
@@ -159,9 +167,9 @@ export function Progress({ onNavigate }: ProgressProps) {
           <ExerciseTrendChart points={weightPoints} unit="kg" />
         ) : (
           <p className="progress-empty">
-            Two check-ins are needed to draw a line.{' '}
+            {t('progress.needTwoCheckIns')}{' '}
             <button onClick={() => onNavigate('body-check-in')} type="button">
-              Add a check-in
+              {t('progress.addCheckIn')}
             </button>
           </p>
         )}
@@ -169,7 +177,7 @@ export function Progress({ onNavigate }: ProgressProps) {
 
       {/* Where the week's sets actually went. */}
       <article className="progress-card">
-        <p className="eyebrow">Muscle focus this week</p>
+        <p className="eyebrow">{t('progress.muscleFocus')}</p>
         {focus.length > 0 ? (
           <ul className="focus-bars">
             {focus.map((item, index) => (
@@ -186,17 +194,12 @@ export function Progress({ onNavigate }: ProgressProps) {
                     }}
                   />
                 </div>
-                <small>
-                  {item.sets} {item.sets === 1 ? 'set' : 'sets'}
-                </small>
+                <small>{t('progress.focusSets', { count: item.sets })}</small>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="progress-empty">
-            Nothing logged this week yet. Sets counted here come from finished
-            workouts.
-          </p>
+          <p className="progress-empty">{t('progress.focusEmpty')}</p>
         )}
       </article>
 
@@ -204,7 +207,7 @@ export function Progress({ onNavigate }: ProgressProps) {
       <article className="progress-card">
         <p className="eyebrow">
           <Trophy size={14} strokeWidth={2.4} aria-hidden="true" />
-          Personal records
+          {t('progress.records')}
         </p>
         {records.length > 0 ? (
           <ol className="record-list">
@@ -212,17 +215,14 @@ export function Progress({ onNavigate }: ProgressProps) {
               <li key={record.exerciseName}>
                 <span className="record-list__name">{record.exerciseName}</span>
                 <span className="record-list__load">
-                  {record.weightKg} kg
+                  {record.weightKg} {t('unit.kg')}
                   {record.reps ? ` × ${record.reps}` : ''}
                 </span>
               </li>
             ))}
           </ol>
         ) : (
-          <p className="progress-empty">
-            No loads logged yet. Type a weight on the live workout screen and
-            your heaviest set for each movement shows up here.
-          </p>
+          <p className="progress-empty">{t('progress.recordsEmpty')}</p>
         )}
       </article>
 
@@ -232,14 +232,14 @@ export function Progress({ onNavigate }: ProgressProps) {
           onClick={() => onNavigate('weekly-review')}
           type="button"
         >
-          Weekly review
+          {t('progress.weeklyReviewLink')}
         </button>
         <button
           className="workout-secondary-button"
           onClick={() => onNavigate('body-check-in')}
           type="button"
         >
-          Body check-in
+          {t('progress.checkInLink')}
         </button>
       </div>
     </section>

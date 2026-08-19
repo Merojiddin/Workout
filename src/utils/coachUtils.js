@@ -1,3 +1,5 @@
+import { t } from '../i18n/t'
+
 export function getWeeklyCoachConclusion({
   workoutSummary,
   nutritionSummary,
@@ -13,28 +15,38 @@ export function getWeeklyCoachConclusion({
   const training =
     targetWorkouts > 0 &&
     scheduledCompletedWorkouts >= targetWorkouts
-      ? 'Training consistency was strong.'
-      : `Training consistency was ${scheduledCompletedWorkouts}/${targetWorkouts} workouts.`
+      ? t('review.conclusion.consistencyStrong')
+      : t('review.conclusion.consistencyCount', {
+          completed: scheduledCompletedWorkouts,
+          target: targetWorkouts,
+        })
   const chest = findMuscle(muscleVolume, 'Chest')
   const back = findMuscle(muscleVolume, 'Back')
   const volume =
     isMuscleTargetMet(chest) && isMuscleTargetMet(back)
-      ? 'Chest and back volume were balanced.'
+      ? t('review.conclusion.volumeBalanced')
       : isMuscleTargetMet(chest)
-        ? 'Chest volume was strong; keep back volume high too.'
-        : 'Complete the active program’s scheduled training volume next week.'
+        ? t('review.conclusion.chestStrong')
+        : t('review.conclusion.volumeDefault')
   const nutrition =
     (nutritionSummary?.proteinTargetDays ?? 0) >= 5
-      ? 'Protein consistency was good.'
-      : 'Protein tracking was inconsistent.'
+      ? t('review.conclusion.proteinGood')
+      : t('review.conclusion.proteinInconsistent')
   const body =
     bodySummary?.messages?.[0] ??
     (bodySummary?.hasCurrent
-      ? 'Body direction is being tracked.'
-      : 'Body check-in is missing.')
-  const next = safeArray(focusItems)[0] ?? 'Next week, log every workout and keep water at 2-3 L.'
+      ? t('review.conclusion.bodyTracked')
+      : t('review.conclusion.bodyMissing'))
+  const next =
+    safeArray(focusItems)[0] ?? t('review.conclusion.defaultNext')
 
-  return `${training} ${volume} ${nutrition} ${body} Next week: ${next}`
+  return t('review.conclusion.sentence', {
+    training,
+    volume,
+    nutrition,
+    body,
+    next,
+  })
 }
 
 function findMuscle(muscleVolume, muscle) {

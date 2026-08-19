@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { formatDate, t as translateText, useT, type MessageKey } from '../i18n'
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type {
   Exercise,
@@ -89,15 +90,14 @@ interface ManagerState {
   userPrograms: UserWorkoutProgram[]
 }
 
-type ProgramStatus = 'Current' | 'Available' | 'Dismissed'
+/** Stored status value; `pm.status.*` carries the wording. */
+type ProgramStatus = 'current' | 'available' | 'dismissed'
 type ManagerNotice = {
   message: string
   tone: 'success' | 'error'
 }
 
 const validationResults = getWorkoutProgramValidationResults()
-const CLOUD_OFFLINE_MESSAGE =
-  'Connect to the internet before changing a cloud workout program.'
 
 export function WorkoutProgramManager({
   hasUnsavedPlanChanges,
@@ -106,6 +106,8 @@ export function WorkoutProgramManager({
   onPlanChanged,
 }: WorkoutProgramManagerProps) {
   const { isSupabaseConfigured, user } = useAuth()
+  const t = useT()
+  const cloudOfflineMessage = t('pm.cloudOffline')
   const { isOnline } = useOnlineStatus()
   const cloudActive = isSupabaseConfigured && Boolean(user)
   const [managerState, setManagerState] = useState<ManagerState>(() =>
@@ -142,10 +144,12 @@ export function WorkoutProgramManager({
       ),
   )
   const currentPlanName = installedRegistryProgram
-    ? `${installedRegistryProgram.name}${modifiedAfterInstallation ? ' (modified)' : ''}`
+    ? modifiedAfterInstallation
+      ? t('pm.planNameModified', { name: installedRegistryProgram.name })
+      : installedRegistryProgram.name
     : managerState.hasStoredCustomPlan
-      ? 'Custom workout plan'
-      : 'No program installed'
+      ? t('pm.customPlan')
+      : t('pm.noProgram')
   const programs = managerState.programs
   const dismissedCount = programs.filter((program) =>
     dismissedIdentities.has(programIdentity(program.id, program.version)),
@@ -217,7 +221,7 @@ export function WorkoutProgramManager({
   async function keepCurrentPlan(program: WorkoutProgram) {
     if (cloudActive) {
       if (!isOnline) {
-        setNotice({ message: CLOUD_OFFLINE_MESSAGE, tone: 'error' })
+        setNotice({ message: cloudOfflineMessage, tone: 'error' })
         return
       }
 
@@ -258,14 +262,14 @@ export function WorkoutProgramManager({
   async function confirmInstallation(program: WorkoutProgram) {
     if (hasUnsavedPlanChanges) {
       setNotice({
-        message: 'Save your manual plan edits before installing a workout program.',
+        message: t('pm.unsavedInstall'),
         tone: 'error',
       })
       return
     }
     if (cloudActive) {
       if (!isOnline) {
-        setNotice({ message: CLOUD_OFFLINE_MESSAGE, tone: 'error' })
+        setNotice({ message: cloudOfflineMessage, tone: 'error' })
         return
       }
 
@@ -316,21 +320,21 @@ export function WorkoutProgramManager({
   function restoreLocalBackup(backup: WorkoutPlanBackup) {
     if (hasUnsavedPlanChanges) {
       setNotice({
-        message: 'Save your manual plan edits before restoring a workout plan backup.',
+        message: t('pm.unsavedRestore'),
         tone: 'error',
       })
       return
     }
     if (cloudActive) {
       setNotice({
-        message: 'Use a Cloud backup when cloud sync is active.',
+        message: t('pm.useCloudBackup'),
         tone: 'error',
       })
       return
     }
     if (
       !window.confirm(
-        'Restore this workout plan backup? Your current plan will be backed up first.',
+        t('pm.restoreLocalConfirm'),
       )
     ) {
       return
@@ -354,25 +358,25 @@ export function WorkoutProgramManager({
   async function restoreCloudBackup(backup: CloudWorkoutPlanBackup) {
     if (hasUnsavedPlanChanges) {
       setNotice({
-        message: 'Save your manual plan edits before restoring a workout plan backup.',
+        message: t('pm.unsavedRestore'),
         tone: 'error',
       })
       return
     }
     if (!isOnline) {
-      setNotice({ message: CLOUD_OFFLINE_MESSAGE, tone: 'error' })
+      setNotice({ message: cloudOfflineMessage, tone: 'error' })
       return
     }
     if (managerState.activeWorkoutBlocked) {
       setNotice({
-        message: 'Finish or discard the active workout before changing programs.',
+        message: t('pm.activeWorkoutBlocked'),
         tone: 'error',
       })
       return
     }
     if (
       !window.confirm(
-        'Restore this cloud workout plan backup? Your current local and cloud plans will be backed up first.',
+        t('pm.restoreCloudConfirm'),
       )
     ) {
       return
@@ -409,14 +413,10 @@ export function WorkoutProgramManager({
       <div className="program-manager__heading">
         <div>
           <p className="eyebrow">
-            {cloudActive ? 'Cloud Program Manager' : 'Local Program Manager'}
+            {cloudActive ? t('pm.cloudTitle') : t('pm.localTitle')}
           </p>
-          <h2 id="workout-programs-title">Workout Programs</h2>
-          <p>
-            {cloudActive
-              ? 'Preview discovered programs, install with verified local and cloud backups, or keep your current plan.'
-              : 'Preview discovered programs, install one with a local backup, or keep your current custom plan.'}
-          </p>
+          <h2 id="workout-programs-title">{t('pm.heading')}</h2>
+          <p>{cloudActive ? t('pm.cloudIntro') : t('pm.localIntro')}</p>
         </div>
         <Package size={26} strokeWidth={2.3} aria-hidden="true" />
       </div>
@@ -424,35 +424,34 @@ export function WorkoutProgramManager({
       {cloudActive && !isOnline ? (
         <div className="program-manager__restriction" role="alert">
           <AlertTriangle size={18} strokeWidth={2.4} aria-hidden="true" />
-          {CLOUD_OFFLINE_MESSAGE}
+          {cloudOfflineMessage}
         </div>
       ) : null}
 
       {managerState.activeWorkoutBlocked ? (
         <div className="program-manager__restriction" role="alert">
           <AlertTriangle size={18} strokeWidth={2.4} aria-hidden="true" />
-          Finish or discard the active workout before changing programs.
+          {t('pm.activeWorkoutBlocked')}
         </div>
       ) : null}
 
       {hasUnsavedPlanChanges ? (
         <div className="program-manager__restriction" role="alert">
           <AlertTriangle size={18} strokeWidth={2.4} aria-hidden="true" />
-          Save your manual plan edits before installing or restoring a workout
-          program.
+          {t('pm.unsavedEdits')}
         </div>
       ) : null}
 
       {managerState.installed && !installedRegistryProgram ? (
         <div className="program-manager__restriction" role="status">
           <AlertTriangle size={18} strokeWidth={2.4} aria-hidden="true" />
-          Installed program unavailable in this build.
+          {t('pm.installedUnavailable')}
         </div>
       ) : null}
 
       {modifiedAfterInstallation ? (
         <div className="program-manager__modified-badge">
-          Modified after installation
+          {t('pm.modifiedAfterInstall')}
         </div>
       ) : null}
 
@@ -495,8 +494,8 @@ export function WorkoutProgramManager({
           type="button"
         >
           {showDismissed
-            ? 'Hide dismissed programs'
-            : `Show dismissed programs again (${dismissedCount})`}
+            ? t('pm.hideDismissed')
+            : t('pm.showDismissed', { count: dismissedCount })}
         </button>
       ) : null}
 
@@ -506,12 +505,11 @@ export function WorkoutProgramManager({
         type="button"
       >
         <Download size={17} strokeWidth={2.4} aria-hidden="true" />
-        Export Current Plan
+        {t('pm.exportCurrent')}
       </button>
       {hasUnsavedPlanChanges ? (
         <small className="program-manager__export-note">
-          Current-plan exports contain the last saved plan; unsaved editor
-          changes are not included.
+          {t('pm.exportNote')}
         </small>
       ) : null}
 
@@ -548,13 +546,15 @@ export function WorkoutProgramManager({
             >
               <div className="program-manager-card__header">
                 <div>
-                  <p className="eyebrow">Version {program.version}</p>
+                  <p className="eyebrow">
+                    {t('pm.version', { version: program.version })}
+                  </p>
                   <h3>{program.name}</h3>
                 </div>
                 <span
-                  className={`program-manager-status program-manager-status--${status.toLowerCase()}`}
+                  className={`program-manager-status program-manager-status--${status}`}
                 >
-                  {status}
+                  {t(`pm.status.${status}` as MessageKey)}
                 </span>
               </div>
 
@@ -563,28 +563,30 @@ export function WorkoutProgramManager({
               </p>
               <dl className="program-manager-card__stats">
                 <div>
-                  <dt>Updated</dt>
+                  <dt>{t('pm.updated')}</dt>
                   <dd>{formatDateOnly(program.updatedAt)}</dd>
                 </div>
                 <div>
-                  <dt>Days</dt>
+                  <dt>{t('pm.days')}</dt>
                   <dd>{program.days.length}</dd>
                 </div>
                 <div>
-                  <dt>Exercises</dt>
+                  <dt>{t('pm.exercises')}</dt>
                   <dd>{exerciseCount}</dd>
                 </div>
               </dl>
 
               {current && modifiedAfterInstallation ? (
                 <span className="program-manager-card__modified">
-                  Modified after installation
+                  {t('pm.modifiedAfterInstall')}
                 </span>
               ) : null}
 
               {warnings.length > 0 ? (
                 <details className="program-manager-warnings">
-                  <summary>{warnings.length} validation warning(s)</summary>
+                  <summary>
+                    {t('pm.validationWarningCount', { count: warnings.length })}
+                  </summary>
                   <ul>
                     {warnings.map((warning) => (
                       <li key={warning}>{warning}</li>
@@ -600,7 +602,7 @@ export function WorkoutProgramManager({
                   type="button"
                 >
                   <Eye size={18} strokeWidth={2.4} aria-hidden="true" />
-                  Preview
+                  {t('pm.preview')}
                 </button>
                 <button
                   className="workout-primary-button"
@@ -615,7 +617,7 @@ export function WorkoutProgramManager({
                   type="button"
                 >
                   <Package size={18} strokeWidth={2.4} aria-hidden="true" />
-                  {current ? 'Current Program' : 'Install'}
+                  {current ? t('pm.currentProgram') : t('pm.install')}
                 </button>
                 <button
                   className="workout-secondary-button"
@@ -629,7 +631,7 @@ export function WorkoutProgramManager({
                   type="button"
                 >
                   <CheckCircle2 size={18} strokeWidth={2.4} aria-hidden="true" />
-                  {dismissed ? 'Current Plan Kept' : 'Keep Current Plan'}
+                  {dismissed ? t('pm.currentKept') : t('pm.keepCurrent')}
                 </button>
               </div>
             </article>
@@ -640,32 +642,30 @@ export function WorkoutProgramManager({
       <section className="program-manager-backups" aria-labelledby="program-backups-title">
         <div className="program-manager-backups__heading">
           <div>
-            <p className="eyebrow">Local and cloud safety copies</p>
-            <h3 id="program-backups-title">Workout Plan Backups</h3>
+            <p className="eyebrow">{t('pm.backupsEyebrow')}</p>
+            <h3 id="program-backups-title">{t('pm.backupsHeading')}</h3>
           </div>
           <Archive size={22} strokeWidth={2.4} aria-hidden="true" />
         </div>
 
-        <h4>Local backups</h4>
+        <h4>{t('pm.localBackups')}</h4>
         {managerState.localBackups.length === 0 ? (
-          <p className="program-manager-empty">
-            No local backups have been created yet.
-          </p>
+          <p className="program-manager-empty">{t('pm.noLocalBackups')}</p>
         ) : (
           <div className="program-manager-backups__list">
             {managerState.localBackups.slice(0, 5).map((backup) => (
               <article className="program-manager-backup" key={backup.id}>
                 <div>
-                  <p className="eyebrow">Local backup</p>
+                  <p className="eyebrow">{t('pm.localBackup')}</p>
                   <strong>{formatTimestamp(backup.createdAt)}</strong>
                   <p>{backup.reason}</p>
                   <small>
-                    Previous program:{' '}
+                    {t('pm.previousProgram')}
                     {backup.previousProgram.id && backup.previousProgram.version
                       ? `${backup.previousProgram.id} ${backup.previousProgram.version}`
-                      : 'None recorded'}
+                      : t('pm.noneRecorded')}
                     {' · '}
-                    {backup.plan.length} days
+                    {t('pm.backupDays', { count: backup.plan.length })}
                   </small>
                 </div>
                 <div className="program-manager-backup__actions">
@@ -683,7 +683,7 @@ export function WorkoutProgramManager({
                     type="button"
                   >
                     <RotateCcw size={17} strokeWidth={2.4} aria-hidden="true" />
-                    Restore
+                    {t('pm.restore')}
                   </button>
                   <button
                     className="workout-secondary-button"
@@ -696,7 +696,7 @@ export function WorkoutProgramManager({
                     type="button"
                   >
                     <Download size={17} strokeWidth={2.4} aria-hidden="true" />
-                    Export Backup
+                    {t('pm.exportBackup')}
                   </button>
                 </div>
               </article>
@@ -706,11 +706,9 @@ export function WorkoutProgramManager({
 
         {cloudActive ? (
           <>
-            <h4>Cloud backups</h4>
+            <h4>{t('pm.cloudBackups')}</h4>
             {managerState.cloudBackups.length === 0 ? (
-              <p className="program-manager-empty">
-                No cloud backups have been created for this account yet.
-              </p>
+              <p className="program-manager-empty">{t('pm.noCloudBackups')}</p>
             ) : (
               <div className="program-manager-backups__list">
                 {managerState.cloudBackups.map((backup) => (
@@ -719,16 +717,16 @@ export function WorkoutProgramManager({
                     key={`cloud-${backup.id}`}
                   >
                     <div>
-                      <p className="eyebrow">Cloud backup</p>
+                      <p className="eyebrow">{t('pm.cloudBackup')}</p>
                       <strong>{formatTimestamp(backup.createdAt)}</strong>
                       <p>{backup.reason}</p>
                       <small>
-                        Previous program:{' '}
+                        {t('pm.previousProgram')}
                         {backup.previousProgram
                           ? `${backup.previousProgram.id} ${backup.previousProgram.version}`
-                          : 'None recorded'}
+                          : t('pm.noneRecorded')}
                         {' · '}
-                        {backup.plan.length} days
+                        {t('pm.backupDays', { count: backup.plan.length })}
                       </small>
                     </div>
                     <div className="program-manager-backup__actions">
@@ -744,7 +742,7 @@ export function WorkoutProgramManager({
                         type="button"
                       >
                         <RotateCcw size={17} strokeWidth={2.4} aria-hidden="true" />
-                        Restore
+                        {t('pm.restore')}
                       </button>
                       <button
                         className="workout-secondary-button"
@@ -757,7 +755,7 @@ export function WorkoutProgramManager({
                         type="button"
                       >
                         <Download size={17} strokeWidth={2.4} aria-hidden="true" />
-                        Export Backup
+                        {t('pm.exportBackup')}
                       </button>
                     </div>
                   </article>
@@ -808,19 +806,20 @@ function ProgramPreviewDialog({
   program: WorkoutProgram
   warnings: string[]
 }) {
+  const t = useT()
   const comparison = compareWorkoutPlans(currentPlan, program, currentPlanName)
   const rules = [
-    ['Rules — Effort', program.rules?.effort],
-    ['Rules — Progression', program.rules?.progression],
-    ['Rules — Rest between sets', program.rules?.rest],
-    ['Rules — Substitutions', program.rules?.substitutions],
+    [t('pm.rules.effort'), program.rules?.effort],
+    [t('pm.rules.progression'), program.rules?.progression],
+    [t('pm.rules.rest'), program.rules?.rest],
+    [t('pm.rules.substitutions'), program.rules?.substitutions],
     [
-      'Rules — Posture cue',
+      t('pm.rules.posture'),
       program.rules?.postureCue ? [program.rules.postureCue] : undefined,
     ],
-    ['Rules — Return after a break', program.rules?.returnAfterBreak],
-    ['Rules — Safety', program.rules?.safety],
-    ['Rules — Optional neck work', program.rules?.optionalNeckWork],
+    [t('pm.rules.returnAfterBreak'), program.rules?.returnAfterBreak],
+    [t('pm.rules.safety'), program.rules?.safety],
+    [t('pm.rules.neckWork'), program.rules?.optionalNeckWork],
   ] as const
 
   return (
@@ -839,14 +838,15 @@ function ProgramPreviewDialog({
       >
         <header className="modal-header">
           <div>
-            <p className="eyebrow">Read-only Program Preview</p>
+            <p className="eyebrow">{t('pm.previewEyebrow')}</p>
             <h2 id="program-preview-title">{program.name}</h2>
             <p>
-              Version {program.version} · Updated {formatDateOnly(program.updatedAt)}
+              {t('pm.version', { version: program.version })} ·{' '}
+              {t('pm.updated')} {formatDateOnly(program.updatedAt)}
             </p>
           </div>
           <button
-            aria-label="Close program preview"
+            aria-label={t('pm.closePreview')}
             className="modal-close-button"
             onClick={onClose}
             type="button"
@@ -859,27 +859,27 @@ function ProgramPreviewDialog({
 
         <dl className="program-comparison__stats program-preview-metadata">
           <div>
-            <dt>Program ID</dt>
+            <dt>{t('pm.programId')}</dt>
             <dd>{program.id}</dd>
           </div>
           <div>
-            <dt>Version</dt>
+            <dt>{t('settings.tab.program')}</dt>
             <dd>{program.version}</dd>
           </div>
           <div>
-            <dt>Updated</dt>
+            <dt>{t('pm.updated')}</dt>
             <dd>{formatDateOnly(program.updatedAt)}</dd>
           </div>
           <div>
-            <dt>Days</dt>
+            <dt>{t('pm.days')}</dt>
             <dd>{program.normalWeeklyDays ?? program.days.length}</dd>
           </div>
           <div>
-            <dt>Duration</dt>
+            <dt>{t('pm.duration')}</dt>
             <dd>{program.durationWeeks ? `${program.durationWeeks} weeks` : '-'}</dd>
           </div>
           <div>
-            <dt>Exercise occurrences</dt>
+            <dt>{t('pm.exerciseOccurrences')}</dt>
             <dd>{countExercises(program.days)}</dd>
           </div>
         </dl>
@@ -897,7 +897,7 @@ function ProgramPreviewDialog({
 
         {warnings.length > 0 ? (
           <section className="program-preview-warnings">
-            <h3>Validation warnings</h3>
+            <h3>{t('pm.validationWarnings')}</h3>
             <ul>
               {warnings.map((warning) => (
                 <li key={warning}>{warning}</li>
@@ -911,7 +911,7 @@ function ProgramPreviewDialog({
             className="program-preview-days"
             aria-labelledby="program-phases-title"
           >
-            <h3 id="program-phases-title">Progression phases</h3>
+            <h3 id="program-phases-title">{t('pm.phasesHeading')}</h3>
             {safeArray(program.progressionPhases).map((phase) => (
               <article
                 className="program-preview-day"
@@ -924,10 +924,10 @@ function ProgramPreviewDialog({
                   </div>
                 </div>
                 <p>
-                  <strong>Volume:</strong> {phase.volumeGuidance}
+                  <strong>{t('pm.volume')}</strong> {phase.volumeGuidance}
                 </p>
                 <p>
-                  <strong>Effort:</strong> {phase.rirGuidance}
+                  <strong>{t('pm.effort')}</strong> {phase.rirGuidance}
                 </p>
                 <PreviewList title="Priorities" values={phase.priorities} />
                 <PreviewList
@@ -944,22 +944,22 @@ function ProgramPreviewDialog({
         ) : null}
 
         <section className="program-comparison" aria-labelledby="program-comparison-title">
-          <h3 id="program-comparison-title">Simple plan comparison</h3>
+          <h3 id="program-comparison-title">{t('pm.comparisonHeading')}</h3>
           <dl className="program-comparison__stats">
             <div>
-              <dt>Current plan</dt>
+              <dt>{t('pm.currentPlan')}</dt>
               <dd>{comparison.currentPlanName}</dd>
             </div>
             <div>
-              <dt>Selected program</dt>
+              <dt>{t('pm.selectedProgram')}</dt>
               <dd>{comparison.selectedProgramName}</dd>
             </div>
             <div>
-              <dt>Current exercise occurrences</dt>
+              <dt>{t('pm.currentOccurrences')}</dt>
               <dd>{comparison.currentExerciseOccurrences}</dd>
             </div>
             <div>
-              <dt>New exercise occurrences</dt>
+              <dt>{t('pm.newOccurrences')}</dt>
               <dd>{comparison.newExerciseOccurrences}</dd>
             </div>
           </dl>
@@ -1023,14 +1023,14 @@ function ProgramPreviewDialog({
               <article className="program-preview-day" key={workout.id}>
                 <div className="program-preview-day__heading">
                   <div>
-                    <p className="eyebrow">Standalone workout</p>
+                    <p className="eyebrow">{t('pm.standaloneWorkout')}</p>
                     <h4>{workout.name}</h4>
                   </div>
                   <span>{workout.estimatedTime}</span>
                 </div>
                 <p>{workout.description}</p>
                 <p>
-                  <strong>Recommended use:</strong> {workout.recommendedUse}
+                  <strong>{t('pm.recommendedUse')}</strong> {workout.recommendedUse}
                 </p>
                 <p className="program-preview-day__focus">
                   Focus: {workout.focus.join(', ')}
@@ -1063,22 +1063,34 @@ function ProgramExercisePreview({ exercise }: { exercise: Exercise }) {
     <div className="program-preview-exercise">
       <strong>{exercise.name}</strong>
       <span>
-        {exercise.optional ? 'Optional · ' : ''}
+        {exercise.optional ? translateText('plan.optionalPrefix') : ''}
         {getExerciseTargetLabel(exercise)}
-        {exercise.targetRir ? ` · ${exercise.targetRir} RIR` : ''}
+        {exercise.targetRir
+          ? ` · ${translateText('plan.rirSuffix', { value: exercise.targetRir })}`
+          : ''}
       </span>
-      <span>Rest: {exercise.restSeconds} sec</span>
+      <span>
+        {translateText('pm.restSeconds', { seconds: exercise.restSeconds })}
+      </span>
       {hasAlternatives ? (
         <>
           <span>
             <strong>{getSelectionInstruction(exercise)}</strong>
           </span>
-          <VariantPreviewLine label="Home" variants={homeAlternatives} />
-          <VariantPreviewLine label="Gym" variants={gymAlternatives} />
+          <VariantPreviewLine
+            label={translateText('plan.home')}
+            variants={homeAlternatives}
+          />
+          <VariantPreviewLine
+            label={translateText('plan.gym')}
+            variants={gymAlternatives}
+          />
         </>
       ) : null}
       {safeArray(exercise.guidance).map((guidance, index) => (
-        <span key={`${guidance}-${index}`}>Guidance: {guidance}</span>
+        <span key={`${guidance}-${index}`}>
+          {translateText('pm.guidancePrefix')} {guidance}
+        </span>
       ))}
       {safeArray(exercise.phaseTargets).map((target, index) => (
         <span key={`${target.weeks.join('-')}-${index}`}>
@@ -1117,20 +1129,22 @@ function VariantPreviewLine({
 }
 
 function getSelectionInstruction(exercise: Exercise): string {
-  const optionalPrefix = exercise.optional ? 'Optional slot. ' : ''
+  const optionalPrefix = exercise.optional
+    ? translateText('plan.optionalSlotPrefix')
+    : ''
   if (exercise.selectionMode !== 'multiple') {
-    return `${optionalPrefix}Choose one exercise from this slot; do not perform every alternative.`
+    return `${optionalPrefix}${translateText('plan.selectOne')}`
   }
 
   const minimum = Math.max(1, exercise.minSelections ?? 1)
   const maximum = Math.max(minimum, exercise.maxSelections ?? minimum)
   const count = minimum === maximum ? String(minimum) : `${minimum}-${maximum}`
-  return `${optionalPrefix}Choose ${count} exercises from this slot.`
+  return `${optionalPrefix}${translateText('plan.selectCount', { count })}`
 }
 
 function formatPhaseTarget(target: ExercisePhaseTarget): string {
   const prescription = [
-    target.sets ? `${target.sets} sets` : '',
+    target.sets ? translateText('plan.setsTimes', { count: target.sets }) : '',
     target.repRange ?? target.duration ?? '',
   ]
     .filter(Boolean)
@@ -1143,14 +1157,15 @@ function formatPhaseTarget(target: ExercisePhaseTarget): string {
 
 function formatWeeks(weeks: readonly number[]): string {
   const sorted = [...new Set(weeks)].sort((left, right) => left - right)
-  if (sorted.length === 0) return 'Weeks not specified'
-  if (sorted.length === 1) return `Week ${sorted[0]}`
+  if (sorted.length === 0) return translateText('plan.weeksNotSpecified')
+  if (sorted.length === 1)
+    return translateText('plan.weekSingle', { week: sorted[0] })
   const sequential = sorted.every(
     (week, index) => index === 0 || week === sorted[index - 1] + 1,
   )
   return sequential
-    ? `Weeks ${sorted[0]}-${sorted.at(-1)}`
-    : `Weeks ${sorted.join(', ')}`
+    ? translateText('plan.weekRange', { from: sorted[0], to: sorted.at(-1) ?? '' })
+    : translateText('plan.weekList', { weeks: sorted.join(', ') })
 }
 
 function safeArray<T>(value: T[] | undefined): T[] {
@@ -1174,6 +1189,8 @@ function InstallConfirmationDialog({
   onConfirm: () => void
   program: WorkoutProgram
 }) {
+  const t = useT()
+
   return (
     <div
       className="modal-backdrop"
@@ -1189,42 +1206,44 @@ function InstallConfirmationDialog({
         role="dialog"
       >
         <p className="eyebrow">
-          {cloudActive ? 'Confirm cloud installation' : 'Confirm local installation'}
+          {cloudActive ? t('pm.confirmCloudTitle') : t('pm.confirmLocalTitle')}
         </p>
         <h2 id="install-program-title">Install {program.name}?</h2>
         <p>
           {cloudActive
-            ? 'This will replace your cloud custom workout plan only after local and cloud backups are created. The verified plan will then update this device. Your workout history will not be changed.'
-            : 'This will replace your active custom workout plan with the selected program. Your workout history will not be changed. A local backup of your current plan will be created first.'}
+            ? t('pm.confirmCloudCopy')
+            : t('pm.confirmLocalCopy')}
         </p>
         <dl className="program-install-confirmation__stats">
           <div>
-            <dt>Selected program</dt>
+            <dt>{t('pm.selectedProgram')}</dt>
             <dd>
               {program.name} · {program.version}
             </dd>
           </div>
           <div>
-            <dt>Days</dt>
+            <dt>{t('pm.days')}</dt>
             <dd>{program.days.length}</dd>
           </div>
           <div>
-            <dt>Exercises</dt>
+            <dt>{t('pm.exercises')}</dt>
             <dd>{countExercises(program.days)}</dd>
           </div>
           <div>
-            <dt>Active workout block</dt>
-            <dd>{activeWorkoutBlocked ? 'Blocked' : 'No active workout'}</dd>
+            <dt>{t('pm.activeWorkoutBlock')}</dt>
+            <dd>
+              {activeWorkoutBlocked ? t('pm.blocked') : t('pm.noActiveWorkout')}
+            </dd>
           </div>
         </dl>
         {activeWorkoutBlocked ? (
           <p className="program-install-confirmation__warning">
-            Finish or discard the active workout before changing programs.
+            {t('pm.activeWorkoutBlocked')}
           </p>
         ) : null}
         {cloudActive && !isOnline ? (
           <p className="program-install-confirmation__warning">
-            {CLOUD_OFFLINE_MESSAGE}
+            {t('pm.cloudOffline')}
           </p>
         ) : null}
         <div className="program-install-confirmation__actions">
@@ -1255,7 +1274,7 @@ function InstallConfirmationDialog({
             type="button"
           >
             <Package size={17} strokeWidth={2.4} aria-hidden="true" />
-            Install Program
+            {t('pm.installProgram')}
           </button>
         </div>
       </section>
@@ -1264,6 +1283,8 @@ function InstallConfirmationDialog({
 }
 
 function PreviewList({ title, values }: { title: string; values: readonly string[] }) {
+  const t = useT()
+
   return (
     <section className="program-preview-list">
       <h3>{title}</h3>
@@ -1274,17 +1295,19 @@ function PreviewList({ title, values }: { title: string; values: readonly string
           ))}
         </ul>
       ) : (
-        <p>None listed.</p>
+        <p>{t('pm.noneListed')}</p>
       )}
     </section>
   )
 }
 
 function ComparisonList({ title, values }: { title: string; values: string[] }) {
+  const t = useT()
+
   return (
     <div className="program-comparison__list">
       <strong>{title}</strong>
-      <p>{values.length > 0 ? values.join(', ') : 'None'}</p>
+      <p>{values.length > 0 ? values.join(', ') : t('pm.none')}</p>
     </div>
   )
 }
@@ -1336,9 +1359,9 @@ function isCurrentProgram(program: WorkoutProgram, state: ManagerState): boolean
 }
 
 function getProgramStatus(current: boolean, dismissed: boolean): ProgramStatus {
-  if (current) return 'Current'
-  if (dismissed) return 'Dismissed'
-  return 'Available'
+  if (current) return 'current'
+  if (dismissed) return 'dismissed'
+  return 'available'
 }
 
 function getValidationWarnings(program: WorkoutProgram): string[] {
@@ -1363,17 +1386,17 @@ function formatDateOnly(value: string): string {
   const date = new Date(`${value}T00:00:00`)
   return Number.isNaN(date.getTime())
     ? value
-    : new Intl.DateTimeFormat(undefined, { dateStyle: 'medium' }).format(date)
+    : formatDate(date, { dateStyle: 'medium' })
 }
 
 function formatTimestamp(value: string): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime())
     ? value
-    : new Intl.DateTimeFormat(undefined, {
+    : formatDate(date, {
         dateStyle: 'medium',
         timeStyle: 'short',
-      }).format(date)
+      })
 }
 
 function programIdentity(id: string, version: string): string {
@@ -1417,10 +1440,11 @@ function PasteProgramPanel({
   onSaved,
   savedPrograms,
 }: PasteProgramPanelProps) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [text, setText] = useState('')
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
-  const [copyLabel, setCopyLabel] = useState('Copy AI prompt')
+  const [copyLabel, setCopyLabel] = useState<'idle' | 'copied' | 'manual'>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
@@ -1441,7 +1465,7 @@ function PasteProgramPanel({
       setResult({
         success: false,
         program: null,
-        errors: [`Could not read "${file.name}". Try choosing the file again.`],
+        errors: [t('paste.readFailed', { name: file.name })],
         warnings: [],
         repairs: [],
       })
@@ -1474,7 +1498,7 @@ function PasteProgramPanel({
     setFileName(null)
     setOpen(false)
     onSaved(
-      `${saved.message} Find it in the list below to install it.`,
+      t('paste.savedThenInstall', { message: saved.message }),
       saved.programs,
     )
   }
@@ -1483,18 +1507,21 @@ function PasteProgramPanel({
     const prompt = buildProgramAuthoringPrompt(getUserProfileSettings())
     try {
       await navigator.clipboard.writeText(prompt)
-      setCopyLabel('Copied')
+      setCopyLabel('copied')
     } catch {
       // Clipboard access can be blocked; fall back to a manual selection.
-      setCopyLabel('Press Ctrl/Cmd+C')
+      setCopyLabel('manual')
       setText(prompt)
     }
-    window.setTimeout(() => setCopyLabel('Copy AI prompt'), 2500)
+    window.setTimeout(() => setCopyLabel('idle'), 2500)
   }
 
   function handleDelete(program: UserWorkoutProgram) {
     const confirmed = window.confirm(
-      `Remove "${program.name}" ${program.version} from your pasted programs?\n\nThis does not change your current workout plan.`,
+      t('paste.removeConfirm', {
+        name: program.name,
+        version: program.version,
+      }),
     )
     if (!confirmed) {
       return
@@ -1502,7 +1529,10 @@ function PasteProgramPanel({
 
     const removed = deleteUserWorkoutProgram(program.id, program.version)
     if (removed.success) {
-      onDeleted(`Removed "${program.name}" ${program.version}.`, removed.programs)
+      onDeleted(
+        t('paste.removed', { name: program.name, version: program.version }),
+        removed.programs,
+      )
     }
   }
 
@@ -1515,15 +1545,13 @@ function PasteProgramPanel({
         type="button"
       >
         <ClipboardPaste size={18} strokeWidth={2.4} aria-hidden="true" />
-        {open ? 'Close import panel' : 'Add a workout program'}
+        {open ? t('paste.close') : t('paste.open')}
       </button>
 
       {open ? (
         <div className="paste-program__body">
           <p className="paste-program__hint">
-            Upload your program as a .json file. If you have your plan as plain
-            text, copy the prompt below into ChatGPT (or any AI chat) along with
-            your plan, then upload or paste the JSON it returns.
+            {t('paste.hint')}
           </p>
 
           <input
@@ -1539,10 +1567,12 @@ function PasteProgramPanel({
             type="button"
           >
             <Upload size={17} strokeWidth={2.4} aria-hidden="true" />
-            Choose program file
+            {t('paste.chooseFile')}
           </button>
           {fileName ? (
-            <p className="paste-program__file-name">Loaded {fileName}</p>
+            <p className="paste-program__file-name">
+              {t('paste.loaded', { name: fileName })}
+            </p>
           ) : null}
 
           <button
@@ -1551,11 +1581,18 @@ function PasteProgramPanel({
             type="button"
           >
             <Copy size={17} strokeWidth={2.4} aria-hidden="true" />
-            {copyLabel}
+            {copyLabel === 'copied'
+              ? t('action.copied')
+              : copyLabel === 'manual'
+                ? t('setup.program.copyManual')
+                : t('setup.program.copyPrompt')}
           </button>
 
           <label className="paste-program__label" htmlFor="paste-program-input">
-            Program JSON <span className="paste-program__label-note">(or paste it here)</span>
+            {t('paste.jsonLabel')}{' '}
+            <span className="paste-program__label-note">
+              {t('paste.jsonLabelNote')}
+            </span>
           </label>
           <textarea
             className="paste-program__textarea"
@@ -1578,7 +1615,7 @@ function PasteProgramPanel({
               onClick={handleCheck}
               type="button"
             >
-              Check
+              {t('paste.check')}
             </button>
             <button
               className="workout-primary-button"
@@ -1586,7 +1623,7 @@ function PasteProgramPanel({
               onClick={handleSave}
               type="button"
             >
-              Save program
+              {t('paste.save')}
             </button>
           </div>
 
@@ -1601,18 +1638,21 @@ function PasteProgramPanel({
                 <>
                   <p className="paste-program__result-title">
                     <CheckCircle2 size={17} strokeWidth={2.4} aria-hidden="true" />
-                    {result.program.name} looks good - {result.program.days.length}{' '}
-                    days, {countExercises(result.program.days)} exercises.
+                    {t('paste.looksGood', {
+                      name: result.program.name,
+                      days: result.program.days.length,
+                      exercises: countExercises(result.program.days),
+                    })}
                   </p>
                   <p className="paste-program__result-note">
-                    Choose &quot;Save program&quot; to add it to your list.
+                    {t('paste.saveHint')}
                   </p>
                 </>
               ) : (
                 <>
                   <p className="paste-program__result-title">
                     <AlertTriangle size={17} strokeWidth={2.4} aria-hidden="true" />
-                    This program cannot be saved yet.
+                    {t('paste.cannotSave')}
                   </p>
                   <ul className="paste-program__issues">
                     {result.errors.map((error) => (
@@ -1633,9 +1673,7 @@ function PasteProgramPanel({
               {result.warnings.length > 0 ? (
                 <details className="paste-program__warnings">
                   <summary>
-                    {result.warnings.length} warning
-                    {result.warnings.length === 1 ? '' : 's'} (program still
-                    works)
+                    {t('paste.warningSummary', { count: result.warnings.length })}
                   </summary>
                   <ul className="paste-program__issues paste-program__issues--muted">
                     {result.warnings.map((warning) => (
@@ -1652,7 +1690,7 @@ function PasteProgramPanel({
       {savedPrograms.length > 0 ? (
         <div className="paste-program__saved">
           <p className="paste-program__saved-title">
-            Your pasted programs ({savedPrograms.length})
+            {t('paste.savedTitle', { count: savedPrograms.length })}
           </p>
           <ul className="paste-program__saved-list">
             {savedPrograms.map((program) => (
@@ -1664,7 +1702,10 @@ function PasteProgramPanel({
                   </span>
                 </span>
                 <button
-                  aria-label={`Remove ${program.name} ${program.version}`}
+                  aria-label={t('paste.removeAria', {
+                    name: program.name,
+                    version: program.version,
+                  })}
                   className="paste-program__delete"
                   onClick={() => handleDelete(program)}
                   type="button"

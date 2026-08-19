@@ -11,7 +11,8 @@ import {
   getLastHealthCheck,
   runCloudHealthCheck,
 } from '../services/healthService'
-import { getEnvironmentLabel, validateEnv } from '../utils/envUtils'
+import { getEnvConfig, getEnvironmentLabel, validateEnv } from '../utils/envUtils'
+import { formatDate, t, useT } from '../i18n'
 
 /**
  * Step 20 - Settings > Cloud Health.
@@ -21,10 +22,14 @@ import { getEnvironmentLabel, validateEnv } from '../utils/envUtils'
  * reloads.
  */
 export function CloudHealthPanel() {
+  // Shadows the module-level `t` so this component re-renders on a language
+  // change; the helpers below stay on the module-level one.
+  const t = useT()
   const [result, setResult] = useState(() => getLastHealthCheck())
   const [running, setRunning] = useState(false)
 
   const { runtime, mode } = getEnvironmentLabel()
+  const { isProduction, isSupabaseConfigured: isCloudMode } = getEnvConfig()
   const envWarnings = validateEnv()
 
   async function handleRunCheck() {
@@ -40,8 +45,8 @@ export function CloudHealthPanel() {
     <article className="dashboard-card settings-panel cloud-health-panel">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Cloud Health</p>
-          <h2>Deployment &amp; connection status</h2>
+          <p className="eyebrow">{t('health.eyebrow')}</p>
+          <h2>{t('health.title')}</h2>
         </div>
         <HeartPulse size={22} strokeWidth={2.4} aria-hidden="true" />
       </div>
@@ -49,14 +54,14 @@ export function CloudHealthPanel() {
       <div className="env-badge-row">
         <span
           className={`env-badge ${
-            runtime === 'Production' ? 'env-badge--production' : 'env-badge--development'
+            isProduction ? 'env-badge--production' : 'env-badge--development'
           }`}
         >
           {runtime}
         </span>
         <span
           className={`env-badge ${
-            mode === 'Cloud Mode' ? 'env-badge--cloud' : 'env-badge--local'
+            isCloudMode ? 'env-badge--cloud' : 'env-badge--local'
           }`}
         >
           {mode}
@@ -78,24 +83,29 @@ export function CloudHealthPanel() {
 
       <div className="cloud-status-grid">
         <HealthRow
-          label="Supabase configured"
+          label={t('health.supabaseConfigured')}
           state={boolState(result?.supabaseConfigured)}
         />
-        <HealthRow label="User logged in" state={boolState(result?.loggedIn)} />
         <HealthRow
-          label="Database reachable"
+          label={t('health.loggedIn')}
+          state={boolState(result?.loggedIn)}
+        />
+        <HealthRow
+          label={t('health.databaseReachableLabel')}
           state={boolState(result?.databaseReachable)}
         />
         <HealthRow
-          label="Storage available"
+          label={t('health.storageAvailable')}
           state={
             result?.storageSkipped ? 'skipped' : boolState(result?.storageAvailable)
           }
         />
         <div>
-          <span>Last checked</span>
+          <span>{t('health.lastChecked')}</span>
           <strong>
-            {result?.checkedAt ? formatCheckedAt(result.checkedAt) : 'Never'}
+            {result?.checkedAt
+              ? formatCheckedAt(result.checkedAt)
+              : t('state.never')}
           </strong>
         </div>
       </div>
@@ -116,7 +126,7 @@ export function CloudHealthPanel() {
           type="button"
         >
           <Activity size={19} strokeWidth={2.4} aria-hidden="true" />
-          {running ? 'Checking...' : 'Run Health Check'}
+          {running ? t('health.checking') : t('health.runCheck')}
         </button>
       </div>
     </article>
@@ -124,6 +134,8 @@ export function CloudHealthPanel() {
 }
 
 function HealthRow({ label, state }) {
+  const t = useT()
+
   return (
     <div>
       <span>{label}</span>
@@ -135,7 +147,13 @@ function HealthRow({ label, state }) {
         ) : (
           <MinusCircle size={15} strokeWidth={2.6} aria-hidden="true" />
         )}
-        {state === 'yes' ? 'Yes' : state === 'no' ? 'No' : state === 'skipped' ? 'Skipped' : 'Not checked'}
+        {state === 'yes'
+          ? t('state.yes')
+          : state === 'no'
+            ? t('state.no')
+            : state === 'skipped'
+              ? t('health.skipped')
+              : t('health.notChecked')}
       </strong>
     </div>
   )
@@ -150,7 +168,7 @@ function boolState(value) {
 function formatCheckedAt(iso) {
   const date = new Date(iso)
   if (Number.isNaN(date.getTime())) {
-    return 'Unknown'
+    return t('state.unknown')
   }
-  return date.toLocaleString()
+  return formatDate(date, { dateStyle: 'medium', timeStyle: 'short' })
 }

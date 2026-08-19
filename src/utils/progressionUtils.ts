@@ -4,6 +4,7 @@ import {
   type ExerciseIdentityOptions,
   type ExerciseIdentityInput,
 } from '../data/exerciseIdentity'
+import { t } from '../i18n/t'
 import {
   formatDuration,
   getExerciseLoggingMode,
@@ -480,10 +481,10 @@ export function getGeneralProgressionAdvice(
 ): string[] {
   if (getExerciseLoggingMode(exercise) === 'duration') {
     return [
-      'Maintain the target duration with controlled effort',
-      'Keep the movement or pace consistent before adding difficulty',
-      'Use RPE and pain notes to guide the next session',
-      'Reduce duration or load if form deteriorates',
+      t('advice.duration.1'),
+      t('advice.duration.2'),
+      t('advice.duration.3'),
+      t('advice.duration.4'),
     ]
   }
 
@@ -492,45 +493,45 @@ export function getGeneralProgressionAdvice(
   switch (type) {
     case 'dumbbell':
       return [
-        'Reach the top of your rep range on every set first',
-        'Then move up to the next dumbbell size and rebuild reps',
-        'Keep RPE around 8-9 - leave 1-2 reps in the tank',
-        'Log any pain and reduce load if it appears',
+        t('advice.dumbbell.1'),
+        t('advice.dumbbell.2'),
+        t('advice.dumbbell.3'),
+        t('advice.dumbbell.4'),
       ]
     case 'weighted':
       return [
-        'Reach the top of your rep range on every set first',
-        'Then add the smallest practical load increment and rebuild your reps',
-        'Keep RPE around 8-9 - do not grind to failure',
-        'Keep ribs down and brace; reduce load if the back arches',
+        t('advice.weighted.1'),
+        t('advice.weighted.2'),
+        t('advice.weighted.3'),
+        t('advice.weighted.4'),
       ]
     case 'bodyweight':
       return [
-        'First reach all sets at the top clean rep count',
-        'Then add backpack weight or a harder variation',
-        'Slow the tempo before adding load',
-        'If the lower back arches, reduce load and reset form',
+        t('advice.bodyweight.1'),
+        t('advice.bodyweight.2'),
+        t('advice.bodyweight.3'),
+        t('advice.bodyweight.4'),
       ]
     case 'abs':
       return [
-        'Add reps or time before adding any load',
-        'Slow the tempo to make it harder',
-        'Keep ribs down and avoid pulling on the neck',
-        'Add light load only once form is perfect',
+        t('advice.abs.1'),
+        t('advice.abs.2'),
+        t('advice.abs.3'),
+        t('advice.abs.4'),
       ]
     case 'posture':
       return [
-        'Do not chase heavy load here',
-        'Progress with control, slower reps, and consistency',
-        'Keep ribs down and glutes lightly squeezed',
-        'Quality over quantity on every rep',
+        t('advice.posture.1'),
+        t('advice.posture.2'),
+        t('advice.posture.3'),
+        t('advice.posture.4'),
       ]
     case 'cardio':
       return [
-        'Add 5 minutes before adding intensity',
-        'Use incline instead of running to protect your shins',
-        'Keep the effort conversational',
-        'Stop if your shins start to flare up',
+        t('advice.cardio.1'),
+        t('advice.cardio.2'),
+        t('advice.cardio.3'),
+        t('advice.cardio.4'),
       ]
   }
 }
@@ -542,55 +543,55 @@ export function getGeneralProgressionAdvice(
 function noDataSuggestion(): ProgressionSuggestion {
   return {
     type: 'no-data',
-    title: 'No Data Yet',
-    message: 'Complete this exercise once to get progression advice.',
-    nextTarget: 'Log your first workout',
-    reason: 'No previous workout data found.',
+    title: t('coach.noData.title'),
+    message: t('coach.noData.message'),
+    nextTarget: t('coach.noData.target'),
+    reason: t('coach.noData.reason'),
   }
 }
 
 function unknownTargetSuggestion(): ProgressionSuggestion {
   return {
     type: 'no-data',
-    title: 'Rep Range Unknown',
+    title: t('coach.unknownTarget.title'),
     message:
-      'Add a rep range or duration to this exercise before using progression advice.',
-    nextTarget: 'Set reps or duration in Plan Editor',
-    reason: 'Target data is missing, so load progression is paused.',
+      t('coach.unknownTarget.message'),
+    nextTarget: t('coach.unknownTarget.target'),
+    reason: t('coach.unknownTarget.reason'),
   }
 }
 
 function durationSuggestion(): ProgressionSuggestion {
   return {
     type: 'keep',
-    title: 'Maintain Duration',
-    message: 'Maintain the target duration with controlled effort.',
-    nextTarget: 'Repeat the target duration',
-    reason: 'Timed exercises are kept separate from repetition-based progression.',
+    title: t('coach.duration.title'),
+    message: t('coach.duration.message'),
+    nextTarget: t('coach.duration.target'),
+    reason: t('coach.duration.reason'),
   }
 }
 
 function formWarningSuggestion(): ProgressionSuggestion {
   return {
     type: 'form-warning',
-    title: 'Form Warning',
+    title: t('coach.formWarning.title'),
     message:
-      'Pain was logged for this exercise. Do not increase load next time. Use a lighter load and check your form.',
-    nextTarget: 'Lighter load, focus on form',
-    reason: 'Pain was reported - safety before progression.',
+      t('coach.formWarning.message'),
+    nextTarget: t('coach.formWarning.target'),
+    reason: t('coach.formWarning.reason'),
   }
 }
 
 function increaseSuggestion(type: ExerciseType): ProgressionSuggestion {
-  const reason = 'All sets reached target reps with controlled RPE.'
+  const reason = t('coach.increase.reason')
 
   if (type === 'dumbbell') {
     return {
       type: 'increase',
-      title: 'Increase Load',
+      title: t('coach.increase.title'),
       message:
-        'You reached the top of the rep range on every set. Move up to the next dumbbell size next time.',
-      nextTarget: 'Next dumbbell size up',
+        t('coach.increase.dumbbell.message'),
+      nextTarget: t('coach.increase.dumbbell.target'),
       reason,
     }
   }
@@ -598,10 +599,10 @@ function increaseSuggestion(type: ExerciseType): ProgressionSuggestion {
   if (type === 'bodyweight') {
     return {
       type: 'increase',
-      title: 'Increase Load',
+      title: t('coach.increase.title'),
       message:
-        'You hit the top of the range on every set. Add backpack weight, slow the tempo, or try a harder variation.',
-      nextTarget: 'Add backpack weight or harder variation',
+        t('coach.increase.bodyweight.message'),
+      nextTarget: t('coach.increase.bodyweight.target'),
       reason,
     }
   }
@@ -609,20 +610,20 @@ function increaseSuggestion(type: ExerciseType): ProgressionSuggestion {
   if (type === 'abs') {
     return {
       type: 'increase',
-      title: 'Progress Abs',
+      title: t('coach.increase.abs.title'),
       message:
-        'Top reps reached on every set. Add reps, add time, or slow the tempo. Keep load light to protect posture.',
-      nextTarget: 'Add reps / time / slower tempo',
-      reason: 'Top reps reached with good control - no need for heavy load yet.',
+        t('coach.increase.abs.message'),
+      nextTarget: t('coach.increase.abs.target'),
+      reason: t('coach.increase.abs.reason'),
     }
   }
 
   return {
     type: 'increase',
-    title: 'Increase Load',
+    title: t('coach.increase.title'),
     message:
-      'You reached the top of the rep range for all sets. Use the smallest practical load increase next time.',
-    nextTarget: 'Add the smallest practical increment',
+      t('coach.increase.default.message'),
+    nextTarget: t('coach.increase.default.target'),
     reason,
   }
 }
@@ -631,30 +632,30 @@ function keepSuggestion(type: ExerciseType): ProgressionSuggestion {
   if (type === 'bodyweight') {
     return {
       type: 'keep',
-      title: 'Keep Same Load',
-      message: 'Same setup next time - aim for 1 more clean rep per set.',
-      nextTarget: 'Same load, +1 rep total',
-      reason: 'You are progressing but have not reached the top of the range yet.',
+      title: t('coach.keep.title'),
+      message: t('coach.keep.bodyweight.message'),
+      nextTarget: t('coach.keep.bodyweight.target'),
+      reason: t('coach.keep.bodyweight.reason'),
     }
   }
 
   if (type === 'abs') {
     return {
       type: 'keep',
-      title: 'Keep Same',
-      message: 'Same difficulty - add 1 rep or a few seconds next time.',
-      nextTarget: '+1 rep or a few seconds',
-      reason: 'Core work progresses through reps, time, and tempo.',
+      title: t('coach.keep.abs.title'),
+      message: t('coach.keep.abs.message'),
+      nextTarget: t('coach.keep.abs.target'),
+      reason: t('coach.keep.abs.reason'),
     }
   }
 
   return {
     type: 'keep',
-    title: 'Keep Same Load',
-    message: 'Stay with the same weight and try to add 1 rep next workout.',
-    nextTarget: 'Same weight, +1 rep total',
+    title: t('coach.keep.title'),
+    message: t('coach.keep.default.message'),
+    nextTarget: t('coach.keep.default.target'),
     reason:
-      'You are progressing but have not reached the top of the rep range yet.',
+      t('coach.keep.default.reason'),
   }
 }
 
@@ -665,42 +666,42 @@ function reduceSuggestion(
   if (averageRpe === 10) {
     return {
       type: 'reduce',
-      title: 'Reduce Load',
+      title: t('coach.reduce.title'),
       message:
-        'Too close to failure last time. Keep or reduce the load next workout.',
-      nextTarget: 'Reduce load by 5-10%',
-      reason: 'Average RPE hit 10 - leave a rep or two in the tank.',
+        t('coach.reduce.rpe.message'),
+      nextTarget: t('coach.reduce.rpe.target'),
+      reason: t('coach.reduce.rpe.reason'),
     }
   }
 
   if (type === 'bodyweight') {
     return {
       type: 'reduce',
-      title: 'Reduce Load',
+      title: t('coach.reduce.title'),
       message:
-        'Reps dropped below target. Remove backpack weight or use an easier variation.',
-      nextTarget: 'Easier variation or less added weight',
-      reason: 'Performance was too difficult for the target range.',
+        t('coach.reduce.bodyweight.message'),
+      nextTarget: t('coach.reduce.bodyweight.target'),
+      reason: t('coach.reduce.reason'),
     }
   }
 
   if (type === 'abs') {
     return {
       type: 'reduce',
-      title: 'Reduce Difficulty',
-      message: 'Reps dropped below target. Ease the difficulty and rebuild clean reps.',
-      nextTarget: 'Easier variation, rebuild reps',
-      reason: 'Performance was too difficult for the target range.',
+      title: t('coach.reduce.abs.title'),
+      message: t('coach.reduce.abs.message'),
+      nextTarget: t('coach.reduce.abs.target'),
+      reason: t('coach.reduce.reason'),
     }
   }
 
   return {
     type: 'reduce',
-    title: 'Reduce Load',
+    title: t('coach.reduce.title'),
     message:
-      'Your reps dropped below the target range or RPE was too high. Reduce the weight slightly.',
-    nextTarget: 'Reduce load by 5-10%',
-    reason: 'Performance was too difficult for the target range.',
+      t('coach.reduce.default.message'),
+    nextTarget: t('coach.reduce.rpe.target'),
+    reason: t('coach.reduce.reason'),
   }
 }
 
@@ -721,21 +722,21 @@ function postureSuggestion(
   if (struggling) {
     return {
       type: 'reduce',
-      title: 'Ease Off',
+      title: t('coach.posture.easeTitle'),
       message:
-        'Slow down and focus on control. Keep ribs down and reduce the difficulty.',
-      nextTarget: 'Slower reps, easier variation',
-      reason: 'Control matters more than load for posture work.',
+        t('coach.posture.easeMessage'),
+      nextTarget: t('coach.posture.easeTarget'),
+      reason: t('coach.posture.easeReason'),
     }
   }
 
   return {
     type: 'keep',
-    title: 'Build Control',
+    title: t('coach.posture.buildTitle'),
     message:
-      'Improve control and consistency. Add reps or slow the tempo - keep the load light.',
-    nextTarget: 'Add reps / slower tempo, stay consistent',
-    reason: 'Posture work progresses through control, not heavy load.',
+      t('coach.posture.buildMessage'),
+    nextTarget: t('coach.posture.buildTarget'),
+    reason: t('coach.posture.buildReason'),
   }
 }
 
@@ -743,21 +744,21 @@ function cardioSuggestion(averageRpe: number | null): ProgressionSuggestion {
   if (averageRpe !== null && averageRpe >= 9) {
     return {
       type: 'keep',
-      title: 'Hold Cardio',
+      title: t('coach.cardio.holdTitle'),
       message:
-        'Keep this pace and let your conditioning settle before adding time.',
-      nextTarget: 'Same duration and incline',
-      reason: 'Effort was already high last session.',
+        t('coach.cardio.holdMessage'),
+      nextTarget: t('coach.cardio.holdTarget'),
+      reason: t('coach.cardio.holdReason'),
     }
   }
 
   return {
     type: 'increase',
-    title: 'Progress Cardio',
+    title: t('coach.cardio.progressTitle'),
     message:
-      'Walk felt controlled. Add 5 minutes or a slight incline. Skip running to protect your shins.',
-    nextTarget: '+5 min or slight incline',
-    reason: 'Cardio completed comfortably.',
+      t('coach.cardio.progressMessage'),
+    nextTarget: t('coach.cardio.progressTarget'),
+    reason: t('coach.cardio.progressReason'),
   }
 }
 
@@ -794,19 +795,20 @@ function summarizeResult(result: FlexibleExerciseResult): string {
   const parts: string[] = []
 
   if (reps.length > 0) {
-    parts.push(`${reps.join(', ')} reps`)
+    parts.push(t('coach.summary.reps', { reps: reps.join(', ') }))
   } else if (times.length > 0) {
     parts.push(times.map(formatDuration).join(', '))
   }
 
   if (weights.length > 0) {
-    parts.push(`@ ${Math.max(...weights)} kg`)
+    parts.push(t('coach.summary.weight', { weight: Math.max(...weights) }))
   }
 
   const summary = parts.join(' ')
-  const rpeSuffix = averageRpe !== null ? ` · RPE ${averageRpe}` : ''
+  const rpeSuffix =
+    averageRpe !== null ? t('coach.summary.rpe', { rpe: averageRpe }) : ''
 
-  return summary ? `${summary}${rpeSuffix}` : 'Logged'
+  return summary ? `${summary}${rpeSuffix}` : t('coach.summary.logged')
 }
 
 function getTargetRange(

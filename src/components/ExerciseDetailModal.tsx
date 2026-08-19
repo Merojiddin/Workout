@@ -15,6 +15,18 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 import type { Difficulty, LibraryExercise } from '../data/exerciseLibrary'
 import {
+  formatDate,
+  useLanguage,
+  type MessageKey,
+  type TranslateFn,
+} from '../i18n'
+import {
+  getExerciseCopy,
+  translateCategory,
+  translateDifficulty,
+  translateEquipment,
+} from '../i18n/exercises'
+import {
   findProgramDay,
   getActiveWorkoutProgram,
   getDayLabel,
@@ -28,16 +40,17 @@ import { formatDuration } from '../utils/exerciseLoggingUtils'
 import { getGeneralProgressionAdvice } from '../utils/progressionUtils'
 import { ExerciseTrendChart } from './ExerciseTrendChart'
 import { ExerciseMedia } from './ExerciseMedia'
+import { ExerciseMuscleMap } from './ExerciseMuscleMap'
 import { ExerciseMediaEditor } from './ExerciseMediaEditor'
 import { Tag, type TagVariant } from './Tag'
 
 type DetailTab = 'info' | 'muscles' | 'history' | 'progress'
 
-const DETAIL_TABS: { id: DetailTab; label: string }[] = [
-  { id: 'info', label: 'Info' },
-  { id: 'muscles', label: 'Muscles' },
-  { id: 'history', label: 'History' },
-  { id: 'progress', label: 'Progress' },
+const DETAIL_TABS: { id: DetailTab; labelKey: MessageKey }[] = [
+  { id: 'info', labelKey: 'library.modal.tab.info' },
+  { id: 'muscles', labelKey: 'library.modal.tab.muscles' },
+  { id: 'history', labelKey: 'library.modal.tab.history' },
+  { id: 'progress', labelKey: 'library.modal.tab.progress' },
 ]
 
 interface ExerciseDetailModalProps {
@@ -62,6 +75,13 @@ export function ExerciseDetailModal({
   onClose,
   onUpdateExercise,
 }: ExerciseDetailModalProps) {
+  const { language, t } = useLanguage()
+  // The guide text in the reader's language. `exercise` itself stays English:
+  // it is what history lookups, the media editor and the save path all use.
+  const copy = useMemo(
+    () => getExerciseCopy(exercise, language),
+    [exercise, language],
+  )
   const [tab, setTab] = useState<DetailTab>('info')
   // Read once per open: history does not change while the sheet is on screen.
   const history = useMemo(
@@ -70,12 +90,17 @@ export function ExerciseDetailModal({
   )
   const trend = useMemo(() => getExerciseTrend(history), [history])
   const activeProgram = getActiveWorkoutProgram()
-  const progressionAdvice = getGeneralProgressionAdvice({
-    name: exercise.name,
-    category: exercise.category,
-    equipment: exercise.equipment,
-    muscleGroup: exercise.postureFocus ? 'Posture' : undefined,
-  })
+  const progressionAdvice = useMemo(
+    () =>
+      getGeneralProgressionAdvice({
+        name: exercise.name,
+        category: exercise.category,
+        equipment: exercise.equipment,
+        muscleGroup: exercise.postureFocus ? 'Posture' : undefined,
+      }),
+    // Built in the active language, so it is rebuilt when that changes.
+    [exercise, language],
+  )
 
   useEffect(() => {
     function handleKey(event: KeyboardEvent) {
@@ -103,12 +128,16 @@ export function ExerciseDetailModal({
       >
         <header className="modal-header">
           <div>
-            <p className="eyebrow">{exercise.category} · Form Guide</p>
-            <h2 id="exercise-detail-title">{exercise.name}</h2>
-            <p>{exercise.formCue}</p>
+            <p className="eyebrow">
+              {t('library.modal.formGuide', {
+                category: translateCategory(exercise.category, language),
+              })}
+            </p>
+            <h2 id="exercise-detail-title">{copy.name}</h2>
+            <p>{copy.formCue}</p>
           </div>
           <button
-            aria-label="Close exercise details"
+            aria-label={t('library.modal.close')}
             className="modal-close-button"
             onClick={onClose}
             type="button"
@@ -119,7 +148,11 @@ export function ExerciseDetailModal({
 
         {/* Four tabs instead of one long scroll: how to do it, what it works,
             what you have already done, and whether it is going anywhere. */}
-        <div className="detail-tabs" role="tablist" aria-label="Exercise details">
+        <div
+          className="detail-tabs"
+          role="tablist"
+          aria-label={t('library.modal.tabsAria')}
+        >
           {DETAIL_TABS.map((item) => (
             <button
               aria-controls={`exercise-detail-panel-${item.id}`}
@@ -131,7 +164,7 @@ export function ExerciseDetailModal({
               role="tab"
               type="button"
             >
-              {item.label}
+              {t(item.labelKey)}
             </button>
           ))}
         </div>
@@ -156,18 +189,22 @@ export function ExerciseDetailModal({
         <div className="info-grid">
           <div className="info-cell">
             <Signal size={17} strokeWidth={2.2} aria-hidden="true" />
-            <b>{exercise.difficulty}</b>
-            <span>Level</span>
+            <b>{translateDifficulty(exercise.difficulty, language)}</b>
+            <span>{t('library.modal.level')}</span>
           </div>
           <div className="info-cell">
             <Dumbbell size={17} strokeWidth={2.2} aria-hidden="true" />
-            <b>{exercise.category}</b>
-            <span>Category</span>
+            <b>{translateCategory(exercise.category, language)}</b>
+            <span>{t('library.modal.category')}</span>
           </div>
           <div className="info-cell">
             <ListOrdered size={17} strokeWidth={2.2} aria-hidden="true" />
-            <b>{exercise.equipment[0] ?? 'None'}</b>
-            <span>Equipment</span>
+            <b>
+              {exercise.equipment[0]
+                ? translateEquipment(exercise.equipment[0], language)
+                : t('library.modal.noEquipment')}
+            </b>
+            <span>{t('library.modal.equipment')}</span>
           </div>
         </div>
 
@@ -175,10 +212,10 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <ListOrdered size={18} strokeWidth={2.4} aria-hidden="true" />
-              Instructions
+              {t('library.modal.instructions')}
             </h3>
             <ol className="exercise-detail-steps">
-              {exercise.instructions.map((step) => (
+              {copy.instructions.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
@@ -187,10 +224,10 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <CheckCircle2 size={18} strokeWidth={2.4} aria-hidden="true" />
-              Form tips
+              {t('library.modal.formTips')}
             </h3>
             <ul className="exercise-detail-list exercise-detail-list--good">
-              {exercise.formTips.map((tip) => (
+              {copy.formTips.map((tip) => (
                 <li key={tip}>{tip}</li>
               ))}
             </ul>
@@ -199,10 +236,10 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <ShieldAlert size={18} strokeWidth={2.4} aria-hidden="true" />
-              Common mistakes
+              {t('library.modal.commonMistakes')}
             </h3>
             <ul className="exercise-detail-list exercise-detail-list--bad">
-              {exercise.commonMistakes.map((mistake) => (
+              {copy.commonMistakes.map((mistake) => (
                 <li key={mistake}>{mistake}</li>
               ))}
             </ul>
@@ -211,10 +248,10 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <TrendingUp size={18} strokeWidth={2.4} aria-hidden="true" />
-              Progression
+              {t('library.modal.progression')}
             </h3>
             <ol className="exercise-detail-steps exercise-detail-steps--progress">
-              {exercise.progression.map((step) => (
+              {copy.progression.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
@@ -223,10 +260,10 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <TrendingDown size={18} strokeWidth={2.4} aria-hidden="true" />
-              Regression (easier)
+              {t('library.modal.regression')}
             </h3>
             <ol className="exercise-detail-steps exercise-detail-steps--progress">
-              {exercise.regression.map((step) => (
+              {copy.regression.map((step) => (
                 <li key={step}>{step}</li>
               ))}
             </ol>
@@ -236,7 +273,7 @@ export function ExerciseDetailModal({
         <section className="exercise-detail-advice">
           <p className="eyebrow">
             <Lightbulb size={16} strokeWidth={2.4} aria-hidden="true" />
-            Progression Advice
+            {t('library.modal.progressionAdvice')}
           </p>
           <ul>
             {progressionAdvice.map((advice) => (
@@ -246,15 +283,15 @@ export function ExerciseDetailModal({
         </section>
 
         <section className="exercise-detail-posture">
-          <p className="eyebrow">Posture &amp; arched-back notes</p>
-          <p>{exercise.postureNotes}</p>
+          <p className="eyebrow">{t('library.modal.postureNotes')}</p>
+          <p>{copy.postureNotes}</p>
         </section>
 
         <div className="exercise-detail-footer">
           <section className="exercise-detail-block">
             <h3>
               <ExternalLink size={18} strokeWidth={2.4} aria-hidden="true" />
-              Demo links
+              {t('library.modal.demoLinks')}
             </h3>
             <div className="exercise-detail-links">
               {exercise.demoLinks.map((link) => (
@@ -275,18 +312,20 @@ export function ExerciseDetailModal({
           <section className="exercise-detail-block">
             <h3>
               <CalendarDays size={18} strokeWidth={2.4} aria-hidden="true" />
-              Related workout days
+              {t('library.modal.relatedDays')}
             </h3>
             {exercise.relatedWorkoutDays.length > 0 ? (
               <div className="tag-row">
                 {exercise.relatedWorkoutDays.map((day) => (
                   <Tag key={day} variant="neutral">
-                    {getRelatedDayLabel(activeProgram, day)}
+                    {getRelatedDayLabel(activeProgram, day, t)}
                   </Tag>
                 ))}
               </div>
             ) : (
-              <p className="exercise-detail-muted">Optional / accessory work.</p>
+              <p className="exercise-detail-muted">
+                {t('library.modal.accessoryWork')}
+              </p>
             )}
           </section>
         </div>
@@ -300,9 +339,11 @@ export function ExerciseDetailModal({
         >
           <div className="exercise-detail-tags">
             <div className="exercise-detail-taggroup">
-              <span className="exercise-card__label">Primary muscles</span>
+              <span className="exercise-card__label">
+                {t('library.card.primaryMuscles')}
+              </span>
               <div className="tag-row">
-                {exercise.primaryMuscles.map((muscle) => (
+                {copy.primaryMuscles.map((muscle) => (
                   <Tag key={muscle} variant="muscle">
                     {muscle}
                   </Tag>
@@ -311,9 +352,11 @@ export function ExerciseDetailModal({
             </div>
             {exercise.secondaryMuscles.length > 0 ? (
               <div className="exercise-detail-taggroup">
-                <span className="exercise-card__label">Secondary muscles</span>
+                <span className="exercise-card__label">
+                  {t('library.modal.secondaryMuscles')}
+                </span>
                 <div className="tag-row">
-                  {exercise.secondaryMuscles.map((muscle) => (
+                  {copy.secondaryMuscles.map((muscle) => (
                     <Tag key={muscle} variant="secondary-muscle">
                       {muscle}
                     </Tag>
@@ -322,31 +365,40 @@ export function ExerciseDetailModal({
               </div>
             ) : null}
             <div className="exercise-detail-taggroup">
-              <span className="exercise-card__label">Equipment</span>
+              <span className="exercise-card__label">
+                {t('library.modal.equipment')}
+              </span>
               <div className="tag-row">
                 {exercise.equipment.map((item) => (
                   <Tag key={item} variant="equipment">
-                    {item}
+                    {translateEquipment(item, language)}
                   </Tag>
                 ))}
               </div>
             </div>
             <div className="exercise-detail-taggroup">
-              <span className="exercise-card__label">Difficulty</span>
+              <span className="exercise-card__label">
+                {t('library.modal.difficulty')}
+              </span>
               <div className="tag-row">
                 <Tag variant={difficultyVariant(exercise.difficulty)}>
-                  {exercise.difficulty}
+                  {translateDifficulty(exercise.difficulty, language)}
                 </Tag>
                 {exercise.postureFocus ? (
-                  <Tag variant="posture">Posture focus</Tag>
+                  <Tag variant="posture">{t('library.modal.postureFocus')}</Tag>
                 ) : null}
               </div>
             </div>
           </div>
 
+          <ExerciseMuscleMap
+            primaryMuscles={exercise.primaryMuscles}
+            secondaryMuscles={exercise.secondaryMuscles}
+          />
+
           <section className="exercise-detail-posture">
-            <p className="eyebrow">Posture &amp; arched-back notes</p>
-            <p>{exercise.postureNotes}</p>
+            <p className="eyebrow">{t('library.modal.postureNotes')}</p>
+            <p>{copy.postureNotes}</p>
           </section>
         </div>
 
@@ -358,8 +410,7 @@ export function ExerciseDetailModal({
         >
           {history.isEmpty ? (
             <p className="exercise-detail-muted">
-              Nothing logged for this exercise yet. Reps and kg typed on the
-              live workout screen show up here.
+              {t('library.modal.historyEmpty')}
             </p>
           ) : (
             <ol className="detail-history">
@@ -369,19 +420,26 @@ export function ExerciseDetailModal({
                     {formatShortDate(entry.date)}
                   </span>
                   <span className="detail-history__work">
-                    {entry.setCount} {entry.setCount === 1 ? 'set' : 'sets'}
+                    {t('library.modal.historySets', { count: entry.setCount })}
                     {entry.topWeightKg !== null
-                      ? ` · top ${entry.topWeightKg} kg${
-                          entry.topReps ? ` × ${entry.topReps}` : ''
-                        }`
+                      ? entry.topReps
+                        ? t('library.modal.historyTopReps', {
+                            weight: entry.topWeightKg,
+                            reps: entry.topReps,
+                          })
+                        : t('library.modal.historyTop', {
+                            weight: entry.topWeightKg,
+                          })
                       : entry.totalReps > 0
-                        ? ` · ${entry.totalReps} reps`
+                        ? t('library.modal.historyReps', { reps: entry.totalReps })
                         : entry.totalSeconds > 0
                           ? ` · ${formatDuration(entry.totalSeconds)}`
                           : ''}
                   </span>
                   <span className="detail-history__volume">
-                    {entry.volumeKg !== null ? `${entry.volumeKg} kg` : '—'}
+                    {entry.volumeKg !== null
+                      ? `${entry.volumeKg} ${t('unit.kg')}`
+                      : '—'}
                   </span>
                 </li>
               ))}
@@ -397,31 +455,43 @@ export function ExerciseDetailModal({
         >
           {trend.points.length < 2 ? (
             <p className="exercise-detail-muted">
-              Two logged sessions are needed before a trend means anything.
-              {history.isEmpty ? '' : ` So far there ${
-                history.entries.length === 1 ? 'is 1' : `are ${history.entries.length}`
-              }.`}
+              {t('library.modal.trendEmpty')}
+              {history.isEmpty
+                ? ''
+                : t('library.modal.trendSoFar', {
+                    count: history.entries.length,
+                  })}
             </p>
           ) : (
             <>
               <div className="detail-progress__head">
                 <div>
-                  <p className="eyebrow">{trend.label}</p>
+                  <p className="eyebrow">{t(trend.labelKey)}</p>
                   <strong>
-                    {trend.points[trend.points.length - 1].value} {trend.unit}
+                    {trend.points[trend.points.length - 1].value}{' '}
+                    {t(trend.unitKey, { count: 2 })}
                   </strong>
                 </div>
                 {history.bestWeightKg !== null ? (
                   <div className="detail-progress__best">
-                    <span>Best set</span>
+                    <span>{t('library.modal.bestSet')}</span>
                     <b>
-                      {history.bestWeightKg} kg
-                      {history.bestReps ? ` × ${history.bestReps}` : ''}
+                      {history.bestReps
+                        ? t('library.modal.bestSetValueReps', {
+                            weight: history.bestWeightKg,
+                            reps: history.bestReps,
+                          })
+                        : t('library.modal.bestSetValue', {
+                            weight: history.bestWeightKg,
+                          })}
                     </b>
                   </div>
                 ) : null}
               </div>
-              <ExerciseTrendChart points={trend.points} unit={trend.unit} />
+              <ExerciseTrendChart
+                points={trend.points}
+                unit={t(trend.unitKey, { count: 2 })}
+              />
             </>
           )}
         </div>
@@ -437,13 +507,14 @@ function formatShortDate(isoDate: string): string {
     return isoDate
   }
 
-  return parsed.toLocaleDateString(undefined, { month: 'short', day: '2-digit' })
+  return formatDate(parsed, { month: 'short', day: '2-digit' })
 }
 
 function getRelatedDayLabel(
   program: ActiveWorkoutProgram,
   dayNumber: number,
+  t: TranslateFn,
 ): string {
   const day = findProgramDay(program, dayNumber)
-  return day ? getDayLabel(day) : `Day ${dayNumber}`
+  return day ? getDayLabel(day) : t('workout.dayNumber', { day: dayNumber })
 }

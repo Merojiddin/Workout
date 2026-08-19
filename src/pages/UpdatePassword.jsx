@@ -1,6 +1,8 @@
 import { Dumbbell, KeyRound } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { LanguageToggle } from '../components/LanguageToggle'
+import { useT } from '../i18n'
 
 const MIN_PASSWORD_LENGTH = 8
 
@@ -11,6 +13,7 @@ const MIN_PASSWORD_LENGTH = 8
  */
 export function UpdatePassword() {
   const { updatePassword } = useAuth()
+  const t = useT()
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [status, setStatus] = useState('idle') // idle | loading | error | done
@@ -21,12 +24,12 @@ export function UpdatePassword() {
 
     if (password.length < MIN_PASSWORD_LENGTH) {
       setStatus('error')
-      setMessage(`Use at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setMessage(t('auth.update.tooShort', { count: MIN_PASSWORD_LENGTH }))
       return
     }
     if (password !== confirmPassword) {
       setStatus('error')
-      setMessage('The two passwords do not match.')
+      setMessage(t('auth.update.mismatch'))
       return
     }
 
@@ -36,12 +39,12 @@ export function UpdatePassword() {
     const { error } = await updatePassword(password)
     if (error) {
       setStatus('error')
-      setMessage(error.message || 'Could not update the password.')
+      setMessage(error.message || t('auth.update.failed'))
       return
     }
 
     setStatus('done')
-    setMessage('Password updated.')
+    setMessage(t('auth.update.done'))
   }
 
   return (
@@ -51,12 +54,11 @@ export function UpdatePassword() {
           <span className="auth-brand__icon" aria-hidden="true">
             <Dumbbell size={22} strokeWidth={2.4} />
           </span>
-          Workout OS
+          {t('brand.name')}
         </div>
-        <h1>Choose a new password</h1>
-        <p className="auth-subtitle">
-          Set a new password for your account, then carry on training.
-        </p>
+        <LanguageToggle variant="segmented" className="auth-language" />
+        <h1>{t('auth.update.title')}</h1>
+        <p className="auth-subtitle">{t('auth.update.subtitle')}</p>
 
         {status === 'done' ? (
           <div className="auth-success" role="status">
@@ -65,7 +67,7 @@ export function UpdatePassword() {
         ) : (
           <form className="auth-form" onSubmit={handleSubmit}>
             <label className="auth-field">
-              New password
+              {t('auth.newPassword')}
               <input
                 autoComplete="new-password"
                 minLength={MIN_PASSWORD_LENGTH}
@@ -77,7 +79,7 @@ export function UpdatePassword() {
             </label>
 
             <label className="auth-field">
-              Confirm new password
+              {t('auth.confirmNewPassword')}
               <input
                 autoComplete="new-password"
                 minLength={MIN_PASSWORD_LENGTH}
@@ -100,7 +102,9 @@ export function UpdatePassword() {
               type="submit"
             >
               <KeyRound size={19} strokeWidth={2.4} aria-hidden="true" />
-              {status === 'loading' ? 'Saving...' : 'Update password'}
+              {status === 'loading'
+                ? t('auth.update.submitting')
+                : t('auth.update.submit')}
             </button>
           </form>
         )}

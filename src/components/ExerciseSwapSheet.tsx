@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { useT } from '../i18n'
 import type { ActiveExerciseVariant } from '../utils/liveWorkoutUtils'
 
 interface ExerciseSwapSheetProps {
@@ -29,6 +30,8 @@ export function ExerciseSwapSheet({
   onClose,
   onSelect,
 }: ExerciseSwapSheetProps) {
+  const t = useT()
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -43,22 +46,22 @@ export function ExerciseSwapSheet({
   return (
     <div className="live-sheet">
       <button
-        aria-label="Close the alternatives list"
+        aria-label={t('swap.closeAria')}
         className="live-sheet__backdrop"
         onClick={onClose}
         type="button"
       />
 
       <section
-        aria-label="Exercise alternatives"
+        aria-label={t('swap.title')}
         className="live-sheet__panel"
         role="dialog"
         aria-modal="true"
       >
         <header className="live-sheet__head">
-          <strong>Exercise alternatives</strong>
+          <strong>{t('swap.title')}</strong>
           <button
-            aria-label="Close the alternatives list"
+            aria-label={t('swap.closeAria')}
             className="live-sheet__close"
             onClick={onClose}
             type="button"
@@ -68,14 +71,14 @@ export function ExerciseSwapSheet({
         </header>
 
         <p className="swap-sheet__sub">
-          Same slot{muscleGroup ? ` · ${muscleGroup}` : ''}
+          {muscleGroup
+            ? t('swap.sameSlotWithMuscle', { muscle: muscleGroup })
+            : t('swap.sameSlot')}
         </p>
 
         {doneSets > 0 ? (
           <p className="swap-sheet__notice">
-            {doneSets} {doneSets === 1 ? 'set is' : 'sets are'} already logged here.
-            Those stay recorded against the current exercise, and the sets left
-            move to the one you pick.
+            {t('swap.loggedNotice', { count: doneSets })}
           </p>
         ) : null}
 
@@ -98,7 +101,7 @@ export function ExerciseSwapSheet({
                     <strong>{variant.name}</strong>
                     <small>
                       {[variant.equipment, target].filter(Boolean).join(' · ') ||
-                        'Same target area'}
+                        t('swap.sameTargetArea')}
                     </small>
                   </span>
                   <span className="swap-sheet__check" aria-hidden="true">

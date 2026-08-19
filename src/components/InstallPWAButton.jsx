@@ -1,7 +1,9 @@
 import { Download, Share2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useT } from '../i18n'
 
 export function InstallPWAButton({ compact = false }) {
+  const t = useT()
   const [installPrompt, setInstallPrompt] = useState(null)
   const [installed, setInstalled] = useState(() => isStandaloneMode())
   const isIosSafari = useMemo(() => detectIosSafari(), [])
@@ -53,7 +55,7 @@ export function InstallPWAButton({ compact = false }) {
         type="button"
       >
         <Download size={18} strokeWidth={2.5} aria-hidden="true" />
-        Install App
+        {t('pwa.install')}
       </button>
     )
   }
@@ -65,7 +67,7 @@ export function InstallPWAButton({ compact = false }) {
         role="note"
       >
         <Share2 size={17} strokeWidth={2.5} aria-hidden="true" />
-        To install: tap Share, then Add to Home Screen.
+        {t('pwa.iosHint')}
       </div>
     )
   }

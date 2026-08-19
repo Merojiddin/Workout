@@ -1,5 +1,6 @@
 import { TriangleAlert, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useT } from '../i18n'
 
 const TOAST_COOLDOWN_MS = 30_000
 const TOAST_AUTO_HIDE_MS = 8_000
@@ -12,6 +13,7 @@ const TOAST_AUTO_HIDE_MS = 8_000
  * and shows one calm toast. Rate-limited so an error loop can't spam the UI.
  */
 export function GlobalErrorToast() {
+  const t = useT()
   const [visible, setVisible] = useState(false)
   const lastShownRef = useRef(0)
   const hideTimerRef = useRef(null)
@@ -62,9 +64,9 @@ export function GlobalErrorToast() {
   return (
     <div className="global-error-toast" role="status">
       <TriangleAlert size={18} strokeWidth={2.4} aria-hidden="true" />
-      <span>Something went wrong. Your data should still be safe.</span>
+      <span>{t('toast.genericError')}</span>
       <button
-        aria-label="Dismiss"
+        aria-label={t('action.dismiss')}
         className="global-error-toast__close"
         onClick={() => setVisible(false)}
         type="button"

@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 /**
  * Step 13 - image helpers for progress photos.
  *
@@ -17,7 +18,7 @@ export const MAX_IMAGE_BYTES = 5 * 1024 * 1024 // 5 MB
  */
 export function validateImageFile(file) {
   if (!file) {
-    return { valid: false, error: 'No file selected.' }
+    return { valid: false, error: t('image.noFile') }
   }
 
   const type = (file.type || '').toLowerCase()
@@ -30,7 +31,7 @@ export function validateImageFile(file) {
   if (!typeOk && !extOk) {
     return {
       valid: false,
-      error: 'Unsupported image type. Use JPG, PNG, or WEBP.',
+      error: t('image.unsupportedType'),
     }
   }
 
@@ -117,7 +118,7 @@ export function resizeImageFile(file, maxWidth = 1400, quality = 0.85) {
 export function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     if (typeof FileReader === 'undefined' || !file) {
-      reject(new Error('FileReader unavailable'))
+      reject(new Error(t('image.readerUnavailable')))
       return
     }
     const reader = new FileReader()

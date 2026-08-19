@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
 import { toLocalIsoDate, todayIsoDate } from './dateUtils'
 import {
@@ -128,7 +129,7 @@ export function createActiveWorkoutSession(
       ? nullableNonEmptyText(options.standaloneWorkoutId)
       : null
   if (sessionType === 'standalone' && !standaloneWorkoutId) {
-    throw new Error('A standalone workout ID is required to start this workout.')
+    throw new Error(t('program.standaloneIdRequired'))
   }
   const workoutDayId =
     sessionType === 'standalone'

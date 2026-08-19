@@ -1,4 +1,5 @@
 import type { BodyCheckIn } from '../data/bodyCheckIns'
+import { useT, type TranslateFn } from '../i18n'
 import { formatCheckInDate } from '../utils/bodyCheckInUtils'
 
 interface CheckInHistoryTableProps {
@@ -14,14 +15,16 @@ export function CheckInHistoryTable({
   onEdit,
   onDelete,
 }: CheckInHistoryTableProps) {
+  const t = useT()
+  const kg = t('unit.kg')
+  const cm = t('unit.cm')
+
   if (checkIns.length === 0) {
     return (
       <article className="history-card">
-        <p className="eyebrow">Check-in History</p>
-        <h2>Previous check-ins</h2>
-        <div className="chart-empty-state">
-          No check-ins yet. Save your first one above to build history.
-        </div>
+        <p className="eyebrow">{t('checkin.historyEyebrow')}</p>
+        <h2>{t('checkin.historyTitle')}</h2>
+        <div className="chart-empty-state">{t('checkin.historyEmpty')}</div>
       </article>
     )
   }
@@ -33,35 +36,35 @@ export function CheckInHistoryTable({
   return (
     <article className="history-card">
       <div>
-        <p className="eyebrow">Check-in History</p>
-        <h2>Previous check-ins</h2>
+        <p className="eyebrow">{t('checkin.historyEyebrow')}</p>
+        <h2>{t('checkin.historyTitle')}</h2>
       </div>
       <div className="history-table-wrap">
         <table className="history-table">
           <thead>
             <tr>
-              <th>Date</th>
-              <th>Weight</th>
-              <th>Waist</th>
-              <th>Belly</th>
-              <th>Chest</th>
-              <th>Shoulders</th>
-              <th>Abs</th>
-              <th>Posture</th>
-              <th>Actions</th>
+              <th>{t('checkin.table.date')}</th>
+              <th>{t('measure.weight')}</th>
+              <th>{t('measure.waistCm')}</th>
+              <th>{t('measure.bellyCm')}</th>
+              <th>{t('measure.chestCm')}</th>
+              <th>{t('measure.shouldersCm')}</th>
+              <th>{t('measure.abs')}</th>
+              <th>{t('measure.posture')}</th>
+              <th>{t('checkin.table.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {ordered.map((checkIn) => (
               <tr key={checkIn.id}>
                 <td>{formatCheckInDate(checkIn.date)}</td>
-                <td>{formatValue(checkIn.bodyWeightKg, 'kg')}</td>
-                <td>{formatValue(checkIn.waistCm, 'cm')}</td>
-                <td>{formatValue(checkIn.bellyCm, 'cm')}</td>
-                <td>{formatValue(checkIn.chestCm, 'cm')}</td>
-                <td>{formatValue(checkIn.shouldersCm, 'cm')}</td>
-                <td>{formatRating(checkIn.absVisibilityRating)}</td>
-                <td>{formatRating(checkIn.postureRating)}</td>
+                <td>{formatValue(checkIn.bodyWeightKg, kg)}</td>
+                <td>{formatValue(checkIn.waistCm, cm)}</td>
+                <td>{formatValue(checkIn.bellyCm, cm)}</td>
+                <td>{formatValue(checkIn.chestCm, cm)}</td>
+                <td>{formatValue(checkIn.shouldersCm, cm)}</td>
+                <td>{formatRating(checkIn.absVisibilityRating, t)}</td>
+                <td>{formatRating(checkIn.postureRating, t)}</td>
                 <td>
                   <div className="table-actions">
                     <button
@@ -69,21 +72,21 @@ export function CheckInHistoryTable({
                       onClick={() => onView(checkIn)}
                       type="button"
                     >
-                      View
+                      {t('checkin.action.view')}
                     </button>
                     <button
                       className="table-action-button"
                       onClick={() => onEdit(checkIn)}
                       type="button"
                     >
-                      Edit
+                      {t('action.edit')}
                     </button>
                     <button
                       className="table-action-button table-action-button--danger"
                       onClick={() => onDelete(checkIn)}
                       type="button"
                     >
-                      Delete
+                      {t('action.delete')}
                     </button>
                   </div>
                 </td>
@@ -100,8 +103,8 @@ function formatValue(value: number | null, unit: string): string {
   return value === null ? '—' : `${value} ${unit}`
 }
 
-function formatRating(value: number | null): string {
-  return value === null ? '—' : `${value}/10`
+function formatRating(value: number | null, t: TranslateFn): string {
+  return value === null ? '—' : t('checkin.rating', { value })
 }
 
 function getTime(checkIn: BodyCheckIn): number {

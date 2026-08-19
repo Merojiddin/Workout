@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { BODY_CHECK_INS_KEY } from '../data/bodyCheckIns'
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
@@ -98,7 +99,7 @@ export async function getCloudDataSummary(user) {
 
 export async function syncLocalToCloud(user) {
   if (!isCloudMode(user)) {
-    throw new Error('Sign in with a cloud account to upload your data.')
+    throw new Error(t('sync.signInUpload'))
   }
 
   const summary = {
@@ -117,7 +118,7 @@ export async function syncLocalToCloud(user) {
       await pushWorkoutSessionToCloud(user, session)
       summary.workoutSessions += 1
     } catch (error) {
-      summary.errors.push(describe('workout session', error))
+      summary.errors.push(describe(t('sync.entity.workoutSession'), error))
     }
   }
 
@@ -126,7 +127,7 @@ export async function syncLocalToCloud(user) {
       await pushBodyCheckInToCloud(user, checkIn)
       summary.bodyCheckIns += 1
     } catch (error) {
-      summary.errors.push(describe('body check-in', error))
+      summary.errors.push(describe(t('sync.entity.bodyCheckIn'), error))
     }
   }
 
@@ -135,7 +136,7 @@ export async function syncLocalToCloud(user) {
       await pushNutritionLogToCloud(user, log)
       summary.nutritionLogs += 1
     } catch (error) {
-      summary.errors.push(describe('nutrition log', error))
+      summary.errors.push(describe(t('sync.entity.nutritionLog'), error))
     }
   }
 
@@ -151,7 +152,7 @@ export async function syncLocalToCloud(user) {
       await saveCustomWorkoutPlan(user, localGetPlan())
       summary.customPlan = 1
     } catch (error) {
-      summary.errors.push(describe('workout plan', error))
+      summary.errors.push(describe(t('sync.entity.workoutPlan'), error))
     }
   }
 
@@ -160,7 +161,7 @@ export async function syncLocalToCloud(user) {
       await saveCustomExerciseLibrary(user, localGetLibrary())
       summary.customLibrary = 1
     } catch (error) {
-      summary.errors.push(describe('exercise library', error))
+      summary.errors.push(describe(t('sync.entity.exerciseLibrary'), error))
     }
   }
 
@@ -170,7 +171,7 @@ export async function syncLocalToCloud(user) {
       await saveUserWorkoutProgramsToCloud(user, pastedPrograms)
       summary.userPrograms = pastedPrograms.length
     } catch (error) {
-      summary.errors.push(describe('pasted workout programs', error))
+      summary.errors.push(describe(t('sync.entity.pastedPrograms'), error))
     }
   }
 
@@ -179,7 +180,7 @@ export async function syncLocalToCloud(user) {
 
 export async function syncCloudToLocal(user) {
   if (!isCloudMode(user)) {
-    throw new Error('Sign in with a cloud account to download your data.')
+    throw new Error(t('sync.signInDownload'))
   }
 
   const summary = {
@@ -203,7 +204,7 @@ export async function syncCloudToLocal(user) {
       summary.workoutSessions = list.length
     }
   } catch (error) {
-    summary.errors.push(describe('workout sessions', error))
+    summary.errors.push(describe(t('sync.entity.workoutSessions'), error))
   }
 
   // Body check-ins.
@@ -216,7 +217,7 @@ export async function syncCloudToLocal(user) {
       summary.bodyCheckIns = list.length
     }
   } catch (error) {
-    summary.errors.push(describe('body check-ins', error))
+    summary.errors.push(describe(t('sync.entity.bodyCheckIns'), error))
   }
 
   // Nutrition logs.
@@ -229,7 +230,7 @@ export async function syncCloudToLocal(user) {
       summary.nutritionLogs = list.length
     }
   } catch (error) {
-    summary.errors.push(describe('nutrition logs', error))
+    summary.errors.push(describe(t('sync.entity.nutritionLogs'), error))
   }
 
   // Single-row documents.
@@ -248,7 +249,7 @@ export async function syncCloudToLocal(user) {
       if (!hydration.success) {
         summary.errors.push(
           describe(
-            'workout program metadata',
+            t('sync.entity.programMetadata'),
             new Error([hydration.message, ...hydration.details].join(' ')),
           ),
         )
@@ -267,7 +268,7 @@ export async function syncCloudToLocal(user) {
       summary.customPlan = 1
     }
   } catch (error) {
-    summary.errors.push(describe('workout plan', error))
+    summary.errors.push(describe(t('sync.entity.workoutPlan'), error))
   }
 
   try {
@@ -282,7 +283,7 @@ export async function syncCloudToLocal(user) {
       summary.customLibrary = 1
     }
   } catch (error) {
-    summary.errors.push(describe('exercise library', error))
+    summary.errors.push(describe(t('sync.entity.exerciseLibrary'), error))
   }
 
   try {
@@ -292,7 +293,7 @@ export async function syncCloudToLocal(user) {
       summary.userPrograms = replaceUserWorkoutPrograms(cloudPrograms).length
     }
   } catch (error) {
-    summary.errors.push(describe('pasted workout programs', error))
+    summary.errors.push(describe(t('sync.entity.pastedPrograms'), error))
   }
 
   return summary
@@ -308,11 +309,11 @@ export async function syncPendingQueue(user) {
   }
 
   if (!isBrowserOnline()) {
-    summary.skippedReason = 'Offline. Pending changes will sync when online.'
+    summary.skippedReason = t('sync.offlinePending')
     return summary
   }
   if (!isCloudMode(user)) {
-    summary.skippedReason = 'Sign in with a cloud account to sync pending changes.'
+    summary.skippedReason = t('sync.signInPending')
     return summary
   }
 
@@ -396,14 +397,14 @@ function describe(label, error) {
   const message =
     error && typeof error === 'object' && 'message' in error
       ? error.message
-      : 'unknown error'
+      : t('sync.unknownError')
   return `${label}: ${message}`
 }
 
 async function processQueueItem(user, item) {
   const payload = unwrapPayload(item.payload)
   if (!payload && item.action !== 'delete') {
-    throw new Error('Missing sync payload.')
+    throw new Error(t('sync.missingPayload'))
   }
 
   switch (item.type) {
@@ -488,7 +489,7 @@ async function processSingleValueQueueItem(table, column, user, item, payload) {
 
 async function deleteByLocalId(table, user, localId) {
   if (localId === undefined || localId === null || localId === '') {
-    throw new Error('Missing local id for delete.')
+    throw new Error(t('sync.missingLocalId'))
   }
   const { error } = await supabase
     .from(table)

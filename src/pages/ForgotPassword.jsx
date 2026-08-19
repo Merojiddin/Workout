@@ -1,9 +1,12 @@
 import { Dumbbell, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { LanguageToggle } from '../components/LanguageToggle'
+import { useT } from '../i18n'
 
 export function ForgotPassword({ onSwitch }) {
   const { resetPassword } = useAuth()
+  const t = useT()
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState('idle') // idle | loading | error | done
   const [message, setMessage] = useState('')
@@ -16,12 +19,12 @@ export function ForgotPassword({ onSwitch }) {
     const { error } = await resetPassword(email.trim())
     if (error) {
       setStatus('error')
-      setMessage(error.message || 'Could not send the reset link.')
+      setMessage(error.message || t('auth.forgot.failed'))
       return
     }
 
     setStatus('done')
-    setMessage('If that email exists, a password reset link is on its way.')
+    setMessage(t('auth.forgot.sent'))
   }
 
   return (
@@ -31,12 +34,11 @@ export function ForgotPassword({ onSwitch }) {
           <span className="auth-brand__icon" aria-hidden="true">
             <Dumbbell size={22} strokeWidth={2.4} />
           </span>
-          Workout OS
+          {t('brand.name')}
         </div>
-        <h1>Reset password</h1>
-        <p className="auth-subtitle">
-          Enter your email and we'll send a reset link.
-        </p>
+        <LanguageToggle variant="segmented" className="auth-language" />
+        <h1>{t('auth.forgot.title')}</h1>
+        <p className="auth-subtitle">{t('auth.forgot.subtitle')}</p>
 
         {status === 'done' ? (
           <div className="auth-success" role="status">
@@ -46,14 +48,14 @@ export function ForgotPassword({ onSwitch }) {
               onClick={() => onSwitch('login')}
               type="button"
             >
-              Back to sign in
+              {t('auth.backToSignIn')}
             </button>
           </div>
         ) : (
           <>
             <form className="auth-form" onSubmit={handleSubmit}>
               <label className="auth-field">
-                Email
+                {t('auth.email')}
                 <input
                   autoComplete="email"
                   onChange={(event) => setEmail(event.target.value)}
@@ -75,13 +77,15 @@ export function ForgotPassword({ onSwitch }) {
                 type="submit"
               >
                 <Mail size={19} strokeWidth={2.4} aria-hidden="true" />
-                {status === 'loading' ? 'Sending...' : 'Send reset link'}
+                {status === 'loading'
+                  ? t('auth.forgot.submitting')
+                  : t('auth.forgot.submit')}
               </button>
             </form>
 
             <div className="auth-links">
               <button onClick={() => onSwitch('login')} type="button">
-                Back to sign in
+                {t('auth.backToSignIn')}
               </button>
             </div>
           </>

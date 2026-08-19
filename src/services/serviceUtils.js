@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import {
   resolveStorageKey,
@@ -39,7 +40,7 @@ export function withSyncMetadata(record, syncStatus) {
 }
 
 export function createCloudSyncError(error) {
-  const syncError = new Error('Saved locally. Cloud sync failed.')
+  const syncError = new Error(t('sync.savedLocally'))
   syncError.cause = error
   return syncError
 }
@@ -48,7 +49,7 @@ export function describeError(error) {
   if (error && typeof error === 'object' && 'message' in error) {
     return String(error.message)
   }
-  return 'unknown error'
+  return t('sync.unknownError')
 }
 
 export function num(value) {

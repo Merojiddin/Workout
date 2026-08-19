@@ -1,9 +1,11 @@
 import { Bell, CheckCheck, X } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useReminders } from '../hooks/useReminders'
+import { formatDate, t, useT } from '../i18n'
 import { canUseNotifications } from '../utils/reminderUtils'
 
 export function NotificationCenter() {
+  const translate = useT()
   const {
     dismissReminder,
     markReminderSeen,
@@ -50,11 +52,11 @@ export function NotificationCenter() {
     <div className="notification-center">
       <button
         aria-expanded={isOpen}
-        aria-label="Open reminders"
+        aria-label={translate('notify.open')}
         className="notification-bell"
         onClick={() => setIsOpen((open) => !open)}
         ref={buttonRef}
-        title="Reminders"
+        title={translate('notify.title')}
         type="button"
       >
         <Bell size={17} strokeWidth={2.5} aria-hidden="true" />
@@ -65,17 +67,17 @@ export function NotificationCenter() {
 
       {isOpen ? (
         <section
-          aria-label="Reminder list"
+          aria-label={translate('notify.listAria')}
           className="notification-panel"
           ref={panelRef}
         >
           <div className="notification-panel__header">
             <div>
-              <p className="eyebrow">Reminders</p>
-              <h2>{reminderCount} active</h2>
+              <p className="eyebrow">{translate('notify.title')}</p>
+              <h2>{translate('notify.activeCount', { count: reminderCount })}</h2>
             </div>
             <span className={`notification-status notification-status--${notificationStatus.tone}`}>
-              {notificationStatus.label}
+              {translate(notificationStatus.labelKey)}
             </span>
           </div>
 
@@ -85,11 +87,11 @@ export function NotificationCenter() {
                 <article className="notification-item" key={reminder.id}>
                   <div className="notification-item__meta">
                     <span
-                      className={`reminder-badge reminder-badge--${getReminderCategory(
-                        reminder.type,
-                      ).toLowerCase()}`}
+                      className={`reminder-badge reminder-badge--${
+                        getReminderCategory(reminder.type).slug
+                      }`}
                     >
-                      {getReminderCategory(reminder.type)}
+                      {translate(getReminderCategory(reminder.type).labelKey)}
                     </span>
                     <time dateTime={reminder.createdAt}>
                       {formatReminderTime(reminder.createdAt)}
@@ -103,7 +105,7 @@ export function NotificationCenter() {
                     type="button"
                   >
                     <X size={15} strokeWidth={2.5} aria-hidden="true" />
-                    Dismiss
+                    {translate('action.dismiss')}
                   </button>
                 </article>
               ))}
@@ -111,8 +113,8 @@ export function NotificationCenter() {
           ) : (
             <div className="notification-empty">
               <CheckCheck size={22} strokeWidth={2.5} aria-hidden="true" />
-              <strong>No active reminders</strong>
-              <p>{notificationStatus.emptyMessage}</p>
+              <strong>{translate('notify.empty')}</strong>
+              <p>{translate(notificationStatus.emptyKey)}</p>
             </div>
           )}
         </section>
@@ -124,63 +126,67 @@ export function NotificationCenter() {
 function getNotificationStatus({ notificationPermission, notificationsEnabled }) {
   if (!canUseNotifications()) {
     return {
-      emptyMessage: 'Browser notifications are not supported here. In-app reminders still work.',
-      label: 'In-app only',
+      emptyKey: 'notify.empty.unsupported',
+      labelKey: 'notify.status.inAppOnly',
       tone: 'neutral',
     }
   }
 
   if (notificationPermission === 'granted' && notificationsEnabled) {
     return {
-      emptyMessage: 'Browser notifications are enabled.',
-      label: 'Browser on',
+      emptyKey: 'notify.empty.enabled',
+      labelKey: 'notify.status.browserOn',
       tone: 'good',
     }
   }
 
   if (notificationPermission === 'denied') {
     return {
-      emptyMessage: 'Notifications are blocked in browser settings.',
-      label: 'Blocked',
+      emptyKey: 'notify.empty.blocked',
+      labelKey: 'notify.status.blocked',
       tone: 'warn',
     }
   }
 
   return {
-    emptyMessage: 'Enable browser notifications from Reminder Settings.',
-    label: 'In-app only',
+    emptyKey: 'notify.empty.disabled',
+    labelKey: 'notify.status.inAppOnly',
     tone: 'neutral',
   }
 }
 
+/**
+ * The badge's slug drives its colour and must not change with the language,
+ * so the category returns both the stable slug and the label to print.
+ */
 function getReminderCategory(type) {
   switch (type) {
     case 'workout':
     case 'weekly-review':
-      return 'Workout'
+      return { slug: 'workout', labelKey: 'notify.category.workout' }
     case 'creatine':
-      return 'Supplement'
+      return { slug: 'supplement', labelKey: 'notify.category.supplement' }
     case 'protein':
     case 'water':
-      return 'Nutrition'
+      return { slug: 'nutrition', labelKey: 'notify.category.nutrition' }
     case 'body-check-in':
-      return 'Body'
+      return { slug: 'body', labelKey: 'notify.category.body' }
     case 'unfinished-workout':
     case 'rest-timer':
-      return 'Safety'
+      return { slug: 'safety', labelKey: 'notify.category.safety' }
     default:
-      return 'System'
+      return { slug: 'system', labelKey: 'notify.category.system' }
   }
 }
 
 function formatReminderTime(value) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return 'Just now'
+    return t('notify.justNow')
   }
 
-  return new Intl.DateTimeFormat('en', {
+  return formatDate(date, {
     hour: 'numeric',
     minute: '2-digit',
-  }).format(date)
+  })
 }

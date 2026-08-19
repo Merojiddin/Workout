@@ -1,0 +1,158 @@
+/** Body Check-in: the page, its form, history table, charts and trend chips. */
+export const checkinMessages = {
+  'checkin.eyebrow': 'Theo dõi cơ thể',
+  'checkin.title': 'Theo dõi cơ thể',
+  'checkin.subtitle':
+    'Theo dõi cân nặng, vòng eo, ngực, vai, bụng và tư thế mỗi tuần một lần.',
+  'checkin.exportCsv': 'Xuất CSV cơ thể',
+  'checkin.print': 'In tiến trình cơ thể',
+  'checkin.addDemo': 'Thêm dữ liệu mẫu',
+
+  'checkin.goalEyebrow': 'Mục tiêu hiện tại',
+  'checkin.noGoal': 'Chưa đặt mục tiêu',
+  'checkin.currentWeight': 'Cân nặng hiện tại',
+  'checkin.goal': 'Mục tiêu',
+  'checkin.mainFocus': 'Trọng tâm chính',
+  'checkin.goalWeightRange': '{min}–{max} kg săn chắc',
+  'checkin.goalWeightSingle': '{value} kg săn chắc',
+  'checkin.goalHint':
+    'Hãy thêm chiều cao, cân nặng và mục tiêu trong Cài đặt › Hồ sơ để điền phần này.',
+  'checkin.weightReminder':
+    'Nhắc nhở: đừng đánh giá tiến bộ chỉ qua cân nặng.',
+
+  'checkin.readEyebrow': 'Cách đọc tiến độ',
+  'checkin.readTitle': 'Hiểu các con số',
+  'checkin.readCopy':
+    'Không con số đơn lẻ nào nói lên tất cả. Cân nặng thay đổi theo nước, thức ăn và giấc ngủ, nên hãy đọc nó cùng với số đo, sức mạnh ở các bài chính, và cảm nhận của bạn về tư thế lẫn năng lượng. Một thay đổi thấy được ở hai ba yếu tố trong vài tuần mới là tiến bộ thật; một lần đo chỉ là nhiễu.',
+
+  'checkin.trendEyebrow': 'Xu hướng',
+  'checkin.trendTitle': 'Kể từ lần đo đầu tiên',
+  'checkin.trendUnchanged': '{label} không đổi',
+  'checkin.trendIncreased': '{label} tăng {amount}{unit}',
+  'checkin.trendDecreased': '{label} giảm {amount}{unit}',
+  'checkin.trendUnitKg': ' kg',
+  'checkin.trendUnitCm': ' cm',
+  'checkin.trendUnitPoints': { one: ' điểm', other: ' điểm' },
+
+  'checkin.uploading': 'Đang tải ảnh lên…',
+  'checkin.saving': 'Đang lưu lần đo…',
+  'checkin.saved': 'Đã lưu thành công',
+  'checkin.syncFailed': 'Đã lưu trên máy. Đồng bộ đám mây thất bại.',
+  'checkin.syncFailedPhotos':
+    'Đã lưu trên máy. Đồng bộ đám mây thất bại. Ảnh sẽ được tải lên lại khi bạn có mạng.',
+
+  'checkin.emptyTitle': 'Chưa có lần đo nào',
+  'checkin.emptyCopy':
+    'Hãy lưu lần đo đầu tiên ở trên để bắt đầu theo dõi tiến độ.',
+  'checkin.emptyCopyDemo':
+    'Hãy lưu lần đo đầu tiên ở trên, hoặc tải dữ liệu mẫu để xem thử.',
+
+  'checkin.chartsEyebrow': 'Tiến độ số đo',
+  'checkin.chartsTitle': 'Biểu đồ theo thời gian',
+  'checkin.chartEmpty': 'Chưa có dữ liệu {measurement}.',
+  'checkin.chartProgress': 'Tiến độ',
+  'checkin.chartProgressUnit': 'Tiến độ · {unit}',
+
+  'checkin.deleteEyebrow': 'Xoá lần đo',
+  'checkin.deleteTitle': 'Xoá {date}?',
+  'checkin.deleteCopy':
+    'Thao tác này xoá lần đo và các ảnh kèm theo. Không thể hoàn tác.',
+
+  'checkin.historyEyebrow': 'Lịch sử đo',
+  'checkin.historyTitle': 'Các lần đo trước',
+  'checkin.table.date': 'Ngày',
+  'checkin.table.actions': 'Thao tác',
+
+  'checkin.historyEmpty':
+    'Chưa có lần đo nào. Hãy lưu lần đầu tiên ở trên để bắt đầu có lịch sử.',
+  'checkin.action.view': 'Xem',
+  'checkin.rating': '{value}/10',
+  'checkin.photoAlt': 'Ảnh {label} của lần đo',
+  'checkin.photoFullSize': 'Mở ảnh {label} ở kích thước đầy đủ',
+
+  'checkin.latestEyebrow': 'Lần đo gần nhất',
+  'checkin.photo.front': 'Mặt trước',
+  'checkin.photo.side': 'Nghiêng',
+  'checkin.photo.back': 'Mặt sau',
+  'checkin.photo.loading': 'Đang tải…',
+  'checkin.photo.unavailable': 'Không khả dụng',
+
+  'checkinForm.eyebrowNew': 'Lần đo mới',
+  'checkinForm.eyebrowEdit': 'Sửa lần đo',
+  'checkinForm.titleNew': 'Ghi lại tuần này',
+  'checkinForm.titleEdit': 'Cập nhật số đo',
+  'checkinForm.date': 'Ngày',
+  'checkinForm.notes': 'Ghi chú',
+  'checkinForm.notesPlaceholder':
+    'Bạn trông và cảm thấy thế nào, lưu ý kỹ thuật, mức năng lượng, bất cứ điều gì đáng nhớ.',
+  'checkinForm.unit': '({unit})',
+  'checkinForm.ratingUnit': '(1–10)',
+  'checkinForm.ratingPlaceholder': '1–10',
+  'checkinForm.weightHint': 'Không bắt buộc, nhưng nên có để theo dõi.',
+  'checkinForm.photoHintCloud':
+    'Ảnh được lưu an toàn vào tài khoản đám mây của bạn.',
+  'checkinForm.photoHintLocal':
+    'Ảnh chỉ lưu trên thiết bị này. JPG, PNG hoặc WEBP, tối đa 5 MB.',
+  'checkinForm.photoFront': 'Ảnh mặt trước',
+  'checkinForm.photoSide': 'Ảnh nghiêng',
+  'checkinForm.photoBack': 'Ảnh mặt sau',
+  'checkinForm.saving': 'Đang lưu…',
+  'checkinForm.save': 'Lưu lần đo',
+  'checkinForm.update': 'Cập nhật lần đo',
+  'checkinForm.clear': 'Xoá biểu mẫu',
+  'checkinForm.cancelEdit': 'Huỷ chỉnh sửa',
+  'checkinForm.error.dateRequired': 'Vui lòng chọn ngày.',
+  'checkinForm.error.number': 'Hãy nhập một số hợp lệ.',
+  'checkinForm.error.negative': 'Không được là số âm.',
+  'checkinForm.error.range': 'Phải từ 1 đến 10.',
+
+  'upload.addPhoto': 'Thêm ảnh',
+  'upload.processing': 'Đang xử lý…',
+  'upload.unavailable': 'Ảnh không khả dụng — hãy thêm lại',
+  'upload.readFailed': 'Không đọc được ảnh đó. Hãy thử ảnh khác.',
+
+  'checkin.detailEyebrow': 'Chi tiết lần đo',
+  'checkin.detailClose': 'Đóng chi tiết lần đo',
+  'checkin.detailNoPhotos': 'Lần đo này chưa lưu ảnh nào.',
+  'measure.energy': 'Năng lượng',
+  'measure.sleep': 'Giấc ngủ',
+
+  'profile.title': 'Hồ sơ của bạn',
+  'profile.subtitle': 'Hồ sơ tập luyện cá nhân',
+  'profile.workouts': 'buổi tập',
+  'profile.dayStreak': 'ngày liên tiếp',
+  'profile.currentPlan': 'Giáo án hiện tại',
+  'profile.planVersion': 'Phiên bản {version}',
+  'profile.planWeeks': { one: '{count} tuần', other: '{count} tuần' },
+  'profile.planDays': { one: '{count} ngày', other: '{count} ngày' },
+  'profile.details': 'Chi tiết',
+  'profile.editInSettings': 'Chỉnh trong cài đặt',
+  'profile.height': 'Chiều cao',
+  'profile.weight': 'Cân nặng',
+  'profile.goalWeight': 'Cân nặng mục tiêu',
+  'profile.trainingGoal': 'Mục tiêu tập luyện',
+  'profile.mainFocus': 'Trọng tâm chính',
+  'profile.experience': 'Trình độ',
+  'profile.timePerDay': 'Thời gian mỗi ngày',
+  'profile.valueWithUnit': '{value} {unit}',
+  'profile.goalWeightRange': '{min}-{max} kg',
+
+  'measure.bodyWeightKg': 'Cân nặng',
+  'measure.weight': 'Cân nặng',
+  'measure.waistCm': 'Vòng eo',
+  'measure.bellyCm': 'Vòng bụng',
+  'measure.chestCm': 'Vòng ngực',
+  'measure.shouldersCm': 'Vòng vai',
+  'measure.leftArmCm': 'Tay trái',
+  'measure.rightArmCm': 'Tay phải',
+  'measure.hipsCm': 'Vòng hông',
+  'measure.armAverage': 'Vòng tay',
+  'measure.armsAverage': 'Vòng tay (TB)',
+  'measure.postureRating': 'Điểm tư thế',
+  'measure.posture': 'Tư thế',
+  'measure.absVisibilityRating': 'Độ rõ cơ bụng',
+  'measure.abs': 'Cơ bụng',
+  'measure.energyLevel': 'Mức năng lượng',
+  'measure.sleepQuality': 'Chất lượng giấc ngủ',
+  'measure.ratingUnit': '/10',
+} as const

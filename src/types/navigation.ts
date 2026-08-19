@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import type { MessageKey } from '../i18n'
 
 export type PageId =
   | 'today-workout'
@@ -15,10 +16,15 @@ export type PageId =
   | 'disclaimer'
   | 'pre-deploy-checklist'
 
+/**
+ * Nav entries carry message keys rather than finished text: the list is built
+ * once at module load, long before a language is chosen, and has to re-read in
+ * whatever language is active when a nav renders.
+ */
 export interface NavItem {
   id: PageId
   icon: LucideIcon
-  label: string
-  shortLabel?: string
-  description?: string
+  labelKey: MessageKey
+  shortLabelKey?: MessageKey
+  descriptionKey?: MessageKey
 }

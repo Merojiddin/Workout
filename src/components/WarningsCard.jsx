@@ -1,4 +1,7 @@
+import { useT } from '../i18n'
+
 export function WarningsCard({ warnings }) {
+  const t = useT()
   if (!warnings?.length) {
     return null
   }
@@ -6,8 +9,8 @@ export function WarningsCard({ warnings }) {
   return (
     <article className="dashboard-card warnings-card">
       <div>
-        <p className="eyebrow">Warnings</p>
-        <h2>Fix these first</h2>
+        <p className="eyebrow">{t('review.warnings.eyebrow')}</p>
+        <h2>{t('review.warnings.title')}</h2>
       </div>
       <div className="warnings-list">
         {warnings.map((warning) => (

@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import type { WorkoutProgramCoaching } from '../types/workoutProgram'
 
 /**
@@ -37,24 +38,44 @@ export interface NutritionGuidance {
 const PROTEIN_FALLBACK_MIN = 120
 const PROTEIN_FALLBACK_MAX = 160
 
-/** Protein-forward options for the meal straight after training. */
-const postWorkoutFoods: SuggestedFood[] = [
-  { name: 'Chicken or beef with rice', detail: 'Around 35-40 g protein plus the carbs to refill training energy' },
-  { name: 'Eggs on toast (3-4 eggs)', detail: 'Around 20-25 g protein, quick to make, adds vitamin D' },
-  { name: 'Greek yoghurt with fruit and honey', detail: 'Around 20 g protein, easy when you are not hungry yet' },
-  { name: 'Whey shake with milk and a banana', detail: 'Around 30 g protein when a real meal is more than an hour away' },
-  { name: 'Salmon or white fish with potatoes', detail: 'Around 35 g protein plus omega-3' },
-  { name: 'Cottage cheese with nuts', detail: 'Around 25 g protein, good as a late-evening version' },
-]
+/**
+ * Protein-forward options for the meal straight after training.
+ *
+ * Built on each call rather than held as a module constant: these are the
+ * app's own advice, not user data, so they follow the chosen language, and a
+ * constant would freeze whichever language happened to load the module first.
+ */
+const postWorkoutFoodKeys = [
+  'chickenRice',
+  'eggsToast',
+  'yoghurt',
+  'wheyShake',
+  'fish',
+  'cottageCheese',
+] as const
 
 /** Foods that matter across the week rather than at any one meal. */
-const weeklySupportFoods: SuggestedFood[] = [
-  { name: 'Oysters or shellfish', detail: 'Zinc, once or twice a week' },
-  { name: 'Nuts and olive oil', detail: 'Healthy fats and magnesium' },
-  { name: 'Dark chocolate (70%+)', detail: 'Magnesium, a square or two' },
-  { name: 'Leafy greens and berries', detail: 'Micronutrients and fibre' },
-  { name: 'Dragon fruit or mangosteen', detail: 'Antioxidants and fibre' },
-]
+const weeklySupportFoodKeys = [
+  'oysters',
+  'nutsOil',
+  'darkChocolate',
+  'greensBerries',
+  'tropicalFruit',
+] as const
+
+function getPostWorkoutFoods(): SuggestedFood[] {
+  return postWorkoutFoodKeys.map((key) => ({
+    name: t(`food.${key}`),
+    detail: t(`food.${key}Detail`),
+  }))
+}
+
+function getWeeklySupportFoods(): SuggestedFood[] {
+  return weeklySupportFoodKeys.map((key) => ({
+    name: t(`food.${key}`),
+    detail: t(`food.${key}Detail`),
+  }))
+}
 
 /**
  * Builds the guidance from the active program's coaching block so a pasted
@@ -79,33 +100,38 @@ export function getNutritionGuidance(
   return {
     meal: {
       proteinGrams: mealProtein,
-      summary: `Aim for about ${mealProtein} g protein with a carb source. No need to weigh anything.`,
-      timing: 'Within about two hours of finishing. Sooner if you trained fasted.',
-      foods: postWorkoutFoods,
+      summary: t('nutrition.meal.summary', { grams: mealProtein }),
+      timing: t('nutrition.meal.timing'),
+      foods: getPostWorkoutFoods(),
     },
     daily: [
       {
-        label: 'Protein today',
-        value: `${proteinMin}-${proteinMax} g`,
-        note: 'The one number that matters most for building muscle.',
+        label: t('nutrition.target.protein'),
+        value: t('nutrition.target.proteinRange', {
+          min: proteinMin,
+          max: proteinMax,
+        }),
+        note: t('nutrition.target.proteinNote'),
       },
       {
-        label: 'Water',
-        value: '2-3 L',
-        note: 'Add a glass or two on training days.',
+        label: t('nutrition.target.water'),
+        value: t('nutrition.target.waterValue'),
+        note: t('nutrition.target.waterNote'),
       },
+      // A pasted program may state its own creatine and sleep guidance; that
+      // text belongs to the program and is shown as written.
       splitQuantity(
-        'Creatine',
-        coaching?.creatineDailyGrams ?? '3-5 g/day',
-        'Any time of day. Consistency beats timing.',
+        t('nutrition.target.creatine'),
+        coaching?.creatineDailyGrams ?? t('nutrition.target.creatineValue'),
+        t('nutrition.target.creatineNote'),
       ),
       {
-        label: 'Sleep',
-        value: coaching?.sleepHours ?? '7-8+ hours',
-        note: 'Outranks every food choice on this page.',
+        label: t('nutrition.target.sleep'),
+        value: coaching?.sleepHours ?? t('nutrition.target.sleepValue'),
+        note: t('nutrition.target.sleepNote'),
       },
     ],
-    weeklyFoods: weeklySupportFoods,
+    weeklyFoods: getWeeklySupportFoods(),
   }
 }
 

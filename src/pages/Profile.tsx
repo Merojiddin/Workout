@@ -1,6 +1,7 @@
 import { CalendarDays, Dumbbell, Settings as SettingsIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { ProfileAvatar } from '../components/ProfileAvatar'
+import { useT, type TranslateFn } from '../i18n'
 import { useProfileIdentity } from '../hooks/useProfileIdentity'
 import { getActiveWorkoutProgram } from '../utils/activeWorkoutProgram'
 import { getCurrentWorkoutStreak, getWorkoutSessions } from '../utils/progressUtils'
@@ -24,6 +25,7 @@ interface ProfileRow {
  */
 export function Profile({ onNavigate }: ProfileProps) {
   const { avatarDataUrl, initials, name } = useProfileIdentity()
+  const t = useT()
   const settings = useMemo(() => getUserProfileSettings(), [])
   const program = useMemo(() => getActiveWorkoutProgram(), [])
   const sessions = useMemo(() => getWorkoutSessions(), [])
@@ -31,13 +33,19 @@ export function Profile({ onNavigate }: ProfileProps) {
   const profile = settings.profile
 
   const rows: ProfileRow[] = [
-    { label: 'Height', value: unit(profile.heightCm, 'cm') },
-    { label: 'Weight', value: unit(profile.currentWeightKg, 'kg') },
-    { label: 'Goal weight', value: goalWeight(profile) },
-    { label: 'Training goal', value: text(profile.trainingGoal) },
-    { label: 'Main focus', value: text(profile.mainFocus) },
-    { label: 'Experience', value: text(profile.experienceLevel) },
-    { label: 'Time per day', value: text(profile.trainingTimePerDay) },
+    { label: t('profile.height'), value: unit(profile.heightCm, t('unit.cm'), t) },
+    {
+      label: t('profile.weight'),
+      value: unit(profile.currentWeightKg, t('unit.kg'), t),
+    },
+    { label: t('profile.goalWeight'), value: goalWeight(profile, t) },
+    { label: t('profile.trainingGoal'), value: text(profile.trainingGoal, t) },
+    { label: t('profile.mainFocus'), value: text(profile.mainFocus, t) },
+    { label: t('profile.experience'), value: text(profile.experienceLevel, t) },
+    {
+      label: t('profile.timePerDay'),
+      value: text(profile.trainingTimePerDay, t),
+    },
   ]
 
   return (
@@ -49,31 +57,35 @@ export function Profile({ onNavigate }: ProfileProps) {
           initials={initials}
           size={84}
         />
-        <h1>{name || 'Your profile'}</h1>
-        <p>Personal workout profile</p>
+        <h1>{name || t('profile.title')}</h1>
+        <p>{t('profile.subtitle')}</p>
       </header>
 
       <div className="profile-stats">
         <div className="profile-stat">
           <Dumbbell size={18} strokeWidth={2.2} aria-hidden="true" />
           <strong>{sessions.length}</strong>
-          <span>workouts</span>
+          <span>{t('profile.workouts')}</span>
         </div>
         <div className="profile-stat">
           <CalendarDays size={18} strokeWidth={2.2} aria-hidden="true" />
           <strong>{streak}</strong>
-          <span>day streak</span>
+          <span>{t('profile.dayStreak')}</span>
         </div>
       </div>
 
       <article className="profile-card">
-        <p className="eyebrow">Current plan</p>
+        <p className="eyebrow">{t('profile.currentPlan')}</p>
         <h2>{program.programName}</h2>
         <p className="profile-card__meta">
           {[
-            program.programVersion ? `Version ${program.programVersion}` : '',
-            program.durationWeeks ? `${program.durationWeeks} weeks` : '',
-            `${program.days.length} days`,
+            program.programVersion
+              ? t('profile.planVersion', { version: program.programVersion })
+              : '',
+            program.durationWeeks
+              ? t('profile.planWeeks', { count: program.durationWeeks })
+              : '',
+            t('profile.planDays', { count: program.days.length }),
           ]
             .filter(Boolean)
             .join(' · ')}
@@ -81,7 +93,7 @@ export function Profile({ onNavigate }: ProfileProps) {
       </article>
 
       <article className="profile-card">
-        <p className="eyebrow">Details</p>
+        <p className="eyebrow">{t('profile.details')}</p>
         <dl className="profile-rows">
           {rows.map((row) => (
             <div key={row.label}>
@@ -98,34 +110,44 @@ export function Profile({ onNavigate }: ProfileProps) {
         type="button"
       >
         <SettingsIcon size={18} strokeWidth={2.4} aria-hidden="true" />
-        Edit in settings
+        {t('profile.editInSettings')}
       </button>
     </section>
   )
 }
 
-function unit(value: unknown, suffix: string): string {
+function unit(value: unknown, suffix: string, t: TranslateFn): string {
   const parsed = Number(value)
-  return Number.isFinite(parsed) && parsed > 0 ? `${parsed} ${suffix}` : 'Not set'
+  return Number.isFinite(parsed) && parsed > 0
+    ? t('profile.valueWithUnit', { value: parsed, unit: suffix })
+    : t('state.notSet')
 }
 
-function goalWeight(profile: {
-  goalWeightMinKg?: unknown
-  goalWeightMaxKg?: unknown
-}): string {
+function goalWeight(
+  profile: {
+    goalWeightMinKg?: unknown
+    goalWeightMaxKg?: unknown
+  },
+  t: TranslateFn,
+): string {
   const min = Number(profile.goalWeightMinKg)
   const max = Number(profile.goalWeightMaxKg)
   const hasMin = Number.isFinite(min) && min > 0
   const hasMax = Number.isFinite(max) && max > 0
+  const kg = t('unit.kg')
 
   if (hasMin && hasMax) {
-    return min === max ? `${min} kg` : `${min}-${max} kg`
+    return min === max
+      ? t('profile.valueWithUnit', { value: min, unit: kg })
+      : t('profile.goalWeightRange', { min, max })
   }
-  if (hasMin) return `${min} kg`
-  if (hasMax) return `${max} kg`
-  return 'Not set'
+  if (hasMin) return t('profile.valueWithUnit', { value: min, unit: kg })
+  if (hasMax) return t('profile.valueWithUnit', { value: max, unit: kg })
+  return t('state.notSet')
 }
 
-function text(value: unknown): string {
-  return typeof value === 'string' && value.trim() ? value.trim() : 'Not set'
+function text(value: unknown, t: TranslateFn): string {
+  return typeof value === 'string' && value.trim()
+    ? value.trim()
+    : t('state.notSet')
 }

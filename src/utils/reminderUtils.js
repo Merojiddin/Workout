@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { getBodyCheckIns } from './bodyCheckInUtils'
 import { getActiveWorkoutSession } from './liveWorkoutUtils'
 import { getNutritionLogs } from './nutritionUtils'
@@ -266,8 +267,11 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'workout',
-        title: 'Workout Reminder',
-        message: `Today's workout is Day ${todayWorkout.day} - ${todayWorkout.name}. Start when ready.`,
+        title: t('reminder.workout.title'),
+        message: t('reminder.workout.message', {
+          day: todayWorkout.day,
+          name: todayWorkout.name,
+        }),
         logKey: `workout-${today}`,
       }),
     )
@@ -277,9 +281,8 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'creatine',
-        title: 'Creatine Reminder',
-        message:
-          'Creatine monohydrate not logged today. Take 3-5 g if you have not taken it.',
+        title: t('reminder.creatine.title'),
+        message: t('reminder.creatine.message'),
         logKey: `creatine-${today}`,
       }),
     )
@@ -290,8 +293,11 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'protein',
-        title: 'Protein Reminder',
-        message: `Protein is below target. Aim for ${proteinTargets.proteinMin}-${proteinTargets.proteinMax} g today.`,
+        title: t('reminder.protein.title'),
+        message: t('reminder.protein.message', {
+          min: proteinTargets.proteinMin,
+          max: proteinTargets.proteinMax,
+        }),
         logKey: `protein-${today}`,
       }),
     )
@@ -301,8 +307,8 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'water',
-        title: 'Water Reminder',
-        message: 'Water is low today. Drink more, especially if taking creatine.',
+        title: t('reminder.water.title'),
+        message: t('reminder.water.message'),
         logKey: `water-${today}-${currentTime}`,
       }),
     )
@@ -312,9 +318,8 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'body-check-in',
-        title: 'Body Check-in Reminder',
-        message:
-          'No body check-in this week. Log weight, waist, chest, shoulders, and photos.',
+        title: t('reminder.bodyCheckIn.title'),
+        message: t('reminder.bodyCheckIn.message'),
         logKey: `body-check-in-${weekKey}`,
       }),
     )
@@ -324,8 +329,8 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'weekly-review',
-        title: 'Weekly Review Reminder',
-        message: 'Review workouts, nutrition, body progress, and next week focus.',
+        title: t('reminder.weeklyReview.title'),
+        message: t('reminder.weeklyReview.message'),
         logKey: `weekly-review-${weekKey}`,
       }),
     )
@@ -335,8 +340,8 @@ export function getInAppReminders() {
     reminders.push(
       createReminderCandidate({
         type: 'unfinished-workout',
-        title: 'Unfinished Workout',
-        message: 'You have an unfinished workout. Continue or discard it.',
+        title: t('reminder.unfinished.title'),
+        message: t('reminder.unfinished.message'),
         logKey: `unfinished-workout-${activeWorkoutSession.id}-${today}`,
       }),
     )

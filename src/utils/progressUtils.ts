@@ -5,7 +5,8 @@ import { safeGetJSON, safeSetJSON } from './storageUtils'
 
 export interface WeeklyCompletionPoint {
   completed: number
-  day: string
+  /** ISO weekday, 1 = Monday .. 7 = Sunday. The label is the UI's business. */
+  dayIndex: number
 }
 
 type FlexibleSet = {
@@ -68,13 +69,15 @@ export function getWeeklyCompletion(
       .map((session) => session.date),
   )
 
-  return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+  // Weeks start on Monday here, so the index is offset from the week start
+  // rather than read off the Date, which would put Sunday first.
+  return Array.from({ length: 7 }, (_, index) => {
     const current = new Date(start)
     current.setDate(start.getDate() + index)
 
     return {
       completed: completedDates.has(toDateKey(current)) ? 1 : 0,
-      day,
+      dayIndex: index + 1,
     }
   })
 }

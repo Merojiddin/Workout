@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { formatDate, useT } from '../i18n'
 import type { MeasurementPoint } from '../utils/bodyCheckInUtils'
 
 interface MeasurementChartProps {
@@ -24,12 +25,17 @@ export function MeasurementChart({
   title,
   unit,
 }: MeasurementChartProps) {
+  const t = useT()
   const hasData = Array.isArray(data) && data.length > 0
 
   return (
     <article className="progress-chart-card">
       <div>
-        <p className="eyebrow">{unit ? `Progress · ${unit}` : 'Progress'}</p>
+        <p className="eyebrow">
+          {unit
+            ? t('checkin.chartProgressUnit', { unit })
+            : t('checkin.chartProgress')}
+        </p>
         <h2>{title}</h2>
       </div>
 
@@ -89,8 +95,8 @@ function formatAxisDate(value: unknown): string {
     return String(value)
   }
 
-  return new Intl.DateTimeFormat('en', {
+  return formatDate(parsed, {
     day: 'numeric',
     month: 'short',
-  }).format(parsed)
+  })
 }

@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 /**
  * Step 20 - environment config helpers.
  *
@@ -56,7 +57,7 @@ export function validateEnv() {
   if (!config.supabaseUrl) {
     warnings.push({
       level: 'warn',
-      message: 'VITE_SUPABASE_URL is missing.',
+      message: t('env.missingUrl'),
     })
   } else if (!config.supabaseUrl.startsWith('http')) {
     warnings.push({
@@ -68,7 +69,7 @@ export function validateEnv() {
   if (!config.supabaseAnonKey) {
     warnings.push({
       level: 'warn',
-      message: 'VITE_SUPABASE_ANON_KEY is missing.',
+      message: t('env.missingKey'),
     })
   }
 
@@ -76,8 +77,8 @@ export function validateEnv() {
     warnings.push({
       level: 'info',
       message: config.isProduction
-        ? 'Cloud sync is not configured. This deployment is using local browser storage only.'
-        : 'App is running in local-only mode (localStorage, no cloud sync).',
+        ? t('env.notConfigured')
+        : t('env.localOnly'),
     })
   }
 
@@ -87,7 +88,9 @@ export function validateEnv() {
 /** Short label for the environment badge in Settings / Data Health. */
 export function getEnvironmentLabel() {
   const config = getEnvConfig()
-  const runtime = config.isProduction ? 'Production' : 'Development'
-  const mode = config.isSupabaseConfigured ? 'Cloud Mode' : 'Local Mode'
+  const runtime = config.isProduction
+    ? t('env.production')
+    : t('env.development')
+  const mode = config.isSupabaseConfigured ? t('env.cloudMode') : t('env.localMode')
   return { runtime, mode }
 }

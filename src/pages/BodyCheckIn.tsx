@@ -21,6 +21,7 @@ import { MeasurementChart } from '../components/MeasurementChart'
 import { PrintableBodyProgress } from '../print/PrintableBodyProgress'
 import type { BodyCheckIn, PhotoSlot } from '../data/bodyCheckIns'
 import { useAuth } from '../context/AuthContext'
+import { useLanguage, type MessageKey } from '../i18n'
 import * as bodyCheckInService from '../services/bodyCheckInService'
 import { isCloudPhotoEnabled } from '../services/photoService'
 import { exportBodyCheckInsCSV } from '../utils/exportUtils'
@@ -37,21 +38,34 @@ import {
 } from '../utils/bodyCheckInUtils'
 import { getUserProfileSettings } from '../utils/settingsUtils'
 
-const chartConfigs: { key: MeasurementKey; title: string; unit: string }[] = [
-  { key: 'bodyWeightKg', title: 'Body weight', unit: 'kg' },
-  { key: 'waistCm', title: 'Waist', unit: 'cm' },
-  { key: 'bellyCm', title: 'Belly', unit: 'cm' },
-  { key: 'chestCm', title: 'Chest', unit: 'cm' },
-  { key: 'shouldersCm', title: 'Shoulders', unit: 'cm' },
-  { key: 'armAverage', title: 'Arms (avg)', unit: 'cm' },
-  { key: 'postureRating', title: 'Posture rating', unit: '/10' },
-  { key: 'absVisibilityRating', title: 'Abs visibility', unit: '/10' },
+const chartConfigs: {
+  key: MeasurementKey
+  titleKey: MessageKey
+  unitKey: MessageKey
+}[] = [
+  { key: 'bodyWeightKg', titleKey: 'measure.bodyWeightKg', unitKey: 'unit.kg' },
+  { key: 'waistCm', titleKey: 'measure.waistCm', unitKey: 'unit.cm' },
+  { key: 'bellyCm', titleKey: 'measure.bellyCm', unitKey: 'unit.cm' },
+  { key: 'chestCm', titleKey: 'measure.chestCm', unitKey: 'unit.cm' },
+  { key: 'shouldersCm', titleKey: 'measure.shouldersCm', unitKey: 'unit.cm' },
+  { key: 'armAverage', titleKey: 'measure.armsAverage', unitKey: 'unit.cm' },
+  {
+    key: 'postureRating',
+    titleKey: 'measure.postureRating',
+    unitKey: 'measure.ratingUnit',
+  },
+  {
+    key: 'absVisibilityRating',
+    titleKey: 'measure.absVisibilityRating',
+    unitKey: 'measure.ratingUnit',
+  },
 ]
 
 type SaveStatus = '' | 'saving' | 'uploading' | 'saved' | 'error'
 
 export function BodyCheckIn() {
   const { user } = useAuth()
+  const { language, t } = useLanguage()
   const [checkIns, setCheckIns] = useState<BodyCheckIn[]>(() => getBodyCheckIns())
   const [editingCheckIn, setEditingCheckIn] = useState<BodyCheckIn | null>(null)
   const [viewingCheckIn, setViewingCheckIn] = useState<BodyCheckIn | null>(null)
@@ -71,29 +85,38 @@ export function BodyCheckIn() {
     profileSettings.profile
   const currentWeightLabel =
     latest?.bodyWeightKg != null
-      ? `${latest.bodyWeightKg} kg`
+      ? `${latest.bodyWeightKg} ${t('unit.kg')}`
       : currentWeightKg
-        ? `${currentWeightKg} kg`
-        : 'Not set'
+        ? `${currentWeightKg} ${t('unit.kg')}`
+        : t('state.notSet')
   const goalWeightLabel =
     goalWeightMinKg && goalWeightMaxKg
-      ? `${goalWeightMinKg}\u2013${goalWeightMaxKg} kg lean`
+      ? t('checkin.goalWeightRange', {
+          min: goalWeightMinKg,
+          max: goalWeightMaxKg,
+        })
       : goalWeightMinKg || goalWeightMaxKg
-        ? `${goalWeightMinKg ?? goalWeightMaxKg} kg lean`
-        : 'Not set'
+        ? t('checkin.goalWeightSingle', {
+            value: goalWeightMinKg ?? goalWeightMaxKg,
+          })
+        : t('state.notSet')
   // The heading is whatever this user said they are training for. No preset
   // goal stands in for it -- a goal nobody chose is someone else's.
   const bodyGoalLabel =
     profileSettings.goals.bodyGoal ||
     profileSettings.profile.trainingGoal ||
-    'No goal set yet'
+    t('checkin.noGoal')
   const hasProfileGoal = Boolean(
     currentWeightKg ||
       goalWeightMinKg ||
       goalWeightMaxKg ||
       profileSettings.profile.trainingGoal,
   )
-  const trends = useMemo(() => getBodyTrendSummary(checkIns), [checkIns])
+  // Trend chips are built as sentences in the active language.
+  const trends = useMemo(
+    () => getBodyTrendSummary(checkIns),
+    [checkIns, language],
+  )
   const hasCheckIns = checkIns.length > 0
 
   // In cloud mode, refresh the list so photos get fresh signed URLs. The local
@@ -176,9 +199,7 @@ export function BodyCheckIn() {
       setUploadingSlots({})
       setSaveStatus('error')
       setSaveError(
-        hadFiles
-          ? 'Saved locally. Cloud sync failed. Photo upload will need to retry when you are online.'
-          : 'Saved locally. Cloud sync failed.',
+        hadFiles ? t('checkin.syncFailedPhotos') : t('checkin.syncFailed'),
       )
       return false
     }
@@ -220,11 +241,9 @@ export function BodyCheckIn() {
     <section className="body-check-in">
       <header className="progress-hero">
         <div>
-          <p className="eyebrow">Body Check-in</p>
-          <h1>Body Check-in</h1>
-          <p>
-            Track weight, waist, chest, shoulders, abs, and posture once per week.
-          </p>
+          <p className="eyebrow">{t('checkin.eyebrow')}</p>
+          <h1>{t('checkin.title')}</h1>
+          <p>{t('checkin.subtitle')}</p>
         </div>
         <div className="progress-hero-actions">
           <button
@@ -233,7 +252,7 @@ export function BodyCheckIn() {
             type="button"
           >
             <FileSpreadsheet size={19} strokeWidth={2.4} aria-hidden="true" />
-            Export Body CSV
+            {t('checkin.exportCsv')}
           </button>
           <button
             className="demo-data-button demo-data-button--secondary"
@@ -241,7 +260,7 @@ export function BodyCheckIn() {
             type="button"
           >
             <Printer size={19} strokeWidth={2.4} aria-hidden="true" />
-            Print Body Progress
+            {t('checkin.print')}
           </button>
           {SHOW_DEMO_DATA && !hasCheckIns ? (
             <button
@@ -250,7 +269,7 @@ export function BodyCheckIn() {
               type="button"
             >
               <PlusCircle size={19} strokeWidth={2.4} aria-hidden="true" />
-              Add Demo Check-ins
+              {t('checkin.addDemo')}
             </button>
           ) : null}
         </div>
@@ -260,51 +279,42 @@ export function BodyCheckIn() {
         <article className="dashboard-card goal-card">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Current Goal</p>
+              <p className="eyebrow">{t('checkin.goalEyebrow')}</p>
               <h2>{bodyGoalLabel}</h2>
             </div>
             <Target size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
           <div className="goal-list">
             <div className="goal-line">
-              <span>Current weight</span>
+              <span>{t('checkin.currentWeight')}</span>
               <strong>{currentWeightLabel}</strong>
             </div>
             <div className="goal-line">
-              <span>Goal</span>
+              <span>{t('checkin.goal')}</span>
               <strong>{goalWeightLabel}</strong>
             </div>
             <div className="goal-line">
-              <span>Main focus</span>
-              <strong>{profileSettings.profile.trainingGoal || 'Not set'}</strong>
+              <span>{t('checkin.mainFocus')}</span>
+              <strong>
+                {profileSettings.profile.trainingGoal || t('state.notSet')}
+              </strong>
             </div>
             {hasProfileGoal ? null : (
-              <p className="goal-empty-hint">
-                Add your height, weight and goal in Settings &rsaquo; Profile to
-                fill this in.
-              </p>
+              <p className="goal-empty-hint">{t('checkin.goalHint')}</p>
             )}
           </div>
-          <p className="card-copy">
-            Reminder: do not judge progress by weight only.
-          </p>
+          <p className="card-copy">{t('checkin.weightReminder')}</p>
         </article>
 
         <article className="dashboard-card recomp-card">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">How to read progress</p>
-              <h2>Reading the numbers</h2>
+              <p className="eyebrow">{t('checkin.readEyebrow')}</p>
+              <h2>{t('checkin.readTitle')}</h2>
             </div>
             <Info size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
-          <p className="card-copy">
-            No single number tells the story. Body weight moves with water,
-            food and sleep, so read it next to your measurements, your strength
-            on the big lifts, and how you rate posture and energy. A change you
-            can see across two or three of those, over a few weeks, is real
-            progress; one reading is noise.
-          </p>
+          <p className="card-copy">{t('checkin.readCopy')}</p>
         </article>
       </div>
 
@@ -312,8 +322,8 @@ export function BodyCheckIn() {
         <article className="dashboard-card">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Trend</p>
-              <h2>Since your first check-in</h2>
+              <p className="eyebrow">{t('checkin.trendEyebrow')}</p>
+              <h2>{t('checkin.trendTitle')}</h2>
             </div>
           </div>
           <div className="trend-grid">
@@ -344,13 +354,13 @@ export function BodyCheckIn() {
       {saveStatus === 'uploading' ? (
         <div className="checkin-save-status checkin-save-status--info" role="status">
           <UploadCloud size={18} strokeWidth={2.4} aria-hidden="true" />
-          Uploading photos…
+          {t('checkin.uploading')}
         </div>
       ) : null}
       {saveStatus === 'saving' ? (
         <div className="checkin-save-status checkin-save-status--info" role="status">
           <Loader2 size={18} strokeWidth={2.4} aria-hidden="true" />
-          Saving check-in…
+          {t('checkin.saving')}
         </div>
       ) : null}
       {saveStatus === 'saved' ? (
@@ -359,7 +369,7 @@ export function BodyCheckIn() {
           role="status"
         >
           <CheckCircle2 size={18} strokeWidth={2.4} aria-hidden="true" />
-          Saved successfully
+          {t('checkin.saved')}
         </div>
       ) : null}
       {saveStatus === 'error' && saveError ? (
@@ -375,11 +385,11 @@ export function BodyCheckIn() {
         <article className="progress-empty-card">
           <Target size={26} strokeWidth={2.4} aria-hidden="true" />
           <div>
-            <h2>No body check-in yet</h2>
+            <h2>{t('checkin.emptyTitle')}</h2>
             <p>
               {SHOW_DEMO_DATA
-                ? 'Save your first check-in above, or load demo check-ins to explore.'
-                : 'Save your first check-in above to start tracking progress.'}
+                ? t('checkin.emptyCopyDemo')
+                : t('checkin.emptyCopy')}
             </p>
           </div>
           {SHOW_DEMO_DATA ? (
@@ -388,7 +398,7 @@ export function BodyCheckIn() {
               onClick={handleAddDemo}
               type="button"
             >
-              Add Demo Check-ins
+              {t('checkin.addDemo')}
             </button>
           ) : null}
         </article>
@@ -397,8 +407,8 @@ export function BodyCheckIn() {
       <section className="progress-section">
         <div className="section-title-row">
           <div>
-            <p className="eyebrow">Measurement Progress</p>
-            <h2>Charts over time</h2>
+            <p className="eyebrow">{t('checkin.chartsEyebrow')}</p>
+            <h2>{t('checkin.chartsTitle')}</h2>
           </div>
         </div>
         <div className="chart-grid">
@@ -406,10 +416,12 @@ export function BodyCheckIn() {
             <MeasurementChart
               data={getMeasurementProgress(checkIns, config.key)}
               dataKey="value"
-              emptyMessage={`No ${config.title.toLowerCase()} data yet.`}
+              emptyMessage={t('checkin.chartEmpty', {
+                measurement: t(config.titleKey).toLowerCase(),
+              })}
               key={config.key}
-              title={config.title}
-              unit={config.unit}
+              title={t(config.titleKey)}
+              unit={t(config.unitKey)}
             />
           ))}
         </div>
@@ -441,25 +453,27 @@ export function BodyCheckIn() {
             className="confirm-modal"
             role="dialog"
           >
-            <p className="eyebrow">Delete check-in</p>
+            <p className="eyebrow">{t('checkin.deleteEyebrow')}</p>
             <h2 id="delete-checkin-title">
-              Delete {formatCheckInDate(deletingCheckIn.date)}?
+              {t('checkin.deleteTitle', {
+                date: formatCheckInDate(deletingCheckIn.date),
+              })}
             </h2>
-            <p>This removes the check-in and its photos. This cannot be undone.</p>
+            <p>{t('checkin.deleteCopy')}</p>
             <div className="confirm-actions">
               <button
                 className="workout-secondary-button"
                 onClick={() => setDeletingCheckIn(null)}
                 type="button"
               >
-                Cancel
+                {t('action.cancel')}
               </button>
               <button
                 className="confirm-delete-button"
                 onClick={handleConfirmDelete}
                 type="button"
               >
-                Delete
+                {t('action.delete')}
               </button>
             </div>
           </section>

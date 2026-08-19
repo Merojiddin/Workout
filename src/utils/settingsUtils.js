@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { BODY_CHECK_INS_KEY } from '../data/bodyCheckIns'
 import {
   difficultyOptions,
@@ -380,7 +381,7 @@ export function importAllData(jsonData) {
       typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData
 
     if (!isPlainObject(data)) {
-      return { success: false, message: 'Invalid backup file.' }
+      return { success: false, message: t('paste.importInvalid') }
     }
 
     if ('userProfileSettings' in data) {
@@ -447,9 +448,9 @@ export function importAllData(jsonData) {
       writeJson(NUTRITION_LOGS_KEY, Array.isArray(data.nutritionLogs) ? data.nutritionLogs : [])
     }
 
-    return { success: true, message: 'Data imported.' }
+    return { success: true, message: t('paste.importDone') }
   } catch {
-    return { success: false, message: 'Invalid backup file.' }
+    return { success: false, message: t('paste.importInvalid') }
   }
 }
 

@@ -2,6 +2,7 @@ import { Loader2, RotateCcw, Save, X } from 'lucide-react'
 import { useState } from 'react'
 import type { BodyCheckIn, PhotoSlot } from '../data/bodyCheckIns'
 import { useAuth } from '../context/AuthContext'
+import { useT, type MessageKey } from '../i18n'
 import { isCloudPhotoEnabled } from '../services/photoService'
 import { fileToBase64 } from '../utils/imageUtils'
 import { generateCheckInId, todayIso } from '../utils/bodyCheckInUtils'
@@ -54,28 +55,32 @@ interface BodyCheckInFormProps {
   uploadingSlots?: Partial<Record<PhotoSlot, boolean>>
 }
 
-const measurementInputs: { key: NumericKey; label: string; unit: string }[] = [
-  { key: 'bodyWeightKg', label: 'Body weight', unit: 'kg' },
-  { key: 'waistCm', label: 'Waist', unit: 'cm' },
-  { key: 'bellyCm', label: 'Belly', unit: 'cm' },
-  { key: 'chestCm', label: 'Chest', unit: 'cm' },
-  { key: 'shouldersCm', label: 'Shoulders', unit: 'cm' },
-  { key: 'leftArmCm', label: 'Left arm', unit: 'cm' },
-  { key: 'rightArmCm', label: 'Right arm', unit: 'cm' },
-  { key: 'hipsCm', label: 'Hips', unit: 'cm' },
+const measurementInputs: {
+  key: NumericKey
+  labelKey: MessageKey
+  unitKey: MessageKey
+}[] = [
+  { key: 'bodyWeightKg', labelKey: 'measure.bodyWeightKg', unitKey: 'unit.kg' },
+  { key: 'waistCm', labelKey: 'measure.waistCm', unitKey: 'unit.cm' },
+  { key: 'bellyCm', labelKey: 'measure.bellyCm', unitKey: 'unit.cm' },
+  { key: 'chestCm', labelKey: 'measure.chestCm', unitKey: 'unit.cm' },
+  { key: 'shouldersCm', labelKey: 'measure.shouldersCm', unitKey: 'unit.cm' },
+  { key: 'leftArmCm', labelKey: 'measure.leftArmCm', unitKey: 'unit.cm' },
+  { key: 'rightArmCm', labelKey: 'measure.rightArmCm', unitKey: 'unit.cm' },
+  { key: 'hipsCm', labelKey: 'measure.hipsCm', unitKey: 'unit.cm' },
 ]
 
-const ratingInputs: { key: NumericKey; label: string }[] = [
-  { key: 'postureRating', label: 'Posture rating' },
-  { key: 'absVisibilityRating', label: 'Abs visibility' },
-  { key: 'energyLevel', label: 'Energy level' },
-  { key: 'sleepQuality', label: 'Sleep quality' },
+const ratingInputs: { key: NumericKey; labelKey: MessageKey }[] = [
+  { key: 'postureRating', labelKey: 'measure.postureRating' },
+  { key: 'absVisibilityRating', labelKey: 'measure.absVisibilityRating' },
+  { key: 'energyLevel', labelKey: 'measure.energyLevel' },
+  { key: 'sleepQuality', labelKey: 'measure.sleepQuality' },
 ]
 
-const photoInputs: { key: PhotoSlot; label: string }[] = [
-  { key: 'front', label: 'Front photo' },
-  { key: 'side', label: 'Side photo' },
-  { key: 'back', label: 'Back photo' },
+const photoInputs: { key: PhotoSlot; labelKey: MessageKey }[] = [
+  { key: 'front', labelKey: 'checkinForm.photoFront' },
+  { key: 'side', labelKey: 'checkinForm.photoSide' },
+  { key: 'back', labelKey: 'checkinForm.photoBack' },
 ]
 
 const numericKeys = [...measurementInputs, ...ratingInputs].map((input) => input.key)
@@ -89,6 +94,7 @@ export function BodyCheckInForm({
   uploadingSlots = {},
 }: BodyCheckInFormProps) {
   const { user } = useAuth()
+  const t = useT()
   const cloudPhotos = isCloudPhotoEnabled(user)
 
   const [draft, setDraft] = useState<CheckInDraft>(() => createDraft(initialData))
@@ -169,7 +175,7 @@ export function BodyCheckInForm({
     const nextErrors: Partial<Record<keyof CheckInDraft, string>> = {}
 
     if (!draft.date) {
-      nextErrors.date = 'Date is required.'
+      nextErrors.date = t('checkinForm.error.dateRequired')
     }
 
     for (const key of numericKeys) {
@@ -180,11 +186,11 @@ export function BodyCheckInForm({
 
       const parsed = Number(raw)
       if (!Number.isFinite(parsed)) {
-        nextErrors[key] = 'Enter a valid number.'
+        nextErrors[key] = t('checkinForm.error.number')
       } else if (parsed < 0) {
-        nextErrors[key] = 'Cannot be negative.'
+        nextErrors[key] = t('checkinForm.error.negative')
       } else if (ratingKeys.has(key) && (parsed < 1 || parsed > 10)) {
-        nextErrors[key] = 'Must be 1–10.'
+        nextErrors[key] = t('checkinForm.error.range')
       }
     }
 
@@ -213,14 +219,16 @@ export function BodyCheckInForm({
     <article className="dashboard-card checkin-form-card">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">{isEdit ? 'Edit Check-in' : 'New Check-in'}</p>
-          <h2>{isEdit ? 'Update measurements' : 'Log this week'}</h2>
+          <p className="eyebrow">
+            {isEdit ? t('checkinForm.eyebrowEdit') : t('checkinForm.eyebrowNew')}
+          </p>
+          <h2>{isEdit ? t('checkinForm.titleEdit') : t('checkinForm.titleNew')}</h2>
         </div>
       </div>
 
       <form className="checkin-form" noValidate onSubmit={handleSubmit}>
         <div className="checkin-field">
-          <label htmlFor="checkin-date">Date</label>
+          <label htmlFor="checkin-date">{t('checkinForm.date')}</label>
           <input
             className="checkin-input"
             id="checkin-date"
@@ -237,7 +245,10 @@ export function BodyCheckInForm({
           {measurementInputs.map((input) => (
             <div className="checkin-field" key={input.key}>
               <label htmlFor={`checkin-${input.key}`}>
-                {input.label} <span className="checkin-field__unit">({input.unit})</span>
+                {t(input.labelKey)}{' '}
+                <span className="checkin-field__unit">
+                  {t('checkinForm.unit', { unit: t(input.unitKey) })}
+                </span>
               </label>
               <input
                 className="checkin-input"
@@ -252,7 +263,7 @@ export function BodyCheckInForm({
               />
               {input.key === 'bodyWeightKg' && weightMissing ? (
                 <span className="checkin-field__hint">
-                  Optional, but recommended for tracking.
+                  {t('checkinForm.weightHint')}
                 </span>
               ) : null}
               {errors[input.key] ? (
@@ -266,7 +277,10 @@ export function BodyCheckInForm({
           {ratingInputs.map((input) => (
             <div className="checkin-field" key={input.key}>
               <label htmlFor={`checkin-${input.key}`}>
-                {input.label} <span className="checkin-field__unit">(1–10)</span>
+                {t(input.labelKey)}{' '}
+                <span className="checkin-field__unit">
+                  {t('checkinForm.ratingUnit')}
+                </span>
               </label>
               <input
                 className="checkin-input"
@@ -275,7 +289,7 @@ export function BodyCheckInForm({
                 max={10}
                 min={1}
                 onChange={(event) => setField(input.key, event.target.value)}
-                placeholder="1–10"
+                placeholder={t('checkinForm.ratingPlaceholder')}
                 step="1"
                 type="number"
                 value={draft[input.key]}
@@ -288,12 +302,12 @@ export function BodyCheckInForm({
         </div>
 
         <div className="checkin-field">
-          <label htmlFor="checkin-notes">Notes</label>
+          <label htmlFor="checkin-notes">{t('checkinForm.notes')}</label>
           <textarea
             className="checkin-textarea"
             id="checkin-notes"
             onChange={(event) => setField('notes', event.target.value)}
-            placeholder="How you look and feel, form cues, energy, anything worth remembering."
+            placeholder={t('checkinForm.notesPlaceholder')}
             rows={3}
             value={draft.notes}
           />
@@ -302,14 +316,14 @@ export function BodyCheckInForm({
         <div className="photo-upload-section">
           <div className="photo-upload-hint">
             {cloudPhotos
-              ? 'Photos are saved securely to your cloud account.'
-              : 'Photos are stored on this device. JPG, PNG, or WEBP up to 5 MB.'}
+              ? t('checkinForm.photoHintCloud')
+              : t('checkinForm.photoHintLocal')}
           </div>
           <div className="photo-upload-grid">
             {photoInputs.map((photo) => (
               <ImageUploadPreview
                 key={photo.key}
-                label={photo.label}
+                label={t(photo.labelKey)}
                 onRemove={() => handlePhotoRemove(photo.key)}
                 onSelect={(file, previewUrl) =>
                   handlePhotoSelect(photo.key, file, previewUrl)
@@ -333,10 +347,10 @@ export function BodyCheckInForm({
               <Save size={18} strokeWidth={2.4} aria-hidden="true" />
             )}
             {submitting
-              ? 'Saving…'
+              ? t('checkinForm.saving')
               : isEdit
-                ? 'Update Check-in'
-                : 'Save Check-in'}
+                ? t('checkinForm.update')
+                : t('checkinForm.save')}
           </button>
           <button
             className="workout-secondary-button"
@@ -345,7 +359,7 @@ export function BodyCheckInForm({
             type="button"
           >
             <RotateCcw size={18} strokeWidth={2.4} aria-hidden="true" />
-            Clear Form
+            {t('checkinForm.clear')}
           </button>
           {isEdit && onCancel ? (
             <button
@@ -355,7 +369,7 @@ export function BodyCheckInForm({
               type="button"
             >
               <X size={18} strokeWidth={2.4} aria-hidden="true" />
-              Cancel Edit
+              {t('checkinForm.cancelEdit')}
             </button>
           ) : null}
         </div>

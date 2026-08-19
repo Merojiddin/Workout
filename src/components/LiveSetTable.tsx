@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { t, useT } from '../i18n'
 import { formatDuration } from '../utils/exerciseLoggingUtils'
 import { isDoneSet, type ActiveExercise, type ActiveSet } from '../utils/liveWorkoutUtils'
 
@@ -21,10 +22,15 @@ export function LiveSetTable({
   currentSetIndex,
   onSelectSet,
 }: LiveSetTableProps) {
+  const translate = useT()
   const timed = exercise.loggingMode === 'duration'
 
   return (
-    <div className="set-table" role="table" aria-label="Sets for this exercise">
+    <div
+      className="set-table"
+      role="table"
+      aria-label={translate('live.sets.tableAria')}
+    >
       {exercise.sets.map((set, index) => {
         const done = isDoneSet(set)
         const current = index === currentSetIndex
@@ -41,12 +47,20 @@ export function LiveSetTable({
           >
             <b>{set.setNumber}</b>
             <span>{primaryValue(set, timed)}</span>
-            <span>{set.weightKg === null ? '—' : `${set.weightKg} kg`}</span>
+            <span>
+              {set.weightKg === null
+                ? '—'
+                : translate('live.sets.weightValue', { weight: set.weightKg })}
+            </span>
             <span className="set-row__mark" aria-hidden="true">
               {done ? <Check size={14} strokeWidth={3} /> : '○'}
             </span>
             <span className="set-row__label">
-              {done ? 'Done' : current ? 'Current set' : 'Not done'}
+              {done
+                ? translate('live.sets.done')
+                : current
+                  ? translate('live.sets.current')
+                  : translate('live.sets.notDone')}
             </span>
           </button>
         )
@@ -60,5 +74,5 @@ function primaryValue(set: ActiveSet, timed: boolean): string {
     return set.timeSeconds === null ? '—' : formatDuration(set.timeSeconds)
   }
 
-  return set.reps === null ? '—' : `${set.reps} reps`
+  return set.reps === null ? '—' : t('live.sets.repsValue', { reps: set.reps })
 }

@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type { WorkoutDay } from '../data/workoutPlan'
 import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
@@ -45,12 +46,12 @@ import {
 const MAX_CLOUD_BACKUPS = 3
 
 export const CLOUD_PROGRAM_OPERATION_STATUS = {
-  saving: 'Saving cloud plan…',
-  verifying: 'Verifying cloud plan…',
-  rollingBack: 'Restoring previous plan…',
-  installComplete: 'Installation complete',
+  saving: t('cloud.status.saving'),
+  verifying: t('cloud.status.verifying'),
+  rollingBack: t('cloud.status.restoring'),
+  installComplete: t('cloud.status.complete'),
   installFailedRestored:
-    'Installation failed and previous plan restored',
+    t('cloud.status.failed'),
 } as const
 
 export type CloudProgramOperationStatus =
@@ -170,7 +171,7 @@ export async function installWorkoutProgramInCloud(
   if (guard) return fail(emptyData, guard.code, guard.message)
 
   if (!isNonEmptyString(program?.id) || !isNonEmptyString(program?.version)) {
-    return fail(emptyData, 'program-not-found', 'A valid program ID and version are required.')
+    return fail(emptyData, 'program-not-found', t('svc.validIdVersionRequired'))
   }
 
   const registeredProgram = getWorkoutProgramByIdAndVersion(
@@ -181,7 +182,7 @@ export async function installWorkoutProgramInCloud(
     return fail(
       emptyData,
       'program-not-found',
-      'The selected program is not in the workout program registry.',
+      t('svc.notInRegistry'),
     )
   }
 
@@ -192,7 +193,7 @@ export async function installWorkoutProgramInCloud(
     return fail(
       { ...emptyData, program: registeredProgram },
       'program-invalid',
-      'The selected workout program failed validation and was not installed.',
+      t('svc.failedValidation'),
       validation.errors,
     )
   }
@@ -214,7 +215,7 @@ export async function installWorkoutProgramInCloud(
       return fail(
         { ...emptyData, program: registeredProgram },
         'already-installed',
-        'This workout program is already installed.',
+        t('svc.alreadyInstalled'),
       )
     }
 
@@ -245,7 +246,7 @@ export async function installWorkoutProgramInCloud(
     return fail(
       { ...emptyData, program: registeredProgram },
       'cloud-backup-failed',
-      describeError(error, 'The current plans could not be backed up.'),
+      describeError(error, t('cloud.backupFailed')),
     )
   }
 
@@ -273,7 +274,7 @@ export async function installWorkoutProgramInCloud(
       store,
       options,
       'cloud-plan-save-failed',
-      describeError(error, 'The cloud workout plan could not be saved.'),
+      describeError(error, t('cloud.planSaveFailed')),
       true,
     )
   }
@@ -317,7 +318,7 @@ export async function installWorkoutProgramInCloud(
       store,
       options,
       'cloud-metadata-save-failed',
-      describeError(error, 'The installed-program metadata could not be saved.'),
+      describeError(error, t('cloud.installedMetadataSaveFailed')),
       true,
     )
   }
@@ -340,7 +341,7 @@ export async function installWorkoutProgramInCloud(
       store,
       options,
       'cloud-verification-failed',
-      'Cloud verification failed after installation.',
+      t('cloud.verifyFailedAfterInstall'),
       true,
       verified.details,
     )
@@ -359,7 +360,7 @@ export async function installWorkoutProgramInCloud(
       store,
       options,
       'local-commit-failed',
-      'The verified cloud program could not be committed locally.',
+      t('cloud.commitProgramFailed'),
       true,
       localCommit.details,
       localCommit.rollback,
@@ -376,10 +377,10 @@ export async function installWorkoutProgramInCloud(
     },
     CLOUD_PROGRAM_OPERATION_STATUS.installComplete,
     [
-      'The previous local and cloud plans were backed up.',
-      'The cloud plan and installed-program metadata were refetched and verified.',
-      'The local plan was updated only after cloud verification.',
-      'Workout history and active workout data were not changed.',
+      t('cloud.plansBackedUp'),
+      t('cloud.planRefetchedVerified'),
+      t('cloud.localUpdatedAfterVerify'),
+      t('svc.historyUnchanged'),
       ...validation.warnings,
     ],
   )
@@ -394,7 +395,7 @@ export async function restoreWorkoutProgramBackupInCloud(
   const guard = guardCloudProgramChange(user, true)
   if (guard) return fail(emptyData, guard.code, guard.message)
   if (!isNonEmptyString(backupId)) {
-    return fail(emptyData, 'backup-not-found', 'The selected cloud backup was not found.')
+    return fail(emptyData, 'backup-not-found', t('cloud.backupNotFound'))
   }
 
   const authenticatedUser = user as AuthUser
@@ -406,7 +407,7 @@ export async function restoreWorkoutProgramBackupInCloud(
     return fail(
       emptyData,
       'cloud-settings-read-failed',
-      describeError(error, 'Cloud Program Manager metadata could not be loaded.'),
+      describeError(error, t('cloud.metadataLoadFailed')),
     )
   }
   let selected: CloudWorkoutPlanBackup | undefined
@@ -418,11 +419,11 @@ export async function restoreWorkoutProgramBackupInCloud(
     return fail(
       emptyData,
       'cloud-settings-invalid',
-      describeError(error, 'Cloud Program Manager metadata is invalid.'),
+      describeError(error, t('cloud.metadataInvalid')),
     )
   }
   if (!selected) {
-    return fail(emptyData, 'backup-not-found', 'The selected cloud backup was not found.')
+    return fail(emptyData, 'backup-not-found', t('cloud.backupNotFound'))
   }
 
   let prepared: PreparedCloudChange
@@ -453,7 +454,7 @@ export async function restoreWorkoutProgramBackupInCloud(
     return fail(
       { ...emptyData, cloudBackup: selected },
       'cloud-backup-failed',
-      describeError(error, 'The current plans could not be backed up.'),
+      describeError(error, t('cloud.backupFailed')),
     )
   }
 
@@ -474,7 +475,7 @@ export async function restoreWorkoutProgramBackupInCloud(
       store,
       options,
       'cloud-plan-save-failed',
-      describeError(error, 'The cloud backup plan could not be restored.'),
+      describeError(error, t('cloud.backupPlanRestoreFailed')),
       false,
     )
   }
@@ -514,7 +515,7 @@ export async function restoreWorkoutProgramBackupInCloud(
       store,
       options,
       'cloud-metadata-save-failed',
-      describeError(error, 'The prior installed-program metadata could not be restored.'),
+      describeError(error, t('cloud.priorMetadataRestoreFailed')),
       false,
     )
   }
@@ -537,7 +538,7 @@ export async function restoreWorkoutProgramBackupInCloud(
       store,
       options,
       'cloud-verification-failed',
-      'Cloud verification failed while restoring the backup.',
+      t('cloud.verifyFailedDuringRestore'),
       false,
       verified.details,
     )
@@ -556,7 +557,7 @@ export async function restoreWorkoutProgramBackupInCloud(
       store,
       options,
       'local-commit-failed',
-      'The verified cloud backup could not be committed locally.',
+      t('cloud.commitBackupFailed'),
       false,
       localCommit.details,
       localCommit.rollback,
@@ -570,12 +571,12 @@ export async function restoreWorkoutProgramBackupInCloud(
       installedProgram: selected.previousProgram,
       plan: expectedPlan,
     },
-    'Cloud workout plan backup restored.',
+    t('cloud.backupRestored'),
     [
-      'The current local and cloud plans were backed up before restore.',
-      'The restored cloud plan and installed metadata were verified before local changes.',
-      'The selected cloud backup was kept.',
-      'Workout history and active workout data were not changed.',
+      t('cloud.plansBackedUpBeforeRestore'),
+      t('cloud.restoredVerified'),
+      t('cloud.backupKept'),
+      t('svc.historyUnchanged'),
     ],
   )
 }
@@ -588,14 +589,14 @@ export async function dismissWorkoutProgramInCloud(
   const guard = guardCloudProgramChange(user, false)
   if (guard) return fail(null, guard.code, guard.message)
   if (!isNonEmptyString(program?.id) || !isNonEmptyString(program?.version)) {
-    return fail(null, 'program-not-found', 'A valid program ID and version are required.')
+    return fail(null, 'program-not-found', t('svc.validIdVersionRequired'))
   }
   const registered = getWorkoutProgramByIdAndVersion(
     program.id.trim(),
     program.version.trim(),
   )
   if (!registered) {
-    return fail(null, 'program-not-found', 'The selected program is not in the registry.')
+    return fail(null, 'program-not-found', t('svc.notInRegistryShort'))
   }
 
   const authenticatedUser = user as AuthUser
@@ -634,7 +635,7 @@ export async function dismissWorkoutProgramInCloud(
           entry.id === registered.id && entry.version === registered.version,
       )
     ) {
-      throw new Error('The cloud dismissal metadata could not be verified.')
+      throw new Error(t('cloud.dismissalVerifyFailed'))
     }
     nextManager = verifiedManager
     nextSettings = verifiedSettings
@@ -645,7 +646,7 @@ export async function dismissWorkoutProgramInCloud(
     return fail(
       null,
       'cloud-dismissal-failed',
-      describeError(error, 'The program could not be dismissed in the cloud.'),
+      describeError(error, t('cloud.dismissFailed')),
       rollbackDetails,
     )
   }
@@ -664,7 +665,7 @@ export async function dismissWorkoutProgramInCloud(
     return fail(
       null,
       'local-dismissal-failed',
-      'The cloud dismissal was verified, but the local dismissed cache could not be updated.',
+      t('cloud.dismissalCacheFailed'),
       [...localCommit.details, ...rollbackDetails],
     )
   }
@@ -672,7 +673,7 @@ export async function dismissWorkoutProgramInCloud(
   return succeed(
     nextManager,
     `Kept the current plan instead of ${registered.id} ${registered.version}.`,
-    ['The cloud custom plan and workout history were not changed.'],
+    [t('cloud.planHistoryUnchanged')],
   )
 }
 
@@ -716,28 +717,28 @@ function getValidatedCloudWorkoutProgramManagerMetadata(
     return getCloudWorkoutProgramManagerMetadata(settings)
   }
   if (!isPlainObject(rawManager)) {
-    throw new Error('Cloud Program Manager metadata must be an object.')
+    throw new Error(t('cloud.metadataMustBeObject'))
   }
   if (
     rawManager.installedProgram !== undefined &&
     rawManager.installedProgram !== null &&
     !isInstalledWorkoutProgram(rawManager.installedProgram)
   ) {
-    throw new Error('Cloud installed-program metadata is invalid.')
+    throw new Error(t('cloud.installedMetadataInvalid'))
   }
   if (
     rawManager.dismissedPrograms !== undefined &&
     (!Array.isArray(rawManager.dismissedPrograms) ||
       !rawManager.dismissedPrograms.every(isDismissedWorkoutProgram))
   ) {
-    throw new Error('Cloud dismissed-program metadata is invalid.')
+    throw new Error(t('cloud.dismissedMetadataInvalid'))
   }
   if (
     rawManager.backups !== undefined &&
     (!Array.isArray(rawManager.backups) ||
       !rawManager.backups.every(isCloudWorkoutPlanBackup))
   ) {
-    throw new Error('Cloud workout plan backup metadata is invalid.')
+    throw new Error(t('cloud.backupMetadataInvalid'))
   }
   return getCloudWorkoutProgramManagerMetadata(settings)
 }
@@ -747,13 +748,13 @@ export function hydrateWorkoutProgramManagerFromCloudSettings(
   userId: string,
 ): ProgramManagerResult<CloudWorkoutProgramManagerMetadata | null> {
   if (!isNonEmptyString(userId)) {
-    return fail(null, 'invalid-user', 'A user ID is required for cloud Program Manager hydration.')
+    return fail(null, 'invalid-user', t('cloud.userIdRequired'))
   }
   let cloudSettings: Record<string, unknown>
   let manager: CloudWorkoutProgramManagerMetadata
   try {
     if (!isPlainObject(settings)) {
-      throw new Error('Cloud user settings must be an object.')
+      throw new Error(t('cloud.settingsMustBeObject'))
     }
     cloudSettings = clone(settings)
     manager = getValidatedCloudWorkoutProgramManagerMetadata(cloudSettings)
@@ -761,19 +762,19 @@ export function hydrateWorkoutProgramManagerFromCloudSettings(
     return fail(
       null,
       'cloud-metadata-invalid',
-      describeError(error, 'Cloud Program Manager metadata is invalid.'),
+      describeError(error, t('cloud.metadataInvalid')),
     )
   }
   const result = commitLocalMetadata(userId.trim(), cloudSettings, manager)
   return result.success
     ? succeed(
         manager,
-        'Cloud Program Manager metadata hydrated. Local-only backups were preserved.',
+        t('cloud.metadataHydrated'),
       )
     : fail(
         null,
         'cloud-metadata-hydration-failed',
-        'Cloud Program Manager metadata could not be hydrated.',
+        t('cloud.metadataHydrateFailed'),
         result.details,
       )
 }
@@ -787,13 +788,13 @@ export function getHydratedCloudWorkoutProgramManager(
     value.userId !== userId ||
     !isPlainObject(value.metadata)
   ) {
-    return succeed(null, 'No hydrated cloud Program Manager metadata was found for this account.')
+    return succeed(null, t('cloud.noHydrated'))
   }
   return succeed(
     getCloudWorkoutProgramManagerMetadata({
       workoutProgramManager: value.metadata,
     }),
-    'Hydrated cloud Program Manager metadata loaded.',
+    t('cloud.hydratedLoaded'),
   )
 }
 
@@ -821,7 +822,7 @@ async function prepareCloudChange(
     )
     if (!latestSelected || !deepEqual(latestSelected, selectedBackup)) {
       throw new Error(
-        'The selected cloud backup changed before restoration began.',
+        t('cloud.backupChanged'),
       )
     }
   }
@@ -831,7 +832,7 @@ async function prepareCloudChange(
     !isNonEmptyString(cloudBackupId) ||
     managerBefore.backups.some((backup) => backup.id === cloudBackupId)
   ) {
-    throw new Error('A unique cloud backup ID could not be created.')
+    throw new Error(t('cloud.backupIdFailed'))
   }
   // A first install has no local plan to protect: an empty plan is not a valid
   // backup, and failing the install over it would leave a new account unable to
@@ -894,11 +895,11 @@ async function prepareCloudChange(
           (backup) => backup.id === selectedBackup.id,
         ))
     ) {
-      throw new Error('The cloud workout plan backup could not be verified.')
+      throw new Error(t('cloud.backupVerifyFailed'))
     }
   } catch (error) {
     throw new PreparedCloudChangeError(
-      describeError(error, 'The cloud workout plan backup could not be verified.'),
+      describeError(error, t('cloud.backupVerifyFailed')),
       prepared,
     )
   }
@@ -927,7 +928,7 @@ async function verifyCloudState(
       store.fetchSettings(user),
     ])
     if (expectPlanAbsent) {
-      if (planSnapshot.exists) details.push('The cloud custom plan row still exists.')
+      if (planSnapshot.exists) details.push(t('cloud.planRowExists'))
     } else if (
       !planSnapshot.exists ||
       !Array.isArray(planSnapshot.value) ||
@@ -936,21 +937,21 @@ async function verifyCloudState(
         expectedPlan,
       )
     ) {
-      details.push('The cloud plan does not match the expected program.')
+      details.push(t('cloud.planMismatch'))
     }
     if (!settingsSnapshot.exists || !isPlainObject(settingsSnapshot.value)) {
-      details.push('The cloud settings document is absent or invalid.')
+      details.push(t('cloud.settingsAbsent'))
       return { success: false, details, manager: null, settings: null }
     }
     const settings = settingsFromSnapshot(settingsSnapshot)
     if (!deepEqual(settings, expectedSettings)) {
       details.push(
-        'The verified cloud settings document does not match the complete expected settings merge.',
+        t('cloud.settingsMergeMismatch'),
       )
     }
     const manager = getValidatedCloudWorkoutProgramManagerMetadata(settings)
     if (!installedProgramsEqual(manager.installedProgram, expectedInstalled)) {
-      details.push('The cloud installed-program metadata does not match.')
+      details.push(t('cloud.installedMetadataMismatch'))
     }
     requiredBackupIds.forEach((requiredBackupId) => {
       if (!manager.backups.some((backup) => backup.id === requiredBackupId)) {
@@ -960,7 +961,7 @@ async function verifyCloudState(
     // With no cloud plan row and no bundled program, the only correct local
     // state is an empty plan.
     if (expectPlanAbsent && expectedPlan.length > 0) {
-      details.push('A plan is expected locally but no cloud plan row exists.')
+      details.push(t('cloud.planExpectedLocally'))
     }
     return {
       success: details.length === 0,
@@ -971,7 +972,7 @@ async function verifyCloudState(
   } catch (error) {
     return {
       success: false,
-      details: [describeError(error, 'Cloud values could not be refetched.')],
+      details: [describeError(error, t('cloud.refetchFailed'))],
       manager: null,
       settings: null,
     }
@@ -1031,7 +1032,7 @@ async function rollbackCloudState(
   try {
     if (prepared.cloudPlanBefore.exists) {
       if (!Array.isArray(prepared.cloudPlanBefore.value)) {
-        throw new Error('The previous cloud plan snapshot is invalid.')
+        throw new Error(t('cloud.previousSnapshotInvalid'))
       }
       await store.writePlan(
         user,
@@ -1044,11 +1045,11 @@ async function rollbackCloudState(
     cloudPlanRestored = snapshotsEqual(plan, prepared.cloudPlanBefore)
     details.push(
       cloudPlanRestored
-        ? 'Previous cloud plan restored and verified.'
-        : 'Previous cloud plan could not be verified after rollback.',
+        ? t('cloud.rollbackPlanRestored')
+        : t('cloud.rollbackPlanVerifyFailed'),
     )
   } catch (error) {
-    details.push(describeError(error, 'Previous cloud plan rollback failed.'))
+    details.push(describeError(error, t('cloud.rollbackPlanFailed')))
   }
 
   try {
@@ -1058,11 +1059,11 @@ async function rollbackCloudState(
       settings.exists && deepEqual(settings.value, prepared.cloudSettingsWithBackup)
     details.push(
       cloudSettingsRestored
-        ? 'Previous cloud metadata restored; the created backup was preserved.'
-        : 'Previous cloud metadata could not be verified after rollback.',
+        ? t('cloud.rollbackMetadataRestored')
+        : t('cloud.rollbackMetadataVerifyFailed'),
     )
   } catch (error) {
-    details.push(describeError(error, 'Previous cloud metadata rollback failed.'))
+    details.push(describeError(error, t('cloud.rollbackMetadataFailed')))
   }
 
   const localRestored = localRollback?.success ?? true
@@ -1090,11 +1091,11 @@ async function rollbackSettingsSnapshot(
     const verified = await store.fetchSettings(user)
     return [
       snapshotsEqual(verified, snapshot)
-        ? 'Previous cloud settings restored and verified.'
-        : 'Previous cloud settings could not be verified after rollback.',
+        ? t('cloud.rollbackSettingsRestored')
+        : t('cloud.rollbackSettingsVerifyFailed'),
     ]
   } catch (error) {
-    return [describeError(error, 'Previous cloud settings rollback failed.')]
+    return [describeError(error, t('cloud.rollbackSettingsFailed'))]
   }
 }
 
@@ -1113,7 +1114,7 @@ function commitLocalState(options: LocalCommitOptions): LocalCommitResult {
     const rollback = rollbackLocalSnapshots(snapshots)
     return {
       success: false,
-      details: ['The verified plan could not be saved and verified locally.', ...rollback.details],
+      details: [t('cloud.planLocalSaveFailed'), ...rollback.details],
       rollback,
     }
   }
@@ -1187,7 +1188,7 @@ function commitLocalMetadata(
   const rollback = rollbackLocalSnapshots(snapshots)
   return {
     success: false,
-    details: ['Local Program Manager metadata could not be saved and verified.', ...rollback.details],
+    details: [t('cloud.localSaveVerifyFailed'), ...rollback.details],
     rollback,
   }
 }
@@ -1199,25 +1200,25 @@ function guardCloudProgramChange(
   if (!isSupabaseConfigured) {
     return {
       code: 'supabase-not-configured',
-      message: 'Supabase is not configured. Running in local mode.',
+      message: t('cloud.notConfigured'),
     }
   }
   if (!user || !isNonEmptyString(user.id)) {
     return {
       code: 'authentication-required',
-      message: 'Sign in with a cloud account to change workout programs.',
+      message: t('cloud.signInToChange'),
     }
   }
   if (!isBrowserOnline()) {
     return {
       code: 'offline',
-      message: 'Connect to the internet before changing a cloud workout program.',
+      message: t('cloud.offline'),
     }
   }
   if (protectActiveWorkout && getWorkoutProgramChangeProtection().data.blocked) {
     return {
       code: 'active-workout',
-      message: 'Finish or discard the active workout before changing programs.',
+      message: t('svc.activeWorkoutBlocks'),
     }
   }
   return null
@@ -1265,7 +1266,7 @@ function addCloudBackup(
 
 function normalizePlanSnapshot(snapshot: CloudDocumentSnapshot<unknown>): WorkoutDay[] {
   if (!snapshot.exists || !Array.isArray(snapshot.value)) {
-    throw new Error('The current cloud custom plan is invalid.')
+    throw new Error(t('cloud.currentPlanInvalid'))
   }
   return normalizePlan(snapshot.value)
 }
@@ -1354,7 +1355,7 @@ function settingsFromSnapshot(
 ): Record<string, unknown> {
   if (!snapshot.exists) return {}
   if (!isPlainObject(snapshot.value)) {
-    throw new Error('The existing cloud user settings document is invalid.')
+    throw new Error(t('cloud.settingsDocInvalid'))
   }
   return clone(snapshot.value)
 }

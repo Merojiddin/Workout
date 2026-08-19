@@ -1,4 +1,5 @@
 import { CalendarCheck2 } from 'lucide-react'
+import { useT, type MessageKey, type TranslateFn } from '../i18n'
 import type { BodyCheckIn, PhotoSlot } from '../data/bodyCheckIns'
 import {
   checkInHasPhotos,
@@ -7,10 +8,10 @@ import {
 } from '../utils/bodyCheckInUtils'
 import { CheckInPhotoTile } from './CheckInPhotoTile'
 
-const photoSlots: { slot: PhotoSlot; label: string }[] = [
-  { slot: 'front', label: 'Front' },
-  { slot: 'side', label: 'Side' },
-  { slot: 'back', label: 'Back' },
+const photoSlots: { slot: PhotoSlot; labelKey: MessageKey }[] = [
+  { slot: 'front', labelKey: 'checkin.photo.front' },
+  { slot: 'side', labelKey: 'checkin.photo.side' },
+  { slot: 'back', labelKey: 'checkin.photo.back' },
 ]
 
 interface LatestCheckInCardProps {
@@ -18,25 +19,37 @@ interface LatestCheckInCardProps {
 }
 
 export function LatestCheckInCard({ checkIn }: LatestCheckInCardProps) {
+  const t = useT()
   const armAverage = getArmAverage(checkIn)
   const hasPhotos = checkInHasPhotos(checkIn)
 
+  const kg = t('unit.kg')
+  const cm = t('unit.cm')
   const metrics = [
-    { label: 'Weight', value: formatMetric(checkIn.bodyWeightKg, 'kg') },
-    { label: 'Waist', value: formatMetric(checkIn.waistCm, 'cm') },
-    { label: 'Belly', value: formatMetric(checkIn.bellyCm, 'cm') },
-    { label: 'Chest', value: formatMetric(checkIn.chestCm, 'cm') },
-    { label: 'Shoulders', value: formatMetric(checkIn.shouldersCm, 'cm') },
-    { label: 'Arms (avg)', value: formatMetric(armAverage, 'cm') },
-    { label: 'Posture', value: formatRating(checkIn.postureRating) },
-    { label: 'Abs', value: formatRating(checkIn.absVisibilityRating) },
+    { label: t('measure.weight'), value: formatMetric(checkIn.bodyWeightKg, kg) },
+    { label: t('measure.waistCm'), value: formatMetric(checkIn.waistCm, cm) },
+    { label: t('measure.bellyCm'), value: formatMetric(checkIn.bellyCm, cm) },
+    { label: t('measure.chestCm'), value: formatMetric(checkIn.chestCm, cm) },
+    {
+      label: t('measure.shouldersCm'),
+      value: formatMetric(checkIn.shouldersCm, cm),
+    },
+    { label: t('measure.armsAverage'), value: formatMetric(armAverage, cm) },
+    {
+      label: t('measure.posture'),
+      value: formatRating(checkIn.postureRating, t),
+    },
+    {
+      label: t('measure.abs'),
+      value: formatRating(checkIn.absVisibilityRating, t),
+    },
   ]
 
   return (
     <article className="dashboard-card">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Latest Check-in</p>
+          <p className="eyebrow">{t('checkin.latestEyebrow')}</p>
           <h2>{formatCheckInDate(checkIn.date)}</h2>
         </div>
         <CalendarCheck2 size={22} strokeWidth={2.4} aria-hidden="true" />
@@ -61,7 +74,7 @@ export function LatestCheckInCard({ checkIn }: LatestCheckInCardProps) {
             <CheckInPhotoTile
               checkIn={checkIn}
               key={photo.slot}
-              label={photo.label}
+              label={t(photo.labelKey)}
               slot={photo.slot}
               variant="thumb"
             />
@@ -76,6 +89,6 @@ function formatMetric(value: number | null, unit: string): string {
   return value === null ? '—' : `${value} ${unit}`
 }
 
-function formatRating(value: number | null): string {
-  return value === null ? '—' : `${value}/10`
+function formatRating(value: number | null, t: TranslateFn): string {
+  return value === null ? '—' : t('checkin.rating', { value })
 }

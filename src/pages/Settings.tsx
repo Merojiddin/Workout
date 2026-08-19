@@ -4,6 +4,7 @@ import {
   Database,
   Download,
   Goal,
+  Languages,
   LogIn,
   LogOut,
   MonitorPlay,
@@ -21,10 +22,12 @@ import { useRef, useState } from 'react'
 import { CloudHealthPanel } from '../components/CloudHealthPanel'
 import { CloudSyncPanel } from '../components/CloudSyncPanel'
 import { ImageUploadPreview } from '../components/ImageUploadPreview'
+import { LanguageToggle } from '../components/LanguageToggle'
 import { ProfileAvatar } from '../components/ProfileAvatar'
 import { WorkoutProgramManager } from '../components/WorkoutProgramManager'
 import { useAuth } from '../context/AuthContext'
 import { buildProfileIdentity } from '../hooks/useProfileIdentity'
+import { useT, type MessageKey, type TranslateFn } from '../i18n'
 import type { WorkoutDay } from '../data/workoutPlan'
 import * as settingsService from '../services/settingsService'
 import { fileToBase64, resizeImageFile } from '../utils/imageUtils'
@@ -47,6 +50,7 @@ type SettingsTab =
   | 'equipment'
   | 'workout-display'
   | 'coach'
+  | 'language'
   | 'cloud'
   | 'backup'
 
@@ -59,32 +63,56 @@ interface SettingsProps {
 const tabs: Array<{
   id: SettingsTab
   icon: typeof UserRound
-  label: string
+  labelKey: MessageKey
 }> = [
-  { id: 'profile', icon: UserRound, label: 'Profile' },
-  { id: 'program', icon: SlidersHorizontal, label: 'Program' },
-  { id: 'goals', icon: Goal, label: 'Goals' },
-  { id: 'equipment', icon: Wrench, label: 'Equipment' },
-  { id: 'workout-display', icon: MonitorPlay, label: 'Workout Display' },
-  { id: 'coach', icon: Brain, label: 'Coach' },
-  { id: 'cloud', icon: Cloud, label: 'Cloud Sync' },
-  { id: 'backup', icon: Database, label: 'Backup' },
+  { id: 'profile', icon: UserRound, labelKey: 'settings.tab.profile' },
+  { id: 'program', icon: SlidersHorizontal, labelKey: 'settings.tab.program' },
+  { id: 'goals', icon: Goal, labelKey: 'settings.tab.goals' },
+  { id: 'equipment', icon: Wrench, labelKey: 'settings.tab.equipment' },
+  {
+    id: 'workout-display',
+    icon: MonitorPlay,
+    labelKey: 'settings.tab.workoutDisplay',
+  },
+  { id: 'coach', icon: Brain, labelKey: 'settings.tab.coach' },
+  { id: 'language', icon: Languages, labelKey: 'settings.tab.language' },
+  { id: 'cloud', icon: Cloud, labelKey: 'settings.tab.cloud' },
+  { id: 'backup', icon: Database, labelKey: 'settings.tab.backup' },
 ]
 
+// The stored values, not the labels: these are written into the profile and
+// synced, so they stay in English and only their display text is translated.
 const coachStyleOptions = ['Direct', 'Balanced', 'Detailed'] as const
 const warningSensitivityOptions = ['Low', 'Normal', 'High'] as const
 
 const goalFields = [
-  ['primaryGoal', 'Primary goal'],
-  ['secondaryGoal', 'Secondary goal'],
-  ['bodyGoal', 'Body goal'],
-  ['weakPoint', 'Weak point'],
-  ['cardioPreference', 'Cardio preference'],
-  ['injuryLimitation', 'Injury limitation'],
-] as const
+  ['primaryGoal', 'settings.goal.primaryGoal'],
+  ['secondaryGoal', 'settings.goal.secondaryGoal'],
+  ['bodyGoal', 'settings.goal.bodyGoal'],
+  ['weakPoint', 'settings.goal.weakPoint'],
+  ['cardioPreference', 'settings.goal.cardioPreference'],
+  ['injuryLimitation', 'settings.goal.injuryLimitation'],
+] as const satisfies ReadonlyArray<readonly [string, MessageKey]>
+
+/**
+ * Equipment is stored by its English name, so the checkbox list maps each
+ * stored value to a label rather than translating the value itself.
+ */
+const equipmentLabelKeys: Record<string, MessageKey> = {
+  'Pull-up bar': 'settings.equipment.pullUpBar',
+  'Dips station': 'settings.equipment.dipsStation',
+  Dumbbells: 'settings.equipment.dumbbells',
+  Barbell: 'settings.equipment.barbell',
+  Bench: 'settings.equipment.bench',
+  Treadmill: 'settings.equipment.treadmill',
+  'Skipping rope': 'settings.equipment.skippingRope',
+  'Backpack with books': 'settings.equipment.backpack',
+  'VR Quest 2': 'settings.equipment.vrQuest',
+}
 
 export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
   const { isSupabaseConfigured, signOut, user } = useAuth()
+  const t = useT()
   const [activeTab, setActiveTab] = useState<SettingsTab>(() =>
     getInitialSettingsTab(),
   )
@@ -155,7 +183,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
       setNotice(message)
     } catch {
       setSettings(getUserProfileSettings())
-      setNotice('Saved locally. Cloud sync failed.')
+      setNotice(t('settings.notice.savedLocally'))
     }
   }
 
@@ -173,7 +201,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
   }
 
   async function saveProfile() {
-    await saveSettings('Profile saved.')
+    await saveSettings(t('settings.notice.profileSaved'))
     setProfileDraft(null)
     setEditingProfile(false)
   }
@@ -193,7 +221,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
       const dataUrl: string = await fileToBase64(square)
       updateProfile('avatarDataUrl', dataUrl)
     } catch {
-      setNotice('Could not read that photo. Try another one.')
+      setNotice(t('settings.notice.photoFailed'))
     }
   }
 
@@ -202,7 +230,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
     const result = await signOut()
     setSigningOut(false)
     if (result && result.error) {
-      setNotice('Could not sign out. Try again.')
+      setNotice(t('settings.notice.signOutFailed'))
     }
   }
 
@@ -211,12 +239,12 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
     setSettings(next)
     setProfileDraft(null)
     setEditingProfile(false)
-    setNotice('Profile settings reset.')
+    setNotice(t('settings.notice.profileReset'))
   }
 
   function handleExport() {
     exportAllData()
-    setNotice('Backup exported.')
+    setNotice(t('settings.notice.exported'))
   }
 
   function handleImportFile(file: File | null) {
@@ -235,21 +263,19 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         importInputRef.current.value = ''
       }
     }
-    reader.onerror = () => setNotice('Could not read that file.')
+    reader.onerror = () => setNotice(t('settings.notice.fileFailed'))
     reader.readAsText(file)
   }
 
   function handleClearAllData() {
-    const confirmed = window.confirm(
-      'This will delete all workout, body, nutrition, and settings data from this browser.',
-    )
+    const confirmed = window.confirm(t('settings.clearConfirm'))
     if (!confirmed) {
       return
     }
 
     clearAllData()
     setSettings(getUserProfileSettings())
-    setNotice('All local app data cleared.')
+    setNotice(t('settings.notice.cleared'))
     // The installed program went with it, so hand control back to App: it
     // re-checks for a program and sends the user to the setup screen.
     onDataCleared?.()
@@ -259,12 +285,9 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
     <section className="settings-page">
       <header className="progress-hero settings-hero">
         <div>
-          <p className="eyebrow">Settings</p>
-          <h1>Settings + data</h1>
-          <p>
-            Edit your training profile, goals, equipment, and local backup
-            files.
-          </p>
+          <p className="eyebrow">{t('settings.eyebrow')}</p>
+          <h1>{t('settings.title')}</h1>
+          <p>{t('settings.subtitle')}</p>
         </div>
       </header>
 
@@ -272,7 +295,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <div
           className="settings-tabs"
           role="tablist"
-          aria-label="Settings sections"
+          aria-label={t('settings.sectionsAria')}
         >
           {tabs.map((tab) => {
             const Icon = tab.icon
@@ -286,7 +309,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 type="button"
               >
                 <Icon size={17} strokeWidth={2.4} aria-hidden="true" />
-                {tab.label}
+                {t(tab.labelKey)}
               </button>
             )
           })}
@@ -305,8 +328,8 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Profile Settings</p>
-              <h2>Personal fitness profile</h2>
+              <p className="eyebrow">{t('settings.profileEyebrow')}</p>
+              <h2>{t('settings.profileTitle')}</h2>
             </div>
             <UserRound size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
@@ -315,7 +338,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
             <>
               <div className="settings-avatar-upload">
                 <ImageUploadPreview
-                  label="Profile photo"
+                  label={t('settings.photoLabel')}
                   onRemove={() => updateProfile('avatarDataUrl', '')}
                   onSelect={handleAvatarSelect}
                   previewSrc={settings.profile.avatarDataUrl || null}
@@ -324,7 +347,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
 
               <div className="settings-form-grid">
                 <label className="settings-field">
-                  Name
+                  {t('settings.name')}
                   <input
                     className="settings-input"
                     onChange={(event) => updateProfile('name', event.target.value)}
@@ -333,7 +356,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Height cm
+                  {t('settings.heightCm')}
                   <input
                     className="settings-input"
                     min={0}
@@ -345,7 +368,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Current weight kg
+                  {t('settings.currentWeightKg')}
                   <input
                     className="settings-input"
                     min={0}
@@ -358,7 +381,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Goal weight min kg
+                  {t('settings.goalWeightMinKg')}
                   <input
                     className="settings-input"
                     min={0}
@@ -371,7 +394,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Goal weight max kg
+                  {t('settings.goalWeightMaxKg')}
                   <input
                     className="settings-input"
                     min={0}
@@ -384,7 +407,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field settings-field--wide">
-                  Training goal
+                  {t('settings.trainingGoal')}
                   <textarea
                     className="settings-input settings-textarea"
                     onChange={(event) =>
@@ -395,7 +418,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field settings-field--wide">
-                  Main focus
+                  {t('settings.mainFocus')}
                   <input
                     className="settings-input"
                     onChange={(event) =>
@@ -406,7 +429,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Training time per day
+                  {t('settings.trainingTimePerDay')}
                   <input
                     className="settings-input"
                     onChange={(event) =>
@@ -417,7 +440,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   />
                 </label>
                 <label className="settings-field">
-                  Experience level
+                  {t('settings.experienceLevel')}
                   <input
                     className="settings-input"
                     onChange={(event) =>
@@ -436,7 +459,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   type="button"
                 >
                   <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-                  Save Profile
+                  {t('settings.saveProfile')}
                 </button>
                 <button
                   className="workout-secondary-button"
@@ -444,7 +467,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   type="button"
                 >
                   <X size={19} strokeWidth={2.4} aria-hidden="true" />
-                  Cancel
+                  {t('action.cancel')}
                 </button>
                 <button
                   className="workout-secondary-button"
@@ -452,7 +475,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   type="button"
                 >
                   <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-                  Reset Profile
+                  {t('settings.resetProfile')}
                 </button>
               </div>
             </>
@@ -465,12 +488,12 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   size={62}
                 />
                 <div className="settings-identity__text">
-                  <strong>{identity.name || 'Your profile'}</strong>
+                  <strong>{identity.name || t('settings.yourProfile')}</strong>
                   <span>
                     {settings.profile.experienceLevel ||
                       (identity.isFallbackName
-                        ? 'Using your email until you add a name'
-                        : 'Tap Edit to add your details')}
+                        ? t('settings.usingEmail')
+                        : t('settings.tapEdit'))}
                   </span>
                 </div>
                 <button
@@ -479,12 +502,12 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   type="button"
                 >
                   <Pencil size={16} strokeWidth={2.4} aria-hidden="true" />
-                  Edit
+                  {t('action.edit')}
                 </button>
               </div>
 
               <dl className="settings-info-grid">
-                {buildProfileFacts(settings.profile).map((fact) => (
+                {buildProfileFacts(settings.profile, t).map((fact) => (
                   <div
                     className={
                       fact.wide
@@ -507,16 +530,16 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Goal Settings</p>
-              <h2>Training direction</h2>
+              <p className="eyebrow">{t('settings.goalsEyebrow')}</p>
+              <h2>{t('settings.goalsTitle')}</h2>
             </div>
             <Goal size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
 
           <div className="settings-form-grid">
-            {goalFields.map(([field, label]) => (
+            {goalFields.map(([field, labelKey]) => (
               <label className="settings-field" key={field}>
-                {label}
+                {t(labelKey)}
                 <input
                   className="settings-input"
                   onChange={(event) => updateGoals(field, event.target.value)}
@@ -530,11 +553,11 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
           <div className="settings-actions">
             <button
               className="workout-primary-button"
-              onClick={() => saveSettings('Goals saved.')}
+              onClick={() => saveSettings(t('settings.notice.goalsSaved'))}
               type="button"
             >
               <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Goals
+              {t('settings.saveGoals')}
             </button>
           </div>
         </article>
@@ -544,8 +567,8 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Equipment Settings</p>
-              <h2>Available tools</h2>
+              <p className="eyebrow">{t('settings.equipmentEyebrow')}</p>
+              <h2>{t('settings.equipmentTitle')}</h2>
             </div>
             <Wrench size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
@@ -558,7 +581,9 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                   onChange={() => toggleEquipment(item)}
                   type="checkbox"
                 />
-                <span>{item}</span>
+                <span>
+                  {equipmentLabelKeys[item] ? t(equipmentLabelKeys[item]) : item}
+                </span>
               </label>
             ))}
           </div>
@@ -566,11 +591,11 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
           <div className="settings-actions">
             <button
               className="workout-primary-button"
-              onClick={() => saveSettings('Equipment saved.')}
+              onClick={() => saveSettings(t('settings.notice.equipmentSaved'))}
               type="button"
             >
               <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Equipment
+              {t('settings.saveEquipment')}
             </button>
           </div>
         </article>
@@ -580,16 +605,13 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Workout Display Settings</p>
-              <h2>Images + videos during workout</h2>
+              <p className="eyebrow">{t('settings.displayEyebrow')}</p>
+              <h2>{t('settings.displayTitle')}</h2>
             </div>
             <MonitorPlay size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
 
-          <p className="settings-help-copy">
-            Control how exercise images and form videos appear in Today's
-            Workout live mode. Videos always play inside the app.
-          </p>
+          <p className="settings-help-copy">{t('settings.displayHelp')}</p>
 
           <div className="settings-check-grid settings-check-grid--stacked">
             <label className="settings-check">
@@ -600,7 +622,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 }
                 type="checkbox"
               />
-              <span>Show exercise images during workout</span>
+              <span>{t('settings.display.showImages')}</span>
             </label>
             <label className="settings-check">
               <input
@@ -613,7 +635,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 }
                 type="checkbox"
               />
-              <span>Show videos collapsed by default (tap Watch Video to open)</span>
+              <span>{t('settings.display.videosCollapsed')}</span>
             </label>
             <label className="settings-check">
               <input
@@ -623,7 +645,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 }
                 type="checkbox"
               />
-              <span>Auto-open video when an exercise starts</span>
+              <span>{t('settings.display.autoOpenVideo')}</span>
             </label>
             <label className="settings-check">
               <input
@@ -633,18 +655,18 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 }
                 type="checkbox"
               />
-              <span>Prefer compact workout view (smaller media, less scrolling)</span>
+              <span>{t('settings.display.compactView')}</span>
             </label>
           </div>
 
           <div className="settings-actions">
             <button
               className="workout-primary-button"
-              onClick={() => saveSettings('Workout display settings saved.')}
+              onClick={() => saveSettings(t('settings.notice.displaySaved'))}
               type="button"
             >
               <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Display Settings
+              {t('settings.saveDisplay')}
             </button>
           </div>
         </article>
@@ -654,15 +676,15 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Coach Settings</p>
-              <h2>Daily advice preferences</h2>
+              <p className="eyebrow">{t('settings.coachEyebrow')}</p>
+              <h2>{t('settings.coachTitle')}</h2>
             </div>
             <Brain size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
 
           <div className="settings-form-grid">
             <label className="settings-field">
-              Coaching style
+              {t('settings.coachingStyle')}
               <select
                 className="settings-input"
                 onChange={(event) =>
@@ -672,13 +694,13 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               >
                 {coachStyleOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {t(`settings.coachStyle.${option}`)}
                   </option>
                 ))}
               </select>
             </label>
             <label className="settings-field">
-              Main priority
+              {t('settings.mainPriority')}
               {/* Free text, not a preset list: a fixed menu of goals only ever
                   fits the person it was written for. */}
               <input
@@ -686,13 +708,13 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
                 onChange={(event) =>
                   updateCoach('mainPriority', event.target.value)
                 }
-                placeholder="What are you training for?"
+                placeholder={t('settings.mainPriorityPlaceholder')}
                 type="text"
                 value={settings.coach.mainPriority}
               />
             </label>
             <label className="settings-field">
-              Warning sensitivity
+              {t('settings.warningSensitivity')}
               <select
                 className="settings-input"
                 onChange={(event) =>
@@ -702,7 +724,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               >
                 {warningSensitivityOptions.map((option) => (
                   <option key={option} value={option}>
-                    {option}
+                    {t(`settings.sensitivity.${option}`)}
                   </option>
                 ))}
               </select>
@@ -712,11 +734,11 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
           <div className="settings-actions">
             <button
               className="workout-primary-button"
-              onClick={() => saveSettings('Coach settings saved.')}
+              onClick={() => saveSettings(t('settings.notice.coachSaved'))}
               type="button"
             >
               <Save size={19} strokeWidth={2.4} aria-hidden="true" />
-              Save Coach Settings
+              {t('settings.saveCoach')}
             </button>
           </div>
         </article>
@@ -732,6 +754,24 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         />
       ) : null}
 
+      {activeTab === 'language' ? (
+        <article className="dashboard-card settings-panel">
+          <div className="card-heading">
+            <div>
+              <p className="eyebrow">{t('settings.languageEyebrow')}</p>
+              <h2>{t('settings.languageTitle')}</h2>
+            </div>
+            <Languages size={22} strokeWidth={2.4} aria-hidden="true" />
+          </div>
+
+          <p className="settings-help-copy">{t('language.description')}</p>
+
+          {/* No Save button: the choice applies the moment it is made, the
+              way it does in the top bar. */}
+          <LanguageToggle variant="segmented" />
+        </article>
+      ) : null}
+
       {activeTab === 'cloud' ? (
         <>
           <CloudSyncPanel />
@@ -743,8 +783,8 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
         <article className="dashboard-card settings-panel">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Backup & Data</p>
-              <h2>Export, import, or clear local data</h2>
+              <p className="eyebrow">{t('settings.backupEyebrow')}</p>
+              <h2>{t('settings.backupTitle')}</h2>
             </div>
             <Database size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
@@ -756,7 +796,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               type="button"
             >
               <Download size={19} strokeWidth={2.4} aria-hidden="true" />
-              Export All Data
+              {t('settings.exportAll')}
             </button>
             <button
               className="workout-secondary-button"
@@ -764,7 +804,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               type="button"
             >
               <Upload size={19} strokeWidth={2.4} aria-hidden="true" />
-              Import Data
+              {t('settings.import')}
             </button>
             <input
               accept="application/json"
@@ -779,7 +819,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               type="button"
             >
               <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-              Clear All Data
+              {t('settings.clearAll')}
             </button>
           </div>
         </article>
@@ -797,7 +837,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               type="button"
             >
               <LogOut size={17} strokeWidth={2.4} aria-hidden="true" />
-              {signingOut ? 'Signing out...' : 'Logout'}
+              {signingOut ? t('settings.signingOut') : t('settings.logout')}
             </button>
           ) : (
             <button
@@ -806,7 +846,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
               type="button"
             >
               <LogIn size={17} strokeWidth={2.4} aria-hidden="true" />
-              Login
+              {t('settings.login')}
             </button>
           )}
         </div>
@@ -818,14 +858,14 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
           onClick={() => onNavigate('privacy')}
           type="button"
         >
-          Privacy Notice
+          {t('settings.privacyLink')}
         </button>
         <button
           className="settings-footer-link"
           onClick={() => onNavigate('disclaimer')}
           type="button"
         >
-          Disclaimer
+          {t('settings.disclaimerLink')}
         </button>
         {SHOW_DEV_PAGES ? (
           <button
@@ -833,7 +873,7 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
             onClick={() => onNavigate('pre-deploy-checklist')}
             type="button"
           >
-            Pre-Deploy Checklist
+            {t('settings.checklistLink')}
           </button>
         ) : null}
       </footer>
@@ -849,28 +889,48 @@ interface ProfileFact {
 }
 
 /** A measurement with its unit, or 'Not set' when the user has not entered it. */
-function measurement(value: number | null, unit: string): string {
-  return value ? `${value} ${unit}` : 'Not set'
+function measurement(
+  value: number | null,
+  unit: string,
+  t: TranslateFn,
+): string {
+  return value
+    ? t('settings.measurementWithUnit', { value, unit })
+    : t('state.notSet')
 }
 
 /** The read-only view of the profile: every stored field, nothing editable. */
-function buildProfileFacts(profile: any): ProfileFact[] {
+function buildProfileFacts(profile: any, t: TranslateFn): ProfileFact[] {
   const { goalWeightMinKg: min, goalWeightMaxKg: max } = profile
+  const kg = t('unit.kg')
+  const notSet = t('state.notSet')
   const goalWeight =
-    min && max ? `${min}-${max} kg` : measurement(min || max, 'kg')
+    min && max
+      ? t('settings.fact.goalWeightRange', { min, max })
+      : measurement(min || max, kg, t)
 
   return [
-    { label: 'Height', value: measurement(profile.heightCm, 'cm') },
     {
-      label: 'Current weight',
-      value: measurement(profile.currentWeightKg, 'kg'),
+      label: t('settings.fact.height'),
+      value: measurement(profile.heightCm, t('unit.cm'), t),
     },
-    { label: 'Goal weight', value: goalWeight },
-    { label: 'Training time', value: profile.trainingTimePerDay || 'Not set' },
-    { label: 'Main focus', value: profile.mainFocus || 'Not set', wide: true },
     {
-      label: 'Training goal',
-      value: profile.trainingGoal || 'Not set',
+      label: t('settings.fact.currentWeight'),
+      value: measurement(profile.currentWeightKg, kg, t),
+    },
+    { label: t('settings.fact.goalWeight'), value: goalWeight },
+    {
+      label: t('settings.fact.trainingTime'),
+      value: profile.trainingTimePerDay || notSet,
+    },
+    {
+      label: t('settings.fact.mainFocus'),
+      value: profile.mainFocus || notSet,
+      wide: true,
+    },
+    {
+      label: t('settings.fact.trainingGoal'),
+      value: profile.trainingGoal || notSet,
       wide: true,
     },
   ]

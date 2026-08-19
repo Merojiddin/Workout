@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import {
   getCustomExerciseLibrary as localGetLibrary,
   getCustomWorkoutPlan as localGetPlan,
@@ -114,17 +115,17 @@ async function deleteCloudSingle(table, user, label) {
 
 function requireOnlineCloudUser(user) {
   if (!supabase) {
-    throw new Error('Supabase is not configured. Running in local mode.')
+    throw new Error(t('cloud.notConfigured'))
   }
   if (!user || typeof user.id !== 'string' || user.id.trim() === '') {
-    throw new Error('Sign in with a cloud account to change workout programs.')
+    throw new Error(t('cloud.signInToChange'))
   }
   if (!isCloudMode(user)) {
-    throw new Error('Cloud mode is unavailable for this account.')
+    throw new Error(t('cloud.modeUnavailable'))
   }
   if (!isBrowserOnline()) {
     throw new Error(
-      'Connect to the internet before changing a cloud workout program.',
+      t('cloud.offline'),
     )
   }
 }
@@ -146,26 +147,26 @@ export async function fetchCloudUserSettingsSnapshot(user) {
     'user_settings',
     user,
     'settings',
-    'cloud user settings',
+    t('sync.entity.cloudSettings'),
   )
 }
 
 export async function writeCloudUserSettings(user, settings) {
   requireOnlineCloudUser(user)
   if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
-    throw new Error('Cloud user settings must be an object.')
+    throw new Error(t('cloud.settingsMustBeObject'))
   }
   return writeCloudSingle(
     'user_settings',
     user,
     'settings',
     settings,
-    'cloud user settings',
+    t('sync.entity.cloudSettings'),
   )
 }
 
 export async function deleteCloudUserSettings(user) {
-  return deleteCloudSingle('user_settings', user, 'cloud user settings')
+  return deleteCloudSingle('user_settings', user, t('sync.entity.cloudSettings'))
 }
 
 export async function fetchCloudWorkoutPlanSnapshot(user) {
@@ -173,21 +174,21 @@ export async function fetchCloudWorkoutPlanSnapshot(user) {
     'custom_workout_plans',
     user,
     'plan',
-    'cloud workout plan',
+    t('sync.entity.cloudPlan'),
   )
 }
 
 export async function writeCloudWorkoutPlan(user, plan) {
   requireOnlineCloudUser(user)
   if (!Array.isArray(plan)) {
-    throw new Error('Cloud workout plan must be an array.')
+    throw new Error(t('cloud.planMustBeArray'))
   }
   return writeCloudSingle(
     'custom_workout_plans',
     user,
     'plan',
     plan,
-    'cloud workout plan',
+    t('sync.entity.cloudPlan'),
   )
 }
 
@@ -195,7 +196,7 @@ export async function deleteCloudWorkoutPlan(user) {
   return deleteCloudSingle(
     'custom_workout_plans',
     user,
-    'cloud workout plan',
+    t('sync.entity.cloudPlan'),
   )
 }
 

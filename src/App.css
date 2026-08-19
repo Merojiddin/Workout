@@ -8435,3 +8435,235 @@ body {
   line-height: 1.5;
   margin: 4px 0 0;
 }
+
+/* ------------------------------------------------------------------ Language
+   One button per shipped language rather than an on/off switch, so a third
+   language slots in without a redesign. The compact variant rides in the top
+   bar; the segmented one is the full-width row used in Settings and on the
+   first-run screens, where nothing else is on screen to explain the app yet. */
+.language-toggle {
+  align-items: center;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.language-toggle__icon {
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+
+.language-toggle__option {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 900;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+  white-space: nowrap;
+}
+
+.language-toggle__option[aria-pressed='true'] {
+  background: var(--green-soft);
+  border-color: rgba(27, 210, 220, 0.45);
+  color: var(--green);
+}
+
+.language-toggle__option:hover,
+.language-toggle__option:focus-visible {
+  color: var(--text);
+  outline: none;
+}
+
+.language-toggle__option[aria-pressed='true']:hover,
+.language-toggle__option[aria-pressed='true']:focus-visible {
+  color: var(--green);
+}
+
+.language-toggle--compact {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 3px 6px 3px 9px;
+}
+
+.language-toggle--compact .language-toggle__option {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  min-height: 26px;
+  padding: 0 8px;
+}
+
+.language-toggle--segmented {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  flex-wrap: wrap;
+  padding: 4px;
+}
+
+.language-toggle--segmented .language-toggle__option {
+  border-radius: var(--r-sm);
+  flex: 1 1 auto;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 14px;
+}
+
+/* The first-run screens have no nav and no Settings to reach, so the picker
+   sits at the top of the card itself. Both hosts lay out as a grid, so this
+   is justify-self (the inline axis) rather than align-self. */
+.program-setup__language {
+  justify-self: center;
+  margin-bottom: 4px;
+}
+
+/* Same reasoning as the setup screens: the auth card is the whole page. */
+.auth-language {
+  justify-self: center;
+  margin: 2px 0 10px;
+}
+
+/* ---------------------------------------------------------------------------
+   Exercise animations (ExerciseDB GIFs) and the animation/video switch.
+   Source and refresh instructions: docs/exercise-gifs.md
+   --------------------------------------------------------------------------- */
+
+/* The GIFs are 180x180. A 16/9 frame would letterbox them into a thin strip,
+   so the animation gets a squarer frame and is capped well under 2x upscale. */
+.exercise-media__figure--gif {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.exercise-media__gif {
+  aspect-ratio: 1 / 1;
+  display: block;
+  height: auto;
+  image-rendering: auto;
+  max-width: 320px;
+  object-fit: contain;
+  width: 100%;
+}
+
+.exercise-media__figure--gif .exercise-media__caption {
+  align-self: stretch;
+}
+
+.exercise-media--compact .exercise-media__gif {
+  max-width: 210px;
+}
+
+.exercise-media__switch {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  display: grid;
+  gap: 4px;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  padding: 4px;
+}
+
+.exercise-media__switch-option {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--r-md) - 5px);
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 600;
+  gap: 8px;
+  justify-content: center;
+  padding: 9px 12px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.exercise-media__switch-option:hover {
+  color: var(--ink);
+}
+
+.exercise-media__switch-option--active {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.exercise-media__switch-option:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 2px;
+}
+
+/* Square animations would be cropped top and bottom by the 16/9 card thumb. */
+.exercise-card__thumb img[src$='.gif'] {
+  object-fit: contain;
+}
+
+/* ---------------------------------------------------------------------------
+   Muscles-worked body diagram
+   --------------------------------------------------------------------------- */
+
+.muscle-map {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px;
+}
+
+.muscle-map__views {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+  justify-items: center;
+}
+
+.muscle-map__view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.muscle-map__view figcaption {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.muscle-map__view svg {
+  height: auto;
+  max-width: 100%;
+}
+
+.muscle-map__legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.muscle-map__legend li {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  font-size: 13px;
+  gap: 7px;
+}
+
+.muscle-map__swatch {
+  border-radius: 4px;
+  display: inline-block;
+  height: 12px;
+  width: 12px;
+}

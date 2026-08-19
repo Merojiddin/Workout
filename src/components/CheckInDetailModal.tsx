@@ -5,12 +5,13 @@ import {
   formatCheckInDate,
   getArmAverage,
 } from '../utils/bodyCheckInUtils'
+import { useT, type MessageKey, type TranslateFn } from '../i18n'
 import { CheckInPhotoTile } from './CheckInPhotoTile'
 
-const photoSlots: { slot: PhotoSlot; label: string }[] = [
-  { slot: 'front', label: 'Front' },
-  { slot: 'side', label: 'Side' },
-  { slot: 'back', label: 'Back' },
+const photoSlots: { slot: PhotoSlot; labelKey: MessageKey }[] = [
+  { slot: 'front', labelKey: 'checkin.photo.front' },
+  { slot: 'side', labelKey: 'checkin.photo.side' },
+  { slot: 'back', labelKey: 'checkin.photo.back' },
 ]
 
 interface CheckInDetailModalProps {
@@ -19,20 +20,26 @@ interface CheckInDetailModalProps {
 }
 
 export function CheckInDetailModal({ checkIn, onClose }: CheckInDetailModalProps) {
+  const t = useT()
+  const kg = t('unit.kg')
+  const cm = t('unit.cm')
   const metrics = [
-    { label: 'Body weight', value: formatMetric(checkIn.bodyWeightKg, 'kg') },
-    { label: 'Waist', value: formatMetric(checkIn.waistCm, 'cm') },
-    { label: 'Belly', value: formatMetric(checkIn.bellyCm, 'cm') },
-    { label: 'Chest', value: formatMetric(checkIn.chestCm, 'cm') },
-    { label: 'Shoulders', value: formatMetric(checkIn.shouldersCm, 'cm') },
-    { label: 'Left arm', value: formatMetric(checkIn.leftArmCm, 'cm') },
-    { label: 'Right arm', value: formatMetric(checkIn.rightArmCm, 'cm') },
-    { label: 'Arms (avg)', value: formatMetric(getArmAverage(checkIn), 'cm') },
-    { label: 'Hips', value: formatMetric(checkIn.hipsCm, 'cm') },
-    { label: 'Posture', value: formatRating(checkIn.postureRating) },
-    { label: 'Abs visibility', value: formatRating(checkIn.absVisibilityRating) },
-    { label: 'Energy', value: formatRating(checkIn.energyLevel) },
-    { label: 'Sleep', value: formatRating(checkIn.sleepQuality) },
+    { label: t('measure.bodyWeightKg'), value: formatMetric(checkIn.bodyWeightKg, kg) },
+    { label: t('measure.waistCm'), value: formatMetric(checkIn.waistCm, cm) },
+    { label: t('measure.bellyCm'), value: formatMetric(checkIn.bellyCm, cm) },
+    { label: t('measure.chestCm'), value: formatMetric(checkIn.chestCm, cm) },
+    { label: t('measure.shouldersCm'), value: formatMetric(checkIn.shouldersCm, cm) },
+    { label: t('measure.leftArmCm'), value: formatMetric(checkIn.leftArmCm, cm) },
+    { label: t('measure.rightArmCm'), value: formatMetric(checkIn.rightArmCm, cm) },
+    { label: t('measure.armsAverage'), value: formatMetric(getArmAverage(checkIn), cm) },
+    { label: t('measure.hipsCm'), value: formatMetric(checkIn.hipsCm, cm) },
+    { label: t('measure.posture'), value: formatRating(checkIn.postureRating, t) },
+    {
+      label: t('measure.absVisibilityRating'),
+      value: formatRating(checkIn.absVisibilityRating, t),
+    },
+    { label: t('measure.energy'), value: formatRating(checkIn.energyLevel, t) },
+    { label: t('measure.sleep'), value: formatRating(checkIn.sleepQuality, t) },
   ]
 
   const hasPhotos = checkInHasPhotos(checkIn)
@@ -47,11 +54,11 @@ export function CheckInDetailModal({ checkIn, onClose }: CheckInDetailModalProps
       >
         <header className="modal-header">
           <div>
-            <p className="eyebrow">Check-in Details</p>
+            <p className="eyebrow">{t('checkin.detailEyebrow')}</p>
             <h2 id="checkin-detail-title">{formatCheckInDate(checkIn.date)}</h2>
           </div>
           <button
-            aria-label="Close check-in details"
+            aria-label={t('checkin.detailClose')}
             className="modal-close-button"
             onClick={onClose}
             type="button"
@@ -71,7 +78,7 @@ export function CheckInDetailModal({ checkIn, onClose }: CheckInDetailModalProps
 
         {checkIn.notes ? (
           <div className="checkin-detail-notes">
-            <p className="eyebrow">Notes</p>
+            <p className="eyebrow">{t('checkinForm.notes')}</p>
             <p>{checkIn.notes}</p>
           </div>
         ) : null}
@@ -83,14 +90,16 @@ export function CheckInDetailModal({ checkIn, onClose }: CheckInDetailModalProps
                 allowFullSize
                 checkIn={checkIn}
                 key={photo.slot}
-                label={photo.label}
+                label={t(photo.labelKey)}
                 slot={photo.slot}
                 variant="detail"
               />
             ))}
           </div>
         ) : (
-          <p className="checkin-detail-empty">No photos saved for this check-in.</p>
+          <p className="checkin-detail-empty">
+            {t('checkin.detailNoPhotos')}
+          </p>
         )}
       </section>
     </div>
@@ -101,6 +110,6 @@ function formatMetric(value: number | null, unit: string): string {
   return value === null ? '—' : `${value} ${unit}`
 }
 
-function formatRating(value: number | null): string {
-  return value === null ? '—' : `${value}/10`
+function formatRating(value: number | null, t: TranslateFn): string {
+  return value === null ? '—' : t('checkin.rating', { value })
 }

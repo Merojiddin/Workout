@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import {
   CLOUD_HEALTH_LAST_CHECK_KEY,
@@ -21,7 +22,7 @@ export async function checkSupabaseConnection() {
     return {
       configured: false,
       reachable: false,
-      message: 'Supabase is not configured. Running in local mode.',
+      message: t('cloud.notConfigured'),
     }
   }
 
@@ -40,7 +41,7 @@ export async function checkSupabaseConnection() {
       }
     }
 
-    return { configured: true, reachable: true, message: 'Database reachable.' }
+    return { configured: true, reachable: true, message: t('health.dbReachable') }
   } catch (error) {
     return {
       configured: true,
@@ -53,7 +54,7 @@ export async function checkSupabaseConnection() {
 /** Whether a user session exists right now. */
 export async function checkAuthStatus() {
   if (!isSupabaseConfigured || !supabase) {
-    return { loggedIn: false, email: null, message: 'Local mode (no auth).' }
+    return { loggedIn: false, email: null, message: t('health.localNoAuth') }
   }
 
   try {
@@ -66,7 +67,7 @@ export async function checkAuthStatus() {
     return {
       loggedIn: Boolean(data?.session),
       email,
-      message: data?.session ? `Signed in as ${email ?? 'user'}.` : 'Not signed in.',
+      message: data?.session ? `Signed in as ${email ?? 'user'}.` : t('health.notSignedIn'),
     }
   } catch (error) {
     return { loggedIn: false, email: null, message: describeError(error) }
@@ -79,7 +80,7 @@ export async function checkAuthStatus() {
  */
 export async function checkStorageAccess() {
   if (!isSupabaseConfigured || !supabase) {
-    return { available: false, skipped: true, message: 'Local mode (no storage).' }
+    return { available: false, skipped: true, message: t('health.localNoStorage') }
   }
 
   try {
@@ -89,7 +90,7 @@ export async function checkStorageAccess() {
       return {
         available: false,
         skipped: true,
-        message: 'Sign in to test storage access.',
+        message: t('health.signInStorage'),
       }
     }
 
@@ -105,7 +106,7 @@ export async function checkStorageAccess() {
       }
     }
 
-    return { available: true, skipped: false, message: 'Storage bucket reachable.' }
+    return { available: true, skipped: false, message: t('health.storageReachable') }
   } catch (error) {
     return { available: false, skipped: false, message: describeError(error) }
   }
@@ -148,5 +149,5 @@ function describeError(error) {
   if (error && typeof error === 'object' && 'message' in error) {
     return String(error.message)
   }
-  return 'unknown error'
+  return t('sync.unknownError')
 }

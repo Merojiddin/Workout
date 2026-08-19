@@ -1,6 +1,7 @@
 import { Library, RotateCcw } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { ExerciseCard } from '../components/ExerciseCard'
+import { getExerciseCopy } from '../i18n/exercises'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
 import { ExerciseFilters, type MediaFilter } from '../components/ExerciseFilters'
 import {
@@ -9,6 +10,7 @@ import {
   type ExerciseCategory,
   type LibraryExercise,
 } from '../data/exerciseLibrary'
+import { useLanguage } from '../i18n'
 import { getExerciseVideo } from '../utils/mediaUtils'
 import {
   getCustomExerciseLibraryOverrides,
@@ -21,6 +23,7 @@ type EquipmentFilter = EquipmentTag | 'All'
 type DifficultyFilter = Difficulty | 'All'
 
 export function ExerciseLibrary() {
+  const { language, t } = useLanguage()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<CategoryFilter>('All')
   const [selectedEquipment, setSelectedEquipment] =
@@ -86,6 +89,10 @@ export function ExerciseLibrary() {
           typeof exercise.imageUrl === 'string' &&
           exercise.imageUrl.trim() !== '')
 
+      // Searched against both languages: someone reading the app in
+      // Vietnamese may still know a movement by its English name, and the
+      // reverse is true for anyone who learned it here.
+      const translated = getExerciseCopy(exercise, language)
       const matchesSearch =
         query === '' ||
         [
@@ -95,6 +102,10 @@ export function ExerciseLibrary() {
           ...exercise.primaryMuscles,
           ...exercise.secondaryMuscles,
           ...exercise.equipment,
+          translated.name,
+          translated.formCue,
+          ...translated.primaryMuscles,
+          ...translated.secondaryMuscles,
         ]
           .join(' ')
           .toLowerCase()
@@ -109,6 +120,7 @@ export function ExerciseLibrary() {
       )
     })
   }, [
+    language,
     library,
     searchTerm,
     selectedCategory,
@@ -129,17 +141,14 @@ export function ExerciseLibrary() {
     <section className="exercise-library-page">
       <header className="progress-hero">
         <div>
-          <p className="eyebrow">Exercise Library</p>
-          <h1>Exercise Library</h1>
-          <p>
-            Learn form, muscles worked, mistakes, and progressions for your
-            workout plan.
-          </p>
+          <p className="eyebrow">{t('library.eyebrow')}</p>
+          <h1>{t('library.title')}</h1>
+          <p>{t('library.subtitle')}</p>
         </div>
         <div className="hero-target">
           <Library size={22} strokeWidth={2.4} aria-hidden="true" />
-          <span>Exercises</span>
-          <strong>{library.length} in your plan</strong>
+          <span>{t('library.countLabel')}</span>
+          <strong>{t('library.countValue', { count: library.length })}</strong>
         </div>
       </header>
 
@@ -158,8 +167,7 @@ export function ExerciseLibrary() {
 
       <div className="exercise-results-row">
         <p className="exercise-results-count">
-          {filteredExercises.length}{' '}
-          {filteredExercises.length === 1 ? 'exercise' : 'exercises'}
+          {t('library.resultCount', { count: filteredExercises.length })}
         </p>
         {filtersActive ? (
           <button
@@ -168,7 +176,7 @@ export function ExerciseLibrary() {
             type="button"
           >
             <RotateCcw size={16} strokeWidth={2.4} aria-hidden="true" />
-            Reset filters
+            {t('library.resetFilters')}
           </button>
         ) : null}
       </div>
@@ -185,14 +193,14 @@ export function ExerciseLibrary() {
         </div>
       ) : (
         <div className="exercise-empty-state">
-          <p>No exercises found. Try changing filters.</p>
+          <p>{t('library.empty')}</p>
           <button
             className="workout-secondary-button"
             onClick={resetFilters}
             type="button"
           >
             <RotateCcw size={18} strokeWidth={2.4} aria-hidden="true" />
-            Reset filters
+            {t('library.resetFilters')}
           </button>
         </div>
       )}

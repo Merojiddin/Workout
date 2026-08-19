@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { RefreshCcw, WifiOff } from 'lucide-react'
+import { t } from '../i18n/t'
 
 /**
  * Step 20 - fallback for failed lazy page loads.
@@ -42,14 +43,14 @@ export class LazyPageBoundary extends Component {
     return (
       <div className="page-loading-state page-loading-state--error" role="alert">
         <WifiOff size={26} strokeWidth={2.4} aria-hidden="true" />
-        <span>Failed to load this page. Check your connection and reload.</span>
+        <span>{t('lazy.failed')}</span>
         <button
           className="workout-primary-button"
           onClick={() => window.location.reload()}
           type="button"
         >
           <RefreshCcw size={18} strokeWidth={2.4} aria-hidden="true" />
-          Reload
+          {t('lazy.reload')}
         </button>
       </div>
     )

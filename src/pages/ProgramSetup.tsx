@@ -2,6 +2,8 @@ import { AlertTriangle, CheckCircle2, Copy, Dumbbell, Upload } from 'lucide-reac
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { LanguageToggle } from '../components/LanguageToggle'
+import { useT } from '../i18n'
 import { installWorkoutProgramInCloud } from '../services/workoutProgramService'
 import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import {
@@ -26,13 +28,14 @@ interface ProgramSetupProps {
  */
 export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
   const { user } = useAuth()
+  const t = useT()
   const isOnline = useOnlineStatus()
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [copyLabel, setCopyLabel] = useState('Copy AI prompt')
+  const [copyLabel, setCopyLabel] = useState<'idle' | 'copied' | 'manual'>('idle')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cloudActive = Boolean(user)
 
@@ -53,7 +56,7 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
     } catch {
       setText('')
       setResult(null)
-      setError(`Could not read "${file.name}". Try choosing the file again.`)
+      setError(t('setup.program.readFailed', { name: file.name }))
     }
   }
 
@@ -80,9 +83,7 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
 
       if (cloudActive) {
         if (!isOnline) {
-          setError(
-            'You are offline. Reconnect to finish setting up your program.',
-          )
+          setError(t('setup.program.offline'))
           return
         }
         // Keep the program itself in the cloud too, so the same account can
@@ -118,12 +119,12 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
       await navigator.clipboard.writeText(
         buildProgramAuthoringPrompt(getUserProfileSettings()),
       )
-      setCopyLabel('Copied')
+      setCopyLabel('copied')
     } catch {
-      setCopyLabel('Press Ctrl/Cmd+C')
+      setCopyLabel('manual')
       setText(buildProgramAuthoringPrompt(getUserProfileSettings()))
     }
-    window.setTimeout(() => setCopyLabel('Copy AI prompt'), 2500)
+    window.setTimeout(() => setCopyLabel('idle'), 2500)
   }
 
   const program = result?.success ? result.program : null
@@ -133,13 +134,12 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
       <div className="program-setup__brand" aria-hidden="true">
         <Dumbbell size={26} strokeWidth={2.4} />
       </div>
-      <p className="profile-setup__step">Step 1 of 2</p>
-      <h1>Add your workout program</h1>
-      <p className="program-setup__subtitle">
-        This app does not come with a program, and it never shows you anyone
-        else&apos;s. Upload your own program file to get started - it stays
-        private to your account.
-      </p>
+      {/* Nothing else is reachable from here, so the first-run screens carry
+          their own language picker rather than waiting for Settings. */}
+      <LanguageToggle variant="segmented" className="program-setup__language" />
+      <p className="profile-setup__step">{t('setup.step1')}</p>
+      <h1>{t('setup.program.title')}</h1>
+      <p className="program-setup__subtitle">{t('setup.program.subtitle')}</p>
 
       <input
         accept="application/json,.json"
@@ -155,25 +155,28 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         type="button"
       >
         <Upload size={18} strokeWidth={2.4} aria-hidden="true" />
-        Choose program file
+        {t('setup.program.chooseFile')}
       </button>
       {fileName ? (
-        <p className="program-setup__file-name">Loaded {fileName}</p>
+        <p className="program-setup__file-name">
+          {t('setup.program.loaded', { name: fileName })}
+        </p>
       ) : null}
 
       <details className="program-setup__paste">
-        <summary>Paste the JSON instead</summary>
-        <p className="program-setup__hint">
-          Have your plan as plain text? Copy this prompt into ChatGPT (or any AI
-          chat) with your plan, then upload or paste the JSON it gives back.
-        </p>
+        <summary>{t('setup.program.pasteInstead')}</summary>
+        <p className="program-setup__hint">{t('setup.program.pasteHint')}</p>
         <button
           className="workout-secondary-button"
           onClick={handleCopyPrompt}
           type="button"
         >
           <Copy size={17} strokeWidth={2.4} aria-hidden="true" />
-          {copyLabel}
+          {copyLabel === 'copied'
+            ? t('action.copied')
+            : copyLabel === 'manual'
+              ? t('setup.program.copyManual')
+              : t('setup.program.copyPrompt')}
         </button>
         <textarea
           className="paste-program__textarea"
@@ -193,7 +196,10 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         <div className="paste-program__result paste-program__result--ok" role="status">
           <p className="paste-program__result-title">
             <CheckCircle2 size={17} strokeWidth={2.4} aria-hidden="true" />
-            {program.name} looks good - {program.days.length} days.
+            {t('setup.program.looksGood', {
+              name: program.name,
+              days: program.days.length,
+            })}
           </p>
         </div>
       ) : null}
@@ -202,7 +208,7 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         <div className="paste-program__result paste-program__result--error" role="alert">
           <p className="paste-program__result-title">
             <AlertTriangle size={17} strokeWidth={2.4} aria-hidden="true" />
-            This program cannot be used yet.
+            {t('setup.program.unusable')}
           </p>
           <ul className="paste-program__issues">
             {result.errors.map((message) => (
@@ -227,7 +233,7 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         onClick={handleInstall}
         type="button"
       >
-        {busy ? 'Setting up...' : 'Use this program'}
+        {busy ? t('setup.program.installing') : t('setup.program.install')}
       </button>
     </div>
   )

@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { BODY_CHECK_INS_KEY } from '../data/bodyCheckIns'
 import { NUTRITION_LOGS_KEY } from '../data/nutritionLogs'
 import { WORKOUT_SESSIONS_KEY } from '../data/workoutSessions'
@@ -65,27 +66,27 @@ export function exportWorkoutPlanJSON(activeProgram = getActiveWorkoutProgram())
 export function exportWorkoutSessionsCSV(sessions = []) {
   const rows = [
     [
-      'Date',
-      'Workout Name',
-      'Session Type',
-      'Standalone Workout ID',
-      'Program ID',
-      'Program Version',
-      'Program Week',
-      'Exercise',
-      'Exercise ID',
-      'Resolved Canonical ID',
-      'Archived',
-      'Set Number',
-      'Reps',
-      'Duration Seconds',
-      'Formatted Duration',
-      'Weight Kg',
-      'RPE',
-      'RIR',
-      'Pain Level',
-      'Notes',
-      'Completed',
+      t('csv.date'),
+      t('csv.workoutName'),
+      t('csv.sessionType'),
+      t('csv.standaloneId'),
+      t('csv.programId'),
+      t('csv.programVersion'),
+      t('csv.programWeek'),
+      t('csv.exercise'),
+      t('csv.exerciseId'),
+      t('csv.canonicalId'),
+      t('csv.archived'),
+      t('csv.setNumber'),
+      t('csv.reps'),
+      t('csv.durationSeconds'),
+      t('csv.formattedDuration'),
+      t('csv.weightKg'),
+      t('csv.rpe'),
+      t('csv.rir'),
+      t('csv.painLevel'),
+      t('csv.notes'),
+      t('csv.completed'),
     ],
   ]
   const activeProgram = getActiveWorkoutProgram()
@@ -195,20 +196,20 @@ export function exportWorkoutSessionsCSV(sessions = []) {
 export function exportBodyCheckInsCSV(checkIns = []) {
   const rows = [
     [
-      'Date',
-      'Body Weight Kg',
-      'Waist Cm',
-      'Belly Cm',
-      'Chest Cm',
-      'Shoulders Cm',
-      'Left Arm Cm',
-      'Right Arm Cm',
-      'Hips Cm',
-      'Posture Rating',
-      'Abs Visibility Rating',
-      'Energy Level',
-      'Sleep Quality',
-      'Notes',
+      t('csv.date'),
+      t('csv.bodyWeightKg'),
+      t('csv.waistCm'),
+      t('csv.bellyCm'),
+      t('csv.chestCm'),
+      t('csv.shouldersCm'),
+      t('csv.leftArmCm'),
+      t('csv.rightArmCm'),
+      t('csv.hipsCm'),
+      t('csv.postureRating'),
+      t('csv.absVisibilityRating'),
+      t('csv.energyLevel'),
+      t('csv.sleepQuality'),
+      t('csv.notes'),
     ],
   ]
 
@@ -286,7 +287,7 @@ function getSessionExportIdentity(session) {
       : ''
 
   return {
-    label: standalone ? 'Standalone workout' : 'Scheduled workout',
+    label: standalone ? t('csv.standaloneWorkout') : t('csv.scheduledWorkout'),
     standaloneWorkoutId,
   }
 }
@@ -317,7 +318,7 @@ function downloadText(filename, content, type) {
 }
 
 function yesNo(value) {
-  return value ? 'Yes' : 'No'
+  return value ? t('state.yes') : t('state.no')
 }
 
 function fileDate(date = new Date()) {

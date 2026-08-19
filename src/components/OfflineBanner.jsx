@@ -1,9 +1,11 @@
 import { CheckCircle2, CloudOff, RefreshCw } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
+import { useT } from '../i18n'
 
 export function OfflineBanner({ syncMessage, syncTone = 'info' }) {
   const { isOnline } = useOnlineStatus()
+  const t = useT()
   const wasOffline = useRef(!isOnline)
   const [backOnline, setBackOnline] = useState(false)
 
@@ -28,7 +30,7 @@ export function OfflineBanner({ syncMessage, syncTone = 'info' }) {
     return (
       <div className="offline-banner offline-banner--offline" role="status">
         <CloudOff size={17} strokeWidth={2.5} aria-hidden="true" />
-        You are offline. Training logs will be saved locally and can sync later.
+        {t('offline.banner')}
       </div>
     )
   }
@@ -49,7 +51,7 @@ export function OfflineBanner({ syncMessage, syncTone = 'info' }) {
     return (
       <div className="offline-banner offline-banner--online" role="status">
         <CheckCircle2 size={17} strokeWidth={2.5} aria-hidden="true" />
-        Back online.
+        {t('offline.backOnline')}
       </div>
     )
   }

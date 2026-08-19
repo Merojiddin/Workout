@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { useEffect, useRef, useState } from 'react'
 import { syncPendingQueue } from '../services/syncService'
 import { getPendingSyncCount } from '../utils/offlineSyncQueue'
@@ -47,7 +48,7 @@ export function useAutoSync(user, options = {}) {
           setSyncMessage(`${result.synced} offline changes synced.`)
         } else if (result.failed > 0) {
           setSyncTone('warn')
-          setSyncMessage('Some changes could not sync.')
+          setSyncMessage(t('sync.someFailed'))
         }
         if (result.synced > 0 && typeof onSynced === 'function') {
           onSynced(result)
@@ -56,7 +57,7 @@ export function useAutoSync(user, options = {}) {
       .catch(() => {
         if (active) {
           setSyncTone('warn')
-          setSyncMessage('Some changes could not sync.')
+          setSyncMessage(t('sync.someFailed'))
         }
       })
       .finally(() => {

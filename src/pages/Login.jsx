@@ -1,9 +1,12 @@
 import { Dumbbell, LogIn } from 'lucide-react'
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { LanguageToggle } from '../components/LanguageToggle'
+import { useT } from '../i18n'
 
 export function Login({ onSwitch }) {
   const { signIn } = useAuth()
+  const t = useT()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState('idle') // idle | loading | error
@@ -17,7 +20,7 @@ export function Login({ onSwitch }) {
     const { error } = await signIn(email.trim(), password)
     if (error) {
       setStatus('error')
-      setMessage(error.message || 'Could not sign in.')
+      setMessage(error.message || t('auth.login.failed'))
       return
     }
     // On success the auth listener swaps to the app automatically.
@@ -31,14 +34,17 @@ export function Login({ onSwitch }) {
           <span className="auth-brand__icon" aria-hidden="true">
             <Dumbbell size={22} strokeWidth={2.4} />
           </span>
-          Workout OS
+          {t('brand.name')}
         </div>
-        <h1>Welcome back</h1>
-        <p className="auth-subtitle">Sign in to sync your training to the cloud.</p>
+        {/* The sign-in screens are the first thing a new visitor sees, and
+            Settings is behind them, so the picker travels with them. */}
+        <LanguageToggle variant="segmented" className="auth-language" />
+        <h1>{t('auth.login.title')}</h1>
+        <p className="auth-subtitle">{t('auth.login.subtitle')}</p>
 
         <form className="auth-form" onSubmit={handleSubmit}>
           <label className="auth-field">
-            Email
+            {t('auth.email')}
             <input
               autoComplete="email"
               onChange={(event) => setEmail(event.target.value)}
@@ -48,7 +54,7 @@ export function Login({ onSwitch }) {
             />
           </label>
           <label className="auth-field">
-            Password
+            {t('auth.password')}
             <input
               autoComplete="current-password"
               onChange={(event) => setPassword(event.target.value)}
@@ -70,18 +76,20 @@ export function Login({ onSwitch }) {
             type="submit"
           >
             <LogIn size={19} strokeWidth={2.4} aria-hidden="true" />
-            {status === 'loading' ? 'Signing in...' : 'Sign in'}
+            {status === 'loading'
+              ? t('auth.login.submitting')
+              : t('auth.login.submit')}
           </button>
         </form>
 
         <div className="auth-links">
           <button onClick={() => onSwitch('forgot')} type="button">
-            Forgot password?
+            {t('auth.login.forgot')}
           </button>
           <span>
-            New here?{' '}
+            {t('auth.login.newHere')}{' '}
             <button onClick={() => onSwitch('register')} type="button">
-              Create an account
+              {t('auth.login.createAccount')}
             </button>
           </span>
         </div>

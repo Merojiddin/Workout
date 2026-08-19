@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { exerciseLibrary } from '../data/exerciseLibrary'
 import type { WorkoutDay } from '../data/workoutPlan'
 import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
@@ -112,13 +113,13 @@ export function getInstalledWorkoutProgram(): ProgramManagerResult<
   const snapshot = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
 
   if (!snapshot.exists) {
-    return succeed(null, 'No locally installed workout program metadata was found.')
+    return succeed(null, t('svc.noInstalledMetadata'))
   }
   if (!isInstalledWorkoutProgram(snapshot.value)) {
     return fail(
       null,
       'invalid-storage-data',
-      'The installed workout program metadata is invalid.',
+      t('svc.installedMetadataInvalid'),
     )
   }
 
@@ -136,7 +137,7 @@ export function setInstalledWorkoutProgram(
     return fail(
       null,
       'invalid-program-metadata',
-      'Program ID and version are required.',
+      t('svc.idVersionRequired'),
     )
   }
 
@@ -145,7 +146,7 @@ export function setInstalledWorkoutProgram(
     return fail(
       null,
       'invalid-program-metadata',
-      'The installed-program timestamp is invalid.',
+      t('svc.installedTimestampInvalid'),
     )
   }
 
@@ -159,7 +160,7 @@ export function setInstalledWorkoutProgram(
     return fail(
       null,
       'metadata-save-failed',
-      'The installed workout program metadata could not be saved.',
+      t('svc.installedMetadataSaveFailed'),
     )
   }
 
@@ -168,12 +169,12 @@ export function setInstalledWorkoutProgram(
     return fail(
       null,
       'metadata-verification-failed',
-      'The installed workout program metadata could not be verified.',
+      t('svc.installedMetadataVerifyFailed'),
       verified.details,
     )
   }
 
-  return succeed(metadata, 'Installed workout program metadata saved.')
+  return succeed(metadata, t('svc.installedMetadataSaved'))
 }
 
 export function getDismissedWorkoutPrograms(): ProgramManagerResult<
@@ -181,7 +182,7 @@ export function getDismissedWorkoutPrograms(): ProgramManagerResult<
 > {
   const snapshot = readJsonStorageSnapshot(DISMISSED_WORKOUT_PROGRAMS_KEY)
   if (!snapshot.exists) {
-    return succeed([], 'No workout programs are dismissed.')
+    return succeed([], t('svc.noneDismissed'))
   }
   if (
     !Array.isArray(snapshot.value) ||
@@ -190,7 +191,7 @@ export function getDismissedWorkoutPrograms(): ProgramManagerResult<
     return fail(
       [],
       'invalid-storage-data',
-      'The dismissed workout program list is invalid.',
+      t('svc.dismissedListInvalid'),
     )
   }
 
@@ -208,7 +209,7 @@ export function dismissWorkoutProgram(
     return fail(
       [],
       'invalid-program-metadata',
-      'Program ID and version are required.',
+      t('svc.idVersionRequired'),
     )
   }
 
@@ -234,7 +235,7 @@ export function dismissWorkoutProgram(
     return fail(
       existing.data,
       'dismissal-save-failed',
-      'The dismissed workout program could not be saved.',
+      t('svc.dismissedSaveFailed'),
     )
   }
 
@@ -243,7 +244,7 @@ export function dismissWorkoutProgram(
     return fail(
       existing.data,
       'dismissal-verification-failed',
-      'The dismissed workout program could not be verified.',
+      t('svc.dismissedVerifyFailed'),
       verified.details,
     )
   }
@@ -259,7 +260,7 @@ export function clearDismissedWorkoutProgram(
     return fail(
       [],
       'invalid-program-metadata',
-      'Program ID and version are required.',
+      t('svc.idVersionRequired'),
     )
   }
 
@@ -272,13 +273,13 @@ export function clearDismissedWorkoutProgram(
     (entry) => entry.id !== id.trim() || entry.version !== version.trim(),
   )
   if (next.length === existing.data.length) {
-    return succeed(next, 'The workout program was not dismissed.')
+    return succeed(next, t('svc.notDismissed'))
   }
   if (!safeSetJSON(DISMISSED_WORKOUT_PROGRAMS_KEY, next)) {
     return fail(
       existing.data,
       'dismissal-save-failed',
-      'The dismissed workout program entry could not be cleared.',
+      t('svc.dismissedEntryClearFailed'),
     )
   }
 
@@ -287,12 +288,12 @@ export function clearDismissedWorkoutProgram(
     return fail(
       existing.data,
       'dismissal-verification-failed',
-      'The cleared dismissed workout program entry could not be verified.',
+      t('svc.dismissedEntryClearVerifyFailed'),
       verified.details,
     )
   }
 
-  return succeed(next, 'Dismissed workout program entry cleared.')
+  return succeed(next, t('svc.dismissedEntryCleared'))
 }
 
 export function getWorkoutPlanBackups(): ProgramManagerResult<
@@ -300,13 +301,13 @@ export function getWorkoutPlanBackups(): ProgramManagerResult<
 > {
   const snapshot = readJsonStorageSnapshot(WORKOUT_PLAN_BACKUPS_KEY)
   if (!snapshot.exists) {
-    return succeed([], 'No workout plan backups were found.')
+    return succeed([], t('svc.noBackupsFound'))
   }
   if (!Array.isArray(snapshot.value)) {
     return fail(
       [],
       'invalid-storage-data',
-      'The workout plan backup list is invalid.',
+      t('svc.backupListInvalid'),
     )
   }
 
@@ -353,7 +354,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       emptyData,
       'cloud-mode',
-      'Cloud program installation will be added in Part 4B.',
+      t('cloud.notAvailableYet'),
     )
   }
 
@@ -362,7 +363,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       emptyData,
       'active-workout',
-      'Finish or discard the active workout before changing programs.',
+      t('svc.activeWorkoutBlocks'),
     )
   }
 
@@ -373,7 +374,7 @@ export function restoreWorkoutPlanBackup(
 
   const selected = backupsResult.data.find((backup) => backup.id === backupId)
   if (!selected) {
-    return fail(emptyData, 'backup-not-found', 'The selected workout plan backup was not found.')
+    return fail(emptyData, 'backup-not-found', t('svc.backupNotFound'))
   }
 
   const planSnapshot = readJsonStorageSnapshot(CUSTOM_WORKOUT_PLAN_KEY)
@@ -407,7 +408,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       { ...dataAfterBackup, rollback },
       rollback.success ? 'plan-save-failed' : 'rollback-failed',
-      'The backup plan could not be saved; the previous plan was restored.',
+      t('svc.backupPlanSaveFailed'),
       rollback.details,
     )
   }
@@ -421,7 +422,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       { ...dataAfterBackup, rollback },
       rollback.success ? 'plan-verification-failed' : 'rollback-failed',
-      'The restored plan could not be verified; the previous plan was restored.',
+      t('svc.restoredPlanVerifyFailed'),
       rollback.details,
     )
   }
@@ -444,7 +445,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       { ...dataAfterBackup, rollback },
       rollback.success ? 'metadata-save-failed' : 'rollback-failed',
-      'The prior installed-program metadata could not be restored; the previous plan was restored.',
+      t('svc.priorMetadataRestoreFailed'),
       [metadataResult.message, ...rollback.details],
     )
   }
@@ -458,7 +459,7 @@ export function restoreWorkoutPlanBackup(
     return fail(
       { ...dataAfterBackup, rollback },
       rollback.success ? 'restore-verification-failed' : 'rollback-failed',
-      'The restored plan did not pass final verification; the previous plan was restored.',
+      t('svc.restoredPlanFinalVerifyFailed'),
       rollback.details,
     )
   }
@@ -469,10 +470,10 @@ export function restoreWorkoutPlanBackup(
       installedProgram,
       plan: normalizedPlan,
     },
-    'Workout plan backup restored. The selected backup was kept.',
+    t('svc.backupRestored'),
     [
-      'The current plan was backed up before restore.',
-      'Workout history and active workout data were not changed.',
+      t('svc.planBackedUpBeforeRestore'),
+      t('svc.historyUnchanged'),
     ],
   )
 }
@@ -494,11 +495,11 @@ export function installWorkoutProgramLocally(
     return fail(
       emptyData,
       'cloud-mode',
-      'Cloud program installation will be added in Part 4B.',
+      t('cloud.notAvailableYet'),
     )
   }
   if (!isNonEmptyString(program?.id) || !isNonEmptyString(program?.version)) {
-    return fail(emptyData, 'program-not-found', 'A valid program ID and version are required.')
+    return fail(emptyData, 'program-not-found', t('svc.validIdVersionRequired'))
   }
 
   const registeredProgram = getWorkoutProgramByIdAndVersion(
@@ -506,7 +507,7 @@ export function installWorkoutProgramLocally(
     program.version.trim(),
   )
   if (!registeredProgram) {
-    return fail(emptyData, 'program-not-found', 'The selected program is not in the workout program registry.')
+    return fail(emptyData, 'program-not-found', t('svc.notInRegistry'))
   }
 
   const validation = validateWorkoutProgram(registeredProgram, {
@@ -521,7 +522,7 @@ export function installWorkoutProgramLocally(
     return fail(
       dataWithProgram,
       'program-invalid',
-      'The selected workout program failed validation and was not installed.',
+      t('svc.failedValidation'),
       validation.errors,
     )
   }
@@ -531,7 +532,7 @@ export function installWorkoutProgramLocally(
     return fail(
       dataWithProgram,
       'active-workout',
-      'Finish or discard the active workout before changing programs.',
+      t('svc.activeWorkoutBlocks'),
     )
   }
 
@@ -543,7 +544,7 @@ export function installWorkoutProgramLocally(
     installedBefore.data?.id === registeredProgram.id &&
     installedBefore.data.version === registeredProgram.version
   ) {
-    return fail(dataWithProgram, 'already-installed', 'This workout program is already installed.')
+    return fail(dataWithProgram, 'already-installed', t('svc.alreadyInstalled'))
   }
 
   const planSnapshot = readJsonStorageSnapshot(CUSTOM_WORKOUT_PLAN_KEY)
@@ -578,7 +579,7 @@ export function installWorkoutProgramLocally(
     return failInstallWithRollback(
       dataAfterBackup,
       'plan-save-failed',
-      'The workout program plan could not be saved.',
+      t('svc.planSaveFailed'),
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
@@ -590,7 +591,7 @@ export function installWorkoutProgramLocally(
     return failInstallWithRollback(
       dataAfterBackup,
       'plan-verification-failed',
-      'The saved workout program plan could not be verified.',
+      t('svc.planVerifyFailed'),
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
@@ -632,9 +633,9 @@ export function installWorkoutProgramLocally(
     },
     `${registeredProgram.name} ${registeredProgram.version} installed locally.`,
     [
-      'The previous plan was backed up before installation.',
-      'The saved plan and installed-program metadata were verified.',
-      'Workout history and active workout data were not changed.',
+      t('svc.planBackedUpBeforeInstall'),
+      t('svc.planAndMetadataVerified'),
+      t('svc.historyUnchanged'),
       ...validation.warnings,
     ],
   )
@@ -647,8 +648,8 @@ export function getWorkoutProgramChangeProtection(): ProgramManagerResult<{
   return succeed(
     { blocked },
     blocked
-      ? 'Finish or discard the active workout before changing programs.'
-      : 'No active workout blocks program changes.',
+      ? t('svc.activeWorkoutBlocks')
+      : t('svc.noActiveWorkoutBlock'),
   )
 }
 
@@ -716,7 +717,7 @@ function createWorkoutPlanBackupInternal(
     return fail(
       null,
       'invalid-backup',
-      'A workout plan and backup reason are required.',
+      t('svc.planAndReasonRequired'),
     )
   }
 
@@ -747,7 +748,7 @@ function createWorkoutPlanBackupInternal(
     return fail(
       null,
       'invalid-backup',
-      'The current workout plan cannot be backed up because it is empty or incomplete.',
+      t('svc.planEmpty'),
     )
   }
 
@@ -764,7 +765,7 @@ function createWorkoutPlanBackupInternal(
   }
 
   if (!safeSetJSON(WORKOUT_PLAN_BACKUPS_KEY, next)) {
-    return fail(null, 'backup-save-failed', 'The workout plan backup could not be saved.')
+    return fail(null, 'backup-save-failed', t('svc.backupSaveFailed'))
   }
 
   const verified = getWorkoutPlanBackups()
@@ -776,12 +777,12 @@ function createWorkoutPlanBackupInternal(
     return fail(
       null,
       'backup-verification-failed',
-      'The workout plan backup could not be verified.',
+      t('svc.backupVerifyFailed'),
       verified.details,
     )
   }
 
-  return succeed(backup, 'Workout plan backup created.')
+  return succeed(backup, t('svc.backupCreated'))
 }
 
 function failInstallWithRollback(
@@ -811,16 +812,16 @@ function failInstallWithRollback(
 function clearInstalledWorkoutProgram(): ProgramManagerResult<InstalledWorkoutProgram | null> {
   const snapshot = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
   if (!snapshot.exists) {
-    return succeed(null, 'No installed workout program metadata needed clearing.')
+    return succeed(null, t('svc.noClearNeeded'))
   }
   if (!safeRemove(INSTALLED_WORKOUT_PROGRAM_KEY)) {
-    return fail(null, 'metadata-save-failed', 'Installed workout program metadata could not be cleared.')
+    return fail(null, 'metadata-save-failed', t('svc.installedMetadataClearFailed'))
   }
   const verified = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
   if (verified.exists) {
-    return fail(null, 'metadata-verification-failed', 'Cleared installed workout program metadata could not be verified.')
+    return fail(null, 'metadata-verification-failed', t('svc.installedMetadataClearVerifyFailed'))
   }
-  return succeed(null, 'Installed workout program metadata cleared.')
+  return succeed(null, t('svc.installedMetadataCleared'))
 }
 
 function rollbackStorageSnapshots(

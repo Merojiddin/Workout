@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import {
   createContext,
   useContext,
@@ -22,7 +23,7 @@ const AuthContext = createContext(null)
 
 const notConfigured = {
   error: {
-    message: 'Cloud sync is not configured. The app is running in local mode.',
+    message: t('auth.notConfigured'),
   },
 }
 

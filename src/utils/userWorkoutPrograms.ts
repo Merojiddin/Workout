@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { exerciseCategories, exerciseLibrary } from '../data/exerciseLibrary'
 import type {
   WorkoutProgram,
@@ -72,7 +73,7 @@ export function saveUserWorkoutProgram(program: UserWorkoutProgram): {
     return {
       success: false,
       message:
-        'Could not save the program. Device storage may be full - remove old programs or photos and try again.',
+        t('paste.storageFull'),
       programs: existing,
     }
   }
@@ -134,7 +135,7 @@ export function parseWorkoutProgramInput(
       success: false,
       program: null,
       errors: [
-        'No JSON found. Paste the whole program object, starting with { and ending with }.',
+        t('paste.noJson'),
       ],
       warnings: [],
       repairs,
@@ -159,7 +160,7 @@ export function parseWorkoutProgramInput(
       success: false,
       program: null,
       errors: [
-        'This looks like a list of days, not a whole program. Wrap it in an object: { "name": "...", "days": [ ... ] }.',
+        t('paste.looksLikeDays'),
       ],
       warnings: [],
       repairs,
@@ -170,7 +171,7 @@ export function parseWorkoutProgramInput(
     return {
       success: false,
       program: null,
-      errors: ['The pasted JSON is not a program object.'],
+      errors: [t('paste.notProgramObject')],
       warnings: [],
       repairs,
     }
@@ -519,7 +520,7 @@ function applyMetadataRepairs(
 
   if (!isNonEmptyString(draft.version)) {
     draft.version = '1.0.0'
-    repairs.push('Set version to 1.0.0.')
+    repairs.push(t('paste.setVersion'))
   }
 
   if (!isNonEmptyString(draft.updatedAt) || !isValidDate(draft.updatedAt)) {
@@ -530,14 +531,14 @@ function applyMetadataRepairs(
   if (!isNonEmptyString(draft.description)) {
     draft.description = isNonEmptyString(draft.name)
       ? `${draft.name} (added from a pasted program).`
-      : 'Added from a pasted program.'
-    repairs.push('Added a placeholder description.')
+      : t('paste.placeholderDescription')
+    repairs.push(t('paste.addedDescription'))
   }
 }
 
 function describeJsonError(error: unknown, text: string): string {
   const message =
-    error instanceof Error ? error.message : 'The pasted text is not valid JSON.'
+    error instanceof Error ? error.message : t('paste.invalidJson')
 
   const positionMatch = message.match(/position (\d+)/)
   if (positionMatch?.[1]) {

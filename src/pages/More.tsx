@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react'
 import { moreNavigationItems } from '../data/navigation'
+import { useT } from '../i18n'
 import type { PageId } from '../types/navigation'
 
 interface MoreProps {
@@ -11,14 +12,16 @@ interface MoreProps {
  * charts of its own: everything here is a destination, not information.
  */
 export function More({ onNavigate }: MoreProps) {
+  const t = useT()
+
   return (
     <section className="more-page">
       <header className="more-page__head">
-        <h1>More</h1>
-        <p>Reference pages. Your workout and nutrition live in the main tabs.</p>
+        <h1>{t('more.title')}</h1>
+        <p>{t('more.subtitle')}</p>
       </header>
 
-      <nav className="more-list" aria-label="More pages">
+      <nav className="more-list" aria-label={t('nav.morePages')}>
         {moreNavigationItems.map((item) => {
           const Icon = item.icon
 
@@ -33,8 +36,8 @@ export function More({ onNavigate }: MoreProps) {
                 <Icon size={19} strokeWidth={2.3} />
               </span>
               <span className="more-list__text">
-                <strong>{item.label}</strong>
-                {item.description ? <small>{item.description}</small> : null}
+                <strong>{t(item.labelKey)}</strong>
+                {item.descriptionKey ? <small>{t(item.descriptionKey)}</small> : null}
               </span>
               <ChevronRight
                 size={18}

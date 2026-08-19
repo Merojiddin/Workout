@@ -3,6 +3,9 @@ import {
   type BodyCheckIn,
   type PhotoSlot,
 } from '../data/bodyCheckIns'
+import { formatDate } from '../i18n/format'
+import { t } from '../i18n/t'
+import type { MessageKey } from '../i18n/catalog'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
 import { toLocalIsoDate, todayIsoDate } from './dateUtils'
 
@@ -28,7 +31,8 @@ export interface MeasurementPoint {
 
 export interface MeasurementField {
   key: MeasurementKey
-  label: string
+  /** Message key: the field list is built at module load, before a language. */
+  labelKey: MessageKey
   unit: 'cm' | 'kg' | 'rating'
   goodDirection: 'up' | 'down' | 'either'
 }
@@ -46,16 +50,36 @@ export interface TrendSummary {
  * then waist/belly control, then posture and abs quality.
  */
 export const trendFields: MeasurementField[] = [
-  { key: 'bodyWeightKg', label: 'Body weight', unit: 'kg', goodDirection: 'either' },
-  { key: 'chestCm', label: 'Chest', unit: 'cm', goodDirection: 'up' },
-  { key: 'shouldersCm', label: 'Shoulders', unit: 'cm', goodDirection: 'up' },
-  { key: 'armAverage', label: 'Arms', unit: 'cm', goodDirection: 'up' },
-  { key: 'waistCm', label: 'Waist', unit: 'cm', goodDirection: 'down' },
-  { key: 'bellyCm', label: 'Belly', unit: 'cm', goodDirection: 'down' },
-  { key: 'postureRating', label: 'Posture rating', unit: 'rating', goodDirection: 'up' },
+  {
+    key: 'bodyWeightKg',
+    labelKey: 'measure.bodyWeightKg',
+    unit: 'kg',
+    goodDirection: 'either',
+  },
+  { key: 'chestCm', labelKey: 'measure.chestCm', unit: 'cm', goodDirection: 'up' },
+  {
+    key: 'shouldersCm',
+    labelKey: 'measure.shouldersCm',
+    unit: 'cm',
+    goodDirection: 'up',
+  },
+  {
+    key: 'armAverage',
+    labelKey: 'measure.armAverage',
+    unit: 'cm',
+    goodDirection: 'up',
+  },
+  { key: 'waistCm', labelKey: 'measure.waistCm', unit: 'cm', goodDirection: 'down' },
+  { key: 'bellyCm', labelKey: 'measure.bellyCm', unit: 'cm', goodDirection: 'down' },
+  {
+    key: 'postureRating',
+    labelKey: 'measure.postureRating',
+    unit: 'rating',
+    goodDirection: 'up',
+  },
   {
     key: 'absVisibilityRating',
-    label: 'Abs visibility',
+    labelKey: 'measure.absVisibilityRating',
     unit: 'rating',
     goodDirection: 'up',
   },
@@ -210,7 +234,7 @@ export function getBodyTrendSummary(checkIns: BodyCheckIn[]): TrendSummary[] {
     return [
       {
         key: field.key,
-        label: field.label,
+        label: t(field.labelKey),
         message: buildTrendMessage(field, delta, direction),
         direction,
         tone: getTrendTone(field, direction),
@@ -318,11 +342,11 @@ export function formatCheckInDate(date: string): string {
     return date || '-'
   }
 
-  return new Intl.DateTimeFormat('en', {
+  return formatDate(parsed, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
-  }).format(parsed)
+  })
 }
 
 /** Today's date as a local YYYY-MM-DD string. */
@@ -394,22 +418,22 @@ function buildTrendMessage(
   delta: number,
   direction: TrendSummary['direction'],
 ): string {
+  const label = t(field.labelKey)
   if (direction === 'flat') {
-    return `${field.label} unchanged`
+    return t('checkin.trendUnchanged', { label })
   }
 
-  const verb = direction === 'up' ? 'increased' : 'decreased'
   const amount = Math.abs(delta)
   const unit =
     field.unit === 'kg'
-      ? ' kg'
+      ? t('checkin.trendUnitKg')
       : field.unit === 'cm'
-        ? ' cm'
-        : amount === 1
-          ? ' point'
-          : ' points'
+        ? t('checkin.trendUnitCm')
+        : t('checkin.trendUnitPoints', { count: amount })
 
-  return `${field.label} ${verb} by ${amount}${unit}`
+  return direction === 'up'
+    ? t('checkin.trendIncreased', { label, amount, unit })
+    : t('checkin.trendDecreased', { label, amount, unit })
 }
 
 function getTrendTone(

@@ -1,4 +1,5 @@
 import { Play, RotateCcw, Trash2 } from 'lucide-react'
+import { formatDate, useT } from '../i18n'
 import {
   getDoneSetsCount,
   getTotalPlannedSets,
@@ -16,6 +17,7 @@ export function UnfinishedWorkoutPrompt({
   onContinue,
   onDiscard,
 }: UnfinishedWorkoutPromptProps) {
+  const t = useT()
   const doneSets = getDoneSetsCount(session)
   const totalSets = getTotalPlannedSets(session)
   const startedLabel = formatStarted(session?.startedAt)
@@ -25,14 +27,24 @@ export function UnfinishedWorkoutPrompt({
       <span className="unfinished-prompt__icon" aria-hidden="true">
         <RotateCcw size={26} strokeWidth={2.4} />
       </span>
-      <p className="eyebrow">Unfinished workout</p>
-      <h1>You have an unfinished workout.</h1>
+      <p className="eyebrow">{t('unfinished.eyebrow')}</p>
+      <h1>{t('unfinished.title')}</h1>
       {session?.sessionType === 'standalone' ? (
-        <p className="card-copy">Standalone workout</p>
+        <p className="card-copy">{t('unfinished.standalone')}</p>
       ) : null}
       <p>
-        {session?.workoutName ?? 'Workout'} - {doneSets} of {totalSets} sets done
-        {startedLabel ? `, started ${startedLabel}` : ''}.
+        {startedLabel
+          ? t('unfinished.summaryWithStart', {
+              name: session?.workoutName ?? t('unfinished.workoutFallback'),
+              done: doneSets,
+              total: totalSets,
+              started: startedLabel,
+            })
+          : t('unfinished.summary', {
+              name: session?.workoutName ?? t('unfinished.workoutFallback'),
+              done: doneSets,
+              total: totalSets,
+            })}
       </p>
 
       <div className="unfinished-prompt__actions">
@@ -42,7 +54,7 @@ export function UnfinishedWorkoutPrompt({
           type="button"
         >
           <Play size={19} strokeWidth={2.4} aria-hidden="true" />
-          Continue Workout
+          {t('unfinished.continue')}
         </button>
         <button
           className="workout-secondary-button workout-secondary-button--danger"
@@ -50,7 +62,7 @@ export function UnfinishedWorkoutPrompt({
           type="button"
         >
           <Trash2 size={19} strokeWidth={2.4} aria-hidden="true" />
-          Discard Workout
+          {t('unfinished.discard')}
         </button>
       </div>
     </section>
@@ -67,10 +79,10 @@ function formatStarted(startedAt?: string): string | null {
     return null
   }
 
-  return new Intl.DateTimeFormat('en', {
+  return formatDate(date, {
     hour: 'numeric',
     minute: '2-digit',
     day: 'numeric',
     month: 'short',
-  }).format(date)
+  })
 }

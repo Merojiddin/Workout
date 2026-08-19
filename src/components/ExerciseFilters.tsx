@@ -1,4 +1,10 @@
 import { Search } from 'lucide-react'
+import { useLanguage } from '../i18n'
+import {
+  translateCategory,
+  translateDifficulty,
+  translateEquipment,
+} from '../i18n/exercises'
 import {
   difficultyOptions,
   equipmentOptions,
@@ -41,14 +47,16 @@ export function ExerciseFilters({
   selectedMedia,
   setSelectedMedia,
 }: ExerciseFiltersProps) {
+  const { language, t } = useLanguage()
+
   return (
-    <section className="exercise-filters" aria-label="Search and filter exercises">
+    <section className="exercise-filters" aria-label={t('library.filtersAria')}>
       <div className="exercise-search">
         <Search size={18} strokeWidth={2.4} aria-hidden="true" />
         <input
-          aria-label="Search exercises"
+          aria-label={t('library.searchAria')}
           onChange={(event) => setSearchTerm(event.target.value)}
-          placeholder="Search exercises or muscles..."
+          placeholder={t('library.searchPlaceholder')}
           type="search"
           value={searchTerm}
         />
@@ -56,68 +64,70 @@ export function ExerciseFilters({
 
       <div className="exercise-filter-grid">
         <label className="exercise-filter-field">
-          Category
+          {t('library.filter.category')}
           <select
             onChange={(event) =>
               setSelectedCategory(event.target.value as CategoryFilter)
             }
             value={selectedCategory}
           >
-            <option value="All">All categories</option>
+            <option value="All">{t('library.filter.allCategories')}</option>
             {exerciseCategories.map((category) => (
               <option key={category} value={category}>
-                {category}
+                {translateCategory(category, language)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="exercise-filter-field">
-          Equipment
+          {t('library.filter.equipment')}
           <select
             onChange={(event) =>
               setSelectedEquipment(event.target.value as EquipmentFilter)
             }
             value={selectedEquipment}
           >
-            <option value="All">All equipment</option>
+            <option value="All">{t('library.filter.allEquipment')}</option>
             {equipmentOptions.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {translateEquipment(item, language)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="exercise-filter-field">
-          Difficulty
+          {t('library.filter.difficulty')}
           <select
             onChange={(event) =>
               setSelectedDifficulty(event.target.value as DifficultyFilter)
             }
             value={selectedDifficulty}
           >
-            <option value="All">All levels</option>
+            <option value="All">{t('library.filter.allLevels')}</option>
             {difficultyOptions.map((level) => (
               <option key={level} value={level}>
-                {level}
+                {translateDifficulty(level, language)}
               </option>
             ))}
           </select>
         </label>
 
         <label className="exercise-filter-field">
-          Media
+          {t('library.filter.media')}
           <select
             onChange={(event) =>
               setSelectedMedia(event.target.value as MediaFilter)
             }
             value={selectedMedia}
           >
-            <option value="All">All media</option>
+            <option value="All">{t('library.filter.allMedia')}</option>
             {mediaFilterOptions.map((option) => (
               <option key={option} value={option}>
-                {option}
+                {option === 'Has video'
+                  ? t('library.filter.hasVideo')
+                  : t('library.filter.hasImage')}
               </option>
             ))}
           </select>

@@ -22,17 +22,19 @@ import {
   syncLocalToCloud,
 } from '../services/syncService'
 import { getEnvConfig } from '../utils/envUtils'
+import { useT } from '../i18n'
 
 const SUMMARY_ROWS = [
-  ['workoutSessions', 'Workout sessions'],
-  ['bodyCheckIns', 'Body check-ins'],
-  ['nutritionLogs', 'Nutrition logs'],
-  ['settings', 'Settings'],
-  ['customPlan', 'Custom plan'],
-  ['customLibrary', 'Custom library'],
+  ['workoutSessions', 'cloudPanel.row.workoutSessions'],
+  ['bodyCheckIns', 'cloudPanel.row.bodyCheckIns'],
+  ['nutritionLogs', 'cloudPanel.row.nutritionLogs'],
+  ['settings', 'cloudPanel.row.settings'],
+  ['customPlan', 'cloudPanel.row.customPlan'],
+  ['customLibrary', 'cloudPanel.row.customLibrary'],
 ]
 
 export function CloudSyncPanel() {
+  const t = useT()
   const { isSupabaseConfigured, user } = useAuth()
   const cloudActive = isSupabaseConfigured && Boolean(user)
 
@@ -47,7 +49,7 @@ export function CloudSyncPanel() {
 
   async function handleSyncUp() {
     const ok = window.confirm(
-      'This will upload your local browser data to your cloud account.',
+      t('cloudPanel.uploadConfirm'),
     )
     if (!ok) return
 
@@ -61,11 +63,14 @@ export function CloudSyncPanel() {
       announce(
         result.errors.length > 0 ? 'warn' : 'success',
         result.errors.length > 0
-          ? `Uploaded ${uploaded} records with ${result.errors.length} issue(s).`
-          : `Uploaded ${uploaded} records to the cloud.`,
+          ? t('cloudPanel.uploadedWithIssues', {
+              count: uploaded,
+              issues: result.errors.length,
+            })
+          : t('cloudPanel.uploaded', { count: uploaded }),
       )
     } catch (error) {
-      announce('error', errorText(error, 'Cloud sync unavailable.'))
+      announce('error', errorText(error, t('cloudPanel.unavailable')))
     } finally {
       setBusy('')
     }
@@ -73,7 +78,7 @@ export function CloudSyncPanel() {
 
   async function handleSyncDown() {
     const ok = window.confirm(
-      'This may overwrite local display data. Export a backup first if unsure.',
+      t('cloudPanel.downloadConfirm'),
     )
     if (!ok) return
 
@@ -86,10 +91,10 @@ export function CloudSyncPanel() {
         result.workoutSessions + result.bodyCheckIns + result.nutritionLogs
       announce(
         'success',
-        `Downloaded ${downloaded} records. Reopen a page to see them.`,
+        t('cloudPanel.downloaded', { count: downloaded }),
       )
     } catch (error) {
-      announce('error', errorText(error, 'Cloud sync unavailable.'))
+      announce('error', errorText(error, t('cloudPanel.unavailable')))
     } finally {
       setBusy('')
     }
@@ -97,7 +102,7 @@ export function CloudSyncPanel() {
 
   function handleLocalSummary() {
     setLocalSummary(getLocalDataSummary())
-    announce('info', 'Local data summary refreshed.')
+    announce('info', t('cloudPanel.localRefreshed'))
   }
 
   async function handleCloudSummary() {
@@ -105,9 +110,9 @@ export function CloudSyncPanel() {
     setStatus(null)
     try {
       setCloudSummary(await getCloudDataSummary(user))
-      announce('info', 'Cloud data summary refreshed.')
+      announce('info', t('cloudPanel.cloudRefreshed'))
     } catch (error) {
-      announce('error', errorText(error, 'Could not reach the cloud.'))
+      announce('error', errorText(error, t('cloudPanel.unreachable')))
     } finally {
       setBusy('')
     }
@@ -115,7 +120,7 @@ export function CloudSyncPanel() {
 
   async function handleMigratePhotos() {
     const ok = window.confirm(
-      'This uploads local progress photos to your Supabase account. Keep a JSON backup first.',
+      t('cloudPanel.photosConfirm'),
     )
     if (!ok) return
 
@@ -129,18 +134,24 @@ export function CloudSyncPanel() {
       })
       setCloudSummary(await getCloudDataSummary(user))
       if (result.photosUploaded === 0 && result.errors.length === 0) {
-        announce('info', 'No local base64 photos needed migrating.')
+        announce('info', t('cloudPanel.noPhotos'))
       } else {
         announce(
           result.errors.length > 0 ? 'warn' : 'success',
-          `Uploaded ${result.photosUploaded} photo(s) from ${result.checkInsUpdated} check-in(s)` +
-            (result.errors.length > 0
-              ? ` with ${result.errors.length} issue(s).`
-              : '.'),
+          result.errors.length > 0
+            ? t('cloudPanel.photosUploadedWithIssues', {
+                photos: result.photosUploaded,
+                checkIns: result.checkInsUpdated,
+                issues: result.errors.length,
+              })
+            : t('cloudPanel.photosUploaded', {
+                photos: result.photosUploaded,
+                checkIns: result.checkInsUpdated,
+              }),
         )
       }
     } catch (error) {
-      announce('error', errorText(error, 'Photo migration failed.'))
+      announce('error', errorText(error, t('cloudPanel.photoMigrationFailed')))
     } finally {
       setBusy('')
     }
@@ -150,8 +161,8 @@ export function CloudSyncPanel() {
     <article className="dashboard-card settings-panel cloud-panel">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Cloud Sync</p>
-          <h2>Login &amp; cloud database</h2>
+          <p className="eyebrow">{t('cloudPanel.eyebrow')}</p>
+          <h2>{t('cloudPanel.title')}</h2>
         </div>
         {cloudActive ? (
           <Cloud size={22} strokeWidth={2.4} aria-hidden="true" />
@@ -164,23 +175,25 @@ export function CloudSyncPanel() {
         <div className="cloud-warning" role="status">
           <TriangleAlert size={18} strokeWidth={2.4} aria-hidden="true" />
           {getEnvConfig().isProduction
-            ? 'Cloud sync is not configured. This deployment is using local browser storage only.'
-            : 'Cloud sync not configured. App is using local browser storage.'}
+            ? t('env.notConfigured')
+            : t('cloudPanel.notConfiguredDev')}
         </div>
       ) : null}
 
       <div className="cloud-status-grid">
         <div>
-          <span>Mode</span>
-          <strong>{cloudActive ? 'Cloud mode' : 'Local mode'}</strong>
+          <span>{t('cloudPanel.mode')}</span>
+          <strong>
+            {cloudActive ? t('cloudPanel.cloudMode') : t('cloudPanel.localMode')}
+          </strong>
         </div>
         <div>
-          <span>Supabase configured</span>
-          <strong>{isSupabaseConfigured ? 'Yes' : 'No'}</strong>
+          <span>{t('cloudPanel.supabaseConfigured')}</span>
+          <strong>{isSupabaseConfigured ? t('state.yes') : t('state.no')}</strong>
         </div>
         <div>
-          <span>Signed in as</span>
-          <strong>{user?.email ?? 'Not signed in'}</strong>
+          <span>{t('cloudPanel.signedInAs')}</span>
+          <strong>{user?.email ?? t('cloudPanel.notSignedIn')}</strong>
         </div>
       </div>
 
@@ -205,7 +218,9 @@ export function CloudSyncPanel() {
               type="button"
             >
               <Upload size={18} strokeWidth={2.4} aria-hidden="true" />
-              {busy === 'up' ? 'Uploading...' : 'Sync Local Data to Cloud'}
+              {busy === 'up'
+                ? t('cloudPanel.uploading')
+                : t('cloudPanel.syncUp')}
             </button>
             <button
               className="workout-secondary-button"
@@ -214,7 +229,9 @@ export function CloudSyncPanel() {
               type="button"
             >
               <Download size={18} strokeWidth={2.4} aria-hidden="true" />
-              {busy === 'down' ? 'Downloading...' : 'Download Cloud Data to This Browser'}
+              {busy === 'down'
+                ? t('cloudPanel.downloading')
+                : t('cloudPanel.syncDown')}
             </button>
             <button
               className="workout-secondary-button"
@@ -224,8 +241,8 @@ export function CloudSyncPanel() {
             >
               <Images size={18} strokeWidth={2.4} aria-hidden="true" />
               {busy === 'photos'
-                ? 'Uploading photos...'
-                : 'Migrate Local Photos to Cloud'}
+                ? t('cloudPanel.uploadingPhotos')
+                : t('cloudPanel.migratePhotos')}
             </button>
           </>
         ) : null}
@@ -237,7 +254,7 @@ export function CloudSyncPanel() {
           type="button"
         >
           <Database size={18} strokeWidth={2.4} aria-hidden="true" />
-          View Local Data Summary
+          {t('cloudPanel.localSummary')}
         </button>
 
         {cloudActive ? (
@@ -248,7 +265,9 @@ export function CloudSyncPanel() {
             type="button"
           >
             <RefreshCw size={18} strokeWidth={2.4} aria-hidden="true" />
-            {busy === 'cloud' ? 'Checking...' : 'View Cloud Data Summary'}
+            {busy === 'cloud'
+              ? t('cloudPanel.checking')
+              : t('cloudPanel.cloudSummary')}
           </button>
         ) : null}
       </div>
@@ -256,10 +275,16 @@ export function CloudSyncPanel() {
       {localSummary || cloudSummary ? (
         <div className="cloud-summary-grid">
           {localSummary ? (
-            <SummaryCard title="Local browser" summary={localSummary} />
+            <SummaryCard
+              title={t('cloudPanel.localBrowser')}
+              summary={localSummary}
+            />
           ) : null}
           {cloudSummary ? (
-            <SummaryCard title="Cloud account" summary={cloudSummary} />
+            <SummaryCard
+              title={t('cloudPanel.cloudAccount')}
+              summary={cloudSummary}
+            />
           ) : null}
         </div>
       ) : null}
@@ -268,13 +293,15 @@ export function CloudSyncPanel() {
 }
 
 function SummaryCard({ title, summary }) {
+  const t = useT()
+
   return (
     <div className="cloud-summary-card">
       <p className="eyebrow">{title}</p>
       <ul>
-        {SUMMARY_ROWS.map(([key, label]) => (
+        {SUMMARY_ROWS.map(([key, labelKey]) => (
           <li key={key}>
-            <span>{label}</span>
+            <span>{t(labelKey)}</span>
             <strong>{summary?.[key] ?? 0}</strong>
           </li>
         ))}

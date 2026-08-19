@@ -60,6 +60,22 @@ export default defineConfig({
             },
           },
           {
+            // Exercise animations get their own bucket ahead of the generic
+            // image rule: there are ~111 of them, so they would otherwise
+            // evict (and be evicted by) everything else in "static-assets".
+            // They are deliberately NOT precached - that would push ~11MB
+            // onto every install - so they cache on first view instead.
+            urlPattern: ({ url }) => url.pathname.startsWith('/exercise-gifs/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'exercise-animations',
+              expiration: {
+                maxEntries: 140,
+                maxAgeSeconds: 60 * 60 * 24 * 90,
+              },
+            },
+          },
+          {
             urlPattern: ({ request }) =>
               request.destination === 'style' ||
               request.destination === 'script' ||

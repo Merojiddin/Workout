@@ -5,6 +5,7 @@ import {
   resizeImageFile,
   validateImageFile,
 } from '../utils/imageUtils'
+import { useT } from '../i18n'
 
 interface ImageUploadPreviewProps {
   label: string
@@ -26,6 +27,7 @@ export function ImageUploadPreview({
   uploading = false,
   disabled = false,
 }: ImageUploadPreviewProps) {
+  const t = useT()
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -56,7 +58,7 @@ export function ImageUploadPreview({
       const previewUrl: string | null = createImagePreview(resized)
       onSelect(resized, previewUrl)
     } catch {
-      setError('Could not read that image. Try another one.')
+      setError(t('upload.readFailed'))
     } finally {
       setIsProcessing(false)
     }
@@ -100,7 +102,7 @@ export function ImageUploadPreview({
             type="button"
           >
             <X size={16} strokeWidth={2.6} aria-hidden="true" />
-            Remove
+            {t('action.remove')}
           </button>
         </div>
       ) : (
@@ -112,10 +114,10 @@ export function ImageUploadPreview({
           )}
           <span>
             {failedToLoad
-              ? 'Photo unavailable — add again'
+              ? t('upload.unavailable')
               : busy
-                ? 'Processing…'
-                : 'Add photo'}
+                ? t('upload.processing')
+                : t('upload.addPhoto')}
           </span>
         </label>
       )}

@@ -1,3 +1,5 @@
+import { exerciseGifs } from '../data/exerciseGifs'
+import { t } from '../i18n/t'
 /**
  * Step 18 - exercise media helpers.
  *
@@ -29,6 +31,8 @@ export interface WorkoutDisplaySettings {
 
 /** Shape we can safely read media from - all fields optional on purpose. */
 export interface ExerciseMediaSource {
+  /** Library id, used to look up the bundled ExerciseDB animation. */
+  id?: string
   name?: string
   category?: string
   imageUrl?: string
@@ -36,6 +40,9 @@ export interface ExerciseMediaSource {
   videoUrl?: string
   videoType?: string
   videoTitle?: string
+  /** Explicit animation URL, which wins over the bundled one. */
+  gifUrl?: string
+  gifAlt?: string
 }
 
 const youtubeHosts = new Set([
@@ -112,6 +119,37 @@ export function getExerciseImage(exercise: ExerciseMediaSource | null | undefine
   return categoryPlaceholders[category] ?? DEFAULT_EXERCISE_IMAGE
 }
 
+/**
+ * Looping animation for an exercise, or '' when there is none.
+ *
+ * An explicit gifUrl on the exercise wins (a user can attach their own), then
+ * the bundled ExerciseDB animation keyed by library id. See
+ * docs/exercise-gifs.md for where those come from.
+ */
+export function getExerciseGifUrl(
+  exercise: ExerciseMediaSource | null | undefined,
+): string {
+  const explicit = typeof exercise?.gifUrl === 'string' ? exercise.gifUrl.trim() : ''
+  if (explicit) {
+    return explicit
+  }
+
+  const id = typeof exercise?.id === 'string' ? exercise.id.trim() : ''
+  return (id && exerciseGifs[id]?.gifUrl) || ''
+}
+
+/** Alt text for the animation, falling back to the exercise name. */
+export function getExerciseGifAlt(
+  exercise: ExerciseMediaSource | null | undefined,
+): string {
+  const alt = typeof exercise?.gifAlt === 'string' ? exercise.gifAlt.trim() : ''
+  if (alt) {
+    return alt
+  }
+  const name = typeof exercise?.name === 'string' ? exercise.name.trim() : ''
+  return name ? `${name} animation` : 'Exercise animation'
+}
+
 /** Alt text for the exercise image, with a sensible fallback. */
 export function getExerciseImageAlt(exercise: ExerciseMediaSource | null | undefined): string {
   const alt = typeof exercise?.imageAlt === 'string' ? exercise.imageAlt.trim() : ''
@@ -119,7 +157,9 @@ export function getExerciseImageAlt(exercise: ExerciseMediaSource | null | undef
     return alt
   }
   const name = typeof exercise?.name === 'string' ? exercise.name.trim() : ''
-  return name ? `${name} exercise demonstration` : 'Exercise demonstration'
+  return name
+    ? t('media.demonstrationAlt', { name })
+    : t('media.demonstrationAltFallback')
 }
 
 /**
@@ -140,7 +180,9 @@ export function getExerciseVideoTitle(exercise: ExerciseMediaSource | null | und
     return title
   }
   const name = typeof exercise?.name === 'string' ? exercise.name.trim() : ''
-  return name ? `${name} form guide` : 'Exercise form guide'
+  return name
+    ? t('media.formGuideTitle', { name })
+    : t('media.formGuideTitleFallback')
 }
 
 /** YouTube search link (opens in a new tab - never used inside an iframe). */

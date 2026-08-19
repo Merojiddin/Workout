@@ -1,4 +1,5 @@
 import { Check, Home } from 'lucide-react'
+import { t, useT } from '../i18n'
 import { PostWorkoutNutritionCard } from './PostWorkoutNutritionCard'
 import type { LoggedSet, WorkoutSession } from '../data/workoutSessions'
 import type { NutritionGuidance } from '../utils/postWorkoutNutrition'
@@ -19,6 +20,7 @@ export function WorkoutFinishSummary({
   nutrition,
   onDone,
 }: WorkoutFinishSummaryProps) {
+  const translate = useT()
   const exercises = Array.isArray(session?.exercises) ? session.exercises : []
   const allSets: LoggedSet[] = exercises.flatMap((exercise) =>
     Array.isArray(exercise?.sets) ? exercise.sets : [],
@@ -34,22 +36,26 @@ export function WorkoutFinishSummary({
         <span className="finish-screen__badge" aria-hidden="true">
           <Check size={26} strokeWidth={3} />
         </span>
-        <h1>Workout done</h1>
-        <p>{session?.workoutName ?? 'Workout'} · saved</p>
+        <h1>{translate('finish.title')}</h1>
+        <p>
+          {translate('finish.savedLine', {
+            name: session?.workoutName ?? translate('unfinished.workoutFallback'),
+          })}
+        </p>
       </header>
 
       <div className="finish-screen__stats">
         <div>
           <strong>{doneExercises}</strong>
-          <span>exercises</span>
+          <span>{translate('finish.exercises')}</span>
         </div>
         <div>
           <strong>{doneSets}</strong>
-          <span>sets</span>
+          <span>{translate('finish.sets')}</span>
         </div>
         <div>
           <strong>{formatDuration(session?.startedAt, session?.finishedAt)}</strong>
-          <span>time</span>
+          <span>{translate('finish.time')}</span>
         </div>
       </div>
 
@@ -57,7 +63,7 @@ export function WorkoutFinishSummary({
 
       <button className="workout-primary-button" onClick={onDone} type="button">
         <Home size={19} strokeWidth={2.4} aria-hidden="true" />
-        Done
+        {translate('action.done')}
       </button>
     </div>
   )
@@ -88,5 +94,7 @@ function formatDuration(startedAt?: string, finishedAt?: string): string {
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
 
-  return hours === 0 ? `${minutes} min` : `${hours}h ${minutes}m`
+  return hours === 0
+    ? t('finish.durationMinutes', { minutes })
+    : t('finish.durationHours', { hours, minutes })
 }

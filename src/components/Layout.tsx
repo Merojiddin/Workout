@@ -1,9 +1,11 @@
 import type { PropsWithChildren } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { BottomNav } from './BottomNav'
+import { LanguageToggle } from './LanguageToggle'
 import { NotificationCenter } from './NotificationCenter'
 import { OfflineBanner } from './OfflineBanner'
 import { Sidebar } from './Sidebar'
+import { useT } from '../i18n'
 import type { PageId } from '../types/navigation'
 
 interface LayoutProps extends PropsWithChildren {
@@ -24,6 +26,8 @@ export function Layout({
   syncMessage,
   syncTone,
 }: LayoutProps) {
+  const t = useT()
+
   return (
     <div className={`app-shell app-shell--${activePage}`}>
       <Sidebar activePage={activePage} onNavigate={onNavigate} />
@@ -34,15 +38,18 @@ export function Layout({
         <div className="app-main__topbar">
           {canGoBack ? (
             <button
-              aria-label="Go back to the previous page"
+              aria-label={t('nav.backAria')}
               className="app-back-button"
               onClick={onBack}
               type="button"
             >
               <ArrowLeft size={17} strokeWidth={2.4} aria-hidden="true" />
-              <span>Back</span>
+              <span>{t('nav.back')}</span>
             </button>
           ) : null}
+          {/* Pinned to the end of the bar so it sits in the same place on
+              every page, back button or not. */}
+          <LanguageToggle variant="compact" className="app-main__language" />
           <NotificationCenter />
         </div>
         {children}

@@ -1,5 +1,6 @@
 import { Check, X } from 'lucide-react'
 import { useEffect } from 'react'
+import { useT } from '../i18n'
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
 import {
   countRemainingExercises,
@@ -26,6 +27,8 @@ export function RemainingExercises({
   onClose,
   onSelect,
 }: RemainingExercisesProps) {
+  const t = useT()
+
   // Escape closes it, the way the backdrop tap does.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -41,24 +44,26 @@ export function RemainingExercises({
   return (
     <div className="live-sheet">
       <button
-        aria-label="Close the exercise list"
+        aria-label={t('live.remaining.closeAria')}
         className="live-sheet__backdrop"
         onClick={onClose}
         type="button"
       />
 
       <section
-        aria-label="Rest of the workout"
+        aria-label={t('live.remaining.title')}
         className="live-sheet__panel"
         role="dialog"
         aria-modal="true"
       >
         <header className="live-sheet__head">
           <strong>
-            Rest of the workout ({countRemainingExercises(exercises, currentIndex)})
+            {t('live.remaining.titleWithCount', {
+              count: countRemainingExercises(exercises, currentIndex),
+            })}
           </strong>
           <button
-            aria-label="Close the exercise list"
+            aria-label={t('live.remaining.closeAria')}
             className="live-sheet__close"
             onClick={onClose}
             type="button"
@@ -91,7 +96,10 @@ export function RemainingExercises({
                     <small>
                       {exercise.sets.length} × {getExerciseTarget(exercise)}
                       {doneSets > 0 && !done
-                        ? ` · ${doneSets} of ${exercise.sets.length} done`
+                        ? ` · ${t('live.remaining.setsDone', {
+                            done: doneSets,
+                            total: exercise.sets.length,
+                          })}`
                         : ''}
                     </small>
                   </span>

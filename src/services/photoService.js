@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { dataUrlToBlob, resizeImageFile } from '../utils/imageUtils'
 
@@ -41,10 +42,10 @@ export function buildPhotoPath(userId, checkInId, photoType) {
  */
 export async function uploadProgressPhoto(user, file, checkInId, photoType) {
   if (!isCloudPhotoEnabled(user)) {
-    throw new Error('Cloud photo storage is not available.')
+    throw new Error(t('photo.storageUnavailable'))
   }
   if (!file) {
-    throw new Error('No photo file provided.')
+    throw new Error(t('photo.noFile'))
   }
   if (!PHOTO_TYPES.includes(photoType)) {
     throw new Error(`Unknown photo type: ${photoType}`)
@@ -160,11 +161,11 @@ export async function migrateLocalBase64PhotosToCloud(user, options = {}) {
   }
 
   if (!isCloudPhotoEnabled(user)) {
-    summary.errors.push('Sign in with a cloud account to migrate photos.')
+    summary.errors.push(t('photo.signInMigrate'))
     return summary
   }
   if (typeof readCheckIns !== 'function') {
-    summary.errors.push('Migration is missing its data source.')
+    summary.errors.push(t('photo.missingSource'))
     return summary
   }
 
@@ -222,7 +223,7 @@ export async function migrateLocalBase64PhotosToCloud(user, options = {}) {
         try {
           await pushToCloud(user, checkIn)
         } catch (error) {
-          summary.errors.push(describeError('cloud row', error))
+          summary.errors.push(describeError(t('sync.entity.cloudRow'), error))
         }
       }
     }
@@ -232,7 +233,7 @@ export async function migrateLocalBase64PhotosToCloud(user, options = {}) {
     try {
       writeCheckIns(list)
     } catch (error) {
-      summary.errors.push(describeError('local save', error))
+      summary.errors.push(describeError(t('sync.entity.localSave'), error))
     }
   }
 
@@ -243,6 +244,6 @@ function describeError(label, error) {
   const message =
     error && typeof error === 'object' && 'message' in error
       ? error.message
-      : 'unknown error'
+      : t('sync.unknownError')
   return `${label}: ${message}`
 }

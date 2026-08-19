@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { Clipboard, Download, Home, RefreshCcw, TriangleAlert } from 'lucide-react'
+import { t } from '../i18n/t'
 import { getEnvConfig } from '../utils/envUtils'
 import { downloadLocalStorageBackup } from '../utils/storageUtils'
 
@@ -77,9 +78,9 @@ export class ErrorBoundary extends Component {
           </div>
 
           <div className="error-boundary-copy">
-            <p className="eyebrow">App safety</p>
-            <h1>Something went wrong</h1>
-            <p>The app hit an error. Your saved data should still be safe.</p>
+            <p className="eyebrow">{t('boundary.eyebrow')}</p>
+            <h1>{t('boundary.title')}</h1>
+            <p>{t('boundary.copy')}</p>
           </div>
 
           <div className="error-boundary-actions">
@@ -89,7 +90,7 @@ export class ErrorBoundary extends Component {
               type="button"
             >
               <RefreshCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-              Reload App
+              {t('boundary.reload')}
             </button>
             <button
               className="workout-secondary-button"
@@ -97,7 +98,7 @@ export class ErrorBoundary extends Component {
               type="button"
             >
               <Home size={19} strokeWidth={2.4} aria-hidden="true" />
-              Go to Today's Workout
+              {t('boundary.goHome')}
             </button>
             <button
               className="workout-secondary-button"
@@ -105,19 +106,18 @@ export class ErrorBoundary extends Component {
               type="button"
             >
               <Download size={19} strokeWidth={2.4} aria-hidden="true" />
-              Export Backup
+              {t('boundary.exportBackup')}
             </button>
           </div>
 
           {errorText ? (
             <details className="error-boundary-details">
-              <summary>Technical details</summary>
+              <summary>{t('boundary.technicalDetails')}</summary>
               {getEnvConfig().isProduction ? (
                 // Production: no raw stack trace on screen. The full details
                 // can still be copied manually for a bug report.
                 <p className="error-boundary-hint">
-                  Details are hidden in production. Use the button below to
-                  copy the full error for a bug report.
+                  {t('boundary.productionHint')}
                 </p>
               ) : (
                 <pre>{errorText}</pre>
@@ -128,7 +128,7 @@ export class ErrorBoundary extends Component {
                 type="button"
               >
                 <Clipboard size={18} strokeWidth={2.4} aria-hidden="true" />
-                {this.state.copied ? 'Copied' : 'Copy error details'}
+                {this.state.copied ? t('action.copied') : t('boundary.copyError')}
               </button>
             </details>
           ) : null}

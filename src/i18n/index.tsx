@@ -104,4 +104,5 @@ export {
 } from './languages'
 export { getLanguage, hasStoredLanguagePreference, setLanguage } from './store'
 export { translate } from './catalog'
+export { t } from './t'
 export { compareText, formatDate, formatNumber } from './format'

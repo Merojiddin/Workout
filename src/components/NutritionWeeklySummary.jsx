@@ -1,28 +1,63 @@
+import { useT } from '../i18n'
+
 export function NutritionWeeklySummary({ summary }) {
+  const t = useT()
   const proteinMin = summary.proteinMin ?? 120
   const proteinMax = summary.proteinMax ?? 160
   const metrics = [
-    ['Avg protein', `${summary.averageProtein} g`, 'Per logged day'],
     [
-      'Protein target days',
-      String(summary.proteinTargetDays),
-      `${proteinMin}-${proteinMax} g/day`,
+      t('review.nutrition.avgProtein'),
+      t('review.nutrition.avgProteinValue', { value: summary.averageProtein }),
+      t('review.nutrition.perLoggedDay'),
     ],
-    ['Avg water', `${summary.averageWater} L`, 'Target 2-3 L/day'],
-    ['Creatine days', String(summary.creatineDays), 'Daily 3-5 g'],
-    ['Whey days', String(summary.wheyDays), 'Whey used'],
-    ['Avg calories', summary.averageCalories ? `${summary.averageCalories}` : '-', 'Estimate'],
-    ['Seafood meals', String(summary.seafoodMeals), 'This week'],
-    ['Oyster meals', String(summary.oysterMeals), 'This week'],
-    ['Avg coffee', String(summary.averageCoffee), 'Cups/day'],
+    [
+      t('review.nutrition.proteinTargetDays'),
+      String(summary.proteinTargetDays),
+      t('review.nutrition.proteinRange', { min: proteinMin, max: proteinMax }),
+    ],
+    [
+      t('review.nutrition.avgWater'),
+      t('review.nutrition.avgWaterValue', { value: summary.averageWater }),
+      t('review.nutrition.waterTarget'),
+    ],
+    [
+      t('review.nutrition.creatineDays'),
+      String(summary.creatineDays),
+      t('review.nutrition.creatineTarget'),
+    ],
+    [
+      t('review.nutrition.wheyDays'),
+      String(summary.wheyDays),
+      t('review.nutrition.wheyUsed'),
+    ],
+    [
+      t('review.nutrition.avgCalories'),
+      summary.averageCalories ? `${summary.averageCalories}` : '-',
+      t('review.nutrition.estimate'),
+    ],
+    [
+      t('review.nutrition.seafoodMeals'),
+      String(summary.seafoodMeals),
+      t('review.nutrition.thisWeek'),
+    ],
+    [
+      t('review.nutrition.oysterMeals'),
+      String(summary.oysterMeals),
+      t('review.nutrition.thisWeek'),
+    ],
+    [
+      t('review.nutrition.avgCoffee'),
+      String(summary.averageCoffee),
+      t('review.nutrition.cupsPerDay'),
+    ],
   ]
 
   return (
     <article className="dashboard-card nutrition-weekly-summary-card">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Nutrition Summary</p>
-          <h2>Protein, creatine, water</h2>
+          <p className="eyebrow">{t('review.nutrition.eyebrow')}</p>
+          <h2>{t('review.nutrition.title')}</h2>
         </div>
       </div>
       {summary.logCount > 0 ? (
@@ -45,7 +80,7 @@ export function NutritionWeeklySummary({ summary }) {
           </div>
         </>
       ) : (
-        <div className="chart-empty-state">No nutrition logs this week.</div>
+        <div className="chart-empty-state">{t('review.nutrition.empty')}</div>
       )}
     </article>
   )

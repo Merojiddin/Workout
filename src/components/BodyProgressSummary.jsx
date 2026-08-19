@@ -1,10 +1,13 @@
+import { useT } from '../i18n'
+
 export function BodyProgressSummary({ summary }) {
+  const t = useT()
   return (
     <article className="dashboard-card body-progress-summary-card">
       <div className="card-heading">
         <div>
-          <p className="eyebrow">Body Progress</p>
-          <h2>Latest check-in comparison</h2>
+          <p className="eyebrow">{t('review.body.eyebrow')}</p>
+          <h2>{t('review.body.title')}</h2>
         </div>
       </div>
       {summary?.hasCurrent ? (
@@ -19,8 +22,10 @@ export function BodyProgressSummary({ summary }) {
                 <strong>{formatMetric(metric.current, metric.unit)}</strong>
                 <p>
                   {metric.change === null
-                    ? 'No previous value'
-                    : `${formatChange(metric.change, metric.unit)} vs previous`}
+                    ? t('review.body.noPrevious')
+                    : t('review.body.vsPrevious', {
+                        change: formatChange(metric.change, metric.unit),
+                      })}
                 </p>
               </div>
             ))}

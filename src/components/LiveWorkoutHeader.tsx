@@ -1,5 +1,6 @@
 import { ChevronDown, Clock3 } from 'lucide-react'
 
+import { useT } from '../i18n'
 import { formatDuration } from '../utils/exerciseLoggingUtils'
 
 interface LiveWorkoutHeaderProps {
@@ -31,6 +32,7 @@ export function LiveWorkoutHeader({
   elapsedSeconds,
   onExit,
 }: LiveWorkoutHeaderProps) {
+  const t = useT()
   const progress = Math.min((doneSets / Math.max(totalSets, 1)) * 100, 100)
   const position = Math.min(currentExerciseIndex + 1, totalExercises)
 
@@ -38,7 +40,7 @@ export function LiveWorkoutHeader({
     <header className="live-header">
       <div className="live-header__top">
         <button
-          aria-label="Leave the workout screen - your progress is kept"
+          aria-label={t('live.header.exitAria')}
           className="live-header__exit"
           onClick={onExit}
           type="button"
@@ -49,7 +51,10 @@ export function LiveWorkoutHeader({
         <span className="live-header__name">{workoutName}</span>
 
         <span
-          aria-label={`Exercise ${position} of ${totalExercises}`}
+          aria-label={t('live.header.positionAria', {
+            current: position,
+            total: totalExercises,
+          })}
           className="live-header__count"
         >
           {position}/{totalExercises}
@@ -64,7 +69,7 @@ export function LiveWorkoutHeader({
       <div
         className="live-header__progress"
         role="progressbar"
-        aria-label="Sets completed"
+        aria-label={t('live.header.progressAria')}
         aria-valuemin={0}
         aria-valuemax={totalSets}
         aria-valuenow={doneSets}

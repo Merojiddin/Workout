@@ -5,6 +5,7 @@ import {
   type ExerciseMedia as ExerciseMediaFields,
   type LibraryExercise,
 } from '../data/exerciseLibrary'
+import { useT } from '../i18n'
 import { fileToBase64, resizeImageFile, validateImageFile } from '../utils/imageUtils'
 import { getEmbedVideoUrl } from '../utils/mediaUtils'
 
@@ -29,6 +30,7 @@ const defaultExercisesById = new Map(
  * the default library media for that exercise (when it has any).
  */
 export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorProps) {
+  const t = useT()
   const inputId = useId()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [open, setOpen] = useState(false)
@@ -83,13 +85,16 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
       const resized: File = await resizeImageFile(file, 960, 0.82)
       const dataUrl: string = await fileToBase64(resized)
       if (dataUrl.length > MAX_STORED_IMAGE_CHARS) {
-        setImageError('That image is too large to store. Try a smaller one.')
+        setImageError(t('mediaEditor.imageTooLarge'))
         return
       }
-      onSave({ imageUrl: dataUrl, imageAlt: `${exercise.name} — your photo` })
-      setNotice('Image saved.')
+      onSave({
+        imageUrl: dataUrl,
+        imageAlt: t('mediaEditor.yourPhotoAlt', { name: exercise.name }),
+      })
+      setNotice(t('mediaEditor.imageSaved'))
     } catch {
-      setImageError('Could not read that image. Try another one.')
+      setImageError(t('mediaEditor.imageUnreadable'))
     } finally {
       setIsProcessing(false)
     }
@@ -101,16 +106,14 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
       imageAlt: defaultEntry?.imageAlt ?? '',
     })
     setImageError(null)
-    setNotice('Image removed — default restored.')
+    setNotice(t('mediaEditor.imageRemoved'))
     fileInputRef.current?.focus()
   }
 
   function saveVideo() {
     const embedUrl = getEmbedVideoUrl(videoInput)
     if (embedUrl === '') {
-      setVideoError(
-        'Paste a valid YouTube link (watch, Shorts, youtu.be, or embed URL).',
-      )
+      setVideoError(t('mediaEditor.invalidVideo'))
       return
     }
 
@@ -118,7 +121,7 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
     onSave({
       videoUrl: embedUrl,
       videoType: 'youtube',
-      videoTitle: `${exercise.name} — your video`,
+      videoTitle: t('mediaEditor.yourVideoTitle', { name: exercise.name }),
     })
     setVideoInput('')
     setNotice('Video link saved.')
@@ -135,7 +138,7 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
       onSave({ videoUrl: '', videoType: 'none', videoTitle: '' })
     }
     setVideoError(null)
-    setNotice('Video removed — default restored.')
+    setNotice(t('mediaEditor.videoRemoved'))
   }
 
   return (
@@ -151,18 +154,22 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
         ) : (
           <ImagePlus size={18} strokeWidth={2.4} aria-hidden="true" />
         )}
-        {open ? 'Close media editor' : 'Add your own image / video'}
+        {open ? t('mediaEditor.close') : t('mediaEditor.open')}
       </button>
 
       {open ? (
         <div className="exercise-media-editor__body">
           <div className="exercise-media-editor__block">
-            <span className="image-upload__label">Your image</span>
+            <span className="image-upload__label">
+              {t('mediaEditor.yourImage')}
+            </span>
             {customImage ? (
               <div className="image-upload__preview">
                 <div className="image-upload__frame">
                   <img
-                    alt={`${exercise.name} custom preview`}
+                    alt={t('mediaEditor.customPreviewAlt', {
+                      name: exercise.name,
+                    })}
                     className="image-upload__thumb"
                     src={customImage}
                   />
@@ -173,7 +180,7 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
                   type="button"
                 >
                   <Trash2 size={16} strokeWidth={2.6} aria-hidden="true" />
-                  Remove — restore default
+                  {t('mediaEditor.removeRestore')}
                 </button>
               </div>
             ) : (
@@ -183,7 +190,11 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
                 ) : (
                   <ImagePlus size={22} strokeWidth={2.2} aria-hidden="true" />
                 )}
-                <span>{isProcessing ? 'Processing…' : 'Upload your photo'}</span>
+                <span>
+                  {isProcessing
+                    ? t('mediaEditor.processing')
+                    : t('mediaEditor.uploadPhoto')}
+                </span>
               </label>
             )}
             <input
@@ -196,7 +207,7 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
               type="file"
             />
             <p className="exercise-media-editor__hint">
-              Stored on this device only. Photos are resized automatically.
+              {t('mediaEditor.imageHint')}
             </p>
             {imageError ? (
               <span className="checkin-field__error">{imageError}</span>
@@ -204,7 +215,9 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
           </div>
 
           <div className="exercise-media-editor__block">
-            <span className="image-upload__label">Your video link</span>
+            <span className="image-upload__label">
+              {t('mediaEditor.yourVideo')}
+            </span>
             {customVideo ? (
               <div className="exercise-media-editor__current-video">
                 <Link2 size={16} strokeWidth={2.4} aria-hidden="true" />
@@ -217,7 +230,7 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
                   type="button"
                 >
                   <Trash2 size={16} strokeWidth={2.6} aria-hidden="true" />
-                  Remove — restore default
+                  {t('mediaEditor.removeRestore')}
                 </button>
               </div>
             ) : (
@@ -240,13 +253,12 @@ export function ExerciseMediaEditor({ exercise, onSave }: ExerciseMediaEditorPro
                   onClick={saveVideo}
                   type="button"
                 >
-                  Save video
+                  {t('mediaEditor.saveVideo')}
                 </button>
               </div>
             )}
             <p className="exercise-media-editor__hint">
-              YouTube links only (watch, Shorts, or youtu.be) — they play inside
-              the app.
+              {t('mediaEditor.videoHint')}
             </p>
             {videoError ? (
               <span className="checkin-field__error">{videoError}</span>

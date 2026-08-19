@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import { resolveExerciseLibraryEntry } from '../data/exerciseIdentity'
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
@@ -143,8 +144,8 @@ export function emptyActiveWorkoutProgram(): ActiveWorkoutProgram {
   return {
     programId: null,
     programVersion: null,
-    programName: 'No program yet',
-    description: 'Upload a program file to start training.',
+    programName: t('program.noneYet'),
+    description: t('program.uploadToStart'),
     durationWeeks: null,
     normalWeeklyDays: 0,
     days: [],
@@ -209,7 +210,7 @@ export function resolveActiveWorkoutProgramBaseline(): ActiveWorkoutProgramBasel
     activeProgram,
     managed: false,
     program: null,
-    error: 'No workout program is installed. Upload one to edit your plan.',
+    error: t('program.noneInstalled'),
   }
 }
 
@@ -229,7 +230,7 @@ export function resetWorkoutPlanDayToActiveProgram(
     return {
       success: false,
       code: 'invalid-day',
-      message: 'Choose a valid workout day to reset.',
+      message: t('program.chooseValidDay'),
       plan,
       baseline,
     }
@@ -238,7 +239,7 @@ export function resetWorkoutPlanDayToActiveProgram(
     return {
       success: false,
       code: 'baseline-unavailable',
-      message: `${baseline.error ?? 'The active program baseline is unavailable.'} No plan changes were saved.`,
+      message: `${baseline.error ?? t('program.baselineUnavailable')} No plan changes were saved.`,
       plan,
       baseline,
     }

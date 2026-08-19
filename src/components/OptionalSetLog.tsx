@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useT } from '../i18n'
 import type { ExerciseLoggingMode } from '../utils/exerciseLoggingUtils'
 import type { ActiveSet } from '../utils/liveWorkoutUtils'
 
@@ -40,6 +41,7 @@ export function OptionalSetLog({
   onChange,
   onAddSet,
 }: OptionalSetLogProps) {
+  const t = useT()
   const [reps, setReps] = useState('')
   const [seconds, setSeconds] = useState('')
   const [weight, setWeight] = useState('')
@@ -85,9 +87,9 @@ export function OptionalSetLog({
   const timed = loggingMode === 'duration'
 
   return (
-    <section className="optional-log" aria-label="Log this set (optional)">
+    <section className="optional-log" aria-label={t('live.log.aria')}>
       <label className="optional-log__field" htmlFor="optional-log-primary">
-        <span>{timed ? 'Sec' : 'Reps'}</span>
+        <span>{timed ? t('live.log.seconds') : t('live.log.reps')}</span>
         <input
           id="optional-log-primary"
           inputMode="numeric"
@@ -109,7 +111,7 @@ export function OptionalSetLog({
       </label>
 
       <label className="optional-log__field" htmlFor="optional-log-weight">
-        <span>Kg</span>
+        <span>{t('live.log.weight')}</span>
         <input
           id="optional-log-weight"
           inputMode="decimal"
@@ -127,7 +129,7 @@ export function OptionalSetLog({
       </label>
 
       <button
-        aria-label="Add another set to this exercise"
+        aria-label={t('live.log.addSet')}
         className="optional-log__add"
         onClick={onAddSet}
         type="button"

@@ -1,3 +1,5 @@
+import { t } from '../i18n/t'
+
 export type ExerciseLoggingMode = 'reps' | 'duration'
 
 export interface ExerciseLoggingTarget {
@@ -109,12 +111,14 @@ export function getExerciseTarget(
 ): string {
   const reps = firstText(exercise?.repRange, exercise?.targetReps)
   if (getExerciseLoggingMode(exercise) === 'reps' && reps) {
-    return `${reps} reps`
+    return t('target.reps', { reps })
   }
 
+  // Duration targets are written by the program ("45 sec", "2 min"), so they
+  // are passed through as-is rather than reworded.
   return (
     firstText(exercise?.duration, exercise?.targetDuration, exercise?.targetReps) ||
-    'controlled work'
+    t('target.controlledWork')
   )
 }
 

@@ -1,6 +1,7 @@
 import { Dumbbell } from 'lucide-react'
 import { navigationItems } from '../data/navigation'
 import { useProfileIdentity } from '../hooks/useProfileIdentity'
+import { useT } from '../i18n'
 import { ProfileAvatar } from './ProfileAvatar'
 import type { PageId } from '../types/navigation'
 
@@ -11,14 +12,16 @@ interface SidebarProps {
 
 export function Sidebar({ activePage, onNavigate }: SidebarProps) {
   const { avatarDataUrl, initials, name } = useProfileIdentity()
+  const t = useT()
+  const profileLabel = t('nav.profile')
 
   return (
-    <aside className="sidebar" aria-label="Main navigation">
+    <aside className="sidebar" aria-label={t('nav.main')}>
       <div className="brand-mark">
         <span className="brand-mark__icon" aria-hidden="true">
           <Dumbbell size={22} strokeWidth={2.4} />
         </span>
-        <span>Workout OS</span>
+        <span>{t('brand.name')}</span>
       </div>
 
       <nav className="nav-list">
@@ -34,7 +37,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
               type="button"
             >
               <Icon size={18} strokeWidth={2.2} aria-hidden="true" />
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </button>
           )
         })}
@@ -42,7 +45,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
         {/* Same account entry as the mobile bar, so both navs agree. */}
         <button
           aria-current={activePage === 'profile' ? 'page' : undefined}
-          aria-label={`${name || 'Profile'} - open your profile`}
+          aria-label={t('nav.openProfile', { name: name || profileLabel })}
           className="nav-button nav-button--profile"
           onClick={() => onNavigate('profile')}
           type="button"
@@ -52,7 +55,7 @@ export function Sidebar({ activePage, onNavigate }: SidebarProps) {
             initials={initials}
             size={26}
           />
-          <span>{name || 'Profile'}</span>
+          <span>{name || profileLabel}</span>
         </button>
       </nav>
     </aside>

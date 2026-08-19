@@ -1,6 +1,7 @@
 import { Pause, Play } from 'lucide-react'
 
 import type { LiveTimerView } from '../hooks/useLiveTimer'
+import { t, useT } from '../i18n'
 import { getExerciseTarget } from '../utils/exerciseLoggingUtils'
 import type { ActiveExercise } from '../utils/liveWorkoutUtils'
 import { isDoneSet } from '../utils/liveWorkoutUtils'
@@ -25,6 +26,7 @@ export function LiveRoundStats({
   onToggleTimer,
   timer,
 }: LiveRoundStatsProps) {
+  const translate = useT()
   const doneSets = exercise.sets.filter(isDoneSet).length
   const totalSets = exercise.sets.length
   const timing = timer.mode === 'work'
@@ -39,7 +41,11 @@ export function LiveRoundStats({
         <div className="round-meter round-meter--target">
           <span>{shortTarget(exercise)}</span>
         </div>
-        <small>{exercise.loggingMode === 'duration' ? 'Time' : 'Reps'} target</small>
+        <small>
+          {exercise.loggingMode === 'duration'
+            ? translate('live.stats.timeTarget')
+            : translate('live.stats.repsTarget')}
+        </small>
       </div>
 
       <div className="round-stat">
@@ -67,7 +73,7 @@ export function LiveRoundStats({
             {doneSets}/{totalSets}
           </span>
         </div>
-        <small>Sets done</small>
+        <small>{translate('live.stats.setsDone')}</small>
       </div>
     </div>
   )
@@ -87,23 +93,31 @@ function meterClass(timer: LiveTimerView): string {
 
 function timerLabel(timing: boolean, running: boolean): string {
   if (timing) {
-    return running ? 'Pause the set timer' : 'Start the set timer'
+    return running ? t('live.stats.pauseSet') : t('live.stats.startSet')
   }
 
-  return running ? 'Pause the rest countdown' : 'Start the rest countdown'
+  return running ? t('live.stats.pauseRest') : t('live.stats.startRest')
 }
 
 /** One word under the ring for what the clock is doing. */
 function timerCaption(timer: LiveTimerView, held: boolean): string {
   if (timer.mode === 'rest') {
-    return timer.running ? 'Resting' : held ? 'Paused' : 'Rest'
+    return timer.running
+      ? t('live.stats.resting')
+      : held
+        ? t('live.stats.paused')
+        : t('live.stats.rest')
   }
 
   if (timer.pastGoal) {
-    return timer.running ? 'Time hit' : 'Done'
+    return timer.running ? t('live.stats.timeHit') : t('live.stats.done')
   }
 
-  return timer.running ? 'Timing' : held ? 'Paused' : 'Time'
+  return timer.running
+    ? t('live.stats.timing')
+    : held
+      ? t('live.stats.paused')
+      : t('live.stats.time')
 }
 
 /**

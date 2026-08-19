@@ -63,6 +63,7 @@ import {
 } from '../utils/settingsUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 import { useAuth } from '../context/AuthContext'
+import { t as translateText, useLanguage, useT } from '../i18n'
 import { useProfileIdentity } from '../hooks/useProfileIdentity'
 import * as workoutService from '../services/workoutService'
 import type { PageId } from '../types/navigation'
@@ -86,6 +87,7 @@ type Screen = 'prompt' | 'intro' | 'active' | 'finished'
 
 export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   const { user } = useAuth()
+  const { language, t } = useLanguage()
   const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
   const plan = activeProgram.days
   const todayWorkout = useMemo(
@@ -100,9 +102,11 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     () => getWorkoutDisplaySettings() as WorkoutDisplaySettings,
     [],
   )
+  // Keyed on the language too: the guidance text is built in whichever one
+  // is active, so a switch mid-session has to rebuild it.
   const nutrition = useMemo(
     () => getNutritionGuidance(activeProgram.coaching),
-    [activeProgram],
+    [activeProgram, language],
   )
   // Auto-derived from the install date so no week picker is needed on screen.
   const programWeek = useMemo(() => getCurrentProgramWeek(activeProgram), [activeProgram])
@@ -304,9 +308,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
       // History could not be written, so the active workout is deliberately
       // still on screen and still saved. Losing it silently would be worse.
       commit(target)
-      setFinishError(
-        'Could not save this workout - device storage is full. Free up space (More > Settings > Backup) and press Finish again. Your workout is still here.',
-      )
+      setFinishError(t('workout.saveFailed'))
       return
     }
 
@@ -348,10 +350,8 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
             const doneSets = getDoneSetsCount(session)
             const confirmed = window.confirm(
               doneSets > 0
-                ? `Discard this workout? ${doneSets} completed ${
-                    doneSets === 1 ? 'set' : 'sets'
-                  } will be deleted and cannot be recovered.`
-                : 'Discard this workout? It cannot be recovered.',
+                ? t('workout.discardConfirm', { count: doneSets })
+                : t('workout.discardConfirmEmpty'),
             )
             if (!confirmed) {
               return
@@ -428,6 +428,7 @@ function PreWorkoutScreen({
   selectedDay,
 }: PreWorkoutScreenProps) {
   const { firstName } = useProfileIdentity()
+  const t = useT()
   const [location, setLocation] = useState<TrainingLocation>('home')
   const [showPicker, setShowPicker] = useState(false)
 
@@ -458,8 +459,12 @@ function PreWorkoutScreen({
     <section className="workout-page workout-page--intro">
       <header className="home-greeting">
         <div>
-          <h1>{firstName ? `Hi, ${firstName}` : 'Ready to train'}</h1>
-          <p>Ready for today&apos;s session?</p>
+          <h1>
+            {firstName
+              ? t('workout.greeting', { name: firstName })
+              : t('workout.greetingAnonymous')}
+          </h1>
+          <p>{t('workout.greetingSub')}</p>
         </div>
       </header>
 
@@ -467,7 +472,7 @@ function PreWorkoutScreen({
       <article className="plan-card">
         <div className="plan-card__top">
           <div>
-            <p className="eyebrow">Current plan</p>
+            <p className="eyebrow">{t('workout.currentPlan')}</p>
             <h2>{activeProgram.programName}</h2>
           </div>
           <Dumbbell
@@ -491,7 +496,10 @@ function PreWorkoutScreen({
             </div>
             <div className="plan-card__foot">
               <span>
-                Week {programWeek} of {activeProgram.durationWeeks}
+                {t('workout.weekOf', {
+                  week: programWeek,
+                  total: activeProgram.durationWeeks,
+                })}
               </span>
               <span>
                 {Math.min(
@@ -506,8 +514,8 @@ function PreWorkoutScreen({
       </article>
 
       <div className="section-title">
-        <h2>Today&apos;s workout</h2>
-        <span>Day {selectedDay.day}</span>
+        <h2>{t('workout.todaysWorkout')}</h2>
+        <span>{t('workout.dayNumber', { day: selectedDay.day })}</span>
       </div>
 
       <article className="today-card">
@@ -517,7 +525,7 @@ function PreWorkoutScreen({
             <p className="today-card__pills">
               <span>
                 <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
-                {exercises.length} exercises
+                {t('workout.exerciseCount', { count: exercises.length })}
               </span>
               <span>
                 <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
@@ -530,12 +538,16 @@ function PreWorkoutScreen({
         {easyWeek && phase ? (
           <p className="today-intro__notice">
             <ShieldAlert size={15} strokeWidth={2.4} aria-hidden="true" />
-            {phase.name}: keep it easy and do not chase a heavier load this week.
+            {t('workout.easyWeekNotice', { phase: phase.name })}
           </p>
         ) : null}
 
         {hasLocationChoice ? (
-          <div className="location-toggle" role="group" aria-label="Training location">
+          <div
+            className="location-toggle"
+            role="group"
+            aria-label={t('workout.trainingLocation')}
+          >
             <button
               aria-pressed={location === 'home'}
               className={location === 'home' ? 'is-active' : ''}
@@ -543,7 +555,7 @@ function PreWorkoutScreen({
               type="button"
             >
               <Home size={16} strokeWidth={2.4} aria-hidden="true" />
-              Home
+              {t('workout.locationHome')}
             </button>
             <button
               aria-pressed={location === 'gym'}
@@ -552,7 +564,7 @@ function PreWorkoutScreen({
               type="button"
             >
               <Building2 size={16} strokeWidth={2.4} aria-hidden="true" />
-              Gym
+              {t('workout.locationGym')}
             </button>
           </div>
         ) : null}
@@ -564,7 +576,7 @@ function PreWorkoutScreen({
             type="button"
           >
             <Play size={21} strokeWidth={2.4} aria-hidden="true" />
-            Start workout
+            {t('workout.start')}
           </button>
         ) : null}
       </article>
@@ -581,7 +593,7 @@ function PreWorkoutScreen({
                 strokeWidth={2.2}
               />
               <strong>{exercises.length}</strong>
-              <span>exercises</span>
+              <span>{t('workout.statExercises')}</span>
             </div>
             <div className="summary-stat">
               <Layers
@@ -591,7 +603,7 @@ function PreWorkoutScreen({
                 strokeWidth={2.2}
               />
               <strong>{totalSets}</strong>
-              <span>working sets</span>
+              <span>{t('workout.statWorkingSets')}</span>
             </div>
             <div className="summary-stat">
               <Clock3
@@ -601,12 +613,12 @@ function PreWorkoutScreen({
                 strokeWidth={2.2}
               />
               <strong>{selectedDay.estimatedTime.replace(/\s*min\s*$/i, '')}</strong>
-              <span>minutes</span>
+              <span>{t('workout.statMinutes')}</span>
             </div>
           </div>
 
           <div className="section-title">
-            <h2>Exercises</h2>
+            <h2>{t('workout.exercisesHeading')}</h2>
             <span>{exercises.length}</span>
           </div>
 
@@ -627,13 +639,13 @@ function PreWorkoutScreen({
         </>
       ) : (
         <article className="today-empty">
-          <p>This day has no exercises yet.</p>
+          <p>{t('workout.emptyDay')}</p>
           <button
             className="workout-secondary-button"
             onClick={() => onNavigate('weekly-plan')}
             type="button"
           >
-            View weekly plan
+            {t('workout.viewWeeklyPlan')}
           </button>
         </article>
       )}
@@ -644,11 +656,15 @@ function PreWorkoutScreen({
         onClick={() => setShowPicker((open) => !open)}
         type="button"
       >
-        {showPicker ? 'Hide other workouts' : 'Train a different day'}
+        {showPicker ? t('workout.hideOtherDays') : t('workout.showOtherDays')}
       </button>
 
       {showPicker ? (
-        <div className="today-picker" role="group" aria-label="Choose a workout">
+        <div
+          className="today-picker"
+          role="group"
+          aria-label={t('workout.chooseWorkout')}
+        >
           {activeProgram.days.map((day) => (
             <button
               aria-pressed={day.day === selectedDay.day}
@@ -675,7 +691,7 @@ function PreWorkoutScreen({
               type="button"
             >
               <strong>{workout.name}</strong>
-              <small>Extra · starts now</small>
+              <small>{t('workout.extraStartsNow')}</small>
             </button>
           ))}
         </div>
@@ -727,6 +743,7 @@ function LiveWorkoutScreen({
   restSignal,
   session,
 }: LiveWorkoutScreenProps) {
+  const t = useT()
   const [listOpen, setListOpen] = useState(false)
   const [swapOpen, setSwapOpen] = useState(false)
   const [showFormGuide, setShowFormGuide] = useState(false)
@@ -790,10 +807,10 @@ function LiveWorkoutScreen({
     return (
       <section className="workout-page workout-page--intro">
         <article className="today-empty">
-          <p>This workout has no exercises to work through.</p>
+          <p>{t('workout.emptySession')}</p>
           <button className="workout-primary-button" onClick={onFinish} type="button">
             <Flag size={19} strokeWidth={2.4} aria-hidden="true" />
-            Finish
+            {t('live.finish')}
           </button>
         </article>
       </section>
@@ -824,11 +841,7 @@ function LiveWorkoutScreen({
   function endWorkout() {
     const left = getTotalPlannedSets(session) - getDoneSetsCount(session)
     if (left > 0) {
-      const confirmed = window.confirm(
-        `End the workout here? ${left} planned ${
-          left === 1 ? 'set is' : 'sets are'
-        } still left. Everything you have already done is saved.`,
-      )
+      const confirmed = window.confirm(t('workout.endConfirm', { count: left }))
       if (!confirmed) {
         return
       }
@@ -860,11 +873,16 @@ function LiveWorkoutScreen({
         ) : null}
 
         <article className="live-exercise">
-          <p className="eyebrow">{exercise.muscleGroup || 'Exercise'}</p>
+          <p className="eyebrow">
+            {exercise.muscleGroup || t('live.exerciseFallback')}
+          </p>
           <h1>{exercise.exerciseName}</h1>
           <p className="live-exercise__target">
-            Set {Math.min(setIndex + 1, totalSets)} of {totalSets} ·{' '}
-            {getExerciseTarget(exercise)}
+            {t('live.setOf', {
+              current: Math.min(setIndex + 1, totalSets),
+              total: totalSets,
+              target: getExerciseTarget(exercise),
+            })}
           </p>
 
           {formGuideExercise && displaySettings.showExerciseImages !== false ? (
@@ -881,7 +899,7 @@ function LiveWorkoutScreen({
               <div className="live-side-actions">
                 {canSwap ? (
                   <button
-                    aria-label="Swap this exercise for an alternative"
+                    aria-label={t('live.swapAria')}
                     className="live-side-action"
                     onClick={() => setSwapOpen(true)}
                     type="button"
@@ -891,7 +909,7 @@ function LiveWorkoutScreen({
                 ) : null}
                 {formGuideExercise ? (
                   <button
-                    aria-label="Form guide, tips and video"
+                    aria-label={t('live.formGuideAria')}
                     className="live-side-action"
                     onClick={() => setShowFormGuide(true)}
                     type="button"
@@ -913,7 +931,7 @@ function LiveWorkoutScreen({
                   type="button"
                 >
                   <Repeat size={15} strokeWidth={2.4} aria-hidden="true" />
-                  Swap exercise ({exercise.variants.length})
+                  {t('live.swapWithCount', { count: exercise.variants.length })}
                 </button>
               ) : null}
               {formGuideExercise ? (
@@ -923,7 +941,7 @@ function LiveWorkoutScreen({
                   type="button"
                 >
                   <BookOpen size={15} strokeWidth={2.4} aria-hidden="true" />
-                  Form guide, tips and video
+                  {t('live.formGuide')}
                 </button>
               ) : null}
             </div>
@@ -947,13 +965,13 @@ function LiveWorkoutScreen({
         {/* Ending the workout is deliberate, not something to fumble into
             next to Next set, so it sits down here past the sets. */}
         <button
-          aria-label="End the workout here"
+          aria-label={t('live.endAria')}
           className="live-end-workout"
           onClick={endWorkout}
           type="button"
         >
           <Square size={15} strokeWidth={2.6} aria-hidden="true" />
-          End workout
+          {t('live.end')}
         </button>
       </div>
 
@@ -972,7 +990,7 @@ function LiveWorkoutScreen({
 
         <div className="live-dock__row">
           <button
-            aria-label="Go back one set"
+            aria-label={t('live.backOneSet')}
             className="live-dock__back"
             disabled={atStart}
             onClick={onBack}
@@ -989,41 +1007,41 @@ function LiveWorkoutScreen({
             {isLastSet && isLastExercise ? (
               <>
                 <Flag size={20} strokeWidth={2.4} aria-hidden="true" />
-                Finish workout
+                {t('live.finishWorkout')}
               </>
             ) : isLastSet ? (
               <>
                 <Check size={20} strokeWidth={2.4} aria-hidden="true" />
-                Next exercise
+                {t('live.nextExercise')}
               </>
             ) : (
               <>
                 <Check size={20} strokeWidth={2.4} aria-hidden="true" />
-                Next set
+                {t('live.nextSet')}
               </>
             )}
           </button>
 
           <button
-            aria-label="Skip to the next exercise"
+            aria-label={t('live.skipAria')}
             className="live-tool"
             disabled={isLastExercise}
             onClick={() => onGoToExercise(exerciseIndex + 1)}
             type="button"
           >
             <SkipForward size={17} strokeWidth={2.4} aria-hidden="true" />
-            <span>Skip</span>
+            <span>{t('live.skip')}</span>
           </button>
 
           <button
-            aria-label={`Rest of the workout, ${remainingCount} left`}
+            aria-label={t('live.listAria', { count: remainingCount })}
             aria-pressed={listOpen}
             className={`live-tool${listOpen ? ' live-tool--on' : ''}`}
             onClick={() => setListOpen((open) => !open)}
             type="button"
           >
             <ListChecks size={17} strokeWidth={2.4} aria-hidden="true" />
-            <span>List ({remainingCount})</span>
+            <span>{t('live.list', { count: remainingCount })}</span>
           </button>
         </div>
       </div>
@@ -1100,14 +1118,25 @@ function getProgramWeekGuidance(
     item.weeks.includes(programWeek),
   )
   if (!phase) {
-    return [`Program week ${programWeek}. Follow the prescribed sets and effort.`]
+    return [translateText('guidance.programWeek', { week: programWeek })]
   }
 
+  // The phase's own wording comes from the installed program's JSON, so it
+  // stays in whatever language that program was written in; only the labels
+  // around it are translated.
   return [
-    `Week ${programWeek} — ${phase.name}: ${phase.volumeGuidance}`,
+    translateText('guidance.weekPhase', {
+      week: programWeek,
+      phase: phase.name,
+      guidance: phase.volumeGuidance,
+    }),
     phase.rirGuidance,
-    ...phase.priorities.map((priority) => `Priority: ${priority}`),
-    ...(phase.restrictions ?? []).map((restriction) => `Restriction: ${restriction}`),
+    ...phase.priorities.map((priority) =>
+      translateText('guidance.priority', { value: priority }),
+    ),
+    ...(phase.restrictions ?? []).map((restriction) =>
+      translateText('guidance.restriction', { value: restriction }),
+    ),
   ].filter((item) => item.trim().length > 0)
 }
 

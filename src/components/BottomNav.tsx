@@ -1,5 +1,6 @@
 import { navigationItems } from '../data/navigation'
 import { useProfileIdentity } from '../hooks/useProfileIdentity'
+import { useT } from '../i18n'
 import { ProfileAvatar } from './ProfileAvatar'
 import type { PageId } from '../types/navigation'
 
@@ -10,9 +11,11 @@ interface BottomNavProps {
 
 export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
   const { avatarDataUrl, firstName, initials, name } = useProfileIdentity()
+  const t = useT()
+  const profileLabel = t('nav.profile')
 
   return (
-    <nav className="bottom-nav" aria-label="Mobile navigation">
+    <nav className="bottom-nav" aria-label={t('nav.mobile')}>
       {navigationItems.map((item) => {
         const Icon = item.icon
 
@@ -25,7 +28,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
             type="button"
           >
             <Icon size={19} strokeWidth={2.3} aria-hidden="true" />
-            <span>{item.shortLabel ?? item.label}</span>
+            <span>{t(item.shortLabelKey ?? item.labelKey)}</span>
           </button>
         )
       })}
@@ -33,7 +36,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
       {/* The account tab: photo and name, the way every other app puts it. */}
       <button
         aria-current={activePage === 'profile' ? 'page' : undefined}
-        aria-label={`${name || 'Profile'} - open your profile`}
+        aria-label={t('nav.openProfile', { name: name || profileLabel })}
         className="bottom-nav__button bottom-nav__button--profile"
         onClick={() => onNavigate('profile')}
         type="button"
@@ -44,7 +47,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
           initials={initials}
           size={22}
         />
-        <span>{firstName || 'Profile'}</span>
+        <span>{firstName || profileLabel}</span>
       </button>
     </nav>
   )

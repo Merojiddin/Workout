@@ -1,4 +1,5 @@
 import { Utensils } from 'lucide-react'
+import { useT } from '../i18n'
 import type { NutritionGuidance } from '../utils/postWorkoutNutrition'
 
 interface PostWorkoutNutritionCardProps {
@@ -15,6 +16,7 @@ export function PostWorkoutNutritionCard({
   guidance,
   variant = 'after-workout',
 }: PostWorkoutNutritionCardProps) {
+  const t = useT()
   const { meal } = guidance
 
   return (
@@ -25,7 +27,9 @@ export function PostWorkoutNutritionCard({
         </span>
         <div>
           <h2 id="nutrition-advice-title">
-            {variant === 'after-workout' ? 'Eat this next' : 'After a workout'}
+            {variant === 'after-workout'
+              ? t('nutrition.card.afterWorkout')
+              : t('nutrition.card.page')}
           </h2>
           <p>{meal.summary}</p>
           <p className="nutrition-advice__timing">{meal.timing}</p>

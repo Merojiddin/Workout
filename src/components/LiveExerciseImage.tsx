@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { LibraryExercise } from '../data/exerciseLibrary'
+import { useT } from '../i18n'
 import {
   DEFAULT_EXERCISE_IMAGE,
   getExerciseImage,
@@ -21,6 +22,7 @@ export function LiveExerciseImage({
   exercise,
   onOpenFormGuide,
 }: LiveExerciseImageProps) {
+  const t = useT()
   const source = getExerciseImage(exercise)
   const [src, setSrc] = useState(source)
   const [hidden, setHidden] = useState(false)
@@ -59,7 +61,7 @@ export function LiveExerciseImage({
 
   return (
     <button
-      aria-label={`Open the form guide for ${exercise.name}`}
+      aria-label={t('live.openFormGuideFor', { name: exercise.name })}
       className="live-exercise__figure live-exercise__figure--button"
       onClick={onOpenFormGuide}
       type="button"

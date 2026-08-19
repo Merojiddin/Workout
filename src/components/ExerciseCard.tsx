@@ -1,6 +1,13 @@
 import { ArrowRight, PlayCircle, Quote } from 'lucide-react'
 import { useState } from 'react'
 import type { Difficulty, LibraryExercise } from '../data/exerciseLibrary'
+import { useLanguage } from '../i18n'
+import {
+  getExerciseCopy,
+  translateCategory,
+  translateDifficulty,
+  translateEquipment,
+} from '../i18n/exercises'
 import {
   DEFAULT_EXERCISE_IMAGE,
   getExerciseImage,
@@ -25,6 +32,11 @@ function difficultyVariant(difficulty: Difficulty): TagVariant {
 }
 
 export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
+  const { language, t } = useLanguage()
+  // The card reads the translated copy but hands the untranslated exercise
+  // back to `onView`: the modal, the filters and the media lookups all key off
+  // the English record.
+  const copy = getExerciseCopy(exercise, language)
   const [imageFailed, setImageFailed] = useState(false)
   const hasVideo = getExerciseVideo(exercise) !== ''
   const thumbnail = imageFailed ? DEFAULT_EXERCISE_IMAGE : getExerciseImage(exercise)
@@ -33,7 +45,7 @@ export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
     <article className="exercise-card">
       <div className="exercise-card__thumb">
         <img
-          alt={getExerciseImageAlt(exercise)}
+          alt={getExerciseImageAlt(copy)}
           loading="lazy"
           onError={() => setImageFailed(true)}
           src={thumbnail}
@@ -41,25 +53,29 @@ export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
         {hasVideo ? (
           <span className="exercise-card__video-badge">
             <PlayCircle size={14} strokeWidth={2.4} aria-hidden="true" />
-            Video
+            {t('library.card.video')}
           </span>
         ) : null}
       </div>
 
       <div className="exercise-card__top">
         <div className="exercise-card__titles">
-          <Tag variant="category">{exercise.category}</Tag>
-          <h3>{exercise.name}</h3>
+          <Tag variant="category">
+            {translateCategory(exercise.category, language)}
+          </Tag>
+          <h3>{copy.name}</h3>
         </div>
         <Tag variant={difficultyVariant(exercise.difficulty)}>
-          {exercise.difficulty}
+          {translateDifficulty(exercise.difficulty, language)}
         </Tag>
       </div>
 
       <div className="exercise-card__section">
-        <span className="exercise-card__label">Primary muscles</span>
+        <span className="exercise-card__label">
+          {t('library.card.primaryMuscles')}
+        </span>
         <div className="tag-row">
-          {exercise.primaryMuscles.map((muscle) => (
+          {copy.primaryMuscles.map((muscle) => (
             <Tag key={muscle} variant="muscle">
               {muscle}
             </Tag>
@@ -68,11 +84,11 @@ export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
       </div>
 
       <div className="exercise-card__section">
-        <span className="exercise-card__label">Equipment</span>
+        <span className="exercise-card__label">{t('library.card.equipment')}</span>
         <div className="tag-row">
           {exercise.equipment.map((item) => (
             <Tag key={item} variant="equipment">
-              {item}
+              {translateEquipment(item, language)}
             </Tag>
           ))}
         </div>
@@ -80,7 +96,7 @@ export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
 
       <p className="exercise-card__cue">
         <Quote size={15} strokeWidth={2.4} aria-hidden="true" />
-        {exercise.formCue}
+        {copy.formCue}
       </p>
 
       <button
@@ -88,7 +104,7 @@ export function ExerciseCard({ exercise, onView }: ExerciseCardProps) {
         onClick={() => onView(exercise)}
         type="button"
       >
-        View Details
+        {t('library.card.viewDetails')}
         <ArrowRight size={18} strokeWidth={2.4} aria-hidden="true" />
       </button>
     </article>
