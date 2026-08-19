@@ -8533,8 +8533,8 @@ body {
    Source and refresh instructions: docs/exercise-gifs.md
    --------------------------------------------------------------------------- */
 
-/* The GIFs are 180x180. A 16/9 frame would letterbox them into a thin strip,
-   so the animation gets a squarer frame and is capped well under 2x upscale. */
+/* Most bundled GIFs are 180x180. A 16/9 frame would letterbox them into a thin
+   strip, so image animations get a squarer frame and stay under 2x upscale. */
 .exercise-media__figure--gif {
   display: flex;
   flex-direction: column;
@@ -8551,12 +8551,23 @@ body {
   width: 100%;
 }
 
+/* Some explicit animation overrides use the source site's more efficient
+   looping MP4. Preserve that media's native widescreen presentation. */
+.exercise-media__gif--video {
+  aspect-ratio: 16 / 9;
+  max-width: 100%;
+}
+
 .exercise-media__figure--gif .exercise-media__caption {
   align-self: stretch;
 }
 
 .exercise-media--compact .exercise-media__gif {
   max-width: 210px;
+}
+
+.exercise-media--compact .exercise-media__gif--video {
+  max-width: 100%;
 }
 
 .exercise-media__switch {

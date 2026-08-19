@@ -1,5 +1,10 @@
 # Exercise media audit
 
+> Historical ExerciseDB/YouTube audit. The later Planfit migration maps all
+> 167 library exercises to hosted Planfit thumbnails and looping MP4s in
+> `src/data/planfitExerciseMedia.ts`; the 96 GIFs below now describe bundled
+> ExerciseDB fallback coverage, not primary online animation coverage.
+
 Audited 2026-08-19 against the 1,500-record ExerciseDB JSON snapshot and the live YouTube oEmbed endpoint.
 
 - Original scope: 114 GIF mappings and 35 explicit `videoUrl` declarations (34 non-empty).

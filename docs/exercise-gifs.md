@@ -15,6 +15,28 @@ GIFs are **downloaded into the repo**, not hot-linked, so the app still works
 offline and does not break if the CDN goes away. They are 180x180 (96 files,
 9,446,781 bytes / 9.01 MiB total, 96.1 KiB average).
 
+### Primary Planfit library media
+
+Every one of the 167 bundled library exercises now has a curated match in
+Planfit's public [exercise guide](https://planfit.ai/en/exercise). Planfit calls
+the movement media a "gif", but serves it as a muted, looping MP4 alongside a
+PNG thumbnail. The app references those hosted, watermarked assets directly;
+they are not copied into this repository and require a network connection.
+
+`src/data/planfitExerciseMedia.ts` is the durable local-ID-to-Planfit-ID map.
+It contains 136 distinct Planfit records: 102 high-confidence matches, 24 close
+matches with a small modifier or equipment difference, and 41 explicitly
+documented low-confidence fallbacks where Planfit has no faithful playable
+clip. Every selected thumbnail and MP4 returned HTTP 200 with the expected
+media type at the time of the migration. Do not silently replace a low-
+confidence entry: review the visible movement and keep its `note` current.
+
+The bundled ExerciseDB files and `src/data/exerciseGifs.ts` remain in the repo
+for rollback or a future explicit offline-fallback path. They are not selected
+automatically while a Planfit mapping exists. They are still managed only by
+`scripts/fetch-exercise-gifs.mjs`; the refresh script never overwrites the
+Planfit mapping.
+
 ### Do not page the public API
 
 `oss.exercisedb.dev` is behind an aggressive Cloudflare rate limit (`error code:
@@ -38,19 +60,30 @@ deliberately **not** re-run by the refresh script, so results cannot silently
 drift. The map includes hand-picked overrides from the original pass and later
 media audits.
 
-## Adding a new one
+## Adding a new Planfit mapping
+
+1. Search the official Planfit exercise guide, including alternate naming.
+2. Compare the equipment, stance, movement path, and defining modifiers with
+   the local coaching text. Do not match on the title alone.
+3. Confirm both `training-image/<id>_thumbnail.png` and
+   `training-videos-watermarked/<id>.mp4` return the expected media types.
+4. Add the reviewed ID, slug, source name, confidence, and any mismatch note to
+   `src/data/planfitExerciseMedia.ts`.
+
+## Adding a bundled ExerciseDB fallback
 
 1. Find the movement in the dataset JSON (match on `name` / `targetMuscles`).
 2. Add an entry to `src/data/exerciseGifs.ts` with its `exerciseId`.
 3. Run `node scripts/fetch-exercise-gifs.mjs`.
 
-If the dataset has no faithful animation, **leave it out**. The app falls back to
-the existing photo or category placeholder, and showing the wrong movement is
-worse than showing none.
+If the dataset has no faithful animation, **leave it out**. The Planfit media
+remains primary online, and a missing bundled fallback is better than teaching
+the wrong movement offline.
 
-## Exercises intentionally left without an animation
+## Exercises intentionally left without a bundled ExerciseDB fallback
 
-71 of our 167 library exercises have no GIF.
+71 of the 167 library exercises have no local ExerciseDB GIF. This is the
+offline-fallback inventory, not the primary Planfit coverage described above.
 
 ### No faithful match exists in the dataset (70)
 

@@ -40,9 +40,16 @@ export interface ExerciseMediaSource {
   videoUrl?: string
   videoType?: string
   videoTitle?: string
-  /** Explicit animation URL, which wins over the bundled one. */
+  /** Explicit animation URL (GIF or looping video), which wins over the bundled one. */
   gifUrl?: string
   gifAlt?: string
+}
+
+const animationVideoPattern = /\.(?:mp4|webm)(?:$|[?#])/i
+
+/** Whether an animation URL needs the looping video renderer instead of an image. */
+export function isExerciseAnimationVideo(url: unknown): boolean {
+  return typeof url === 'string' && animationVideoPattern.test(url.trim())
 }
 
 const youtubeHosts = new Set([
@@ -120,7 +127,9 @@ export function getExerciseImage(exercise: ExerciseMediaSource | null | undefine
 }
 
 /**
- * Looping animation for an exercise, or '' when there is none.
+ * Looping animation for an exercise, or '' when there is none. Existing
+ * callers use the historical "gif" name, but explicit overrides may also be
+ * browser-playable MP4/WebM clips.
  *
  * An explicit gifUrl on the exercise wins (a user can attach their own), then
  * the bundled ExerciseDB animation keyed by library id. See

@@ -1,3 +1,5 @@
+import { getPlanfitExerciseMedia } from './planfitExerciseMedia'
+
 export type ExerciseCategory =
   | 'Chest'
   | 'Back'
@@ -52,8 +54,8 @@ export interface ExerciseMedia {
   videoTitle?: string
   /**
    * Looping animation of the movement, shown alongside the video behind a
-   * toggle. Bundled under "/exercise-gifs/<id>.gif" so it works offline.
-   * Source: ExerciseDB (https://oss.exercisedb.dev).
+   * toggle. Usually a bundled ExerciseDB GIF; explicit MP4/WebM overrides are
+   * supported for source-hosted exercise media.
    */
   gifUrl?: string
   gifAlt?: string
@@ -5321,26 +5323,23 @@ const baseExerciseLibrary: LibraryExercise[] = [
 // ---------------------------------------------------------------------------
 // Exercise media (Step 18)
 //
-// One place to add or replace images and videos. Keyed by exercise id.
-//  - Every bundled exercise has a matching PNG at
-//    "/exercise-images/<exercise-id>.png" so the full library works offline.
-//    An explicit non-placeholder imageUrl below can still override it.
+// One place for form-guide videos and any non-Planfit fallback media. Keyed by
+// exercise id. The primary thumbnail/animation pair is attached separately by
+// getPlanfitExerciseMedia after these entries are merged.
+//  - Every bundled exercise also has a matching PNG at
+//    "/exercise-images/<exercise-id>.png" for use when no richer image exists.
 //  - videoUrl: MUST be an embeddable URL (https://www.youtube.com/embed/ID).
 //    Normal watch/youtu.be/shorts URLs are auto-converted by mediaUtils, but
 //    never put a search/results URL here.
-// Exercises without an entry still receive their matching bundled image and
-// show "Video guide not added yet".
+// Exercises without an entry still receive Planfit media and show
+// "Video guide not added yet" for the optional long-form guide.
 // ---------------------------------------------------------------------------
 const exerciseMedia: Record<string, ExerciseMedia> = {
   // ---------------------------------------------------------------- Chest
   'bench-press': {
-    imageUrl: '/exercise-gifs/bench-press.gif',
-    imageAlt: 'Animated barbell bench press demonstration',
     videoUrl: 'https://www.youtube.com/embed/4Y2ZdHCOXok',
     videoType: 'youtube',
     videoTitle: 'Bench Press Form Guide',
-    gifUrl: '/exercise-gifs/bench-press.gif',
-    gifAlt: 'Barbell bench press animation',
   },
   'weighted-push-up': {
     imageUrl: '/exercise-images/weighted-push-up.png',
@@ -5486,6 +5485,11 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
     videoUrl: 'https://www.youtube.com/embed/DeCnHqrN22U',
     videoType: 'youtube',
     videoTitle: 'Bulgarian Split Squat Form Guide',
+  },
+  'bodyweight-step-up': {
+    videoUrl: 'https://www.youtube.com/embed/BeN9ZcYY5iM',
+    videoType: 'youtube',
+    videoTitle: 'Bodyweight Step-Up Form Guide',
   },
   'glute-bridge': {
     imageUrl: '/exercise-placeholders/legs.svg',
@@ -5868,12 +5872,14 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
   },
 }
 
-/** Default library with its bundled image plus any richer media metadata. */
+/** Default library with curated Planfit media plus any form-guide metadata. */
 export const exerciseLibrary: LibraryExercise[] = baseExerciseLibrary.map(
   (exercise) => {
     const media = exerciseMedia[exercise.id]
+    const planfitMedia = getPlanfitExerciseMedia(exercise.id)
     const exerciseImageUrl = exercise.imageUrl?.trim()
-    const configuredImageUrl = media?.imageUrl?.trim() || exerciseImageUrl
+    const configuredImageUrl =
+      planfitMedia?.imageUrl.trim() || media?.imageUrl?.trim() || exerciseImageUrl
     const usesLegacyPlaceholder = configuredImageUrl?.startsWith(
       '/exercise-placeholders/',
     )
@@ -5884,12 +5890,14 @@ export const exerciseLibrary: LibraryExercise[] = baseExerciseLibrary.map(
       ...exercise,
       videoType: 'none',
       ...media,
+      ...(planfitMedia ?? {}),
       imageUrl:
         configuredImageUrl &&
         (!usesLegacyPlaceholder || hasExerciseLevelPlaceholder)
           ? configuredImageUrl
           : `/exercise-images/${exercise.id}.png`,
       imageAlt:
+        planfitMedia?.imageAlt.trim() ||
         media?.imageAlt?.trim() ||
         exercise.imageAlt?.trim() ||
         `${exercise.name} exercise form demonstration`,

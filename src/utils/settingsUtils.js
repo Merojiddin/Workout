@@ -910,6 +910,27 @@ function normalizeExerciseLibraryEntries(value) {
   return Array.isArray(value) ? value.map(normalizeLibraryExercise) : []
 }
 
+function isManagedExerciseAnimationUrl(value) {
+  return (
+    value.startsWith('/exercise-gifs/') ||
+    value.startsWith(
+      'https://d2m0n84d5tgmh1.cloudfront.net/training-videos-watermarked/',
+    )
+  )
+}
+
+function isManagedExerciseImageUrl(value) {
+  return (
+    value.startsWith('/exercise-images/') ||
+    value.startsWith('/exercise-gifs/') ||
+    value.startsWith('/exercise-placeholders/') ||
+    value.startsWith(
+      'https://d2m0n84d5tgmh1.cloudfront.net/training-image/',
+    ) ||
+    value.startsWith('https://training.fit/wp-content/uploads/')
+  )
+}
+
 function normalizeLibraryExercise(value) {
   const exercise = isPlainObject(value) ? value : {}
   const name = toText(exercise.name, 'Custom Exercise')
@@ -920,14 +941,27 @@ function normalizeLibraryExercise(value) {
   const difficulty = difficultyOptions.includes(exercise.difficulty)
     ? exercise.difficulty
     : 'Beginner'
-  // Media fields (Step 18). Stored custom libraries created before Step 18
-  // have no media, so fall back to the default library entry with the same id.
+  // Bundled media is derived from the current defaults so an old saved row
+  // cannot freeze a stale thumbnail/animation. Preserve only media the user
+  // can genuinely customize: an uploaded data-image or non-managed animation.
   const defaultExercise = defaultExercisesById.get(id)
   const videoUrl = toText(exercise.videoUrl, defaultExercise?.videoUrl ?? '')
   const savedImageUrl = toText(exercise.imageUrl, '')
-  const imageUrl = savedImageUrl.startsWith('/exercise-placeholders/')
-    ? (defaultExercise?.imageUrl ?? savedImageUrl)
-    : savedImageUrl || (defaultExercise?.imageUrl ?? '')
+  const hasCustomImage =
+    savedImageUrl !== '' && !isManagedExerciseImageUrl(savedImageUrl)
+  const imageUrl = defaultExercise
+    ? hasCustomImage
+      ? savedImageUrl
+      : (defaultExercise.imageUrl ?? savedImageUrl)
+    : savedImageUrl
+  const savedGifUrl = toText(exercise.gifUrl, '')
+  const hasCustomAnimation =
+    savedGifUrl !== '' && !isManagedExerciseAnimationUrl(savedGifUrl)
+  const gifUrl = defaultExercise
+    ? hasCustomAnimation
+      ? savedGifUrl
+      : (defaultExercise.gifUrl ?? '')
+    : savedGifUrl
 
   return {
     id,
@@ -945,7 +979,15 @@ function normalizeLibraryExercise(value) {
     regression: toStringArray(exercise.regression, []),
     postureNotes: toText(exercise.postureNotes, ''),
     imageUrl,
-    imageAlt: toText(exercise.imageAlt, defaultExercise?.imageAlt ?? ''),
+    imageAlt:
+      defaultExercise && !hasCustomImage
+        ? (defaultExercise.imageAlt ?? '')
+        : toText(exercise.imageAlt, defaultExercise?.imageAlt ?? ''),
+    gifUrl,
+    gifAlt:
+      defaultExercise && !hasCustomAnimation
+        ? (defaultExercise.gifAlt ?? '')
+        : toText(exercise.gifAlt, defaultExercise?.gifAlt ?? ''),
     videoUrl,
     videoType: toChoice(
       exercise.videoType,

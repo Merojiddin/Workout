@@ -9,7 +9,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { useT } from '../i18n'
 import {
@@ -21,6 +21,7 @@ import {
   getExerciseVideo,
   getExerciseVideoTitle,
   getYouTubeSearchUrl,
+  isExerciseAnimationVideo,
   type ExerciseMediaSource,
 } from '../utils/mediaUtils'
 
@@ -35,6 +36,9 @@ interface ExerciseMediaProps {
   /** When provided, renders an "Open Form Guide" button. */
   onOpenFormGuide?: () => void
 }
+
+const MAX_ANIMATION_RETRIES = 2
+const ANIMATION_RETRY_DELAY_MS = 2_500
 
 /**
  * One media panel per exercise: the image with a play overlay, swapped
@@ -56,15 +60,19 @@ export function ExerciseMedia({
   const videoUrl = getExerciseVideo(exercise)
   const hasVideo = videoUrl !== ''
   const gifUrl = getExerciseGifUrl(exercise)
+  const animationIsVideo = isExerciseAnimationVideo(gifUrl)
 
   // When there is an animation it leads, even where the caller asked for the
-  // video: it starts instantly, works offline, and the switch is right there.
+  // form video: it starts instantly and the switch is right there. Bundled
+  // animations work offline; source-hosted overrides use their still fallback.
   const videoDefault = showVideoDefault && gifUrl === ''
 
   const [showVideo, setShowVideo] = useState(videoDefault)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [imageFailed, setImageFailed] = useState(false)
   const [gifFailed, setGifFailed] = useState(false)
+  const animationRetryCountRef = useRef(0)
+  const animationRetryTimerRef = useRef<number | null>(null)
   // Deliberately NOT reset per exercise: once hidden, media stays hidden
   // for the rest of the session until the user shows it again.
   const [mediaHidden, setMediaHidden] = useState(false)
@@ -74,13 +82,39 @@ export function ExerciseMedia({
 
   // Reset per-exercise state when the shown exercise changes.
   useEffect(() => {
+    if (animationRetryTimerRef.current !== null) {
+      window.clearTimeout(animationRetryTimerRef.current)
+      animationRetryTimerRef.current = null
+    }
+    animationRetryCountRef.current = 0
     setShowVideo(videoDefault)
     setVideoLoaded(false)
     setImageFailed(false)
     setGifFailed(false)
+    return () => {
+      if (animationRetryTimerRef.current !== null) {
+        window.clearTimeout(animationRetryTimerRef.current)
+        animationRetryTimerRef.current = null
+      }
+    }
     // Re-run only when the exercise (or default) actually changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exerciseName, videoUrl, gifUrl, videoDefault])
+  }, [exercise?.id, exerciseName, videoUrl, gifUrl, videoDefault])
+
+  // Retry source-hosted media after reconnecting instead of keeping a
+  // transient offline failure sticky for the lifetime of the modal.
+  useEffect(() => {
+    if (isOnline) {
+      if (animationRetryTimerRef.current !== null) {
+        window.clearTimeout(animationRetryTimerRef.current)
+        animationRetryTimerRef.current = null
+      }
+      animationRetryCountRef.current = 0
+      setVideoLoaded(false)
+      setImageFailed(false)
+      setGifFailed(false)
+    }
+  }, [isOnline])
 
   if (!exercise) {
     return null
@@ -92,6 +126,23 @@ export function ExerciseMedia({
   function toggleVideo() {
     setVideoLoaded(false)
     setShowVideo((open) => !open)
+  }
+
+  function handleAnimationError() {
+    setGifFailed(true)
+    if (
+      !isOnline ||
+      animationRetryCountRef.current >= MAX_ANIMATION_RETRIES ||
+      animationRetryTimerRef.current !== null
+    ) {
+      return
+    }
+
+    animationRetryCountRef.current += 1
+    animationRetryTimerRef.current = window.setTimeout(() => {
+      animationRetryTimerRef.current = null
+      setGifFailed(false)
+    }, ANIMATION_RETRY_DELAY_MS * animationRetryCountRef.current)
   }
 
   return (
@@ -134,13 +185,29 @@ export function ExerciseMedia({
             <>
               {showImage && hasGif ? (
                 <figure className="exercise-media__figure exercise-media__figure--gif">
-                  <img
-                    alt={getExerciseGifAlt(exercise)}
-                    className="exercise-media__gif"
-                    loading="lazy"
-                    onError={() => setGifFailed(true)}
-                    src={gifUrl}
-                  />
+                  {animationIsVideo ? (
+                    <video
+                      aria-label={getExerciseGifAlt(exercise)}
+                      autoPlay
+                      className="exercise-media__gif exercise-media__gif--video"
+                      loop
+                      muted
+                      key={`${exercise.id ?? exerciseName}:${gifUrl}`}
+                      onError={handleAnimationError}
+                      playsInline
+                      poster={imageSrc}
+                      preload="metadata"
+                      src={gifUrl}
+                    />
+                  ) : (
+                    <img
+                      alt={getExerciseGifAlt(exercise)}
+                      className="exercise-media__gif"
+                      loading="lazy"
+                      onError={handleAnimationError}
+                      src={gifUrl}
+                    />
+                  )}
                   <figcaption className="exercise-media__caption">
                     {exerciseName}
                   </figcaption>
