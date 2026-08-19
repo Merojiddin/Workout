@@ -236,6 +236,18 @@ export const serviceMessages = {
   'csv.standaloneWorkout': 'Buổi tập độc lập',
   'csv.scheduledWorkout': 'Buổi tập theo lịch',
 
+  'demo.nutrition.1': 'Khởi đầu tốt. Đã tập ngực, cảm thấy khoẻ.',
+  'demo.nutrition.2': 'Ăn hàu để bổ sung kẽm. Ngày nạp đạm tốt.',
+  'demo.nutrition.3': 'Ngày bận rộn. Quên creatine và whey, đạm hơi thấp.',
+  'demo.nutrition.4': 'Ngày tốt nhất trong tuần. Đạt hết mọi mục tiêu.',
+  'demo.nutrition.5': 'Ổn định. Trứng và các loại hạt, đã đạt mục tiêu đạm.',
+  'demo.fruit.dragon': 'Thanh long',
+  'demo.fruit.mangosteen': 'Măng cụt',
+  'demo.fruit.both': 'Thanh long, măng cụt',
+  'demo.checkIn.1': 'Tuần khởi điểm. Tư thế vẫn xuống khi mệt.',
+  'demo.checkIn.2': 'Ngực và vai đầy đặn hơn. Vòng eo giữ nguyên.',
+  'demo.checkIn.3': 'Thân trên tăng, vòng eo giảm. Cơ bụng bắt đầu hiện vào buổi sáng.',
+
   // ----------------------------------------------------------------------- sync
   'sync.missingLocalId': 'Thiếu id trên máy để xoá.',
   'sync.missingPayload': 'Thiếu dữ liệu đồng bộ.',

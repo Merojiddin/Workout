@@ -2,6 +2,7 @@ import type { MessageKey } from '../../catalog'
 import type { Catalog } from '../../types'
 import { authMessages } from './auth'
 import { checkinMessages } from './checkin'
+import { checklistMessages } from './checklist'
 import { coachMessages } from './coach'
 import { commonMessages } from './common'
 import { navMessages } from './nav'
@@ -11,6 +12,7 @@ import { libraryMessages } from './library'
 import { onboardingMessages } from './onboarding'
 import { planMessages } from './plan'
 import { printMessages } from './print'
+import { promptMessages } from './prompt'
 import { programMessages } from './program'
 import { progressMessages } from './progress'
 import { reviewMessages } from './review'
@@ -29,6 +31,7 @@ import { workoutMessages } from './workout'
 export const vi: Catalog<MessageKey> = {
   ...authMessages,
   ...checkinMessages,
+  ...checklistMessages,
   ...coachMessages,
   ...commonMessages,
   ...navMessages,
@@ -38,6 +41,7 @@ export const vi: Catalog<MessageKey> = {
   ...onboardingMessages,
   ...planMessages,
   ...printMessages,
+  ...promptMessages,
   ...programMessages,
   ...progressMessages,
   ...reviewMessages,

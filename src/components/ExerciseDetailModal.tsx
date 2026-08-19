@@ -99,6 +99,10 @@ export function ExerciseDetailModal({
         muscleGroup: exercise.postureFocus ? 'Posture' : undefined,
       }),
     // Built in the active language, so it is rebuilt when that changes.
+    // The language is a real dependency: these helpers read it from the
+    // i18n store rather than taking it as an argument, so the linter
+    // cannot see it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [exercise, language],
   )
 

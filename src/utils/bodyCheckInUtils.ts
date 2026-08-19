@@ -250,7 +250,7 @@ export function createDemoBodyCheckIns(reference = new Date()): BodyCheckIn[] {
   const demos: Array<{ offsetDays: number; values: Partial<BodyCheckIn>; notes: string }> = [
     {
       offsetDays: -14,
-      notes: 'Baseline week. Posture still collapses when tired.',
+      notes: t('demo.checkIn.1'),
       values: {
         bodyWeightKg: 76,
         waistCm: 80,
@@ -268,7 +268,7 @@ export function createDemoBodyCheckIns(reference = new Date()): BodyCheckIn[] {
     },
     {
       offsetDays: -7,
-      notes: 'Chest and shoulders filling out. Waist holding steady.',
+      notes: t('demo.checkIn.2'),
       values: {
         bodyWeightKg: 76.4,
         waistCm: 79.5,
@@ -286,7 +286,7 @@ export function createDemoBodyCheckIns(reference = new Date()): BodyCheckIn[] {
     },
     {
       offsetDays: 0,
-      notes: 'Upper body up, waist down. Abs starting to show in the morning.',
+      notes: t('demo.checkIn.3'),
       values: {
         bodyWeightKg: 76.8,
         waistCm: 79,

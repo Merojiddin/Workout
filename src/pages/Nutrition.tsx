@@ -16,6 +16,10 @@ export function Nutrition() {
   // keyed on it as well as on the program.
   const guidance = useMemo(
     () => getNutritionGuidance(activeProgram.coaching),
+    // The language is a real dependency: these helpers read it from the
+    // i18n store rather than taking it as an argument, so the linter
+    // cannot see it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeProgram, language],
   )
 

@@ -229,116 +229,11 @@ export function parseWorkoutProgramInput(
 export function buildProgramAuthoringPrompt(
   profileSettings?: UserProfileSettingsLike,
 ): string {
-  return `Write me a workout program as JSON for my fitness tracker app.
-
-Reply with ONLY the JSON object - no explanation, no markdown fences.
-
-ABOUT ME
-${buildAboutMeSection(profileSettings)}
-
-REQUIRED SHAPE
-{
-  "id": "short-kebab-case-id",
-  "name": "Program name",
-  "version": "1.0.0",
-  "updatedAt": "${new Date().toISOString().slice(0, 10)}",
-  "description": "One or two sentences about the program.",
-  "goals": ["Goal one", "Goal two"],
-  "coaching": {
-    "proteinMinGrams": 120,
-    "proteinDefaultGrams": 140,
-    "proteinMaxGrams": 160,
-    "creatineDailyGrams": "3-5 g/day",
-    "sleepHours": "7-8+ hours"
-  },
-  "days": [
-    {
-      "day": 1,
-      "name": "Day name, e.g. Chest + Triceps",
-      "estimatedTime": "45-60 min",
-      "focus": ["Chest", "Triceps"],
-      "exercises": [
-        {
-          "id": "bench-press",
-          "name": "Bench Press",
-          "sets": 4,
-          "repRange": "6-10",
-          "restSeconds": 150,
-          "muscleGroup": "Chest",
-          "equipment": "Barbell / Bench",
-          "formTips": ["A short cue", "Another short cue"]
-        }
-      ]
-    }
-  ]
-}
-
-RULES
-- "days" must contain exactly 7 objects, numbered 1 to 7. Day 1 is Monday and day 7 is Sunday: the app shows day N on that weekday.
-- A rest day is still one of the 7. Give it light work (an easy walk, mobility) rather than an empty list.
-- Every exercise needs EITHER "repRange" (like "8-12") OR "duration" (like "30 sec") - never both, never neither.
-- "sets" must be at least 1 and "restSeconds" 0 or more. Both are numbers, not strings.
-- "name", "muscleGroup" and "equipment" are required strings on every exercise. "formTips" is an array of at least one short string.
-- Exercise "id" must be kebab-case and unique within its day.
-- "updatedAt" must be a real calendar date written as YYYY-MM-DD.
-- Do not invent fields. Anything not described here is either ignored or rejected.
-
-NUTRITION ("coaching")
-The Nutrition screen reads this block, so always include it. The protein numbers are grams per day and must satisfy min <= default <= max. "creatineDailyGrams" and "sleepHours" are short strings shown as written. Use my plan's numbers where it gives them, otherwise my protein target from ABOUT ME, otherwise sensible ones for the goal stated there.
-
-EXERCISE IDS
-Reuse one of these ids wherever a movement matches - that is what gives the exercise its picture and form guide in the app:
-${buildExerciseIdCatalog()}
-For anything else, invent a sensible kebab-case id. That is fine: the workout still tracks fully, it just has no picture or built-in guide. If a movement is clearly one of the above but you are unsure of the id, write the exercise "name" exactly as the app spells it and it will still match.
-
-OPTIONAL EXTRAS - only if my plan actually contains them
-- "durationWeeks": 12 with "progressionPhases": [{"weeks": [1,2,3,4], "name": "Base", "volumeGuidance": "...", "rirGuidance": "...", "priorities": ["..."], "targetRir": "2-3"}]. The phases must cover every week from 1 to durationWeeks exactly once. "targetRir" is a bare number or range from 0 to 10 ("2" or "1-2"), never "2 RIR". A deload phase may add "setVolumeMultiplier" above 0 and at most 1.
-- "rules": {"effort": [...], "progression": [...], "rest": [...], "substitutions": [...], "safety": [...], "returnAfterBreak": [...], "postureCue": "..."} - shown on the Weekly Plan screen. Every value is an array of strings except "postureCue".
-- "benchmarkExerciseIds": ["bench-press", "squat"] - the lifts progress is measured on. Use ids from the list above.
-- Per exercise: "targetRir": "1-2" and "guidance": ["short note"].
-- "standaloneWorkouts" only if every exercise id in them comes from the list above; unknown ids are rejected there.
-- Never use "optional": true. This app version hides optional exercises, so anything marked optional simply will not appear.
-
-HOME/GYM ALTERNATIVES ("alternatives") - worth adding
-An exercise may offer the same movement done with different kit. The app uses these two ways: the Home/Gym switch on the workout screen picks the right variant, and during a workout a Swap button lets me change movement without leaving the session - so a busy rack or a sore shoulder does not end the workout. Add them wherever a movement has a sensible substitute.
-{
-  "id": "incline-dumbbell-press",
-  "name": "Incline Dumbbell Press",
-  "sets": 4, "repRange": "8-12", "restSeconds": 120,
-  "muscleGroup": "Chest", "equipment": "Dumbbells",
-  "formTips": ["A short cue"],
-  "alternatives": {
-    "home": [
-      {"id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "equipment": "Dumbbells"},
-      {"id": "feet-elevated-push-up", "name": "Feet-Elevated Push-Up", "equipment": "Bodyweight"}
-    ],
-    "gym": [
-      {"id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "equipment": "Dumbbells"},
-      {"id": "incline-smith-machine-press", "name": "Incline Smith Machine Press", "equipment": "Smith machine"}
-    ]
-  }
-}
-These rules are strict. All but the first reject the whole program; the first one is worse, because it fails quietly:
-- Give BOTH "home" and "gym". An exercise that has "alternatives" but no list for the location I am training in is dropped from that day entirely, without warning.
-- Every variant "id" MUST come from the EXERCISE IDS list above. Invented ids are allowed for a plain exercise, but inside "alternatives" they are a hard error.
-- The exercise's own "id" must itself appear as one of the variants. It is the default choice, not a separate thing.
-- Each variant needs "id", "name" and "equipment". It may add "repRange" OR "duration" (never both) when that variant uses a different target, and "formTips".
-- Variant ids must be unique within each location list.
-- Optional: "defaultVariantIds": ["incline-dumbbell-press"] to pick the starting variant. Every id in it must be one of the variants above.
-
-BUILDING IT FOR ME
-Use ABOUT ME above as the brief: fit the split, exercise choice, volume and
-rest to the equipment, experience, time per day and goal stated there, and work
-around anything listed under limits. Where a line says "(not set - fill this in
-or say what to assume)", either I will complete it before sending or you should
-state the assumption you made in the "description" field rather than silently
-picking one. Never substitute goals, measurements or equipment I did not give.
-
-If I paste an existing plan below, convert that plan instead and use ABOUT ME
-only to fill gaps it leaves.
-
-My plan (optional - leave blank to have one written from ABOUT ME):
-[PASTE YOUR PLAN HERE]`
+  return t('prompt.template', {
+    today: new Date().toISOString().slice(0, 10),
+    aboutMe: buildAboutMeSection(profileSettings),
+    exerciseIds: buildExerciseIdCatalog(),
+  })
 }
 
 /** The profile shape this prompt reads. Structural, so callers stay decoupled. */
@@ -386,26 +281,26 @@ function buildAboutMeSection(settings?: UserProfileSettingsLike): string {
       : ''
 
   const lines: [string, string][] = [
-    ['Main goal', text(profile.trainingGoal) || text(goals.primaryGoal)],
-    ['Also working on', text(profile.mainFocus) || text(goals.secondaryGoal)],
-    ['Body goal', text(goals.bodyGoal)],
-    ['Experience level', text(profile.experienceLevel)],
-    ['Time per session', text(profile.trainingTimePerDay)],
-    ['Height', measure(profile.heightCm, 'cm')],
-    ['Current weight', measure(profile.currentWeightKg, 'kg')],
-    ['Goal weight', goalWeight],
-    ['Equipment I have', equipment.join(', ')],
-    ['Weak point to prioritise', text(goals.weakPoint)],
-    ['Injuries or limits', text(goals.injuryLimitation)],
-    ['Cardio I prefer', text(goals.cardioPreference)],
-    ['Protein target', protein],
+    [t('prompt.mainGoal'), text(profile.trainingGoal) || text(goals.primaryGoal)],
+    [
+      t('prompt.alsoWorkingOn'),
+      text(profile.mainFocus) || text(goals.secondaryGoal),
+    ],
+    [t('prompt.bodyGoal'), text(goals.bodyGoal)],
+    [t('prompt.experienceLevel'), text(profile.experienceLevel)],
+    [t('prompt.timePerSession'), text(profile.trainingTimePerDay)],
+    [t('prompt.height'), measure(profile.heightCm, 'cm')],
+    [t('prompt.currentWeight'), measure(profile.currentWeightKg, 'kg')],
+    [t('prompt.goalWeight'), goalWeight],
+    [t('prompt.equipment'), equipment.join(', ')],
+    [t('prompt.weakPoint'), text(goals.weakPoint)],
+    [t('prompt.injuries'), text(goals.injuryLimitation)],
+    [t('prompt.cardio'), text(goals.cardioPreference)],
+    [t('prompt.protein'), protein],
   ]
 
   return lines
-    .map(
-      ([label, value]) =>
-        `- ${label}: ${value || '(not set - fill this in or say what to assume)'}`,
-    )
+    .map(([label, value]) => `- ${label}: ${value || t('prompt.notSet')}`)
     .join('\n')
 }
 

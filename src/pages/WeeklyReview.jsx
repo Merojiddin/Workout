@@ -80,7 +80,10 @@ export function WeeklyReview() {
         effectiveExerciseLibrary,
       ),
     // The review is a set of written sentences, so it is rebuilt when the
-    // language changes, not only when the underlying data does.
+    // language changes, not only when the underlying data does. The linter
+    // cannot see that, because the sentences read the language from the i18n
+    // store rather than taking it as an argument.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       activeProgram,
       benchmarkExercises,

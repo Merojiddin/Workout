@@ -1,3 +1,4 @@
+import { t } from '../i18n/t'
 import { NUTRITION_LOGS_KEY, type NutritionLog } from '../data/nutritionLogs'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
 import { toLocalIsoDate, todayIsoDate } from './dateUtils'
@@ -137,8 +138,8 @@ function createDemoNutritionLogs(reference: Date): NutritionLog[] {
         coffeeCups: 2,
         caloriesEstimate: 2500,
         bodyWeightKg: 76,
-        fruits: 'Dragon fruit',
-        notes: 'Solid start. Trained chest, felt strong.',
+        fruits: t('demo.fruit.dragon'),
+        notes: t('demo.nutrition.1'),
       },
     },
     {
@@ -158,8 +159,8 @@ function createDemoNutritionLogs(reference: Date): NutritionLog[] {
         coffeeCups: 1,
         caloriesEstimate: 2600,
         bodyWeightKg: 76.2,
-        fruits: 'Mangosteen',
-        notes: 'Oysters for zinc. Good protein day.',
+        fruits: t('demo.fruit.mangosteen'),
+        notes: t('demo.nutrition.2'),
       },
     },
     {
@@ -179,8 +180,8 @@ function createDemoNutritionLogs(reference: Date): NutritionLog[] {
         coffeeCups: 2,
         caloriesEstimate: 2300,
         bodyWeightKg: 76.1,
-        fruits: 'Dragon fruit',
-        notes: 'Busy day. Missed creatine and whey, protein a bit low.',
+        fruits: t('demo.fruit.dragon'),
+        notes: t('demo.nutrition.3'),
       },
     },
     {
@@ -200,8 +201,8 @@ function createDemoNutritionLogs(reference: Date): NutritionLog[] {
         coffeeCups: 2,
         caloriesEstimate: 2700,
         bodyWeightKg: 76.4,
-        fruits: 'Dragon fruit, mangosteen',
-        notes: 'Best day of the week. Everything hit.',
+        fruits: t('demo.fruit.both'),
+        notes: t('demo.nutrition.4'),
       },
     },
     {
@@ -221,8 +222,8 @@ function createDemoNutritionLogs(reference: Date): NutritionLog[] {
         coffeeCups: 1,
         caloriesEstimate: 2550,
         bodyWeightKg: 76.5,
-        fruits: 'Mangosteen',
-        notes: 'Steady. Eggs and nuts, protein target reached.',
+        fruits: t('demo.fruit.mangosteen'),
+        notes: t('demo.nutrition.5'),
       },
     },
   ]

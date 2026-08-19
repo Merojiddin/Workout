@@ -1,3 +1,4 @@
+import { formatDate as formatLocaleDate, t } from '../i18n'
 export function PrintableWeeklyPlan({ data }) {
   const plan = Array.isArray(data?.plan) ? data.plan : []
   const settings = data?.profile ?? {}
@@ -10,26 +11,26 @@ export function PrintableWeeklyPlan({ data }) {
 
   return (
     <article className="print-page">
-      <h1>Weekly Workout Plan</h1>
+      <h1>{t('print.plan.title')}</h1>
       <div className="print-meta-grid">
         <div className="print-meta">
-          <span className="print-label">Program</span>
-          <strong>{program.programName ?? 'Custom Workout Plan'}</strong>
+          <span className="print-label">{t('print.program')}</span>
+          <strong>{program.programName ?? t('program.customPlanName')}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Program ID</span>
+          <span className="print-label">{t('print.programId')}</span>
           <strong>{program.programId ?? '-'}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Version</span>
+          <span className="print-label">{t('print.version')}</span>
           <strong>{program.programVersion ?? '-'}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Plan status</span>
+          <span className="print-label">{t('print.planStatus')}</span>
           <strong>{getPlanStatus(program)}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Printed</span>
+          <span className="print-label">{t('print.printed')}</span>
           <strong>{formatDate(data?.generatedAt)}</strong>
         </div>
         <div className="print-meta">
@@ -37,20 +38,20 @@ export function PrintableWeeklyPlan({ data }) {
           <strong>{printable(profile.name)}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Goal</span>
+          <span className="print-label">{t('checkin.goal')}</span>
           <strong>{printable(profile.trainingGoal || goals.primaryGoal)}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Main focus</span>
+          <span className="print-label">{t('print.mainFocus')}</span>
           <strong>{printable(profile.mainFocus)}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Training time</span>
+          <span className="print-label">{t('print.trainingTime')}</span>
           <strong>{printable(profile.trainingTimePerDay)}</strong>
         </div>
         {program?.durationWeeks ? (
           <div className="print-meta">
-            <span className="print-label">Program duration</span>
+            <span className="print-label">{t('print.programDuration')}</span>
             <strong>{program.durationWeeks} weeks</strong>
           </div>
         ) : null}
@@ -58,15 +59,15 @@ export function PrintableWeeklyPlan({ data }) {
 
       {progressionPhases.length > 0 ? (
         <>
-          <h2>Progression Phases</h2>
+          <h2>{t('print.phases')}</h2>
           <table>
             <thead>
               <tr>
-                <th>Weeks</th>
-                <th>Phase</th>
-                <th>Volume</th>
-                <th>Effort / RIR</th>
-                <th>Priorities and limits</th>
+                <th>{t('print.weeks')}</th>
+                <th>{t('print.phase')}</th>
+                <th>{t('print.volume')}</th>
+                <th>{t('print.effortRir')}</th>
+                <th>{t('print.prioritiesLimits')}</th>
               </tr>
             </thead>
             <tbody>
@@ -92,7 +93,7 @@ export function PrintableWeeklyPlan({ data }) {
 
       {ruleSections.length > 0 ? (
         <>
-          <h2>Program Rules</h2>
+          <h2>{t('print.rules')}</h2>
           <table>
             <tbody>
               {ruleSections.map((section) => (
@@ -111,14 +112,14 @@ export function PrintableWeeklyPlan({ data }) {
           <thead>
             <tr>
               <th>Day</th>
-              <th>Workout</th>
-              <th>Exercise</th>
-              <th>Sets</th>
-              <th>Reps / Duration</th>
-              <th>Rest</th>
-              <th>Muscle</th>
-              <th>Equipment</th>
-              <th>Notes</th>
+              <th>{t('print.workout')}</th>
+              <th>{t('print.exercise')}</th>
+              <th>{t('print.sets')}</th>
+              <th>{t('print.repsDuration')}</th>
+              <th>{t('print.rest')}</th>
+              <th>{t('print.muscle')}</th>
+              <th>{t('print.equipment')}</th>
+              <th>{t('print.notes')}</th>
             </tr>
           </thead>
           <tbody>
@@ -174,50 +175,50 @@ export function PrintableWeeklyPlan({ data }) {
           </tbody>
         </table>
       ) : (
-        <p className="print-empty">No workout plan found.</p>
+        <p className="print-empty">{t('print.noPlan')}</p>
       )}
 
       {standaloneWorkouts.length > 0 ? (
         <section>
-          <h2>Optional Standalone Workouts</h2>
+          <h2>{t('print.standalone')}</h2>
           <p>
             These workouts are outside the normal weekly rotation. Completing
             one does not replace or advance a scheduled day.
           </p>
           {standaloneWorkouts.map((workout) => (
             <section key={workout?.id ?? workout?.name}>
-              <h3>{workout?.name ?? 'Standalone workout'}</h3>
+              <h3>{workout?.name ?? t('print.standaloneFallback')}</h3>
               <p>
                 {workout?.description ?? ''}
                 {workout?.recommendedUse ? (
                   <>
                     <br />
-                    <strong>Recommended use:</strong>{' '}
+                    <strong>{t('print.recommendedUse')}</strong>{' '}
                     {workout.recommendedUse}
                   </>
                 ) : null}
                 <br />
-                <strong>Estimated time:</strong>{' '}
+                <strong>{t('print.estimatedTime')}</strong>{' '}
                 {workout?.estimatedTime ?? '-'}
                 {' · '}
-                <strong>Focus:</strong>{' '}
+                <strong>{t('print.focus')}</strong>{' '}
                 {safeArray(workout?.focus).join(', ') || '-'}
               </p>
               {safeArray(workout?.rules).length > 0 ? (
                 <div>
-                  <strong>Rules</strong>
+                  <strong>{t('plan.workoutRules')}</strong>
                   <PrintList values={safeArray(workout.rules)} />
                 </div>
               ) : null}
               <table>
                 <thead>
                   <tr>
-                    <th>Exercise slot</th>
-                    <th>Sets</th>
-                    <th>Reps / Duration</th>
-                    <th>Rest</th>
-                    <th>Muscle</th>
-                    <th>Notes</th>
+                    <th>{t('print.exerciseSlot')}</th>
+                    <th>{t('print.sets')}</th>
+                    <th>{t('print.repsDuration')}</th>
+                    <th>{t('print.rest')}</th>
+                    <th>{t('print.muscle')}</th>
+                    <th>{t('print.notes')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -229,8 +230,15 @@ export function PrintableWeeklyPlan({ data }) {
                         {exercise?.repRange ?? exercise?.duration ?? '-'}
                         {exercise?.targetRir ? ` · ${exercise.targetRir} RIR` : ''}
                       </td>
-                      <td>{exercise?.restSeconds ?? '-'} sec</td>
-                      <td>{exercise?.muscleGroup ?? 'Other'}</td>
+                      <td>
+                        {exercise?.restSeconds === undefined ||
+                        exercise?.restSeconds === null
+                          ? '-'
+                          : t('print.restSeconds', {
+                              seconds: exercise.restSeconds,
+                            })}
+                      </td>
+                      <td>{exercise?.muscleGroup ?? t('plan.muscleFallback')}</td>
                       <td>{safeArray(exercise?.guidance).join(' ')}</td>
                     </tr>
                   ))}
@@ -254,14 +262,14 @@ function PrintableExerciseSlot({ exercise }) {
       <strong>{exercise?.name ?? '-'}</strong>
       {exercise?.optional ? (
         <>
-          <br /><span className="print-small">Optional slot</span>
+          <br /><span className="print-small">{t('print.optionalSlot')}</span>
         </>
       ) : null}
       {hasAlternatives ? (
         <span className="print-small">
           <br /><strong>{getSelectionInstruction(exercise)}</strong>
-          <VariantLine label="Home" variants={home} />
-          <VariantLine label="Gym" variants={gym} />
+          <VariantLine label={t('plan.home')} variants={home} />
+          <VariantLine label={t('plan.gym')} variants={gym} />
         </span>
       ) : null}
     </>
@@ -303,15 +311,24 @@ function PrintList({ values }) {
 
 function getRuleSections(rules) {
   return [
-    { title: 'Effort and RIR', values: safeArray(rules?.effort) },
-    { title: 'Double progression', values: safeArray(rules?.progression) },
-    { title: 'Rest between sets', values: safeArray(rules?.rest) },
-    { title: 'Exercise substitutions', values: safeArray(rules?.substitutions) },
-    { title: 'Return after a break', values: safeArray(rules?.returnAfterBreak) },
-    { title: 'Safety', values: safeArray(rules?.safety) },
-    { title: 'Optional neck work', values: safeArray(rules?.optionalNeckWork) },
+    { title: t('plan.rules.effort'), values: safeArray(rules?.effort) },
+    { title: t('plan.rules.progression'), values: safeArray(rules?.progression) },
+    { title: t('plan.rules.rest'), values: safeArray(rules?.rest) },
     {
-      title: 'Posture and control',
+      title: t('plan.rules.substitutions'),
+      values: safeArray(rules?.substitutions),
+    },
+    {
+      title: t('plan.rules.returnAfterBreak'),
+      values: safeArray(rules?.returnAfterBreak),
+    },
+    { title: t('plan.rules.safety'), values: safeArray(rules?.safety) },
+    {
+      title: t('plan.rules.optionalNeckWork'),
+      values: safeArray(rules?.optionalNeckWork),
+    },
+    {
+      title: t('plan.rules.posture'),
       values: rules?.postureCue ? [rules.postureCue] : [],
     },
   ].filter((section) => section.values.length > 0)
@@ -319,18 +336,18 @@ function getRuleSections(rules) {
 
 function getSelectionInstruction(exercise) {
   if (exercise?.selectionMode !== 'multiple') {
-    return 'Choose one; do not perform every alternative.'
+    return t('print.chooseOne')
   }
   const minimum = Math.max(1, Number(exercise?.minSelections) || 1)
   const maximum = Math.max(minimum, Number(exercise?.maxSelections) || minimum)
   return minimum === maximum
-    ? `Choose ${minimum}.`
-    : `Choose ${minimum}-${maximum}.`
+    ? t('print.chooseCount', { count: minimum })
+    : t('print.chooseRange', { min: minimum, max: maximum })
 }
 
 function formatPhaseTarget(target) {
   const prescription = [
-    target?.sets ? `${target.sets} sets` : '',
+    target?.sets ? t('plan.setsTimes', { count: target.sets }) : '',
     target?.repRange ?? target?.duration ?? '',
   ].filter(Boolean).join(' × ')
   const guidance = safeArray(target?.guidance).join(' ')
@@ -342,14 +359,14 @@ function formatPhaseTarget(target) {
 function formatWeeks(weeks) {
   const sorted = [...new Set(safeArray(weeks).map(Number).filter(Number.isFinite))]
     .sort((left, right) => left - right)
-  if (sorted.length === 0) return 'Weeks not specified'
-  if (sorted.length === 1) return `Week ${sorted[0]}`
+  if (sorted.length === 0) return t('plan.weeksNotSpecified')
+  if (sorted.length === 1) return t('plan.weekSingle', { week: sorted[0] })
   const sequential = sorted.every(
     (week, index) => index === 0 || week === sorted[index - 1] + 1,
   )
   return sequential
-    ? `Weeks ${sorted[0]}-${sorted.at(-1)}`
-    : `Weeks ${sorted.join(', ')}`
+    ? t('plan.weekRange', { from: sorted[0], to: sorted.at(-1) })
+    : t('plan.weekList', { weeks: sorted.join(', ') })
 }
 
 function safeArray(value) {
@@ -363,22 +380,24 @@ function safeArray(value) {
  */
 function printable(value) {
   const text = typeof value === 'string' ? value.trim() : value
-  return text ? text : 'Not set'
+  return text ? text : t('state.notSet')
 }
 
 function formatDate(value) {
   const date = new Date(value ?? '')
   return Number.isNaN(date.getTime())
     ? '-'
-    : new Intl.DateTimeFormat('en', {
+    : formatLocaleDate(date, {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
-      }).format(date)
+      })
 }
 
 function getPlanStatus(program) {
-  if (program?.modifiedAfterInstallation) return 'Modified after installation'
-  if (program?.installed) return 'Installed plan unchanged'
-  return program?.source === 'custom' ? 'Custom plan' : 'Default plan'
+  if (program?.modifiedAfterInstallation) return t('print.status.modified')
+  if (program?.installed) return t('print.status.unchanged')
+  return program?.source === 'custom'
+    ? t('print.status.custom')
+    : t('print.status.default')
 }

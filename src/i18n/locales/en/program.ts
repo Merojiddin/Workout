@@ -90,6 +90,13 @@ export const programMessages = {
   'pm.restSeconds': 'Rest: {seconds} sec',
   'pm.guidancePrefix': 'Guidance:',
 
+  'pm.benchmarks': 'Benchmark exercises',
+  'pm.changedDays': 'Days with changed names',
+  'pm.exercisesAdded': 'Exercises added',
+  'pm.exercisesRemoved': 'Exercises removed',
+  'pm.optionalStandalone': 'Optional standalone workouts',
+  'pm.workoutRules': 'Workout rules',
+
   'pm.rules.effort': 'Rules — Effort',
   'pm.rules.progression': 'Rules — Progression',
   'pm.rules.rest': 'Rules — Rest between sets',

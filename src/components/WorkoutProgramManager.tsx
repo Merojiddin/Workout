@@ -887,7 +887,7 @@ function ProgramPreviewDialog({
         <div className="program-preview-meta-grid">
           <PreviewList title="Goals" values={program.goals ?? []} />
           <PreviewList
-            title="Benchmark exercises"
+            title={t('pm.benchmarks')}
             values={(program.benchmarkExerciseIds ?? []).map(getExerciseName)}
           />
           {rules.map(([title, values]) => (
@@ -964,17 +964,17 @@ function ProgramPreviewDialog({
             </div>
           </dl>
           <ComparisonList
-            title="Days with changed names"
+            title={t('pm.changedDays')}
             values={comparison.changedDayNames.map(
               (day) => `Day ${day.day}: ${day.currentName} → ${day.newName}`,
             )}
           />
           <ComparisonList
-            title="Exercises added"
+            title={t('pm.exercisesAdded')}
             values={comparison.addedExerciseIds}
           />
           <ComparisonList
-            title="Exercises removed"
+            title={t('pm.exercisesRemoved')}
             values={comparison.removedExerciseIds}
           />
         </section>
@@ -1013,7 +1013,7 @@ function ProgramPreviewDialog({
             aria-labelledby="program-standalone-title"
           >
             <h3 id="program-standalone-title">
-              Optional standalone workouts
+              {t('pm.optionalStandalone')}
             </h3>
             <p>
               These workouts remain outside the weekly rotation and never
@@ -1035,7 +1035,10 @@ function ProgramPreviewDialog({
                 <p className="program-preview-day__focus">
                   Focus: {workout.focus.join(', ')}
                 </p>
-                <PreviewList title="Workout rules" values={workout.rules ?? []} />
+                <PreviewList
+                  title={t('pm.workoutRules')}
+                  values={workout.rules ?? []}
+                />
                 <div className="program-preview-exercises">
                   {workout.exercises.map((exercise, index) => (
                     <ProgramExercisePreview
@@ -1253,7 +1256,7 @@ function InstallConfirmationDialog({
             onClick={onCancel}
             type="button"
           >
-            Cancel
+            {t('action.cancel')}
           </button>
           <button
             className="workout-secondary-button"

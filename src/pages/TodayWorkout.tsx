@@ -106,6 +106,10 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   // is active, so a switch mid-session has to rebuild it.
   const nutrition = useMemo(
     () => getNutritionGuidance(activeProgram.coaching),
+    // The language is a real dependency: these helpers read it from the
+    // i18n store rather than taking it as an argument, so the linter
+    // cannot see it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeProgram, language],
   )
   // Auto-derived from the install date so no week picker is needed on screen.

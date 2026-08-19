@@ -16,6 +16,7 @@ import {
   safeGetJSON,
   safeSetJSON,
 } from '../utils/storageUtils'
+import { useT } from '../i18n'
 
 /**
  * Step 20 - manual pre-deploy checklist.
@@ -27,68 +28,68 @@ import {
 const CHECKLIST_GROUPS = [
   {
     id: 'build',
-    title: 'Build',
+    titleKey: 'checklist.group.build',
     icon: Hammer,
     items: [
-      { id: 'build-install', label: 'npm install completed without errors' },
-      { id: 'build-build', label: 'npm run build passes' },
-      { id: 'build-preview', label: 'npm run preview works locally' },
+      { id: 'build-install', labelKey: 'checklist.item.build-install' },
+      { id: 'build-build', labelKey: 'checklist.item.build-build' },
+      { id: 'build-preview', labelKey: 'checklist.item.build-preview' },
     ],
   },
   {
     id: 'routing',
-    title: 'Routing',
+    titleKey: 'checklist.group.routing',
     icon: Route,
     items: [
-      { id: 'route-dashboard', label: 'Refresh /dashboard works (no 404)' },
-      { id: 'route-progress', label: 'Refresh /progress works (no 404)' },
-      { id: 'route-nutrition', label: 'Refresh /nutrition works (no 404)' },
-      { id: 'route-settings', label: 'Refresh /settings works (no 404)' },
+      { id: 'route-dashboard', labelKey: 'checklist.item.route-dashboard' },
+      { id: 'route-progress', labelKey: 'checklist.item.route-progress' },
+      { id: 'route-nutrition', labelKey: 'checklist.item.route-nutrition' },
+      { id: 'route-settings', labelKey: 'checklist.item.route-settings' },
     ],
   },
   {
     id: 'supabase',
-    title: 'Supabase',
+    titleKey: 'checklist.group.supabase',
     icon: Cloud,
     items: [
-      { id: 'supabase-login', label: 'Login works' },
-      { id: 'supabase-register', label: 'Register works' },
-      { id: 'supabase-workout-sync', label: 'Workout sync works' },
-      { id: 'supabase-checkin-sync', label: 'Body check-in sync works' },
-      { id: 'supabase-nutrition-sync', label: 'Nutrition sync works' },
-      { id: 'supabase-photo-upload', label: 'Photo upload works' },
+      { id: 'supabase-login', labelKey: 'checklist.item.supabase-login' },
+      { id: 'supabase-register', labelKey: 'checklist.item.supabase-register' },
+      { id: 'supabase-workout-sync', labelKey: 'checklist.item.supabase-workout-sync' },
+      { id: 'supabase-checkin-sync', labelKey: 'checklist.item.supabase-checkin-sync' },
+      { id: 'supabase-nutrition-sync', labelKey: 'checklist.item.supabase-nutrition-sync' },
+      { id: 'supabase-photo-upload', labelKey: 'checklist.item.supabase-photo-upload' },
     ],
   },
   {
     id: 'pwa',
-    title: 'PWA',
+    titleKey: 'checklist.group.pwa',
     icon: Smartphone,
     items: [
-      { id: 'pwa-install', label: 'App install works' },
-      { id: 'pwa-offline-dashboard', label: 'Offline dashboard works' },
-      { id: 'pwa-offline-logging', label: 'Offline workout logging works' },
+      { id: 'pwa-install', labelKey: 'checklist.item.pwa-install' },
+      { id: 'pwa-offline-dashboard', labelKey: 'checklist.item.pwa-offline-dashboard' },
+      { id: 'pwa-offline-logging', labelKey: 'checklist.item.pwa-offline-logging' },
     ],
   },
   {
     id: 'data',
-    title: 'Data',
+    titleKey: 'checklist.group.data',
     icon: Database,
     items: [
-      { id: 'data-export-json', label: 'Export JSON backup works' },
-      { id: 'data-import', label: 'Import backup works' },
-      { id: 'data-export-csv', label: 'CSV export works' },
-      { id: 'data-print-plan', label: 'Print weekly plan works' },
+      { id: 'data-export-json', labelKey: 'checklist.item.data-export-json' },
+      { id: 'data-import', labelKey: 'checklist.item.data-import' },
+      { id: 'data-export-csv', labelKey: 'checklist.item.data-export-csv' },
+      { id: 'data-print-plan', labelKey: 'checklist.item.data-print-plan' },
     ],
   },
   {
     id: 'mobile',
-    title: 'Mobile',
+    titleKey: 'checklist.group.mobile',
     icon: TabletSmartphone,
     items: [
-      { id: 'mobile-today-workout', label: 'TodayWorkout usable on phone' },
-      { id: 'mobile-video-inline', label: 'Exercise video opens inline' },
-      { id: 'mobile-bottom-nav', label: 'Bottom nav works' },
-      { id: 'mobile-forms', label: 'Forms readable on small screens' },
+      { id: 'mobile-today-workout', labelKey: 'checklist.item.mobile-today-workout' },
+      { id: 'mobile-video-inline', labelKey: 'checklist.item.mobile-video-inline' },
+      { id: 'mobile-bottom-nav', labelKey: 'checklist.item.mobile-bottom-nav' },
+      { id: 'mobile-forms', labelKey: 'checklist.item.mobile-forms' },
     ],
   },
 ]
@@ -99,6 +100,7 @@ const TOTAL_ITEMS = CHECKLIST_GROUPS.reduce(
 )
 
 export function PreDeployChecklist() {
+  const t = useT()
   const [checked, setChecked] = useState(() => readCheckedState())
   const checkedCount = Object.values(checked).filter(Boolean).length
   const allDone = checkedCount === TOTAL_ITEMS
@@ -112,7 +114,7 @@ export function PreDeployChecklist() {
   }
 
   function resetChecklist() {
-    if (!window.confirm('Reset the whole pre-deploy checklist?')) {
+    if (!window.confirm(t('checklist.resetConfirm'))) {
       return
     }
     safeSetJSON(PRE_DEPLOY_CHECKLIST_KEY, {})
@@ -123,12 +125,9 @@ export function PreDeployChecklist() {
     <section className="predeploy-page">
       <header className="progress-hero">
         <div>
-          <p className="eyebrow">Deployment</p>
-          <h1>Pre-deploy checklist</h1>
-          <p>
-            Work through every item before shipping to production. Progress is
-            saved in this browser.
-          </p>
+          <p className="eyebrow">{t('checklist.eyebrow')}</p>
+          <h1>{t('checklist.title')}</h1>
+          <p>{t('checklist.subtitle')}</p>
         </div>
         <button
           className="workout-secondary-button"
@@ -136,7 +135,7 @@ export function PreDeployChecklist() {
           type="button"
         >
           <RotateCcw size={19} strokeWidth={2.4} aria-hidden="true" />
-          Reset Checklist
+          {t('checklist.reset')}
         </button>
       </header>
 
@@ -146,8 +145,11 @@ export function PreDeployChecklist() {
       >
         <ClipboardCheck size={18} strokeWidth={2.4} aria-hidden="true" />
         {allDone
-          ? `All ${TOTAL_ITEMS} checks complete. Ready to deploy.`
-          : `${checkedCount} of ${TOTAL_ITEMS} checks complete.`}
+          ? t('checklist.allDone', { total: TOTAL_ITEMS })
+          : t('checklist.progress', {
+              done: checkedCount,
+              total: TOTAL_ITEMS,
+            })}
       </div>
 
       <div className="predeploy-grid">
@@ -158,9 +160,12 @@ export function PreDeployChecklist() {
             <article className="dashboard-card predeploy-card" key={group.id}>
               <div className="card-heading">
                 <div>
-                  <p className="eyebrow">{group.title}</p>
+                  <p className="eyebrow">{t(group.titleKey)}</p>
                   <h2>
-                    {groupDone}/{group.items.length} checked
+                    {t('checklist.groupChecked', {
+                      done: groupDone,
+                      total: group.items.length,
+                    })}
                   </h2>
                 </div>
                 <Icon size={22} strokeWidth={2.4} aria-hidden="true" />
@@ -184,7 +189,7 @@ export function PreDeployChecklist() {
                         ) : (
                           <Circle size={19} strokeWidth={2.4} aria-hidden="true" />
                         )}
-                        <span>{item.label}</span>
+                        <span>{t(item.labelKey)}</span>
                       </button>
                     </li>
                   )

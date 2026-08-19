@@ -1,3 +1,4 @@
+import { t } from '../i18n'
 export function PrintableBodyProgress({ checkIns }) {
   const sorted = [...safeArray(checkIns)].sort((a, b) =>
     String(b?.date ?? '').localeCompare(String(a?.date ?? '')),
@@ -6,56 +7,56 @@ export function PrintableBodyProgress({ checkIns }) {
 
   return (
     <article className="print-page">
-      <h1>Body Progress Report</h1>
+      <h1>{t('print.body.title')}</h1>
       {latest ? (
         <>
-          <h2>Latest Body Check-in</h2>
+          <h2>{t('print.body.latest')}</h2>
           <div className="print-summary-grid">
             <Summary label="Date" value={latest.date} />
-            <Summary label="Body weight" value={formatUnit(latest.bodyWeightKg, 'kg')} />
-            <Summary label="Waist" value={formatUnit(latest.waistCm, 'cm')} />
-            <Summary label="Chest" value={formatUnit(latest.chestCm, 'cm')} />
-            <Summary label="Shoulders" value={formatUnit(latest.shouldersCm, 'cm')} />
-            <Summary label="Abs rating" value={formatUnit(latest.absVisibilityRating, '/10')} />
-            <Summary label="Posture rating" value={formatUnit(latest.postureRating, '/10')} />
-            <Summary label="Energy" value={formatUnit(latest.energyLevel, '/10')} />
+            <Summary label="Body weight" value={formatUnit(latest.bodyWeightKg, t('unit.kg'))} />
+            <Summary label="Waist" value={formatUnit(latest.waistCm, t('unit.cm'))} />
+            <Summary label="Chest" value={formatUnit(latest.chestCm, t('unit.cm'))} />
+            <Summary label="Shoulders" value={formatUnit(latest.shouldersCm, t('unit.cm'))} />
+            <Summary label="Abs rating" value={formatUnit(latest.absVisibilityRating, t('measure.ratingUnit'))} />
+            <Summary label="Posture rating" value={formatUnit(latest.postureRating, t('measure.ratingUnit'))} />
+            <Summary label="Energy" value={formatUnit(latest.energyLevel, t('measure.ratingUnit'))} />
           </div>
 
-          <h2>Measurement History</h2>
+          <h2>{t('print.body.history')}</h2>
           <table>
             <thead>
               <tr>
-                <th>Date</th>
-                <th>Weight</th>
-                <th>Waist</th>
-                <th>Belly</th>
-                <th>Chest</th>
-                <th>Shoulders</th>
-                <th>Left arm</th>
-                <th>Right arm</th>
-                <th>Hips</th>
-                <th>Notes</th>
+                <th>{t('csv.date')}</th>
+                <th>{t('profile.weight')}</th>
+                <th>{t('measure.waistCm')}</th>
+                <th>{t('measure.bellyCm')}</th>
+                <th>{t('measure.chestCm')}</th>
+                <th>{t('measure.shouldersCm')}</th>
+                <th>{t('measure.leftArmCm')}</th>
+                <th>{t('measure.rightArmCm')}</th>
+                <th>{t('measure.hipsCm')}</th>
+                <th>{t('print.notes')}</th>
               </tr>
             </thead>
             <tbody>
               {sorted.map((checkIn) => (
                 <tr key={checkIn.id}>
                   <td>{checkIn.date}</td>
-                  <td>{formatUnit(checkIn.bodyWeightKg, 'kg')}</td>
-                  <td>{formatUnit(checkIn.waistCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.bellyCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.chestCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.shouldersCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.leftArmCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.rightArmCm, 'cm')}</td>
-                  <td>{formatUnit(checkIn.hipsCm, 'cm')}</td>
+                  <td>{formatUnit(checkIn.bodyWeightKg, t('unit.kg'))}</td>
+                  <td>{formatUnit(checkIn.waistCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.bellyCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.chestCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.shouldersCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.leftArmCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.rightArmCm, t('unit.cm'))}</td>
+                  <td>{formatUnit(checkIn.hipsCm, t('unit.cm'))}</td>
                   <td>{checkIn.notes}</td>
                 </tr>
               ))}
             </tbody>
           </table>
 
-          <h2>Photo Thumbnails</h2>
+          <h2>{t('print.body.photos')}</h2>
           {hasPhotos(latest) ? (
             <div className="print-photo-grid">
               <Photo label="Front" src={photoSrc(latest, 'front')} />
@@ -63,11 +64,11 @@ export function PrintableBodyProgress({ checkIns }) {
               <Photo label="Back" src={photoSrc(latest, 'back')} />
             </div>
           ) : (
-            <p className="print-empty">No photos saved for the latest check-in.</p>
+            <p className="print-empty">{t('print.body.noPhotos')}</p>
           )}
         </>
       ) : (
-        <p className="print-empty">No data yet. Complete logs first.</p>
+        <p className="print-empty">{t('print.body.noData')}</p>
       )}
     </article>
   )

@@ -221,6 +221,18 @@ export const serviceMessages = {
   'csv.standaloneWorkout': 'Standalone workout',
   'csv.scheduledWorkout': 'Scheduled workout',
 
+  'demo.nutrition.1': 'Solid start. Trained chest, felt strong.',
+  'demo.nutrition.2': 'Oysters for zinc. Good protein day.',
+  'demo.nutrition.3': 'Busy day. Missed creatine and whey, protein a bit low.',
+  'demo.nutrition.4': 'Best day of the week. Everything hit.',
+  'demo.nutrition.5': 'Steady. Eggs and nuts, protein target reached.',
+  'demo.fruit.dragon': 'Dragon fruit',
+  'demo.fruit.mangosteen': 'Mangosteen',
+  'demo.fruit.both': 'Dragon fruit, mangosteen',
+  'demo.checkIn.1': 'Baseline week. Posture still collapses when tired.',
+  'demo.checkIn.2': 'Chest and shoulders filling out. Waist holding steady.',
+  'demo.checkIn.3': 'Upper body up, waist down. Abs starting to show in the morning.',
+
   // ----------------------------------------------------------------------- sync
   'sync.missingLocalId': 'Missing local id for delete.',
   'sync.missingPayload': 'Missing sync payload.',

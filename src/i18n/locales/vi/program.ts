@@ -94,6 +94,13 @@ export const programMessages = {
   'pm.restSeconds': 'Nghỉ: {seconds} giây',
   'pm.guidancePrefix': 'Hướng dẫn:',
 
+  'pm.benchmarks': 'Bài tập đối chiếu',
+  'pm.changedDays': 'Những ngày đổi tên',
+  'pm.exercisesAdded': 'Bài tập được thêm',
+  'pm.exercisesRemoved': 'Bài tập bị bỏ',
+  'pm.optionalStandalone': 'Buổi tập độc lập (không bắt buộc)',
+  'pm.workoutRules': 'Nguyên tắc buổi tập',
+
   'pm.rules.effort': 'Nguyên tắc — Mức gắng sức',
   'pm.rules.progression': 'Nguyên tắc — Tăng tiến',
   'pm.rules.rest': 'Nguyên tắc — Nghỉ giữa hiệp',

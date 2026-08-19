@@ -1,9 +1,10 @@
+import { formatDate as formatLocaleDate, t } from '../i18n'
 export function PrintableWeeklyReview({ review }) {
   if (!review) {
     return (
       <article className="print-page">
-        <h1>Weekly Review</h1>
-        <p className="print-empty">No weekly review data yet.</p>
+        <h1>{t('print.review.title')}</h1>
+        <p className="print-empty">{t('print.review.empty')}</p>
       </article>
     )
   }
@@ -18,51 +19,51 @@ export function PrintableWeeklyReview({ review }) {
 
   return (
     <article className="print-page">
-      <h1>Weekly Review</h1>
+      <h1>{t('print.review.title')}</h1>
       <p className="print-small">{review.weekLabel}</p>
 
       <div className="print-meta-grid">
         <div className="print-meta">
-          <span className="print-label">Program</span>
-          <strong>{review.program?.programName ?? 'Custom Workout Plan'}</strong>
+          <span className="print-label">{t('print.program')}</span>
+          <strong>{review.program?.programName ?? t('program.customPlanName')}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Version</span>
+          <span className="print-label">{t('print.version')}</span>
           <strong>{review.program?.programVersion ?? '-'}</strong>
         </div>
         <div className="print-meta">
-          <span className="print-label">Printed</span>
+          <span className="print-label">{t('print.printed')}</span>
           <strong>{formatDate(review.generatedAt)}</strong>
         </div>
       </div>
 
       <div className="print-summary-grid">
-        <Summary label="Weekly score" value={`${review.weeklyScore?.score ?? 0}/100`} />
+        <Summary label={t('print.review.weeklyScore')} value={`${review.weeklyScore?.score ?? 0}/100`} />
         <Summary
-          label="Scheduled workouts"
+          label={t('print.review.scheduledWorkouts')}
           value={`${scheduledCompletedWorkouts}/${
             workoutSummary.targetWorkouts ?? 0
           }`}
         />
         <Summary
-          label="Standalone workouts"
+          label={t('print.review.standaloneWorkouts')}
           value={formatStandaloneWorkoutCount(standaloneWorkoutsCompleted)}
         />
-        <Summary label="Total sets" value={workoutSummary.totalSets ?? 0} />
+        <Summary label={t('print.review.totalSets')} value={workoutSummary.totalSets ?? 0} />
         <Summary
-          label="Workout duration"
+          label={t('print.review.workoutDuration')}
           value={workoutSummary.totalDurationLabel ?? '-'}
         />
       </div>
 
-      <h2>Muscle Volume</h2>
+      <h2>{t('print.review.muscleVolume')}</h2>
       <table>
         <thead>
           <tr>
-            <th>Muscle</th>
-            <th>Sets</th>
-            <th>Sessions</th>
-            <th>Message</th>
+            <th>{t('print.muscle')}</th>
+            <th>{t('print.sets')}</th>
+            <th>{t('print.review.sessions')}</th>
+            <th>{t('print.review.message')}</th>
           </tr>
         </thead>
         <tbody>
@@ -77,14 +78,14 @@ export function PrintableWeeklyReview({ review }) {
         </tbody>
       </table>
 
-      <h2>Strength Progress</h2>
+      <h2>{t('print.review.strength')}</h2>
       <table>
         <thead>
           <tr>
-            <th>Exercise</th>
-            <th>This week</th>
-            <th>Previous</th>
-            <th>Change</th>
+            <th>{t('print.exercise')}</th>
+            <th>{t('print.review.thisWeek')}</th>
+            <th>{t('print.review.previous')}</th>
+            <th>{t('print.review.change')}</th>
           </tr>
         </thead>
         <tbody>
@@ -99,15 +100,15 @@ export function PrintableWeeklyReview({ review }) {
         </tbody>
       </table>
 
-      <h2>Body Progress</h2>
+      <h2>{t('print.review.bodyProgress')}</h2>
       {review.bodySummary?.hasCurrent ? (
         <table>
           <thead>
             <tr>
-              <th>Metric</th>
-              <th>Current</th>
-              <th>Previous</th>
-              <th>Change</th>
+              <th>{t('print.review.metric')}</th>
+              <th>{t('print.review.current')}</th>
+              <th>{t('print.review.previous')}</th>
+              <th>{t('print.review.change')}</th>
             </tr>
           </thead>
           <tbody>
@@ -122,34 +123,34 @@ export function PrintableWeeklyReview({ review }) {
           </tbody>
         </table>
       ) : (
-        <p className="print-empty">No body check-in this week.</p>
+        <p className="print-empty">{t('print.review.noCheckIn')}</p>
       )}
 
-      <h2>Nutrition Summary</h2>
+      <h2>{t('print.review.nutrition')}</h2>
       <div className="print-summary-grid">
         <Summary
-          label="Average protein"
+          label={t('print.review.avgProtein')}
           value={`${review.nutritionSummary?.averageProtein ?? 0} g`}
         />
         <Summary
-          label="Average water"
+          label={t('print.review.avgWater')}
           value={`${review.nutritionSummary?.averageWater ?? 0} L`}
         />
         <Summary
-          label="Creatine days"
+          label={t('print.review.creatineDays')}
           value={review.nutritionSummary?.creatineDays ?? 0}
         />
-        <Summary label="Whey days" value={review.nutritionSummary?.wheyDays ?? 0} />
+        <Summary label={t('print.review.wheyDays')} value={review.nutritionSummary?.wheyDays ?? 0} />
       </div>
 
-      <h2>Next Week Focus</h2>
+      <h2>{t('print.review.focus')}</h2>
       <ul>
         {safeArray(review.focusItems).map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
 
-      <h2>Warnings</h2>
+      <h2>{t('print.review.warnings')}</h2>
       {safeArray(review.warnings).length > 0 ? (
         <ul>
           {review.warnings.map((warning) => (
@@ -157,7 +158,7 @@ export function PrintableWeeklyReview({ review }) {
           ))}
         </ul>
       ) : (
-        <p>No warnings.</p>
+        <p>{t('print.review.noWarnings')}</p>
       )}
     </article>
   )
@@ -185,9 +186,9 @@ function formatDate(value) {
   const date = new Date(value ?? '')
   return Number.isNaN(date.getTime())
     ? '-'
-    : new Intl.DateTimeFormat('en', {
+    : formatLocaleDate(date, {
         day: 'numeric',
         month: 'short',
         year: 'numeric',
-      }).format(date)
+      })
 }
