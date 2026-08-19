@@ -42,9 +42,20 @@ create table if not exists public.workout_sessions (
 );
 
 -- One cloud row per (user, local_id) so re-running sync never duplicates.
+--
+-- This index must NOT be partial. Postgres only accepts a partial unique index
+-- as an ON CONFLICT arbiter when the statement repeats the index predicate,
+-- and PostgREST has no way to emit one, so `where local_id is not null` made
+-- every upsert from workoutService fail with 42P10 ("no unique or exclusion
+-- constraint matching the ON CONFLICT specification") - the workout was saved
+-- locally and never reached the cloud. Nulls compare as distinct in a unique
+-- index, so dropping the predicate keeps exactly the same guarantee.
+--
+-- The drop is what repairs a database that already has the partial version:
+-- `create ... if not exists` alone would find the name taken and skip.
+drop index if exists public.workout_sessions_user_local_id_key;
 create unique index if not exists workout_sessions_user_local_id_key
-  on public.workout_sessions (user_id, local_id)
-  where local_id is not null;
+  on public.workout_sessions (user_id, local_id);
 
 alter table public.workout_sessions enable row level security;
 
@@ -131,9 +142,10 @@ create table if not exists public.body_check_ins (
   updated_at timestamptz default now()
 );
 
+-- Non-partial for the ON CONFLICT reason documented on workout_sessions.
+drop index if exists public.body_check_ins_user_local_id_key;
 create unique index if not exists body_check_ins_user_local_id_key
-  on public.body_check_ins (user_id, local_id)
-  where local_id is not null;
+  on public.body_check_ins (user_id, local_id);
 
 alter table public.body_check_ins enable row level security;
 
@@ -184,9 +196,10 @@ create table if not exists public.nutrition_logs (
   updated_at timestamptz default now()
 );
 
+-- Non-partial for the ON CONFLICT reason documented on workout_sessions.
+drop index if exists public.nutrition_logs_user_local_id_key;
 create unique index if not exists nutrition_logs_user_local_id_key
-  on public.nutrition_logs (user_id, local_id)
-  where local_id is not null;
+  on public.nutrition_logs (user_id, local_id);
 
 alter table public.nutrition_logs enable row level security;
 
