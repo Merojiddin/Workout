@@ -12,23 +12,23 @@
 
 /* Three destinations, always reachable. Today's Workout is the home page now,
    so the nav can no longer hide itself there the way it did as a sub-page.
-   It floats as a rounded bar clear of the screen edges, so the page content
-   scrolls visibly underneath it rather than being cut off by a hard rail. */
+   It docks flush to the bottom edge, full width, the way a native tab bar
+   does - the safe-area inset is absorbed as padding inside the bar so the
+   tabs clear the home indicator without lifting the bar off the screen. */
 .bottom-nav {
   align-items: center;
   backdrop-filter: blur(20px);
   background: rgba(18, 22, 24, 0.95);
-  border: 1px solid #2a3034;
-  border-radius: 30px;
-  bottom: calc(12px + env(safe-area-inset-bottom));
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  border-top: 1px solid #2a3034;
+  bottom: 0;
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.45);
   display: grid;
   gap: 2px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  left: 12px;
-  padding: 8px 4px;
+  left: 0;
+  padding: 6px 4px;
   position: fixed;
-  right: 12px;
+  right: 0;
   z-index: 20;
 }
 
@@ -4481,7 +4481,8 @@
   background: var(--surface-3);
   border: 1px solid rgba(255, 109, 74, 0.4);
   border-radius: var(--r-md);
-  bottom: 84px;
+  /* Clears the docked tab bar, which is 70px tall plus the safe-area inset. */
+  bottom: calc(80px + env(safe-area-inset-bottom));
   box-shadow: var(--shadow);
   color: var(--text);
   display: flex;
@@ -6005,15 +6006,18 @@
   padding-top: calc(18px + env(safe-area-inset-top));
 }
 
+/* The bar itself sits at bottom: 0, so this is the only place the bottom
+   safe-area inset is counted - adding it to `bottom` as well used to push
+   the whole bar a home-indicator's height clear of the screen edge. */
 .bottom-nav {
-  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
   padding-left: calc(8px + env(safe-area-inset-left));
   padding-right: calc(8px + env(safe-area-inset-right));
 }
 
 /* The nav is fixed, so page content needs room to scroll clear of it. */
 .app-main {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  padding-bottom: calc(88px + env(safe-area-inset-bottom));
 }
 
 .offline-banner,
