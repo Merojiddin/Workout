@@ -19,6 +19,8 @@ export type EquipmentTag =
   | 'Barbell'
   | 'Bench'
   | 'Treadmill'
+  | 'Stationary bike'
+  | 'Elliptical machine'
   | 'Skipping rope'
   | 'VR Quest 2'
   | 'Mat'
@@ -98,6 +100,8 @@ export const equipmentOptions: EquipmentTag[] = [
   'Barbell',
   'Bench',
   'Treadmill',
+  'Stationary bike',
+  'Elliptical machine',
   'Skipping rope',
   'VR Quest 2',
   'Resistance bands',
@@ -1589,6 +1593,216 @@ const templatedExercises: LibraryExercise[] = [
     postureNotes:
       'Optional only when completely symptom-free, no more than twice weekly. Stop for pain, dizziness, weakness, numbness, or radiating symptoms.',
     postureFocus: true,
+  }),
+
+  // ----------------------------------------- Shared-plan compatibility batch
+  createExercise({
+    id: 'step-touch',
+    name: 'Step Touch',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Legs'],
+    secondaryMuscles: ['Glutes', 'Calves'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Step side to side with soft knees and bring the trailing foot in without hopping.',
+    setup:
+      'Stand tall with the feet hip-width apart and clear space on both sides.',
+    execution:
+      'Step to one side, touch the other foot beside it, then repeat in the opposite direction.',
+    safety:
+      'Keep the steps small and controlled if balance or joint comfort is limited.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'standing-knee-raise',
+    name: 'Standing Knee Raise',
+    category: 'Conditioning',
+    primaryMuscles: ['Hip Flexors', 'Core'],
+    secondaryMuscles: ['Quads', 'Glutes'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue: 'Stand tall and lift one knee without leaning back or rushing.',
+    setup:
+      'Stand with the feet hip-width apart near a stable support if needed.',
+    execution:
+      'Lift one knee toward hip height, lower it softly, and alternate sides under control.',
+    safety:
+      'Use a comfortable knee height and hold support if balance is uncertain.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'low-impact-jumping-jack',
+    name: 'Low-Impact Jumping Jack',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Legs'],
+    secondaryMuscles: ['Shoulders', 'Calves'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Step one foot out at a time while the arms travel overhead; do not jump.',
+    setup:
+      'Stand with the feet together, arms by the sides, and clear space around you.',
+    execution:
+      'Step one foot out as the arms rise, bring it back in, and alternate sides smoothly.',
+    safety:
+      'Keep a soft bend in the knees and use only a comfortable shoulder range.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'easy-treadmill-cool-down-walk',
+    name: 'Easy Treadmill Cool-Down Walk',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Legs'],
+    secondaryMuscles: ['Calves', 'Glutes'],
+    equipment: ['Treadmill'],
+    difficulty: 'Beginner',
+    formCue:
+      'Reduce the speed and incline gradually while keeping an easy natural stride.',
+    setup:
+      'Set the treadmill to a slow, flat or nearly flat pace and use the rails only to step on safely.',
+    execution:
+      'Walk easily until breathing settles, then slow the belt fully before stepping off.',
+    safety:
+      'Do not step off a moving belt; stop the machine if you feel dizzy or unsteady.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'stationary-cycling',
+    name: 'Stationary Cycling',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Quads'],
+    secondaryMuscles: ['Hamstrings', 'Glutes', 'Calves'],
+    equipment: ['Stationary bike'],
+    difficulty: 'Beginner',
+    formCue:
+      'Pedal smoothly with the knees tracking forward and the hips steady.',
+    setup:
+      'Adjust the seat for a soft knee bend at the bottom of the pedal stroke and secure the feet.',
+    execution:
+      'Pedal at a comfortable cadence with manageable resistance and a relaxed upper body.',
+    safety:
+      'Recheck the seat if the hips rock or the knees feel compressed or painful.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'bodyweight-step-up',
+    name: 'Bodyweight Step-Up',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Calves', 'Core'],
+    equipment: ['Bodyweight', 'Plyometric box'],
+    difficulty: 'Beginner',
+    formCue:
+      'Plant the whole lead foot and rise through that leg without pushing off the floor.',
+    setup:
+      'Stand close to a stable low step or box and place the whole working foot on top.',
+    execution:
+      'Drive through the elevated foot to stand tall, then step down slowly and repeat.',
+    safety:
+      'Choose a dry, stable surface low enough to keep the knee and pelvis controlled.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'incline-push-up',
+    name: 'Incline Push-Up',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Shoulders', 'Core'],
+    equipment: ['Bodyweight', 'Bench'],
+    difficulty: 'Beginner',
+    formCue:
+      'Keep a straight head-to-heel line as the chest moves toward the support.',
+    setup:
+      'Place both hands on a stable elevated surface and walk the feet back into a firm plank.',
+    execution:
+      'Bend the elbows to lower the chest toward the surface, then press back to straight arms.',
+    safety:
+      'Use a surface that cannot slide and a height that keeps the shoulders comfortable.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'elliptical-cardio',
+    name: 'Elliptical Cardio',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System', 'Legs'],
+    secondaryMuscles: ['Glutes', 'Calves'],
+    equipment: ['Elliptical machine'],
+    difficulty: 'Beginner',
+    formCue:
+      'Use a light grip, steady posture, and smooth pressure through each pedal.',
+    setup:
+      'Step onto the pedals carefully, take the handles, and select easy resistance.',
+    execution:
+      'Move the pedals and handles in a smooth reciprocal rhythm at a sustainable effort.',
+    safety:
+      'Slow the machine completely and keep hold of the handles before stepping off.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'standing-punches',
+    name: 'Standing Punches',
+    category: 'Conditioning',
+    primaryMuscles: ['Shoulders', 'Cardiovascular System'],
+    secondaryMuscles: ['Core', 'Triceps'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Punch smoothly from a balanced stance and return each hand to guard.',
+    setup:
+      'Stand in a relaxed staggered stance with soft knees, hands up, and clear space ahead.',
+    execution:
+      'Alternate controlled straight punches with light hip rotation and quick guard recovery.',
+    safety:
+      'Do not snap the elbows straight or reach farther than balance allows.',
+    relatedWorkoutDays: [],
+    progressionMode: 'skill',
+  }),
+  createExercise({
+    id: 'bodyweight-reverse-lunge',
+    name: 'Bodyweight Reverse Lunge',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Calves', 'Core'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Step back with control, keep the front foot planted, and track the front knee.',
+    setup:
+      'Stand tall with the feet hip-width apart and use nearby support if needed.',
+    execution:
+      'Step one foot back, lower both knees comfortably, and drive through the front foot to return.',
+    safety:
+      'Reduce the depth or use support if balance is uncertain or the knee feels painful.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
+  }),
+  createExercise({
+    id: 'standing-knee-to-elbow',
+    name: 'Standing Knee-to-Elbow',
+    category: 'Abs',
+    primaryMuscles: ['Obliques', 'Core'],
+    secondaryMuscles: ['Hip Flexors'],
+    equipment: ['Bodyweight'],
+    difficulty: 'Beginner',
+    formCue:
+      'Bring the knee and opposite elbow together by rotating the trunk without pulling the neck.',
+    setup:
+      'Stand tall with the feet hip-width apart and the hands resting lightly beside the head.',
+    execution:
+      'Lift one knee as the opposite elbow rotates toward it, return to standing, and alternate sides.',
+    safety:
+      'Move slowly and reduce the range if balance or the lower back feels uncomfortable.',
+    relatedWorkoutDays: [],
+    progressionMode: 'control',
   }),
 ]
 
@@ -5741,6 +5955,82 @@ const workoutIdToLibraryId: Record<string, string> = {
   'reverse-crunch': 'reverse-crunch',
   'plank-with-glute-squeeze': 'plank-with-glute-squeeze',
   'treadmill-incline-walk': 'treadmill-incline-walk',
+
+  // Guide-only spellings commonly found in user-supplied workout JSON.
+  'incline-treadmill-walk': 'treadmill-incline-walk',
+  'treadmill-incline-walking': 'treadmill-incline-walk',
+  'incline-walk-treadmill': 'treadmill-incline-walk',
+  'step-touches': 'step-touch',
+  'side-step-touch': 'step-touch',
+  'lateral-step-touch': 'step-touch',
+  squats: 'squat',
+  'bodyweight-squat': 'squat',
+  'air-squat': 'squat',
+  'standing-knee-raises': 'standing-knee-raise',
+  'standing-knee-lift': 'standing-knee-raise',
+  'knee-raise-standing': 'standing-knee-raise',
+  'low-impact-jumping-jacks': 'low-impact-jumping-jack',
+  'low-impact-jack': 'low-impact-jumping-jack',
+  'step-jack': 'low-impact-jumping-jack',
+  'easy-treadmill-cooldown-walk': 'easy-treadmill-cool-down-walk',
+  'treadmill-cool-down-walk': 'easy-treadmill-cool-down-walk',
+  'easy-treadmill-walk': 'easy-treadmill-cool-down-walk',
+  'easy-indoor-swim': 'easy-indoor-swimming',
+  'indoor-swimming': 'easy-indoor-swimming',
+  'easy-pool-swimming': 'easy-indoor-swimming',
+  'stationary-bike': 'stationary-cycling',
+  'indoor-cycling': 'stationary-cycling',
+  'exercise-bike': 'stationary-cycling',
+  'glute-bridges': 'glute-bridge',
+  'bodyweight-glute-bridge': 'glute-bridge',
+  'floor-glute-bridge': 'glute-bridge',
+  'step-up': 'bodyweight-step-up',
+  'unweighted-step-up': 'bodyweight-step-up',
+  'box-step-up': 'bodyweight-step-up',
+  'incline-pushup': 'incline-push-up',
+  'elevated-push-up': 'incline-push-up',
+  'bench-push-up': 'incline-push-up',
+  'bird-dog': 'bird-dog-with-pause',
+  'paused-bird-dog': 'bird-dog-with-pause',
+  'bird-dog-hold': 'bird-dog-with-pause',
+  'front-plank': 'plank',
+  'forearm-plank': 'plank',
+  'standard-plank': 'plank',
+  elliptical: 'elliptical-cardio',
+  'elliptical-trainer': 'elliptical-cardio',
+  'cross-trainer-cardio': 'elliptical-cardio',
+  'standing-punch': 'standing-punches',
+  'punches-in-place': 'standing-punches',
+  'standing-boxing-punches': 'standing-punches',
+  'bodyweight-reverse-lunges': 'bodyweight-reverse-lunge',
+  'reverse-lunge': 'bodyweight-reverse-lunge',
+  'unweighted-reverse-lunge': 'bodyweight-reverse-lunge',
+  'standing-elbow-to-knee': 'standing-knee-to-elbow',
+  'standing-cross-body-knee-crunch': 'standing-knee-to-elbow',
+  'standing-knee-elbow-crunch': 'standing-knee-to-elbow',
+  'brisk-walk': 'brisk-walking',
+  'fast-walking': 'brisk-walking',
+  'power-walking': 'brisk-walking',
+  'hip-flexor-stretches': 'hip-flexor-stretch',
+  'hip-flexors-stretch': 'hip-flexor-stretch',
+  'kneeling-hip-flexor-stretch': 'hip-flexor-stretch',
+  'leg-presses': 'leg-press',
+  'machine-leg-press': 'leg-press',
+  'seated-leg-press': 'leg-press',
+  'seated-leg-curls': 'seated-leg-curl',
+  'seated-hamstring-curl': 'seated-leg-curl',
+  'machine-seated-leg-curl': 'seated-leg-curl',
+  'leg-extensions': 'leg-extension',
+  'seated-leg-extension': 'leg-extension',
+  'machine-leg-extension': 'leg-extension',
+  'seated-calf-raise': 'seated-calf-machine-raise',
+  'seated-calf-raises': 'seated-calf-machine-raise',
+  'machine-seated-calf-raise': 'seated-calf-machine-raise',
+  'seated-heel-raise': 'seated-calf-machine-raise',
+  'standing-calf-raise': 'calf-raise',
+  'standing-calf-raises': 'calf-raise',
+  'bodyweight-standing-calf-raise': 'calf-raise',
+  'standing-heel-raise': 'calf-raise',
 }
 
 /**

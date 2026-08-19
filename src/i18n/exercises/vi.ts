@@ -173,6 +173,17 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Chin Tuck": "Thu cằm",
   "Thoracic Extension / Reach": "Ưỡn ngực / vươn tay",
   "Four-Way Neck Isometric": "Giữ tĩnh cổ bốn hướng",
+  "Step Touch": "Bước ngang chạm chân",
+  "Standing Knee Raise": "Nâng gối đứng",
+  "Low-Impact Jumping Jack": "Jumping Jack nhẹ, ít tác động",
+  "Easy Treadmill Cool-Down Walk": "Đi bộ nhẹ trên máy để thả lỏng",
+  "Stationary Cycling": "Đạp xe tại chỗ",
+  "Bodyweight Step-Up": "Bước lên bục bằng trọng lượng cơ thể",
+  "Incline Push-Up": "Chống đẩy nghiêng",
+  "Elliptical Cardio": "Cardio với máy Elliptical",
+  "Standing Punches": "Đấm tay khi đứng",
+  "Bodyweight Reverse Lunge": "Chùng chân lùi bằng trọng lượng cơ thể",
+  "Standing Knee-to-Elbow": "Đưa gối chạm khuỷu tay khi đứng",
 
   // -------------------------------------------------------------- templates
   "Use a lighter {name} variation": "Dùng biến thể nhẹ hơn của {name}",
@@ -189,6 +200,94 @@ export const exercisePhrasesVi: Record<string, string> = {
     "{name} với tay nắm ngửa rộng bằng vai",
 
   // --------------------------------------------------------------- content
+  "Bring the knee and opposite elbow together by rotating the trunk without pulling the neck.":
+    "Đưa gối và khuỷu tay đối diện lại gần nhau bằng cách xoay thân mà không kéo cổ.",
+  "Keep a straight head-to-heel line as the chest moves toward the support.":
+    "Giữ cơ thể thành một đường thẳng từ đầu đến gót chân khi hạ ngực về phía điểm tựa.",
+  "Pedal smoothly with the knees tracking forward and the hips steady.":
+    "Đạp đều, giữ đầu gối hướng về trước và hông ổn định.",
+  "Plant the whole lead foot and rise through that leg without pushing off the floor.":
+    "Đặt toàn bộ bàn chân trụ lên bục và đứng lên bằng chân đó mà không đạp chân dưới sàn.",
+  "Punch smoothly from a balanced stance and return each hand to guard.":
+    "Đấm nhịp nhàng từ tư thế thăng bằng và thu từng tay về thế thủ.",
+  "Reduce the speed and incline gradually while keeping an easy natural stride.":
+    "Giảm dần tốc độ và độ dốc trong khi duy trì sải chân tự nhiên, nhẹ nhàng.",
+  "Stand tall and lift one knee without leaning back or rushing.":
+    "Đứng thẳng và nâng một gối mà không ngả ra sau hoặc thực hiện quá nhanh.",
+  "Step back with control, keep the front foot planted, and track the front knee.":
+    "Bước lùi có kiểm soát, giữ bàn chân trước bám sàn và đầu gối trước thẳng hướng.",
+  "Step one foot out at a time while the arms travel overhead; do not jump.":
+    "Lần lượt bước từng chân sang bên khi hai tay đưa qua đầu; không bật nhảy.",
+  "Step side to side with soft knees and bring the trailing foot in without hopping.":
+    "Bước sang hai bên với đầu gối hơi chùng và đưa chân sau vào mà không bật nhảy.",
+  "Use a light grip, steady posture, and smooth pressure through each pedal.":
+    "Nắm tay cầm nhẹ, giữ tư thế ổn định và đạp đều qua từng bàn đạp.",
+  "Adjust the seat for a soft knee bend at the bottom of the pedal stroke and secure the feet.":
+    "Điều chỉnh yên để đầu gối hơi chùng ở điểm thấp nhất của vòng đạp và cố định bàn chân.",
+  "Alternate controlled straight punches with light hip rotation and quick guard recovery.":
+    "Luân phiên đấm thẳng có kiểm soát, xoay hông nhẹ và nhanh chóng thu tay về thế thủ.",
+  "Bend the elbows to lower the chest toward the surface, then press back to straight arms.":
+    "Gập khuỷu tay để hạ ngực về phía điểm tựa, sau đó đẩy lên đến khi tay thẳng.",
+  "Choose a dry, stable surface low enough to keep the knee and pelvis controlled.":
+    "Chọn bề mặt khô, chắc chắn và đủ thấp để kiểm soát đầu gối cùng khung chậu.",
+  "Do not snap the elbows straight or reach farther than balance allows.":
+    "Không khóa bật khuỷu tay hoặc với xa hơn khả năng giữ thăng bằng.",
+  "Do not step off a moving belt; stop the machine if you feel dizzy or unsteady.":
+    "Không bước khỏi băng chạy đang chuyển động; dừng máy nếu thấy chóng mặt hoặc mất thăng bằng.",
+  "Drive through the elevated foot to stand tall, then step down slowly and repeat.":
+    "Đạp qua bàn chân trên bục để đứng thẳng, sau đó bước xuống chậm rãi và lặp lại.",
+  "Keep a soft bend in the knees and use only a comfortable shoulder range.":
+    "Giữ đầu gối hơi chùng và chỉ đưa vai trong biên độ thoải mái.",
+  "Keep the steps small and controlled if balance or joint comfort is limited.":
+    "Bước ngắn và có kiểm soát nếu khả năng thăng bằng hoặc độ thoải mái của khớp bị hạn chế.",
+  "Lift one knee as the opposite elbow rotates toward it, return to standing, and alternate sides.":
+    "Nâng một gối khi khuỷu tay đối diện xoay về phía đó, trở lại tư thế đứng rồi đổi bên.",
+  "Lift one knee toward hip height, lower it softly, and alternate sides under control.":
+    "Nâng một gối về phía ngang hông, hạ nhẹ nhàng rồi luân phiên hai bên có kiểm soát.",
+  "Move slowly and reduce the range if balance or the lower back feels uncomfortable.":
+    "Di chuyển chậm và giảm biên độ nếu mất thăng bằng hoặc lưng dưới khó chịu.",
+  "Move the pedals and handles in a smooth reciprocal rhythm at a sustainable effort.":
+    "Di chuyển bàn đạp và tay cầm theo nhịp luân phiên mượt mà ở mức gắng sức bền vững.",
+  "Pedal at a comfortable cadence with manageable resistance and a relaxed upper body.":
+    "Đạp ở nhịp thoải mái với lực cản vừa sức và thả lỏng thân trên.",
+  "Place both hands on a stable elevated surface and walk the feet back into a firm plank.":
+    "Đặt hai tay lên bề mặt cao chắc chắn rồi bước chân ra sau vào tư thế plank vững.",
+  "Recheck the seat if the hips rock or the knees feel compressed or painful.":
+    "Kiểm tra lại vị trí yên nếu hông lắc hoặc đầu gối cảm thấy bị ép hay đau.",
+  "Reduce the depth or use support if balance is uncertain or the knee feels painful.":
+    "Giảm độ sâu hoặc dùng điểm tựa nếu chưa giữ được thăng bằng hoặc đầu gối bị đau.",
+  "Set the treadmill to a slow, flat or nearly flat pace and use the rails only to step on safely.":
+    "Đặt máy chạy bộ ở tốc độ chậm, độ dốc bằng phẳng hoặc gần bằng phẳng và chỉ dùng tay vịn để bước lên an toàn.",
+  "Slow the machine completely and keep hold of the handles before stepping off.":
+    "Giảm tốc máy hoàn toàn và tiếp tục giữ tay cầm trước khi bước xuống.",
+  "Stand close to a stable low step or box and place the whole working foot on top.":
+    "Đứng gần một bục thấp chắc chắn và đặt toàn bộ bàn chân làm việc lên trên.",
+  "Stand in a relaxed staggered stance with soft knees, hands up, and clear space ahead.":
+    "Đứng so le thoải mái, đầu gối hơi chùng, hai tay nâng lên và chừa khoảng trống phía trước.",
+  "Stand tall with the feet hip-width apart and clear space on both sides.":
+    "Đứng thẳng, hai bàn chân rộng bằng hông và chừa khoảng trống ở cả hai bên.",
+  "Stand tall with the feet hip-width apart and the hands resting lightly beside the head.":
+    "Đứng thẳng, hai chân rộng bằng hông và đặt nhẹ hai tay bên đầu.",
+  "Stand tall with the feet hip-width apart and use nearby support if needed.":
+    "Đứng thẳng, hai chân rộng bằng hông và dùng điểm tựa gần đó nếu cần.",
+  "Stand with the feet hip-width apart near a stable support if needed.":
+    "Đứng hai chân rộng bằng hông gần một điểm tựa chắc chắn nếu cần.",
+  "Stand with the feet together, arms by the sides, and clear space around you.":
+    "Đứng khép chân, hai tay dọc thân người và chừa khoảng trống xung quanh.",
+  "Step one foot back, lower both knees comfortably, and drive through the front foot to return.":
+    "Bước một chân ra sau, hạ cả hai gối trong biên độ thoải mái rồi đạp qua chân trước để trở về.",
+  "Step one foot out as the arms rise, bring it back in, and alternate sides smoothly.":
+    "Bước một chân sang bên khi hai tay nâng lên, đưa chân về rồi luân phiên hai bên nhịp nhàng.",
+  "Step onto the pedals carefully, take the handles, and select easy resistance.":
+    "Bước lên bàn đạp cẩn thận, nắm tay cầm và chọn lực cản nhẹ.",
+  "Step to one side, touch the other foot beside it, then repeat in the opposite direction.":
+    "Bước sang một bên, đưa chân kia vào chạm nhẹ rồi lặp lại theo hướng đối diện.",
+  "Use a comfortable knee height and hold support if balance is uncertain.":
+    "Chỉ nâng gối đến độ cao thoải mái và vịn điểm tựa nếu chưa giữ được thăng bằng.",
+  "Use a surface that cannot slide and a height that keeps the shoulders comfortable.":
+    "Dùng bề mặt không trượt và độ cao giúp vai luôn thoải mái.",
+  "Walk easily until breathing settles, then slow the belt fully before stepping off.":
+    "Đi nhẹ nhàng đến khi nhịp thở ổn định, sau đó giảm băng chạy về tốc độ thấp nhất trước khi bước xuống.",
   "Changing the range from repetition to repetition":
     "Thay đổi biên độ giữa các lần thực hiện",
   "Choose the simpler equipment alternative from the same workout slot":

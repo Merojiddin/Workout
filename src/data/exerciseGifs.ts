@@ -399,6 +399,15 @@ export const exerciseGifs: Record<string, ExerciseGifEntry> = {
     bodyParts: ['back'],
     equipments: ['dumbbell'],
   },
+  'elliptical-cardio': {
+    gifUrl: '/exercise-gifs/elliptical-cardio.gif',
+    exerciseId: 'rjtuP6X',
+    edbName: 'walk elliptical cross trainer',
+    targetMuscles: ['cardiovascular system'],
+    secondaryMuscles: ['quadriceps', 'hamstrings', 'glutes', 'calves'],
+    bodyParts: ['cardio'],
+    equipments: ['elliptical machine'],
+  },
   'farmer-carry': {
     gifUrl: '/exercise-gifs/farmer-carry.gif',
     exerciseId: 'qPEzJjA',
@@ -569,6 +578,15 @@ export const exerciseGifs: Record<string, ExerciseGifEntry> = {
     secondaryMuscles: ['shoulders', 'triceps'],
     bodyParts: ['chest'],
     equipments: ['dumbbell'],
+  },
+  'incline-push-up': {
+    gifUrl: '/exercise-gifs/incline-push-up.gif',
+    exerciseId: 'B1EVP9F',
+    edbName: 'incline push-up',
+    targetMuscles: ['pectorals'],
+    secondaryMuscles: ['triceps', 'shoulders'],
+    bodyParts: ['chest'],
+    equipments: ['body weight'],
   },
   'incline-smith-machine-press': {
     gifUrl: '/exercise-gifs/incline-smith-machine-press.gif',
@@ -983,6 +1001,15 @@ export const exerciseGifs: Record<string, ExerciseGifEntry> = {
     secondaryMuscles: ['soleus', 'ankle stabilizers'],
     bodyParts: ['lower legs'],
     equipments: ['leverage machine'],
+  },
+  'stationary-cycling': {
+    gifUrl: '/exercise-gifs/stationary-cycling.gif',
+    exerciseId: 'H1PESYI',
+    edbName: 'stationary bike run',
+    targetMuscles: ['cardiovascular system'],
+    secondaryMuscles: ['quadriceps', 'hamstrings', 'calves'],
+    bodyParts: ['cardio'],
+    equipments: ['stationary bike'],
   },
   'sumo-deadlift': {
     gifUrl: '/exercise-gifs/sumo-deadlift.gif',

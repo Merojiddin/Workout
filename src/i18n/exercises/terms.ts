@@ -31,6 +31,8 @@ const viEquipment: TermMap = {
   Barbell: 'Tạ đòn',
   Bench: 'Ghế tập',
   Treadmill: 'Máy chạy bộ',
+  'Stationary bike': 'Xe đạp tập tại chỗ',
+  'Elliptical machine': 'Máy tập Elliptical',
   'Skipping rope': 'Dây nhảy',
   'VR Quest 2': 'VR Quest 2',
   Mat: 'Thảm tập',
