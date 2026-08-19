@@ -919,6 +919,20 @@ function isManagedExerciseAnimationUrl(value) {
   )
 }
 
+function isLegacyHostedExerciseImageUrl(value) {
+  try {
+    const url = new URL(value)
+    const hostname = url.hostname.toLowerCase().replace(/^www\./, '')
+
+    return (
+      url.pathname.toLowerCase().startsWith('/wp-content/uploads/') &&
+      (hostname === 'training.fit' || hostname === 'weighttraining.guide')
+    )
+  } catch {
+    return false
+  }
+}
+
 function isManagedExerciseImageUrl(value) {
   return (
     value.startsWith('/exercise-images/') ||
@@ -927,7 +941,7 @@ function isManagedExerciseImageUrl(value) {
     value.startsWith(
       'https://d2m0n84d5tgmh1.cloudfront.net/training-image/',
     ) ||
-    value.startsWith('https://training.fit/wp-content/uploads/')
+    isLegacyHostedExerciseImageUrl(value)
   )
 }
 
