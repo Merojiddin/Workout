@@ -82,6 +82,12 @@ p {
   overflow-wrap: break-word;
 }
 
+/* dvh, not svh: svh is the SMALLEST viewport (as if the browser toolbars are
+   showing). Launched standalone from the home screen there are no toolbars,
+   but iOS still reports svh as the toolbar-inclusive height, so the shell came
+   up ~70px short of the screen and everything anchored to it stopped there.
+   dvh tracks the viewport that is actually on screen. */
 #root {
-  min-height: 100svh;
+  min-height: 100vh;
+  min-height: 100dvh;
 }

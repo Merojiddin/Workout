@@ -1,5 +1,6 @@
 .app-shell {
-  min-height: 100svh;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-main {
@@ -6029,14 +6030,24 @@
 /* --- No sideways scrolling ----------------------------------------------
    A single overflowing element drags the whole page sideways on a phone,
    which makes every other screen feel broken. */
+/* `clip` rather than `hidden`. Both stop the sideways scroll, but `hidden`
+   makes the element a scroll container - overflow-y computes to `auto` - and
+   iOS anchors `position: fixed` descendants to the nearest scrolling ancestor
+   instead of the viewport. That is what left the tab bar and the live-workout
+   layer floating above the bottom of a home-screen launch. `clip` leaves
+   overflow-y `visible`, so the shell stays a plain box (which also lets
+   `position: sticky` work inside it again). `hidden` first as the iOS 15
+   fallback. */
 html,
 body {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .app-shell {
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* Wide tables scroll inside their own container rather than the page.
