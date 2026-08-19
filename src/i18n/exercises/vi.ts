@@ -186,4 +186,41 @@ export const exercisePhrasesVi: Record<string, string> = {
   '{name} animation': 'Ảnh động bài {name}',
   '{name} with an underhand shoulder-width grip':
     '{name} với tay nắm ngửa rộng bằng vai',
+
+  // --------------------------------------------------------------- content
+  'Changing the range from repetition to repetition':
+    'Thay đổi biên độ giữa các lần thực hiện',
+  'Choose the simpler equipment alternative from the same workout slot':
+    'Chọn phương án dụng cụ đơn giản hơn cho cùng vị trí bài tập trong buổi tập',
+  'Continuing through sharp or unusual pain':
+    'Tiếp tục tập khi có cơn đau nhói hoặc bất thường',
+  'Keep each repetition consistent': 'Giữ mỗi lần thực hiện đều nhau',
+  'Leave the programmed repetitions in reserve':
+    'Chừa số lần dự phòng đúng theo chương trình',
+  'Reduce the range to a comfortable controlled range':
+    'Giảm biên độ xuống mức thoải mái và có kiểm soát',
+  'Use a smooth, controlled return to the start position.':
+    'Trở về vị trí bắt đầu một cách nhịp nhàng và có kiểm soát.',
+  'Use the full range that you can control comfortably':
+    'Dùng hết biên độ mà bạn có thể kiểm soát thoải mái',
+  'Using momentum instead of the target muscles':
+    'Dùng quán tính thay vì các cơ mục tiêu',
+  'Using more load than can be controlled':
+    'Dùng mức tạ nặng hơn khả năng kiểm soát',
+  'Keep the neck comfortable, ribs controlled, and spine neutral. Do not gain range by jutting the chin or over-arching the lower back.':
+    'Giữ cổ thoải mái, xương sườn ổn định và cột sống trung lập. Không cố tăng biên độ bằng cách rướn cằm hoặc ưỡn quá mức lưng dưới.',
+  'Add clean repetitions within the programmed range':
+    'Thêm số lần thực hiện chuẩn trong phạm vi chương trình',
+  'Increase by the smallest practical load increment':
+    'Tăng theo nấc mức tạ nhỏ nhất có thể',
+  'Reach the top of the range at the required RIR':
+    'Đạt đầu trên của khoảng số lần với mức RIR yêu cầu',
+  'Control the lowering': 'Kiểm soát pha hạ xuống',
+  'Push-up': 'Chống đẩy',
+  'Inverted row': 'Kéo xà thấp',
+  'Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.':
+    'Hạ xương sườn, siết bụng, siết nhẹ cơ mông và giữ cột sống trung lập. Không ưỡn quá mức lưng dưới. Dừng lại nếu xuất hiện đau nhói.',
+  'Partial range of motion': 'Biên độ chuyển động không đầy đủ',
+  'Add range or light resistance without creating fatigue':
+    'Tăng biên độ hoặc thêm lực cản nhẹ mà không gây mệt mỏi',
 }
