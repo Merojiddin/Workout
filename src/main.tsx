@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext'
 import { LanguageProvider } from './i18n'
+import { deleteRetiredCaches } from './utils/retiredCaches'
+
+deleteRetiredCaches()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

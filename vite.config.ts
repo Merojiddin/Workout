@@ -59,43 +59,30 @@ export default defineConfig({
               cacheName: 'supabase-network-only',
             },
           },
-          {
-            // Exercise animations get their own bucket ahead of the generic
-            // image rule: there are 136 of them, so they would otherwise
-            // evict (and be evicted by) everything else in "static-assets".
-            // They are deliberately NOT precached - that would push ~47MB
-            // onto every install - so they cache on first view instead.
-            //
-            // The clips are Planfit MP4s on CloudFront, which sends no
-            // Access-Control-Allow-Origin, so these come back *opaque* and
-            // only cache with statuses [0, 200]. Browsers pad opaque entries
-            // for quota accounting, which is why maxEntries is well under the
-            // full 136: a program is typically 20-40 distinct exercises, so
-            // 50 covers a whole routine at ~18MB of real bytes and lets LRU
-            // drop the rest. Opaque bodies also cannot be sliced, so
-            // rangeRequests is not usable here (iOS re-fetches on a Range
-            // miss rather than breaking).
-            //
-            // The cache name is carried over from the retired bundled-GIF
-            // rule on purpose: existing installs still hold up to 140 dead
-            // /exercise-gifs/ entries, and reusing the name lets this lower
-            // maxEntries trim them as LRU instead of orphaning ~13MB.
-            urlPattern: ({ url }) =>
-              url.href.startsWith(
-                'https://d2m0n84d5tgmh1.cloudfront.net/training-videos-watermarked/',
-              ),
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'exercise-animations',
-              cacheableResponse: {
-                statuses: [0, 200],
-              },
-              expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 * 90,
-              },
-            },
-          },
+          // NOTE: the Planfit MP4s under
+          // https://d2m0n84d5tgmh1.cloudfront.net/training-videos-watermarked/
+          // deliberately have NO runtime caching rule, and must not get one.
+          //
+          // CloudFront sends no Access-Control-Allow-Origin for them, and a
+          // <video> fetches media no-cors, so anything the service worker
+          // returns for these is necessarily an *opaque* response. WebKit
+          // (iOS Safari, and therefore the installed PWA) rejects an opaque
+          // response for a media element outright: the video fires
+          // MEDIA_ERR_SRC_NOT_SUPPORTED, LiveExerciseImage's onError falls
+          // back to the still, and the movement shows as a frozen thumbnail.
+          // That happens on the very first play, not just on a cache hit, so
+          // no handler choice fixes it - NetworkOnly still respondWith()s an
+          // opaque response. Chromium tolerates this; WebKit does not.
+          //
+          // Leaving the request unrouted means no fetch handler claims it and
+          // the browser loads the clip itself, with normal Range support. The
+          // clips still cache in the HTTP cache (no Cache-Control, but a 2023
+          // Last-Modified gives them long heuristic freshness). The cost is
+          // that animations no longer replay fully offline; the still
+          // thumbnails below do, and they are what offline falls back to.
+          //
+          // Caching these properly again needs same-origin bytes: bundled
+          // files under /exercise-gifs/, or a proxy that adds CORS.
           {
             // Planfit still thumbnails: ~19KB each, 2.5MB for all 136, so the
             // whole set fits. Kept out of "static-assets" so they cannot
