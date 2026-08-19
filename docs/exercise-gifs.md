@@ -12,8 +12,8 @@
 | Refresh with | `node scripts/fetch-exercise-gifs.mjs` |
 
 GIFs are **downloaded into the repo**, not hot-linked, so the app still works
-offline and does not break if the CDN goes away. They are 180x180 and average
-~95KB (111 files, ~11MB total).
+offline and does not break if the CDN goes away. They are 180x180 (96 files,
+9,446,781 bytes / 9.01 MiB total, 96.1 KiB average).
 
 ### Do not page the public API
 
@@ -30,12 +30,13 @@ weighted by whether the equipment agreed), and then **every match was reviewed b
 hand**. The scorer alone was not safe: it picked `smith bench press` for
 *Bench Press*, `squat jerk` for *Squat*, `resistance band leg extension` for
 *Resistance-Band Leg Curl*, and `band assisted pull-up` for *Light Band Face
-Pull*. 46 of the 111 entries are hand-picked overrides.
+Pull*.
 
 The durable artifact is the curated `libraryId -> exerciseId` pairing in
 `src/data/exerciseGifs.ts`. The fuzzy matching was a one-off curation step and is
 deliberately **not** re-run by the refresh script, so results cannot silently
-drift.
+drift. The map includes hand-picked overrides from the original pass and later
+media audits.
 
 ## Adding a new one
 
@@ -49,54 +50,80 @@ worse than showing none.
 
 ## Exercises intentionally left without an animation
 
-45 of our 156 library exercises have no GIF.
+71 of our 167 library exercises have no GIF.
 
-### No faithful match exists in the dataset (44)
+### No faithful match exists in the dataset (70)
 
 The dataset has no face pull, pec deck, hip thrust, bird dog, hollow hold, ab
 rollout-from-knees, or plain plank / box jump, and nothing for the posture,
 mobility, walking and boxing work:
 
 - 90/90 Hip Lift with Full Exhale
-- Bird Dog with Pause
+- Band Pull-Apart — the available row is an anchored reverse fly, not a free pull-apart
+- Bayesian Cable Curl — the available row faces the stack and does not load the arm behind the torso
+- Bird Dog with Pause — no quadruped bird-dog row exists
+- Bodyweight Reverse Lunge — every rear-lunge row uses dumbbells or a barbell
+- Bodyweight Step-Up — every true step-up row uses a band, dumbbells, or a barbell
 - Box Jump
 - Boxing Defense Drill
 - Boxing Footwork Drill
-- Brisk Walking
+- Brisk Walking — no level bodyweight walking row exists
+- Cable Pallof Press — the only horizontal Pallof row uses a resistance band
+- Captain's Chair Knee Raise — the only chair row keeps the legs straight
 - Chin Tuck
 - Couch Hip-Flexor Stretch
+- Countermovement Jump — the nearest row is a continuous jump squat without a reset
+- Deficit Push-Up — the deep-push-up row uses round dumbbells instead of stable non-rolling supports
 - Dumbbell Hip Thrust
 - Dumbbell Squeeze Press
-- Easy Indoor Swimming
+- Easy Indoor Swimming — `swimmer kicks` is a prone floor exercise, not swimming
+- Easy Treadmill Cool-Down Walk — the only treadmill row is an incline walk, not a flat easy cool-down
+- Elbows-Out Dumbbell Row — available rows add chest or unilateral bench support
 - Four-Way Neck Isometric
+- Front-Foot-Elevated Dumbbell Reverse Lunge — the dumbbell rear-lunge row has no front-foot elevation
 - Front-Foot-Elevated Smith Reverse Lunge
+- Hanging Knee Raise — the only knee-raise row is explicitly assisted
 - Heavy-Bag Boxing
-- Hip Flexor Stretch
+- Heels-Elevated Goblet Squat — the goblet-squat row has no heel elevation
+- Hip Flexor Stretch — available rows require a stability ball or rope
 - Hip Thrust
 - Hip-Thrust Machine
 - Hollow Body Hold
+- Lean-Away Dumbbell Lateral Raise — the lateral-raise rows do not include the lean-away setup
 - Light Band Face Pull
 - Light Walking
+- Low-Impact Jumping Jack — the only jack row jumps and is not low-impact
+- One-Arm Dumbbell Floor Press — the one-arm press row is performed on a bench
+- One-Arm Machine Row — the available one-arm lever row is a high row without chest support
 - Overhead Dumbbell Triceps Extension
 - Pec Deck
 - Pendulum Squat
 - Pike Push-up
-- Plank
+- Plank — the only ordinary front-plank row is visibly weighted
 - Plank with Glute Squeeze
 - Prone Y-Raise
+- Rear-Delt Dumbbell Row — available rows add prone or unilateral bench support
+- Resistance-Band Kneeling Crunch — the only kneeling band row twists instead of crunching straight ahead
 - Resistance-Band Leg Curl
 - Resistance-Band Overhead Triceps Extension
 - Resistance-Band Triceps Pressdown
 - Reverse Pec Deck
 - Rotational Medicine-Ball Throw
 - Shadowboxing
+- Side Plank — the only plain side-plank row elevates the forearm on a bench
 - Side-Plank Reach-Through
 - Single-Leg Hip Thrust
+- Sliding Hamstring Curl — nearby rows depict standing or kneeling curls, not a supine slider curl
 - Smith Machine Hip Thrust
+- Smith Machine Romanian Deadlift — the only Smith deadlift row uses a conventional knee-dominant pull
+- Standing Knee Raise — the nearest row is rapid, alternating, and wall-supported
+- Standing Knee-to-Elbow — the only elbow-to-knee row is a lying crunch
+- Standing Punches — the only boxing-punch row is a unilateral left hook
+- Step Touch — no lateral step-touch row exists
 - Suitcase Carry
 - Suitcase Hold
 - Thoracic Extension / Reach
-- Treadmill Incline Walk
+- Treadmill Incline Walk — the depicted movement matches, but its dataset equipment is `leverage machine`, not treadmill
 - VR Boxing
 - Wall Slide
 - Wall Tibialis Raise
