@@ -32,7 +32,8 @@ export function notifyRestComplete(): void {
 function vibrate() {
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      navigator.vibrate([200, 100, 200])
+      // Matches the chime: three pulses and a long final buzz.
+      navigator.vibrate([180, 90, 180, 90, 180, 120, 500])
     }
   } catch {
     // Vibration is best-effort.
@@ -91,6 +92,14 @@ export function unlockAudio(): void {
   }
 }
 
+/**
+ * Three sharp pulses and a held tone, ~1.6s in all. A single short sine was
+ * easy to miss across a gym: small phone speakers reproduce almost nothing
+ * below ~500Hz, and the ear is most sensitive around 2-4kHz, so the chime
+ * sits high and uses a triangle wave plus an octave partial to carry. A
+ * limiter on the master bus lets the level run hot without the crackle that
+ * clipping the destination would give.
+ */
 function beep() {
   try {
     const context = getAudioContext()
@@ -102,26 +111,87 @@ function beep() {
       context.resume().catch(() => undefined)
     }
 
-    const oscillator = context.createOscillator()
-    const gain = context.createGain()
+    const master = context.createGain()
+    // Drives the limiter hard on purpose: the ceiling below, not this
+    // number, sets the peak, so the chime sits near full scale throughout
+    // instead of only at each attack.
+    master.gain.setValueAtTime(1.4, context.currentTime)
 
-    oscillator.type = 'sine'
-    oscillator.frequency.setValueAtTime(880, context.currentTime)
-    gain.gain.setValueAtTime(0.0001, context.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.25, context.currentTime + 0.02)
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.6)
+    const limiter = context.createDynamicsCompressor()
+    limiter.threshold.setValueAtTime(-1, context.currentTime)
+    limiter.knee.setValueAtTime(0, context.currentTime)
+    limiter.ratio.setValueAtTime(20, context.currentTime)
+    limiter.attack.setValueAtTime(0.002, context.currentTime)
+    limiter.release.setValueAtTime(0.15, context.currentTime)
 
-    oscillator.connect(gain)
-    gain.connect(context.destination)
-    oscillator.start()
-    oscillator.stop(context.currentTime + 0.62)
-    // Keep the shared context open: closing it would put the next beep back
-    // behind the autoplay gate.
-    oscillator.onended = () => {
-      oscillator.disconnect()
-      gain.disconnect()
+    master.connect(limiter)
+    limiter.connect(context.destination)
+
+    // Three D6 pulses, then a G6 that rings out: an alarm shape rather than
+    // a single blip, so a missed pulse still leaves two more to notice.
+    const notes = [
+      { frequency: 1174.66, at: 0, duration: 0.2 },
+      { frequency: 1174.66, at: 0.24, duration: 0.2 },
+      { frequency: 1174.66, at: 0.48, duration: 0.2 },
+      { frequency: 1567.98, at: 0.74, duration: 0.85 },
+    ]
+
+    const start = context.currentTime + 0.02
+    let pending = notes.length
+
+    for (const note of notes) {
+      playNote(context, master, note.frequency, start + note.at, note.duration, () => {
+        pending -= 1
+        if (pending === 0) {
+          master.disconnect()
+          limiter.disconnect()
+        }
+      })
     }
   } catch {
     // Audio is best-effort (autoplay policies, unsupported browsers).
+  }
+}
+
+/** One struck note: a triangle fundamental plus a quieter sine octave. */
+function playNote(
+  context: AudioContext,
+  destination: AudioNode,
+  frequency: number,
+  startTime: number,
+  duration: number,
+  onEnded: () => void,
+) {
+  const gain = context.createGain()
+  gain.gain.setValueAtTime(0.0001, startTime)
+  gain.gain.exponentialRampToValueAtTime(1, startTime + 0.006)
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration)
+  gain.connect(destination)
+
+  const voices: Array<{ oscillator: OscillatorNode; gain: GainNode }> = [
+    { type: 'triangle' as OscillatorType, frequency, level: 0.55 },
+    { type: 'sine' as OscillatorType, frequency: frequency * 2, level: 0.2 },
+  ].map((voice) => {
+    const oscillator = context.createOscillator()
+    const voiceGain = context.createGain()
+    oscillator.type = voice.type
+    oscillator.frequency.setValueAtTime(voice.frequency, startTime)
+    voiceGain.gain.setValueAtTime(voice.level, startTime)
+    oscillator.connect(voiceGain)
+    voiceGain.connect(gain)
+    oscillator.start(startTime)
+    oscillator.stop(startTime + duration + 0.02)
+    return { oscillator, gain: voiceGain }
+  })
+
+  // Keep the shared context open: closing it would put the next beep back
+  // behind the autoplay gate.
+  voices[voices.length - 1].oscillator.onended = () => {
+    for (const voice of voices) {
+      voice.oscillator.disconnect()
+      voice.gain.disconnect()
+    }
+    gain.disconnect()
+    onEnded()
   }
 }
