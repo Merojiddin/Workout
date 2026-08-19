@@ -91,6 +91,68 @@ export function writeArrayKey(key, value) {
   safeSetJSON(key, Array.isArray(value) ? value : [])
 }
 
+/**
+ * Cloud rows folded into the local mirror, newest first.
+ *
+ * A pull must never be a plain replace. A record logged on this device that
+ * has not reached the cloud yet - queued offline, or a push that failed - only
+ * exists locally, and overwriting the array with the cloud list would take a
+ * finished workout off the screen even though it is still waiting to upload.
+ *
+ * Records are matched on `id`, which is the same value the cloud stores as
+ * `local_id`. The newer `updatedAt` wins so an edit made on another device is
+ * not undone by a stale local copy, and an edit made here that has not synced
+ * yet survives the pull. Records with no id cannot be matched at all, so they
+ * are kept as-is rather than dropped.
+ */
+export function mergeCloudIntoLocal(cloudList, localList) {
+  const byId = new Map()
+  const unmatchable = []
+
+  const add = (record) => {
+    const id = record?.id
+    if (id === undefined || id === null || id === '') {
+      unmatchable.push(record)
+      return
+    }
+
+    const key = String(id)
+    const existing = byId.get(key)
+    if (!existing || sortableTime(record) >= sortableTime(existing)) {
+      byId.set(key, record)
+    }
+  }
+
+  // Local first, so a cloud row of the same age wins the >= comparison: it is
+  // the copy that round-tripped through the server.
+  safeList(localList).forEach(add)
+  safeList(cloudList).forEach(add)
+
+  return [...byId.values(), ...unmatchable].sort(
+    (a, b) => recordDate(b).localeCompare(recordDate(a)),
+  )
+}
+
+function safeList(value) {
+  return Array.isArray(value) ? value : []
+}
+
+/** `updatedAt` as a number; 0 when absent, so any timestamped copy beats it. */
+function sortableTime(record) {
+  const parsed = new Date(record?.updatedAt ?? 0).getTime()
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+/**
+ * What the list is ordered by on screen. ISO strings sort correctly as text,
+ * and a full timestamp compares correctly against a bare `YYYY-MM-DD` from a
+ * different day, which is the only ordering that matters here.
+ */
+function recordDate(record) {
+  const value = record?.finishedAt ?? record?.date ?? ''
+  return typeof value === 'string' ? value : ''
+}
+
 export function readJsonKey(key) {
   if (typeof window === 'undefined') {
     return null

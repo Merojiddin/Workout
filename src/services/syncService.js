@@ -28,6 +28,7 @@ import {
   describeError,
   isBrowserOnline,
   isCloudMode,
+  mergeCloudIntoLocal,
   readArrayKey,
   readJsonKey,
   supabase,
@@ -200,7 +201,10 @@ export async function syncCloudToLocal(user) {
     const list = sessions.map((row) => row.raw_data ?? { id: row.local_id ?? row.id })
     if (list.length > 0) {
       backupLocalKey(WORKOUT_SESSIONS_KEY)
-      writeArrayKey(WORKOUT_SESSIONS_KEY, list)
+      writeArrayKey(
+        WORKOUT_SESSIONS_KEY,
+        mergeCloudIntoLocal(list, readArrayKey(WORKOUT_SESSIONS_KEY)),
+      )
       summary.workoutSessions = list.length
     }
   } catch (error) {
@@ -213,7 +217,10 @@ export async function syncCloudToLocal(user) {
     const list = rows.map((row) => row.raw_data).filter(Boolean)
     if (list.length > 0) {
       backupLocalKey(BODY_CHECK_INS_KEY)
-      writeArrayKey(BODY_CHECK_INS_KEY, list)
+      writeArrayKey(
+        BODY_CHECK_INS_KEY,
+        mergeCloudIntoLocal(list, readArrayKey(BODY_CHECK_INS_KEY)),
+      )
       summary.bodyCheckIns = list.length
     }
   } catch (error) {
@@ -226,7 +233,10 @@ export async function syncCloudToLocal(user) {
     const list = rows.map((row) => row.raw_data).filter(Boolean)
     if (list.length > 0) {
       backupLocalKey(NUTRITION_LOGS_KEY)
-      writeArrayKey(NUTRITION_LOGS_KEY, list)
+      writeArrayKey(
+        NUTRITION_LOGS_KEY,
+        mergeCloudIntoLocal(list, readArrayKey(NUTRITION_LOGS_KEY)),
+      )
       summary.nutritionLogs = list.length
     }
   } catch (error) {

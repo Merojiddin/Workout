@@ -5,6 +5,7 @@ import {
   durationMinutes,
   isBrowserOnline,
   isCloudMode,
+  mergeCloudIntoLocal,
   num,
   readArrayKey,
   supabase,
@@ -135,7 +136,15 @@ export async function getWorkoutSessions(user) {
 
   const sessions = (data ?? []).map((row) => row.raw_data ?? reconstructSession(row))
   if (sessions.length > 0) {
-    writeLocal(sessions.map((session) => withSyncMetadata(session, 'synced'))) // mirror cloud, but never wipe local on an empty cloud
+    // Mirror the cloud over the local copy without wiping it: an empty cloud
+    // is skipped entirely, and a non-empty one is merged so sessions still
+    // waiting to upload stay in the list.
+    writeLocal(
+      mergeCloudIntoLocal(
+        sessions.map((session) => withSyncMetadata(session, 'synced')),
+        readLocal(),
+      ),
+    )
   }
   return sessions
 }
