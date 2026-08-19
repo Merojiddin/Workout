@@ -209,7 +209,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Using more load than can be controlled":
     "Dùng mức tạ nặng hơn khả năng kiểm soát",
   "Keep the neck comfortable, ribs controlled, and spine neutral. Do not gain range by jutting the chin or over-arching the lower back.":
-    "Giữ cổ thoải mái, xương sườn ổn định và cột sống trung lập. Không cố tăng biên độ bằng cách rướn cằm hoặc ưỡn quá mức lưng dưới.",
+    "Giữ cổ thoải mái, kiểm soát xương sườn và giữ cột sống trung tính. Không cố tăng biên độ bằng cách rướn cằm hoặc ưỡn lưng dưới quá mức.",
   "Add clean repetitions within the programmed range":
     "Thêm số lần thực hiện chuẩn trong phạm vi chương trình",
   "Increase by the smallest practical load increment":
@@ -220,7 +220,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Push-up": "Chống đẩy",
   "Inverted row": "Kéo xà thấp",
   "Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
-    "Hạ xương sườn, siết bụng, siết nhẹ cơ mông và giữ cột sống trung lập. Không ưỡn quá mức lưng dưới. Dừng lại nếu xuất hiện đau nhói.",
+    "Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện đau nhói.",
   "Partial range of motion": "Biên độ chuyển động không đầy đủ",
   "Add range or light resistance without creating fatigue":
     "Tăng biên độ hoặc thêm lực cản nhẹ mà không gây mệt mỏi",
@@ -237,10 +237,10 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Flaring the elbows wide": "Mở khuỷu tay quá rộng",
   "Lower slowly": "Hạ xuống chậm rãi",
   "Lower slowly under control.": "Hạ xuống chậm rãi và có kiểm soát.",
-  "Bench dip": "Xà kép trên ghế (Bench Dip)",
+  "Bench dip": "Dips trên ghế (Bench Dip)",
   "Bodyweight squat": "Squat không tạ",
   "Build repeatable rounds or repetitions":
-    "Tăng dần đến các vòng hoặc số lần có thể lặp lại ổn định",
+    "Tăng dần đến các hiệp hoặc số lần có thể lặp lại ổn định",
   "Hanging knee raise": "Treo xà nâng gối",
   "Hips sagging toward the floor": "Để hông võng xuống sàn",
   "Increase duration or complexity only while quality stays high":
@@ -277,9 +277,10 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Seated dumbbell curl": "Cuốn tạ đơn ngồi",
   "Shrugging at the top": "Nhún vai ở vị trí trên cùng",
   "Shrugging the shoulders": "Nhún vai",
-  "Stop 1-2 reps before form breaks": "Dừng trước khi kỹ thuật hỏng 1–2 lần",
+  "Stop 1-2 reps before form breaks":
+    "Dừng khi còn 1–2 lần nữa trước khi kỹ thuật bắt đầu hỏng",
   "Abs tight": "Siết chặt cơ bụng",
-  "Arching and flaring the ribs": "Ưỡn lưng và bật xương sườn lên",
+  "Arching and flaring the ribs": "Ưỡn lưng và để xương sườn nhô lên",
   "Band curl": "Cuốn tay với dây kháng lực",
   "Band pull-apart": "Kéo dãn dây kháng lực",
   "Band pushdown": "Đẩy dây kháng lực xuống",
@@ -343,7 +344,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Hold the dumbbell close, brace, and keep the knees tracking with the toes.":
     "Giữ tạ đơn sát người, siết thân và để đầu gối đi cùng hướng với mũi chân.",
   "Hold the upper arms still and extend without arching the lower back.":
-    "Giữ bắp tay trên cố định và duỗi tay mà không ưỡn lưng dưới.",
+    "Giữ cánh tay trên cố định và duỗi tay mà không ưỡn lưng dưới.",
   "Incline close-grip push-up": "Chống đẩy tay hẹp dốc lên",
   "Incline pike push-up": "Chống đẩy chữ V dốc lên",
   "Jump crisply and land quietly in balance; every rep is a fresh effort.":
@@ -359,7 +360,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the back supported and press through a comfortable shoulder path.":
     "Giữ lưng được tựa và đẩy theo quỹ đạo thoải mái cho vai.",
   "Keep the bar padded and finish with level hips without over-arching.":
-    "Bọc đệm thanh đòn và kết thúc với hông cân bằng mà không ưỡn quá mức.",
+    "Giữ thanh đòn có đệm và kết thúc khi hông duỗi thẳng mà không ưỡn lưng quá mức.",
   "Keep the chest on the pad while the shoulder blades move naturally.":
     "Giữ ngực trên đệm trong khi bả vai di chuyển tự nhiên.",
   "Keep the chest supported and open the arms without shrugging.":
@@ -379,7 +380,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the hips quiet and curl the heels without arching the back.":
     "Giữ hông cố định và cuốn gót chân mà không ưỡn lưng.",
   "Keep the knees softly straight and pause at both ends of the ankle range.":
-    "Giữ gối duỗi mềm và dừng ở cả hai đầu biên độ cổ chân.",
+    "Giữ đầu gối gần thẳng nhưng không khóa khớp và dừng ở cả hai đầu biên độ cổ chân.",
   "Keep the knees stable and move the platform only through the ankles.":
     "Giữ đầu gối ổn định và chỉ di chuyển bàn đạp bằng cổ chân.",
   "Keep the knees under the pad and move only through the ankles.":
@@ -390,13 +391,13 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Giữ hai lòng bàn tay hướng vào nhau và kéo khuỷu tay xuống mà không đung đưa.",
   "Keep the pelvis level": "Giữ khung chậu cân bằng",
   "Keep the pelvis on the pad and lower only as far as the back stays controlled.":
-    "Giữ khung chậu trên đệm và chỉ hạ đến mức lưng vẫn được kiểm soát.",
+    "Giữ khung chậu trên đệm và chỉ hạ đến mức lưng vẫn ổn định.",
   "Keep the ribs down and drive to level hips using the glutes.":
-    "Giữ xương sườn hạ xuống và dùng cơ mông đẩy hông lên cân bằng.",
+    "Giữ xương sườn hạ xuống và dùng cơ mông đẩy hông đến vị trí duỗi thẳng.",
   "Keep the shoulder blades controlled and press the dumbbells evenly.":
     "Kiểm soát bả vai và đẩy hai tạ đơn đều nhau.",
   "Keep the stance balanced, move without crossing the feet, and reset after angles.":
-    "Giữ thế đứng thăng bằng, di chuyển không bắt chéo chân và đặt lại tư thế sau mỗi góc.",
+    "Giữ thế đứng thăng bằng, không bắt chéo chân khi di chuyển và ổn định lại tư thế sau mỗi lần đổi góc.",
   "Keep the thighs secured and curl through a controlled full range.":
     "Cố định đùi và cuốn chân hết biên độ có kiểm soát.",
   "Keep the torso on the pad and lift through the elbows without shrugging.":
@@ -408,16 +409,16 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Giữ thân người được tựa và khép hai đệm lại mà không cuộn vai.",
   "Keep the torso supported and pull the elbows back without shrugging.":
     "Giữ thân người được tựa và kéo khuỷu tay ra sau mà không nhún vai.",
-  "Keep the torso tall": "Giữ thân người thẳng cao",
+  "Keep the torso tall": "Giữ thân người thẳng",
   "Keep the upper arm behind the torso while curling without shoulder movement.":
-    "Giữ bắp tay trên ở sau thân người khi cuốn cáp mà không di chuyển vai.",
+    "Giữ cánh tay trên ở sau thân người khi cuốn cáp mà không di chuyển vai.",
   "Keep the upper arms on the pad and control the lengthened bottom position.":
-    "Giữ bắp tay trên trên đệm và kiểm soát vị trí cơ giãn dài ở dưới cùng.",
+    "Giữ cánh tay trên tựa trên đệm và kiểm soát vị trí cơ được kéo dài ở dưới cùng.",
   "Keep the upper arms steady and ribs down as the elbows straighten.":
-    "Giữ bắp tay trên ổn định và xương sườn hạ xuống khi duỗi thẳng khuỷu tay.",
+    "Giữ cánh tay trên ổn định và xương sườn hạ xuống khi duỗi thẳng khuỷu tay.",
   "Keep the wrist stacked, recover the hands quickly, and prioritize clean mechanics.":
     "Giữ cổ tay thẳng hàng, thu tay về nhanh và ưu tiên kỹ thuật chuẩn.",
-  "Keep upper arms still": "Giữ bắp tay trên cố định",
+  "Keep upper arms still": "Giữ cánh tay trên cố định",
   "Keep wrists neutral": "Giữ cổ tay trung tính",
   "Keep wrists stacked over elbows": "Giữ cổ tay thẳng hàng trên khuỷu tay",
   "Knees collapsing inward": "Đầu gối đổ vào trong",
@@ -429,14 +430,15 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Light chest-supported row": "Kéo tạ nhẹ tựa ngực",
   "Light dumbbell pullover": "Pullover với tạ đơn nhẹ",
   "Long-lever plank": "Plank đòn bẩy dài",
-  "Longer rounds": "Các vòng dài hơn",
+  "Longer rounds": "Các hiệp dài hơn",
   "Low step-up": "Bước lên bục thấp",
   "Lower all the way under control.": "Hạ hết biên độ có kiểm soát.",
   "Lower under control": "Hạ xuống có kiểm soát",
   "Lower under control to full elbow extension.":
     "Hạ xuống có kiểm soát đến khi khuỷu tay duỗi hoàn toàn.",
   "Machine press": "Đẩy máy",
-  "Neutral spine head to heels": "Giữ cột sống trung tính từ đầu đến gót chân",
+  "Neutral spine head to heels":
+    "Giữ cơ thể thẳng từ đầu đến gót chân và cột sống trung tính",
   "Normal push-up": "Chống đẩy thông thường",
   "One-arm dumbbell row": "Kéo tạ đơn một tay",
   "Only the forearms move": "Chỉ cẳng tay di chuyển",
@@ -458,14 +460,14 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Press the lower back gently into the floor.":
     "Nhẹ nhàng ép lưng dưới xuống sàn.",
   "Press up and forward while keeping the ribs and pelvis stacked.":
-    "Đẩy lên và ra trước trong khi giữ xương sườn thẳng hàng trên khung chậu.",
+    "Đẩy lên và ra trước trong khi giữ lồng ngực thẳng hàng với khung chậu.",
   "Prone Y hold": "Giữ tay chữ Y nằm sấp",
   "Pull lightly toward the face while keeping the neck long and ribs quiet.":
     "Kéo nhẹ về phía mặt trong khi giữ cổ dài và xương sườn ổn định.",
   "Pull the elbows down toward the ribs.":
     "Kéo khuỷu tay xuống về phía xương sườn.",
   "Pull the light band apart without flaring the ribs or shrugging.":
-    "Kéo dãn dây kháng lực nhẹ mà không bật xương sườn hoặc nhún vai.",
+    "Kéo dãn dây kháng lực nhẹ mà không để xương sườn nhô lên hoặc nhún vai.",
   "Pull the neutral handles toward the upper chest without leaning back.":
     "Kéo tay cầm trung tính về phía ngực trên mà không ngả ra sau.",
   "Punch smoothly, recover the guard quickly, and stay balanced after combinations.":
@@ -474,9 +476,9 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Đẩy hông ra sau và giữ tạ đơn sát chân.",
   "Pushing through the toes": "Dồn lực qua mũi chân",
   "Reach through the upper back while the ribs and pelvis remain controlled.":
-    "Vươn qua lưng trên trong khi vẫn kiểm soát xương sườn và khung chậu.",
+    "Vươn ngực xuống bằng cách duỗi lưng trên, đồng thời giữ xương sườn và khung chậu ổn định.",
   "Reach upward smoothly while the ribs stay stacked and the neck stays relaxed.":
-    "Vươn lên mượt mà trong khi giữ xương sườn thẳng hàng và cổ thư giãn.",
+    "Vươn lên mượt mà trong khi giữ lồng ngực thẳng hàng và cổ thư giãn.",
   "Reverse lunge": "Lunge lùi",
   "Ribs down between reps": "Hạ xương sườn giữa các lần",
   "Ribs down, core braced": "Hạ xương sườn, siết cơ lõi",
@@ -493,7 +495,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Hạ vai xuống và giữ vai xa tai.",
   "Short range of motion": "Biên độ ngắn",
   "Shorter carry": "Quãng xách tạ ngắn hơn",
-  "Shorter rounds": "Các vòng ngắn hơn",
+  "Shorter rounds": "Các hiệp ngắn hơn",
   "Shorter walk": "Quãng đi bộ ngắn hơn",
   "Shrugging the shoulders up": "Nhún vai lên",
   "Single-leg glute bridge": "Nâng hông một chân",
@@ -501,12 +503,12 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Squeeze press": "Đẩy tạ ép sát (Squeeze Press)",
   "Squeeze the biceps at the top.": "Siết cơ tay trước ở vị trí trên cùng.",
   "Stand tall and resist leaning toward or away from the load.":
-    "Đứng thẳng cao và chống nghiêng về phía hoặc ra xa mức tạ.",
+    "Đứng thẳng, không nghiêng về phía tạ hoặc ra xa tạ.",
   "Start with shoulders down": "Bắt đầu với vai hạ xuống",
   "Static split squat": "Split Squat tại chỗ",
   "Static suitcase hold": "Giữ tạ một bên tại chỗ",
   "Stay against the backrest and press without flaring the ribs.":
-    "Giữ người sát tựa lưng và đẩy mà không bật xương sườn.",
+    "Giữ người sát tựa lưng và đẩy mà không để xương sườn nhô lên.",
   "Stay against the pad and follow the machine arc with controlled knee tracking.":
     "Giữ người sát đệm, đi theo quỹ đạo máy và kiểm soát hướng đầu gối.",
   "Stay against the pad and press without shrugging or bouncing.":
@@ -517,7 +519,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Giữ người ở giữa dưới thanh đòn và dồn lực qua chân trước kê cao.",
   "Stay light on the feet": "Giữ bước chân nhẹ nhàng",
   "Stay square against the support and row one arm without twisting.":
-    "Giữ thân người vuông với điểm tựa và kéo một tay mà không vặn người.",
+    "Giữ vai và hông hướng thẳng về điểm tựa rồi kéo một tay mà không vặn người.",
   "Stay square on the high incline and resist rotating as one arm presses.":
     "Giữ thân người ngay ngắn trên ghế dốc cao và chống xoay khi đẩy một tay.",
   "Stay square while pressing the cable away from the chest.":
@@ -525,7 +527,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Stay supported and row the handles without bouncing off the pad.":
     "Giữ người tựa chắc và kéo tay cầm mà không nảy khỏi đệm.",
   "Stay supported on the high incline and press without flaring the ribs.":
-    "Giữ người tựa chắc trên ghế dốc cao và đẩy mà không bật xương sườn.",
+    "Giữ người tựa chắc trên ghế dốc cao và đẩy mà không để xương sườn nhô lên.",
   "Supported calf raise": "Nhón bắp chân có điểm tựa",
   "Swinging for momentum": "Đung đưa để lấy đà",
   "Swinging the body for momentum": "Đung đưa cơ thể để lấy đà",
@@ -544,7 +546,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Dùng lực cản nhẹ từ tay và giữ đầu cố định theo mọi hướng.",
   "Use only enough assistance for controlled full-range repetitions.":
     "Chỉ dùng mức hỗ trợ vừa đủ để thực hiện hết biên độ có kiểm soát.",
-  "Use short rounds": "Tập các vòng ngắn",
+  "Use short rounds": "Tập theo các hiệp ngắn",
   "Use small controlled slips, rolls, pivots, and exits while staying in stance.":
     "Thực hiện các động tác né, luồn, xoay trụ và thoát góc nhỏ có kiểm soát trong khi giữ thế đứng.",
   "Use support for balance and move one ankle through a full controlled range.":
@@ -581,7 +583,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Adjust the seat and handles so the shoulders can reach forward comfortably.":
     "Chỉnh ghế và tay cầm để vai có thể vươn ra trước thoải mái.",
   "Adjust the seat and start position so the upper arms are supported comfortably.":
-    "Chỉnh ghế và vị trí bắt đầu để bắp tay trên được đỡ thoải mái.",
+    "Chỉnh ghế và vị trí bắt đầu để cánh tay trên được đỡ thoải mái.",
   "Adjust the seat or chest pad and take one handle with the free hand braced.":
     "Chỉnh ghế hoặc đệm ngực, nắm một tay cầm và dùng tay còn lại làm điểm tựa.",
   "Adjust the seat so the handles align around mid-chest and the feet are stable.":
@@ -608,7 +610,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Anchor a light band around face height and step back until it is gently tensioned.":
     "Neo dây kháng lực nhẹ ngang tầm mặt và bước lùi đến khi dây hơi căng.",
   "Anchor the band near chest height and stand side-on in a balanced stance.":
-    "Neo dây ngang tầm ngực và đứng nghiêng bên với tư thế thăng bằng.",
+    "Neo dây ngang tầm ngực và đứng xoay ngang người so với điểm neo ở tư thế thăng bằng.",
   "Anchor the band securely and attach it around the ankles in a stable lying position.":
     "Neo chắc dây và quấn quanh cổ chân trong tư thế nằm ổn định.",
   "Anchor the band securely overhead and hold it with the elbows bent beside the torso.":
@@ -641,7 +643,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Attach a rope to a low cable and hold it with the palms facing each other.":
     "Gắn dây thừng vào cáp thấp và giữ sao cho hai lòng bàn tay hướng vào nhau.",
   "Attach the selected handle to a low cable and stand tall with the arms extended.":
-    "Gắn tay cầm đã chọn vào cáp thấp và đứng thẳng cao với hai tay duỗi.",
+    "Gắn tay cầm đã chọn vào cáp thấp và đứng thẳng người với hai tay duỗi.",
   "Avoid bouncing or relaxing suddenly at the bottom of the curl.":
     "Tránh dùng đà nảy hoặc thả lỏng đột ngột ở vị trí dưới cùng của động tác cuốn.",
   "Avoid exaggerated head or neck motion and keep the drills submaximal.":
@@ -683,7 +685,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Begin from a controlled hang and set the shoulders down.":
     "Bắt đầu từ tư thế treo có kiểm soát và hạ vai xuống.",
   "Begin in a balanced guard and select one defensive response to practice at a time.":
-    "Bắt đầu ở thế thủ thăng bằng và mỗi lần chọn một phản xạ phòng thủ để tập.",
+    "Bắt đầu ở thế thủ thăng bằng và mỗi lần chỉ chọn một động tác phòng thủ để tập.",
   "Begin with a short easy walk": "Bắt đầu bằng một quãng đi bộ nhẹ, ngắn",
   "Begin with brief ten-second easy holds":
     "Bắt đầu bằng các lần giữ nhẹ trong mười giây",
@@ -697,7 +699,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Bending the wrists": "Gập cổ tay",
   "Bent-knee inverted row": "Kéo xà thấp với gối gập",
   "Bent-knee leg raise": "Nâng chân với gối gập",
-  "Bent-knee raise": "Nâng gối gập",
+  "Bent-knee raise": "Nâng chân co gối",
   "Bent-leg hanging raise": "Treo xà nâng chân gập",
   "Bent-over barbell row with a flat back":
     "Kéo tạ đòn cúi người với lưng phẳng",
@@ -723,7 +725,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Bodyweight single-leg hip thrust": "Đẩy hông một chân không tạ",
   "Bodyweight split squat": "Split Squat không tạ",
   "Bodyweight step-up": "Bước lên bục không tạ",
-  "Bounce without the rope": "Nhảy nảy không dùng dây",
+  "Bounce without the rope": "Bật nhảy nhẹ không dùng dây",
   "Bouncing deeper into the stretch": "Nảy sâu hơn vào tư thế giãn",
   "Bouncing in the stretch": "Dùng đà nảy khi giãn cơ",
   "Bouncing instead of pausing": "Dùng đà nảy thay vì dừng lại",
@@ -745,9 +747,9 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Brace before every press": "Siết thân trước mỗi lần đẩy",
   "Brace before every rep": "Siết thân trước mỗi lần",
   "Brace before lifting and keep the spine neutral as the hips and shoulders rise together. Lock out with the glutes, not a backward lean.":
-    "Siết thân trước khi nâng và giữ cột sống trung tính khi hông và vai cùng đi lên. Khóa động tác bằng cơ mông, không ngả người ra sau.",
+    "Siết cơ lõi trước khi nâng và giữ cột sống trung tính khi hông và vai cùng đi lên. Kết thúc bằng cách siết cơ mông để duỗi thẳng hông, không ngả người ra sau.",
   "Brace before lifting one foot a few centimetres from the floor.":
-    "Siết thân trước khi nhấc một chân lên cách sàn vài xen-ti-mét.",
+    "Siết thân trước khi nhấc một chân lên cách sàn vài xăng-ti-mét.",
   "Brace before pressing and finish overhead without leaning away.":
     "Siết thân trước khi đẩy và kết thúc qua đầu mà không nghiêng người sang bên.",
   "Brace before the bar leaves the floor":
@@ -763,7 +765,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Brace lightly with the spine in a neutral position.":
     "Siết thân nhẹ với cột sống ở vị trí trung tính.",
   "Brace nearly parallel to the floor and pull each dead-stop rep without rising.":
-    "Siết thân gần song song với sàn và kéo từng lần từ trạng thái tạ dừng hẳn mà không nâng thân lên.",
+    "Giữ thân người chắc ở góc gần song song với sàn và kéo từng lần từ trạng thái tạ dừng hoàn toàn mà không dựng người lên.",
   "Brace one hand and knee on a bench.": "Chống một tay và một gối lên ghế.",
   "Brace the abdomen and keep the load still so it does not pull the ribs forward or swing the lower back.":
     "Siết bụng và giữ tạ đứng yên để tạ không kéo xương sườn ra trước hoặc làm lưng dưới đung đưa.",
@@ -894,7 +896,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Collapsing into the supporting shoulder": "Dồn sụp vào vai trụ",
   "Collapsing the chest forward": "Để ngực sụp ra trước",
   "Complete the push-up, then push the floor away slightly farther as the shoulder blades wrap forward.":
-    "Hoàn thành lần chống đẩy, sau đó đẩy sàn ra xa thêm một chút khi bả vai ôm ra trước.",
+    "Hoàn thành lần chống đẩy, sau đó đẩy sàn ra xa thêm một chút để hai bả vai trượt ra trước và ôm quanh lồng ngực.",
   "Complete the repetitions, then switch sides.":
     "Hoàn thành số lần rồi đổi bên.",
   "Confirm the barbell plates roll securely and kneel on a mat.":
@@ -916,7 +918,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Control the top and bottom": "Kiểm soát vị trí trên cùng và dưới cùng",
   "Couch stretch with overhead reach": "Giãn cơ tựa ghế kèm vươn tay qua đầu",
   "Craning the neck to look forward": "Rướn cổ để nhìn ra trước",
-  "Crashing the upper arm into the floor": "Đập mạnh bắp tay trên xuống sàn",
+  "Crashing the upper arm into the floor": "Đập mạnh cánh tay trên xuống sàn",
   "Cross-body hammer curl": "Cuốn tạ búa chéo người",
   "Cup one dumbbell vertically at the chest and set a stable squat stance.":
     "Ôm một tạ đơn thẳng đứng trước ngực và vào tư thế squat vững.",
@@ -926,11 +928,11 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Curl the dumbbells up without rotating the wrists.":
     "Cuốn tạ đơn lên mà không xoay cổ tay.",
   "Curl the dumbbells while keeping the upper arms still.":
-    "Cuốn tạ đơn trong khi giữ bắp tay trên cố định.",
+    "Cuốn tạ đơn trong khi giữ cánh tay trên cố định.",
   "Curl the handle toward the shoulders and lower until the elbows straighten under control.":
     "Cuốn tay cầm về phía vai rồi hạ xuống đến khi khuỷu tay duỗi có kiểm soát.",
   "Curl the handle while keeping the upper arm quiet, then lower to a comfortable long-muscle position.":
-    "Cuốn tay cầm trong khi giữ bắp tay trên cố định, sau đó hạ đến vị trí cơ giãn dài thoải mái.",
+    "Cuốn tay cầm trong khi giữ cánh tay trên cố định, sau đó hạ đến vị trí cơ được kéo dài thoải mái.",
   "Curl the heels down and back, pause, and return until the hamstrings lengthen.":
     "Cuốn gót chân xuống và ra sau, dừng lại rồi trở về đến khi cơ đùi sau được kéo giãn.",
   "Curl the hips off the floor using the abs, not a swing.":
@@ -950,7 +952,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Curl with the abs, not a leg swing":
     "Cuộn bằng cơ bụng, không vung chân lấy đà",
   "Curl without lifting the upper arms, then lower slowly before the elbows lock forcefully.":
-    "Cuốn tạ mà không nhấc bắp tay trên, sau đó hạ chậm và không khóa khuỷu tay mạnh.",
+    "Cuốn tạ mà không nhấc cánh tay trên, sau đó hạ chậm và dừng trước khi khuỷu tay duỗi khóa quá mạnh.",
   "Curling the pelvis up (posterior tilt) trains the exact control that fixes an arched back. Keep ribs down and avoid swinging.":
     "Cuộn khung chậu lên (nghiêng ra sau) rèn đúng khả năng kiểm soát giúp sửa lưng ưỡn. Hạ xương sườn và tránh đung đưa.",
   "Cutting off the bottom range": "Bỏ mất biên độ dưới cùng",
@@ -986,7 +988,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Dig the heels down, tip the pelvis back, and fully exhale the ribs down.":
     "Ấn gót chân xuống, nghiêng khung chậu ra sau và thở ra hết để hạ xương sườn.",
   "Dip quickly, jump vertically, and absorb the landing before fully resetting.":
-    "Nhún nhanh, bật thẳng lên và hấp thụ lực tiếp đất trước khi đặt lại hoàn toàn.",
+    "Nhún nhanh, bật thẳng lên và hấp thụ lực khi tiếp đất trước khi ổn định lại hoàn toàn tư thế.",
   "Do not bounce": "Không dùng đà nảy",
   "Do not chase range by arching the lower back or throwing the head back.":
     "Không cố tăng biên độ bằng cách ưỡn lưng dưới hoặc ngửa đầu ra sau.",
@@ -996,7 +998,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Không tạo thêm biên độ bằng cách cong hoặc ưỡn cột sống quá mức.",
   "Do not descend farther than the pelvis and lower back can remain supported.":
     "Không hạ sâu hơn mức khung chậu và lưng dưới vẫn được nâng đỡ.",
-  "Do not flare the lower back": "Không ưỡn bật lưng dưới",
+  "Do not flare the lower back": "Không để lưng dưới ưỡn lên",
   "Do not force range through the neck, shoulders, or lower-back arch.":
     "Không ép tăng biên độ bằng cổ, vai hoặc độ ưỡn lưng dưới.",
   "Do not force the shoulder farther behind the body than feels comfortable.":
@@ -1017,12 +1019,12 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Do not let the cables pull the shoulders into an uncontrolled end range.":
     "Không để cáp kéo vai vào cuối biên độ mất kiểm soát.",
   "Do not let the weight pull the knees into a forceful locked position.":
-    "Không để tạ kéo đầu gối vào vị trí khóa mạnh.",
+    "Không để tạ kéo đầu gối duỗi bật đến tư thế khóa khớp quá mạnh.",
   "Do not make every round maximal; stop if wrist alignment or technique deteriorates.":
-    "Không tập mọi vòng ở mức tối đa; dừng lại nếu cổ tay lệch hoặc kỹ thuật sa sút.",
+    "Không tập hiệp nào cũng ở mức tối đa; dừng lại nếu cổ tay lệch hoặc kỹ thuật sa sút.",
   "Do not overstretch the shoulders": "Không kéo giãn vai quá mức",
   "Do not rotate the torso": "Không xoay thân người",
-  "Do not shrug the traps": "Không nhún cơ thang",
+  "Do not shrug the traps": "Không nhún vai bằng cơ thang",
   "Do not swing or kip": "Không đung đưa hoặc kip",
   "Do not swing the torso": "Không đung đưa thân người",
   "Do not use a heavy load that turns the movement into a hip hinge.":
@@ -1033,7 +1035,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Thu cằm thẳng ra sau thành tư thế hai cằm nhẹ, dừng lại rồi thả ra.",
   "Drive elbows toward the ribs": "Kéo khuỷu tay về phía xương sườn",
   "Drive the bar up with the glutes, pause at level hips, and lower under control.":
-    "Dùng cơ mông đẩy thanh đòn lên, dừng khi hông cân bằng rồi hạ xuống có kiểm soát.",
+    "Dùng cơ mông đẩy thanh đòn lên, dừng khi hông duỗi thẳng rồi hạ xuống có kiểm soát.",
   "Drive the elbows down and back.": "Kéo khuỷu tay xuống và ra sau.",
   "Drive the elbows down, lift without swinging, and lower to a controlled hang.":
     "Kéo khuỷu tay xuống, nâng người không đung đưa rồi hạ về tư thế treo có kiểm soát.",
@@ -1053,7 +1055,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Dồn lực qua chân đó để đứng lên mà không đạp bằng chân dưới sàn.",
   "Drive through the elevated leg": "Dồn lực qua chân kê cao",
   "Drive through the feet to a level hip position and lower without losing rib control.":
-    "Dồn lực qua hai bàn chân để nâng hông cân bằng rồi hạ xuống mà không mất kiểm soát xương sườn.",
+    "Đạp qua hai bàn chân để duỗi hông đến vị trí thẳng rồi hạ xuống mà không mất kiểm soát xương sườn.",
   "Drive through the front foot to return, then repeat on the other side.":
     "Dồn lực qua chân trước để trở về, sau đó lặp lại ở bên kia.",
   "Drive through the whole foot": "Dồn lực qua toàn bộ bàn chân",
@@ -1135,7 +1137,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Extend the elbows fully under control, then return without letting them drift forward.":
     "Duỗi khuỷu tay hoàn toàn có kiểm soát, sau đó trở về mà không để khuỷu tay trôi ra trước.",
   "Extend the hips to a controlled level position, pause, and lower smoothly.":
-    "Duỗi hông đến vị trí cân bằng có kiểm soát, dừng lại rồi hạ xuống mượt mà.",
+    "Duỗi hông đến vị trí thẳng có kiểm soát, dừng lại rồi hạ xuống mượt mà.",
   "Extend the legs to form a straight line head to heels.":
     "Duỗi chân để tạo một đường thẳng từ đầu đến gót chân.",
   "Extend to a comfortable top position, squeeze briefly, and lower slowly.":
@@ -1171,15 +1173,15 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Feet-stacked reach-through": "Luồn tay với hai chân xếp chồng",
   "Finish beside the ear": "Kết thúc với tay bên cạnh tai",
   "Finish tall with the hips level and the working knee controlled.":
-    "Kết thúc ở tư thế thẳng cao, giữ hông cân bằng và kiểm soát gối bên tập.",
+    "Kết thúc khi đứng thẳng, giữ hai bên hông ngang bằng và kiểm soát đầu gối chân tập.",
   "Finish tall without leaning back":
-    "Kết thúc ở tư thế thẳng cao mà không ngả ra sau",
+    "Kết thúc khi đứng thẳng mà không ngả ra sau",
   "Finish with a flat, level hip. Keep the ribs down and glutes squeezed; do not hyperextend the lower back at lockout.":
-    "Kết thúc với hông phẳng và cân bằng. Giữ xương sườn hạ xuống và siết cơ mông; không ưỡn lưng dưới quá mức khi khóa động tác.",
+    "Kết thúc khi hông duỗi thẳng, thân và đùi tạo thành một đường ngang. Giữ xương sườn hạ xuống và siết cơ mông; không ưỡn lưng dưới quá mức ở vị trí duỗi hết hông.",
   "Finish with easy lengths and exit the pool carefully.":
     "Kết thúc bằng vài lượt bơi nhẹ và rời bể cẩn thận.",
   "Finish with the arm beside the ear and ribs controlled.":
-    "Kết thúc với cánh tay bên cạnh tai và xương sườn được kiểm soát.",
+    "Kết thúc với cánh tay sát tai và giữ xương sườn ổn định.",
   "Finish with the arms and shoulder blades rather than extending the neck.":
     "Kết thúc bằng tay và bả vai thay vì ưỡn cổ.",
   "Finish without arching the back": "Kết thúc mà không ưỡn lưng",
@@ -1191,12 +1193,13 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Flaring the elbows": "Mở khuỷu tay",
   "Flaring the elbows abruptly": "Mở khuỷu tay đột ngột",
   "Flaring the elbows straight out": "Mở khuỷu tay thẳng sang hai bên",
-  "Flaring the ribs and arching the back": "Bật xương sườn và ưỡn lưng",
-  "Flaring the ribs during the inhale": "Bật xương sườn lên khi hít vào",
-  "Flaring the ribs to finish overhead": "Bật xương sườn để kết thúc trên đầu",
+  "Flaring the ribs and arching the back": "Để xương sườn nhô lên và ưỡn lưng",
+  "Flaring the ribs during the inhale": "Để xương sườn nhô lên khi hít vào",
+  "Flaring the ribs to finish overhead":
+    "Để xương sườn nhô lên nhằm hoàn tất động tác qua đầu",
   "Flaring the ribs to finish the press":
-    "Bật xương sườn để hoàn tất động tác đẩy",
-  "Flaring the ribs upward": "Bật xương sườn lên",
+    "Để xương sườn nhô lên nhằm hoàn tất động tác đẩy",
+  "Flaring the ribs upward": "Để xương sườn nhô lên",
   "Flat back, pull the dumbbell to the hip, no twisting.":
     "Giữ lưng phẳng, kéo tạ đơn về phía hông, không vặn người.",
   "Flat barbell bench press": "Đẩy ngực nằm ghế phẳng với tạ đòn",
@@ -1368,7 +1371,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Hinge until the hamstrings limit the range, then stand by driving the hips forward.":
     "Gập hông đến khi độ căng của cơ đùi sau giới hạn biên độ, rồi đẩy hông ra trước để đứng lên.",
   "Hip thrust driven to a level, locked-out finish":
-    "Đẩy hông đến vị trí trên cùng ngang bằng và khóa chắc",
+    "Đẩy hông đến vị trí duỗi thẳng hoàn toàn",
   "Hip thrust with the load across the hips and ribs down":
     "Đẩy hông với tạ đặt ngang hông và xương sườn hạ",
   "Hip thrust with the shoulders on a bench and load across the hips":
@@ -1421,7 +1424,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Hold the hinge and row toward the upper ribs with the elbows wide.":
     "Giữ tư thế gập hông và kéo về xương sườn trên với khuỷu tay mở rộng.",
   "Hold the stacked position while breathing normally, then switch sides.":
-    "Giữ các khớp xếp thẳng hàng trong khi hít thở bình thường, rồi đổi bên.",
+    "Giữ thân người thẳng hàng trong khi hít thở bình thường, rồi đổi bên.",
   "Hold the top briefly": "Giữ ở đỉnh một lúc",
   "Hold the torso still": "Giữ thân người bất động",
   "Hold the weight close, stay tall, and let the knees track forward.":
@@ -1437,7 +1440,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Giữ Hollow Body với lưng dưới ép sát xuống",
   "Hollow body rocks": "Đung đưa ở tư thế Hollow Body",
   "Hunching over a phone": "Khom lưng khi nhìn điện thoại",
-  "Hyperextending at lockout": "Duỗi quá mức khi khóa khớp",
+  "Hyperextending at lockout": "Ưỡn lưng quá mức ở cuối động tác",
   "Ignoring early shin pain": "Phớt lờ cơn đau ống chân mới xuất hiện",
   "Ignoring foot, shin, or joint pain":
     "Phớt lờ cơn đau ở bàn chân, ống chân hoặc khớp",
@@ -1454,7 +1457,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Đẩy tạ đơn trên ghế dốc 30 độ",
   "Incline dumbbell press with pause": "Đẩy tạ đơn ghế dốc có dừng",
   "Incline inverted row (bar higher)":
-    "Kéo xà thấp trên mặt phẳng dốc (thanh xà cao hơn)",
+    "Kéo xà thấp với thân người dốc hơn (thanh xà cao hơn)",
   "Incline plank (hands on bench)": "Plank dốc (hai tay trên ghế)",
   "Incline plank + squeeze": "Plank dốc kèm siết cơ mông",
   "Incline set far too steep (turns into shoulders)":
@@ -1483,7 +1486,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep a flat, neutral spine and avoid twisting the lower back to move the weight.":
     "Giữ cột sống phẳng, trung tính và không vặn lưng dưới để di chuyển tạ.",
   "Keep a flat, neutral spine through the hinge and avoid snapping into an arch at lockout. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
-    "Giữ cột sống phẳng, trung tính trong suốt động tác gập hông và không giật người vào tư thế ưỡn khi khóa khớp. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
+    "Giữ cột sống phẳng, trung tính trong suốt động tác gập hông và tránh giật người sang tư thế ưỡn khi kết thúc. Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Keep a guard up": "Giữ hai tay ở thế thủ",
   "Keep a neutral, flat spine while hinged. Do not round or over-arch the lower back to move the weight.":
     "Giữ cột sống trung tính và phẳng khi gập hông. Không cong hoặc ưỡn lưng dưới quá mức để di chuyển tạ.",
@@ -1496,9 +1499,9 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep both heels planted": "Giữ cả hai gót chân trên sàn",
   "Keep both hip bones facing the floor": "Giữ hai bên hông hướng xuống sàn",
   "Keep both hip bones level": "Giữ hai bên hông ngang bằng",
-  "Keep both hips square": "Giữ hai bên hông vuông thẳng",
+  "Keep both hips square": "Giữ khung chậu thẳng, không xoay",
   "Keep both hips square and the dumbbells close to the standing leg.":
-    "Giữ hai bên hông vuông thẳng và tạ đơn sát chân trụ.",
+    "Giữ khung chậu thẳng, không xoay và giữ tạ đơn sát chân trụ.",
   "Keep both shoulders grounded": "Giữ cả hai vai trên sàn",
   "Keep both shoulders level": "Giữ hai vai ngang bằng",
   "Keep breathing steady and conversational.":
@@ -1515,7 +1518,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Phân bố áp lực đều trên phần trước bàn chân",
   "Keep pressure even between sides": "Phân bố áp lực đều giữa hai bên",
   "Keep ribs and hips aligned": "Giữ xương sườn và hông thẳng hàng",
-  "Keep ribs down (do not flare)": "Giữ xương sườn hạ (không ưỡn mở)",
+  "Keep ribs down (do not flare)": "Giữ xương sườn hạ xuống (không để nhô lên)",
   "Keep ribs down and core braced so the movement comes from the back and arms, not a lower-back swing.":
     "Giữ xương sườn hạ và cơ lõi gồng chắc để động tác xuất phát từ lưng và tay, không phải từ cú đánh đà của lưng dưới.",
   "Keep ribs down and glutes squeezed so the body stays in one line instead of sagging at the hips.":
@@ -1550,7 +1553,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the chest supported and row the elbows toward the hips without shrugging.":
     "Giữ ngực tựa chắc và kéo khuỷu tay về phía hông mà không nhún vai.",
   "Keep the core braced and ribs down as you invert so the load stays on the shoulders, not the lower back.":
-    "Gồng chắc cơ lõi và hạ xương sườn khi người dần lộn ngược để tải trọng dồn vào vai, không phải lưng dưới.",
+    "Siết chắc cơ lõi và hạ xương sườn khi đưa người vào tư thế dốc ngược để tải trọng dồn vào vai, không phải lưng dưới.",
   "Keep the dumbbell close to the chest": "Giữ tạ đơn sát ngực",
   "Keep the dumbbells secure on the thighs": "Giữ tạ đơn chắc chắn trên đùi",
   "Keep the effort easy and repeatable":
@@ -1578,16 +1581,17 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the head over the ribs rather than reaching the chin toward the pad.":
     "Giữ đầu thẳng trên xương sườn thay vì rướn cằm về phía đệm.",
   "Keep the head, ribs, and pelvis stacked against the wall. The movement should come from the ankles rather than rocking the body.":
-    "Giữ đầu, xương sườn và khung chậu thẳng hàng sát tường. Chuyển động phải xuất phát từ cổ chân thay vì đung đưa cơ thể.",
+    "Giữ đầu, lồng ngực và khung chậu thẳng hàng sát tường. Chuyển động phải xuất phát từ cổ chân thay vì đung đưa cơ thể.",
   "Keep the heels planted and pull the toes toward the shins.":
     "Giữ gót chân trên sàn và kéo mũi chân về phía ống chân.",
-  "Keep the hips high and stacked": "Giữ hông cao và xếp thẳng hàng",
+  "Keep the hips high and stacked":
+    "Giữ hông cao và hai bên hông xếp chồng thẳng hàng",
   "Keep the hips level": "Giữ hông ngang bằng",
   "Keep the hips lifted and pelvis level as the heels slide.":
     "Giữ hông nâng cao và khung chậu ngang bằng khi trượt gót chân.",
   "Keep the hips lifted while the upper torso rotates under control.":
     "Giữ hông nâng cao trong khi xoay thân trên có kiểm soát.",
-  "Keep the hips square": "Giữ hai bên hông vuông thẳng",
+  "Keep the hips square": "Giữ khung chậu thẳng, không xoay",
   "Keep the knee aligned with the toes":
     "Giữ đầu gối thẳng hàng với các ngón chân",
   "Keep the knees tracking the toes as you push the floor away.":
@@ -1604,7 +1608,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Luôn cài chốt an toàn của máy và tránh nảy bật khỏi vị trí thấp nhất.",
   "Keep the neck and jaw relaxed": "Thả lỏng cổ và hàm",
   "Keep the neck long, ribs supported, and shoulders away from the ears while the lower traps guide the shoulder blades.":
-    "Giữ cổ thẳng dài, xương sườn được nâng đỡ và vai cách xa tai trong khi cơ thang dưới điều khiển xương bả vai.",
+    "Giữ cổ dài, lồng ngực tựa chắc và vai xa tai trong khi cơ thang dưới dẫn chuyển động của bả vai.",
   "Keep the neck long; do not reach the chin toward the handles.":
     "Giữ cổ thẳng dài; không rướn cằm về phía tay cầm.",
   "Keep the neck relaxed and stop before the shoulders roll forward uncontrollably.":
@@ -1619,7 +1623,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the ribcage controlled and use only a small natural bench arch. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
     "Kiểm soát lồng ngực và chỉ giữ độ ưỡn tự nhiên nhỏ trên ghế. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Keep the ribs and pelvis quiet while the limbs move. Reach lower and longer if lifting the leg makes the back arch.":
-    "Giữ xương sườn và khung chậu ổn định khi tay chân chuyển động. Vươn tay thấp hơn và xa hơn nếu nhấc chân làm lưng bị ưỡn.",
+    "Giữ xương sườn và khung chậu ổn định khi tay chân chuyển động. Vươn chân thấp hơn và xa hơn nếu nâng chân làm lưng bị ưỡn.",
   "Keep the ribs controlled and avoid turning the incline press into a large lower-back arch. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
     "Kiểm soát xương sườn và không biến động tác đẩy ghế dốc thành một tư thế ưỡn lưng dưới lớn. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Keep the ribs controlled and do not finish by craning the neck.":
@@ -1645,15 +1649,15 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the ribs down and upper arms still while the elbows bend and straighten.":
     "Giữ xương sườn hạ và cánh tay trên bất động trong khi gập rồi duỗi khuỷu tay.",
   "Keep the ribs stacked over the pelvis":
-    "Giữ xương sườn thẳng trên khung chậu",
+    "Giữ lồng ngực thẳng hàng với khung chậu",
   "Keep the ribs stacked over the pelvis and lean as one unit; do not side-bend or arch to lift the dumbbell.":
-    "Giữ xương sườn thẳng trên khung chậu và nghiêng cả người như một khối; không gập ngang hoặc ưỡn người để nâng tạ đơn.",
+    "Giữ lồng ngực thẳng hàng với khung chậu và nghiêng cả người như một khối; không gập người sang bên hoặc ưỡn lưng để nâng tạ đơn.",
   "Keep the ribs stacked over the pelvis and rotate through the upper torso while the waist stays lifted. This builds lateral core control without side-bending the lower back.":
-    "Giữ xương sườn thẳng trên khung chậu và xoay qua thân trên trong khi eo vẫn nâng cao. Động tác này phát triển khả năng kiểm soát cơ lõi bên mà không gập ngang lưng dưới.",
+    "Giữ lồng ngực thẳng hàng với khung chậu và xoay thân trên trong khi eo vẫn nâng cao. Động tác này phát triển khả năng kiểm soát cơ lõi bên mà không gập lưng dưới sang bên.",
   "Keep the ribs stacked over the pelvis and the upper back tall. Brace instead of leaning back or rounding to hold the bar.":
-    "Giữ xương sườn thẳng trên khung chậu và lưng trên thẳng cao. Gồng người thay vì ngả ra sau hoặc cong lưng để giữ thanh.",
+    "Giữ lồng ngực thẳng hàng với khung chậu và lưng trên thẳng. Siết thân thay vì ngả ra sau hoặc cong lưng để giữ thanh đòn.",
   "Keep the ribs stacked, hips square, and front knee aligned. A slight forward torso angle is fine if the spine stays neutral.":
-    "Giữ xương sườn thẳng hàng, hông vuông và đầu gối trước thẳng hướng. Có thể hơi nghiêng thân về trước miễn là cột sống vẫn trung tính.",
+    "Giữ lồng ngực thẳng hàng với khung chậu, giữ khung chậu không xoay và đầu gối trước thẳng hàng. Có thể hơi nghiêng thân về trước miễn là cột sống vẫn trung tính.",
   "Keep the rounds technical and stop if balance or foot placement becomes careless.":
     "Giữ các hiệp tập trung vào kỹ thuật và dừng lại nếu khả năng thăng bằng hoặc vị trí bàn chân trở nên cẩu thả.",
   "Keep the shoulder away from the ear": "Giữ vai cách xa tai",
@@ -1674,9 +1678,9 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Keep the torso still and ribs down; do not lean back or swing from the lower back to lift the weight.":
     "Giữ thân người bất động và xương sườn hạ; không ngả ra sau hoặc đánh đà từ lưng dưới để nâng tạ.",
   "Keep the torso tall and the front knee tracking the toes.":
-    "Giữ thân thẳng cao và đầu gối trước đi theo hướng ngón chân.",
+    "Giữ thân người thẳng và đầu gối trước đi theo hướng ngón chân.",
   "Keep the torso tall with ribs down and core braced; avoid arching the lower back as you stand.":
-    "Giữ thân thẳng cao, xương sườn hạ và cơ lõi gồng chắc; tránh ưỡn lưng dưới khi đứng lên.",
+    "Giữ thân người thẳng, xương sườn hạ và cơ lõi gồng chắc; tránh ưỡn lưng dưới khi đứng lên.",
   "Keep the upper arms behind the torso and curl without moving the elbows forward.":
     "Giữ cánh tay trên ở sau thân và cuốn tạ mà không đưa khuỷu tay về trước.",
   "Keep the upper arms close to the head and still.":
@@ -1758,8 +1762,8 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Lean-away raise with pause": "Nâng tạ nghiêng người có dừng",
   "Leaning away from the dumbbell": "Nghiêng người ra xa tạ đơn",
   "Leaning away to compensate": "Nghiêng người ra xa để bù trừ",
-  "Leaning back on the belt": "Ngả người ra sau trên đai",
-  "Leaning back to cheat the rep": "Ngả ra sau để gian lận lần tập",
+  "Leaning back on the belt": "Ngả người ra sau khi đi trên băng chạy",
+  "Leaning back to cheat the rep": "Ngả ra sau để lấy đà cho lần tập",
   "Leaning cable/band raise": "Nâng cáp hoặc dây kháng lực khi nghiêng người",
   "Leaning the torso forward": "Nghiêng thân người về trước",
   "Leaning too far forward": "Nghiêng người quá xa về trước",
@@ -1801,9 +1805,9 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Letting the knees collapse inward": "Để đầu gối sụp vào trong",
   "Letting the load swing": "Để mức tạ đung đưa",
   "Letting the lower back sag": "Để lưng dưới võng xuống",
-  "Letting the ribs flare": "Để xương sườn ưỡn mở",
+  "Letting the ribs flare": "Để xương sườn nhô lên",
   "Letting the weight swing": "Để tạ đung đưa",
-  "Letting the working knee cave inward": "Để đầu gối bên tập đổ vào trong",
+  "Letting the working knee cave inward": "Để đầu gối chân tập đổ vào trong",
   "Letting the wrist fold backward": "Để cổ tay gập ra sau",
   "Letting the wrists bend backward": "Để cổ tay cong ra sau",
   "Lie face down on a low incline bench with light dumbbells hanging freely.":
@@ -1866,7 +1870,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Lifting the chest to create momentum": "Nâng ngực để tạo đà",
   "Lifting the head to gain range": "Nâng đầu để tăng biên độ",
   "Lifting the hips from the bench": "Nhấc hông lên khỏi ghế",
-  "Lifting the hips into a bridge": "Nâng hông vào tư thế cây cầu",
+  "Lifting the hips into a bridge": "Nâng hông thành tư thế Glute Bridge",
   "Lifting the hips to start the press": "Nâng hông để bắt đầu đẩy",
   "Lifting the knee too far toward the chest": "Nâng đầu gối quá sát ngực",
   "Lifting the shoulders from the bench": "Nhấc vai khỏi ghế",
@@ -1882,12 +1886,12 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Light hammer curl": "Cuốn tạ búa nhẹ",
   "Light lateral raise": "Nâng tạ nhẹ sang ngang",
   "Light on the feet, rotate through the core, keep a guard.":
-    "Di chuyển nhẹ chân, xoay qua cơ lõi và giữ thế thủ.",
+    "Di chuyển nhẹ nhàng, xoay thân bằng cơ lõi và giữ thế thủ.",
   "Light overhead dumbbell extension": "Duỗi tay sau qua đầu với tạ đơn nhẹ",
   "Light overhead extension": "Duỗi tay sau qua đầu với mức tạ nhẹ",
   "Light suitcase carry": "Xách tạ nhẹ một bên đi bộ",
   "Light weighted chin-up": "Hít xà tay ngửa với tạ nhẹ",
-  "Light, controlled load": "Mức tạ nhẹ, được kiểm soát",
+  "Light, controlled load": "Mức tạ nhẹ, dễ kiểm soát",
   "Light, controlled reps": "Các lần tập nhẹ và có kiểm soát",
   "Lighter dumbbell": "Tạ đơn nhẹ hơn",
   "Lighter dumbbells": "Các tạ đơn nhẹ hơn",
@@ -1921,9 +1925,9 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Mất độ thu khung chậu giữa các nhịp thở",
   "Lower back sagging": "Lưng dưới võng xuống",
   "Lower back to the shoulders without flaring the ribs.":
-    "Hạ tạ trở lại vai mà không ưỡn mở xương sườn.",
+    "Hạ tạ về lại vai mà không để xương sườn nhô lên.",
   "Lower both knees while keeping the hips square and torso controlled.":
-    "Hạ cả hai đầu gối trong khi giữ hông vuông thẳng và thân người được kiểm soát.",
+    "Hạ cả hai đầu gối trong khi giữ khung chậu thẳng, không xoay và kiểm soát thân người.",
   "Lower evenly with elbows slightly tucked.":
     "Hạ đều hai bên với khuỷu tay hơi khép.",
   "Lower incline": "Độ dốc thấp hơn",
@@ -2022,7 +2026,7 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Machine squat with the back supported on a pad":
     "Máy Squat với lưng tựa trên đệm",
   "Maintain a rigid neutral spine and reset the brace from the floor before every repetition. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
-    "Duy trì cột sống trung tính cứng chắc và siết lại thân người từ sàn trước mỗi lần tập. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
+    "Giữ cột sống trung tính và vững chắc; thiết lập lại độ siết thân người khi tạ còn trên sàn trước mỗi lần. Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Maintain a strong full-hand grip":
     "Duy trì tay nắm chắc bằng toàn bộ bàn tay",
   "Maintain pelvic control at depth":
@@ -2037,7 +2041,7 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Ghế dốc vừa phải, khuỷu tay hơi khép, đẩy tạ lên trên và vào trong.",
   "More rest between lengths": "Nghỉ lâu hơn giữa các lượt bơi",
   "Move from a braced, ribs-down torso and rotate through the core. Avoid over-reaching, which strains the shoulder and lower back.":
-    "Bắt đầu từ thân người gồng chắc, xương sườn hạ và xoay qua cơ lõi. Tránh vươn quá xa vì sẽ gây căng vai và lưng dưới.",
+    "Giữ thân người siết chắc, xương sườn hạ xuống và xoay thân bằng cơ lõi. Tránh vươn quá xa vì sẽ gây căng vai và lưng dưới.",
   "Move slowly and controlled": "Di chuyển chậm và có kiểm soát",
   "Move slowly in both directions": "Di chuyển chậm theo cả hai hướng",
   "Move slowly under control": "Di chuyển chậm có kiểm soát",
@@ -2105,14 +2109,14 @@ export const exercisePhrasesVi: Record<string, string> = {
     "Vươn vai quá xa và duỗi khuỷu tay quá mức",
   "Overhead dumbbell triceps extension": "Duỗi tay sau qua đầu với tạ đơn",
   "Overhead extensions can flare the ribs and arch the back. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
-    "Các động tác duỗi tay qua đầu dễ làm xương sườn ưỡn mở và lưng bị ưỡn. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
+    "Các động tác duỗi tay qua đầu có thể làm xương sườn nhô lên và lưng bị ưỡn. Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Overhead pressing tempts the ribs to flare. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
-    "Đẩy tạ qua đầu dễ làm xương sườn ưỡn mở. Giữ xương sườn hạ, cơ bụng căng, cơ mông siết nhẹ và cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
+    "Đẩy tạ qua đầu dễ khiến xương sườn nhô lên. Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện cơn đau nhói.",
   "Overhead triceps extension": "Duỗi tay sau qua đầu",
   "Overhead triceps extension with the elbows tracking forward":
     "Duỗi tay sau qua đầu với khuỷu tay hướng về trước",
   "Overhead work tempts the ribs to flare and the back to arch. Keep ribs down and abs braced.":
-    "Các động tác qua đầu dễ làm xương sườn ưỡn mở và lưng bị ưỡn. Giữ xương sườn hạ và cơ bụng gồng chắc.",
+    "Các động tác qua đầu dễ khiến xương sườn nhô lên và lưng bị ưỡn. Giữ xương sườn hạ xuống và siết chắc cơ bụng.",
   "Overreaching the shoulder at the bottom":
     "Vươn vai quá xa ở vị trí thấp nhất",
   "Own the pause before returning": "Kiểm soát chắc điểm dừng trước khi trở về",
@@ -2186,9 +2190,9 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Placing the working foot too far away": "Đặt chân bên tập quá xa",
   "Plank + glute squeeze": "Plank kèm siết cơ mông",
   "Plank, then squeeze the glutes to tuck the pelvis flat.":
-    "Vào tư thế Plank, rồi siết cơ mông để thu khung chậu về vị trí phẳng.",
+    "Vào tư thế Plank, rồi siết cơ mông để cuộn khung chậu và làm phẳng lưng dưới.",
   "Plant the whole foot and let the elevated leg do the work.":
-    "Đặt chắc toàn bộ bàn chân và để chân kê cao thực hiện công việc.",
+    "Đặt chắc toàn bộ bàn chân và dồn lực qua chân trên bục.",
   "Plant the working foot beneath the knee":
     "Đặt chắc bàn chân bên tập ngay dưới đầu gối",
   "Plant your feet and keep a stable ribcage.":
@@ -2220,4 +2224,1037 @@ export const exercisePhrasesVi: Record<string, string> = {
   "Press back up without letting the hips sag.":
     "Đẩy trở lên mà không để hông võng xuống.",
   "Press evenly through both hands": "Đẩy đều bằng cả hai tay",
+  "Press evenly through both hands to the start.":
+    "Đẩy đều qua cả hai tay để trở về vị trí ban đầu.",
+  "Press gently into the hand without moving the neck, breathe normally, then change directions.":
+    "Nhẹ nhàng ấn vào bàn tay mà không cử động cổ, thở bình thường rồi đổi hướng.",
+  "Press over the chest and lower until the shoulders remain comfortable and controlled.":
+    "Đẩy lên phía trên ngực rồi hạ xuống đến mức vai vẫn thoải mái và kiểm soát được.",
+  "Press overhead under control": "Đẩy qua đầu có kiểm soát",
+  "Press overhead while keeping the torso centered.":
+    "Đẩy qua đầu trong khi giữ thân người ở chính giữa, không nghiêng lệch.",
+  "Press the dumbbell up with the wrist stacked over the elbow.":
+    "Đẩy tạ đơn lên, giữ cổ tay thẳng hàng trên khuỷu tay.",
+  "Press the dumbbells firmly into each other.": "Ép chặt hai tạ đơn vào nhau.",
+  "Press the dumbbells hard together the whole set.":
+    "Ép mạnh hai tạ đơn vào nhau trong suốt hiệp.",
+  "Press the dumbbells overhead under control.":
+    "Đẩy tạ đơn qua đầu có kiểm soát.",
+  "Press the floor away through the forearm": "Dùng cẳng tay đẩy sàn ra xa",
+  "Press the floor away while keeping the hips level.":
+    "Đẩy sàn ra xa trong khi giữ hai bên hông ngang bằng.",
+  "Press the handle straight out, resist the cable rotation, and return under control.":
+    "Đẩy tay cầm thẳng ra, chống lại lực xoay của cáp rồi thu về có kiểm soát.",
+  "Press the hands away from the sternum, pause without rotating, and return slowly.":
+    "Đẩy hai tay ra xa xương ức, dừng lại mà không xoay người rồi từ từ thu về.",
+  "Press the lower back down": "Ép lưng dưới xuống",
+  "Press the lower back firmly into the floor.": "Ép chắc lưng dưới xuống sàn.",
+  "Press the lower back flat first": "Ép phẳng lưng dưới trước",
+  "Press the lower back flat, then lift shoulders and legs.":
+    "Ép phẳng lưng dưới rồi nâng vai và chân lên.",
+  "Press the lower back gently toward the floor.":
+    "Nhẹ nhàng ép lưng dưới về phía sàn.",
+  "Press the lower back into the floor.": "Ép lưng dưới xuống sàn.",
+  "Press the lower back to the floor": "Ép lưng dưới sát sàn",
+  "Press the lower back to the floor, lower legs only as far as you can hold it.":
+    "Ép lưng dưới sát sàn, chỉ hạ chân đến mức bạn vẫn giữ được tư thế đó.",
+  "Press the supporting hand into the mat": "Ấn tay trụ xuống thảm",
+  "Press through a symptom-free overhead arc and lower with the wrists stacked over the elbows.":
+    "Đẩy lên theo cung qua đầu không gây triệu chứng rồi hạ xuống với cổ tay thẳng hàng trên khuỷu tay.",
+  "Press through the balls of the feet to raise the heels fully.":
+    "Đạp qua phần trước bàn chân để nâng gót lên hết biên độ.",
+  "Press through the palms back to lockout.":
+    "Đẩy qua lòng bàn tay để trở lại vị trí duỗi thẳng tay.",
+  "Press through the toes, pause, and lower the heels without letting the feet slip.":
+    "Đẩy qua các ngón chân, dừng lại rồi hạ gót mà không để bàn chân trượt.",
+  "Press up and slightly in without clashing the bells.":
+    "Đẩy lên và hơi hướng vào trong mà không để hai tạ va nhau.",
+  "Press up onto the toes through a full range.":
+    "Đẩy người lên đầu ngón chân hết biên độ.",
+  "Press up while keeping the hips on the bench.":
+    "Đẩy lên trong khi giữ hông trên ghế.",
+  "Press up without bouncing or over-arching.":
+    "Đẩy lên mà không nảy người hoặc ưỡn lưng quá mức.",
+  "Press up without lifting the hips or shrugging.":
+    "Đẩy lên mà không nhấc hông hoặc nhún vai.",
+  "Press upward along a comfortable arc and lower with the wrists stacked over the elbows.":
+    "Đẩy lên theo cung thoải mái rồi hạ xuống với cổ tay thẳng hàng trên khuỷu tay.",
+  "Press upward while keeping both shoulders against the bench, then lower under control.":
+    "Đẩy lên trong khi giữ cả hai vai áp vào ghế rồi hạ xuống có kiểm soát.",
+  "Press with a top pause": "Đẩy và dừng ở vị trí trên cùng",
+  "Press without forceful lockout and return until the shoulders remain comfortable.":
+    "Đẩy lên mà không khóa khớp mạnh rồi thu về đến mức vai vẫn thoải mái.",
+  "Press without locking forcefully and lower until the shoulders remain comfortable.":
+    "Đẩy lên mà không khóa khớp mạnh rồi hạ đến mức vai vẫn thoải mái.",
+  "Press without twisting": "Đẩy mà không vặn người",
+  "Pressing forward instead of overhead": "Đẩy ra trước thay vì qua đầu",
+  "Pressing the dumbbells too far forward": "Đẩy tạ đơn quá xa về phía trước",
+  "Pressing through the toes instead of the heels":
+    "Đạp qua ngón chân thay vì gót chân",
+  "Pressing unevenly from side to side": "Đẩy không đều giữa hai bên",
+  "Prone Y-raise": "Nâng tay chữ Y nằm sấp",
+  "Pull back with the abs and lats": "Dùng cơ bụng và cơ xô kéo về",
+  "Pull elbows toward ribs": "Kéo khuỷu tay về phía xương sườn",
+  "Pull elbows toward the hips": "Kéo khuỷu tay về phía hông",
+  "Pull it toward the hip, leading with the elbow.":
+    "Kéo tạ về phía hông, dẫn chuyển động bằng khuỷu tay.",
+  "Pull the bar quickly toward the lower chest.":
+    "Kéo nhanh thanh đòn về phía ngực dưới.",
+  "Pull the bar toward the lower ribs.":
+    "Kéo thanh đòn về phía xương sườn dưới.",
+  "Pull the chest to the bar": "Kéo ngực về phía xà",
+  "Pull the chest toward the bar without kicking.":
+    "Kéo ngực về phía xà mà không đá chân.",
+  "Pull the chest toward the bar without swinging.":
+    "Kéo ngực về phía xà mà không đung đưa.",
+  "Pull the chest toward the bar, squeezing the shoulder blades.":
+    "Kéo ngực về phía xà đồng thời siết hai bả vai.",
+  "Pull the chest toward the handles and lower through a comfortable full range.":
+    "Kéo ngực về phía tay cầm rồi hạ xuống hết biên độ thoải mái.",
+  "Pull the dumbbell back over the chest under control.":
+    "Kéo tạ đơn trở lại phía trên ngực có kiểm soát.",
+  "Pull the elbow toward the hip": "Kéo khuỷu tay về phía hông",
+  "Pull the elbow toward the hip while resisting trunk rotation, then reach forward slowly.":
+    "Kéo khuỷu tay về phía hông trong khi chống xoay thân người, rồi từ từ vươn tay ra trước.",
+  "Pull the elbows toward the hips without lifting the chest.":
+    "Kéo khuỷu tay về phía hông mà không nhấc ngực lên.",
+  "Pull the heels back with the hamstrings, then reset under control.":
+    "Dùng cơ đùi sau kéo gót chân về rồi trở lại có kiểm soát.",
+  "Pull the slack from the bar": "Kéo hết độ chùng khỏi thanh đòn",
+  "Pull toward the eyebrows with the elbows open, then return until the shoulder blades reach.":
+    "Kéo về phía lông mày với khuỷu tay mở, rồi thu về đến khi hai bả vai vươn ra.",
+  "Pull toward the lower chest": "Kéo về phía ngực dưới",
+  "Pull toward the lower ribs": "Kéo về phía xương sườn dưới",
+  "Pull toward the lower ribs, pause briefly, and lower until the shoulder blades spread.":
+    "Kéo về phía xương sườn dưới, dừng ngắn rồi hạ xuống đến khi hai bả vai tách ra.",
+  "Pull toward the upper ribs": "Kéo về phía xương sườn trên",
+  "Pull with the hamstrings": "Kéo bằng cơ đùi sau",
+  "Pull-up with a neutral hammer grip on parallel handles":
+    "Hít xà với tay nắm trung tính kiểu búa trên hai tay cầm song song",
+  "Pulling only with the hands": "Chỉ kéo bằng tay",
+  "Pulling to the chest instead of the belly": "Kéo về ngực thay vì bụng",
+  "Pulling toward the hips with tucked elbows":
+    "Kéo về phía hông với khuỷu tay khép sát",
+  "Pulling unevenly through the feet": "Dùng lực không đều qua hai bàn chân",
+  "Pullover with slow eccentric": "Pullover với pha hạ tạ chậm",
+  "Push the floor away to stand while keeping the elbows high.":
+    "Đẩy sàn ra xa để đứng lên trong khi giữ khuỷu tay cao.",
+  "Push the hips back along the bar path, then stand once the hamstrings reach their controlled limit.":
+    "Đẩy hông ra sau dọc theo đường đi của thanh đòn, rồi đứng lên khi cơ đùi sau đạt giới hạn kiểm soát được.",
+  "Push the hips back, lowering the weight down the legs.":
+    "Đẩy hông ra sau, hạ tạ dọc theo chân.",
+  "Push through the whole supported foot to stand tall.":
+    "Đạp qua toàn bộ bàn chân trụ để đứng thẳng người.",
+  "Push up without letting the lower back sag.":
+    "Đẩy người lên mà không để lưng dưới võng xuống.",
+  "Push-up position with an added shoulder-blade protraction":
+    "Tư thế chống đẩy kèm đưa bả vai ra trước",
+  "Push-up with a weighted backpack on the upper back":
+    "Chống đẩy với ba lô có tạ đặt trên lưng trên",
+  "Pushing hard from the trailing foot": "Đẩy quá mạnh bằng chân sau",
+  "Pushing into a high bridge": "Đẩy hông lên tư thế cầu quá cao",
+  "Pushing mainly from the back foot": "Dồn lực đẩy chủ yếu từ chân sau",
+  "Pushing mostly through the toes": "Dồn lực đẩy chủ yếu qua các ngón chân",
+  "Pushing off the back foot": "Đạp bật bằng chân sau",
+  "Pushing the hips forward without the shoulders":
+    "Đẩy hông ra trước mà vai không đi cùng",
+  "Pushing the hips too high": "Đẩy hông lên quá cao",
+  "Pushing through the feet instead of tilting":
+    "Đẩy qua bàn chân thay vì nghiêng khung chậu",
+  "Put the backpack on securely so it does not slide.":
+    "Đeo ba lô chắc chắn để không bị trượt.",
+  "Quadruped brace": "Siết cơ lõi ở tư thế bốn điểm",
+  "Raise the arm toward shoulder height, then lower slowly across the body.":
+    "Nâng tay lên ngang vai rồi từ từ hạ chéo qua trước thân người.",
+  "Raise the arms out to the sides using the rear delts.":
+    "Dùng vai sau nâng hai tay sang hai bên.",
+  "Raise the arms out to the sides with a fixed elbow bend, then lower slowly.":
+    "Nâng hai tay sang hai bên, giữ nguyên độ gập khuỷu rồi từ từ hạ xuống.",
+  "Raise the heels, pause, and lower slowly into a comfortable stretch.":
+    "Nâng gót lên, dừng lại rồi từ từ hạ xuống đến độ giãn thoải mái.",
+  "Raise the knees by curling the pelvis, pause, and lower without losing control.":
+    "Cuộn khung chậu để nâng gối, dừng lại rồi hạ xuống mà không mất kiểm soát.",
+  "Raise the legs toward the ceiling with the abs.":
+    "Dùng cơ bụng nâng chân về phía trần nhà.",
+  "Raise the straight legs only as high as the torso stays controlled.":
+    "Chỉ nâng chân thẳng đến độ cao mà thân người vẫn ổn định.",
+  "Raise with the rear delts": "Nâng bằng vai sau",
+  "Raising above shoulder height": "Nâng cao quá vai",
+  "Raising far above shoulder height": "Nâng cao hơn vai quá nhiều",
+  "Raising the torso as the bar leaves the floor":
+    "Nâng thân người khi thanh đòn vừa rời sàn",
+  "Reach a comfortable full range without rolling the shoulders forward.":
+    "Vươn hết biên độ thoải mái mà không cuộn vai ra trước.",
+  "Reach fully at the bottom": "Vươn hết ở vị trí dưới cùng",
+  "Reach into a wide Y with thumbs up and lift from the shoulder blades.":
+    "Vươn tay thành chữ Y rộng với ngón cái hướng lên rồi nâng từ bả vai.",
+  "Reach long instead of lifting high": "Vươn dài thay vì nâng cao",
+  "Reach long through the arms": "Vươn dài qua hai tay",
+  "Reach long, pause, and keep the pelvis square to the floor.":
+    "Vươn dài, dừng lại và giữ khung chậu song song với sàn.",
+  "Reach one arm and the opposite leg away from the body.":
+    "Vươn một tay và chân đối diện ra xa cơ thể.",
+  "Reach only within your control": "Chỉ vươn trong phạm vi bạn kiểm soát được",
+  "Reach the arms into a wide Y with the thumbs pointing up.":
+    "Vươn hai tay thành chữ Y rộng với ngón cái hướng lên.",
+  "Reach the free leg back, keep the hips square, and hinge as one unit.":
+    "Vươn chân tự do ra sau, giữ khung chậu thẳng, không xoay và gập hông như một khối.",
+  "Reach the free leg straight back": "Vươn thẳng chân tự do ra sau",
+  "Reach the highest clean position without craning the neck.":
+    "Vươn đến vị trí cao nhất vẫn đúng kỹ thuật mà không ngửa cổ.",
+  "Reach the top arm under the ribs by rotating the upper torso.":
+    "Xoay thân trên để luồn tay phía trên xuống dưới xương sườn.",
+  "Reaching the weights toward the floor": "Vươn tạ về phía sàn",
+  "Reaching too far too soon": "Vươn quá xa quá sớm",
+  "Rear delt raise with pause": "Nâng tạ vai sau có dừng",
+  "Rear foot kept lower": "Giữ chân sau ở vị trí thấp hơn",
+  "Rear-delt dumbbell row": "Kéo tạ đơn cho vai sau",
+  "Rear-delt fly pulling the arms back and apart":
+    "Ép vai sau bằng cách kéo hai tay ra sau và tách sang hai bên",
+  "Rear-delt raise lying chest-down on an incline bench":
+    "Nâng tạ vai sau khi nằm sấp trên ghế dốc",
+  "Rear-delt row with pause": "Kéo tạ cho vai sau có dừng",
+  "Reduce the load if the lower back arches or the pelvis leaves the pad.":
+    "Giảm mức tạ nếu lưng dưới ưỡn hoặc khung chậu rời khỏi đệm.",
+  "Reduce the load if the shoulders roll forward or the torso leans back.":
+    "Giảm mức tạ nếu vai cuộn ra trước hoặc thân người ngả ra sau.",
+  "Reduce the load if the torso sways or the shoulder shrugs.":
+    "Giảm mức tạ nếu thân người đung đưa hoặc vai nhún lên.",
+  "Reduce the load if the torso twists or the shoulder shrugs.":
+    "Giảm mức tạ nếu thân người vặn xoắn hoặc vai nhún lên.",
+  "Regress the arm or leg position if the back arches.":
+    "Giảm độ khó của vị trí tay hoặc chân nếu lưng bị ưỡn.",
+  "Relax the neck and shoulders": "Thả lỏng cổ và vai",
+  "Relaxing the upper back at the chest":
+    "Thả lỏng lưng trên khi thanh chạm ngực",
+  "Release and engage the machine stop only while the heels are supported.":
+    "Chỉ nhả và gài chốt máy khi gót chân đang được đỡ chắc.",
+  "Reset any swing between reps": "Dừng hết đà đung đưa giữa các lần",
+  "Reset the brace every rep": "Siết lại cơ lõi ở mỗi lần",
+  "Reset the bridge height as needed":
+    "Điều chỉnh lại độ cao tư thế cầu khi cần",
+  "Resist side-bending and keep the ribs stacked over the pelvis throughout the single-arm press. Keep ribs down, abs tight, glutes slightly squeezed, and a neutral spine. Do not over-arch your lower back. Stop if sharp pain appears.":
+    "Chống nghiêng người sang bên và giữ lồng ngực thẳng hàng với khung chậu trong suốt động tác đẩy một tay. Giữ xương sườn hạ xuống, siết chặt cơ bụng, siết nhẹ cơ mông và giữ cột sống trung tính. Không ưỡn lưng dưới quá mức. Dừng lại nếu xuất hiện đau nhói.",
+  "Rest or change strokes before technique becomes strained.":
+    "Nghỉ hoặc đổi kiểu bơi trước khi kỹ thuật bắt đầu gượng ép.",
+  "Rest the back foot on a bench behind you.": "Đặt chân sau lên ghế phía sau.",
+  "Rest the bar across the front shoulders and set the feet about shoulder-width.":
+    "Đặt thanh đòn ngang vai trước và để hai chân rộng khoảng bằng vai.",
+  "Rest the upper back on a bench, feet flat on the floor.":
+    "Tựa lưng trên vào ghế, đặt bàn chân phẳng trên sàn.",
+  "Return and repeat on the other side.": "Trở về rồi lặp lại ở bên kia.",
+  "Return slowly and alternate sides.": "Từ từ trở về và luân phiên hai bên.",
+  "Return the bar under control and reset before the next rep.":
+    "Đưa thanh đòn về có kiểm soát và chỉnh lại tư thế trước lần tiếp theo.",
+  "Return to a stable open position without dropping the hips.":
+    "Trở về tư thế mở vững chắc mà không để hông hạ xuống.",
+  "Return without twisting": "Trở về mà không vặn người",
+  "Reverse crunch curling the hips off the floor":
+    "Gập bụng ngược bằng cách cuộn hông khỏi sàn",
+  "Reverse crunch with hip lift": "Gập bụng ngược kèm nâng hông",
+  "Reverse lunge holding dumbbells at the sides":
+    "Lunge lùi, cầm tạ đơn hai bên người",
+  "Reverse lunge with the bar on the upper back":
+    "Lunge lùi với thanh đòn trên lưng trên",
+  "Reverse pec deck machine opening the arms back":
+    "Máy ép ngực đảo chiều với động tác mở hai tay ra sau",
+  "Rhythm-focused songs": "Các bài nhạc tập trung vào nhịp điệu",
+  "Ribs down on the bench": "Giữ xương sườn hạ xuống trên ghế",
+  "Ribs down, controlled tempo": "Giữ xương sườn hạ xuống, nhịp có kiểm soát",
+  "Ribs down, do not flare": "Giữ xương sườn hạ xuống, không để nhô lên",
+  "Ribs down, glutes squeezed": "Giữ xương sườn hạ xuống, siết cơ mông",
+  "Ribs down, no swinging": "Giữ xương sườn hạ xuống, không đung đưa",
+  "Ribs down, press overhead without flaring the lower back.":
+    "Giữ xương sườn hạ xuống, đẩy qua đầu mà không ưỡn lưng dưới.",
+  "Ribs flaring up": "Xương sườn nhô lên",
+  "Rise as high as controlled, pause, and lower the heels into a comfortable stretch.":
+    "Nhón lên cao hết mức kiểm soát được, dừng lại rồi hạ gót đến độ giãn thoải mái.",
+  "Rise onto the ball of the foot, pause, and lower into a comfortable calf stretch.":
+    "Nhón lên phần trước bàn chân, dừng lại rồi hạ xuống đến độ giãn bắp chân thoải mái.",
+  "Rise through full range": "Nhón lên hết biên độ",
+  "Rocking forward and lifting the heels": "Dồn người ra trước và nhấc gót",
+  "Roll forward slowly while keeping the hips and ribs connected.":
+    "Từ từ lăn về trước trong khi giữ hông và xương sườn liên kết.",
+  "Roll only as far as the ribs and pelvis stay stacked.":
+    "Chỉ lăn đến mức lồng ngực vẫn thẳng hàng với khung chậu.",
+  "Rolling farther than the core can control":
+    "Lăn xa hơn mức cơ lõi có thể kiểm soát",
+  "Rolling onto the outside of the foot": "Lăn bàn chân ra mép ngoài",
+  "Rolling the ankles outward": "Lật cổ chân ra ngoài",
+  "Rolling the pelvis toward the floor": "Xoay khung chậu về phía sàn",
+  "Rolling toward the working side": "Nghiêng xoay về bên đang tập",
+  "Romanian deadlift": "Deadlift kiểu Romania",
+  "Romanian deadlift hinging with a near-straight bar path":
+    "Deadlift kiểu Romania với động tác gập hông và đường thanh đòn gần như thẳng",
+  "Romanian deadlift hip hinge with a flat back":
+    "Deadlift kiểu Romania, gập hông với lưng phẳng",
+  "Romanian deadlift with dumbbells and long hamstrings":
+    "Deadlift kiểu Romania với tạ đơn và cơ đùi sau được kéo dài",
+  "Rotate through the core, not just the arms":
+    "Xoay bằng cơ lõi, không chỉ bằng tay",
+  "Rotate through the upper torso": "Xoay qua thân trên",
+  "Rotating or dropping one side of the pelvis":
+    "Xoay hoặc hạ một bên khung chậu",
+  "Rotating the torso forward": "Xoay thân người ra trước",
+  "Rotating the wrist mid-rep": "Xoay cổ tay giữa lần thực hiện",
+  "Rounding the back while hinged": "Cong lưng khi gập hông",
+  "Rounding the lower back at the bottom": "Cong lưng dưới ở vị trí dưới cùng",
+  "Rounding the lower back off the floor":
+    "Cong lưng dưới khi kéo tạ rời khỏi sàn",
+  "Rounding the spine": "Cong cột sống",
+  "Row the elbows toward the torso without lifting the chest from the pad.":
+    "Kéo khuỷu tay về phía thân người mà không nhấc ngực khỏi đệm.",
+  "Row through the elbows, pause without leaning, and return under control.":
+    "Kéo bằng khuỷu tay, dừng lại mà không nghiêng người rồi trở về có kiểm soát.",
+  "Row toward the lower ribs, allow a controlled reach, and keep the torso angle steady.":
+    "Kéo về phía xương sườn dưới, cho bả vai vươn ra có kiểm soát và giữ ổn định góc thân người.",
+  "Row toward the upper ribs with the elbows angled out.":
+    "Kéo về phía xương sườn trên với khuỷu tay hướng chếch ra ngoài.",
+  "Rushing and losing balance": "Thực hiện quá vội và mất thăng bằng",
+  "Rushing side to side": "Đổi bên quá vội",
+  "Rushing the return to standing": "Vội vàng trở lại tư thế đứng",
+  "Rushing through the rotation": "Xoay người quá vội",
+  "Seated cable row station used one arm at a time":
+    "Máy kéo cáp ngồi, tập từng tay một",
+  "Seated cable row with an upright torso": "Kéo cáp ngồi với thân người thẳng",
+  "Seated calf raise": "Nhón bắp chân ngồi",
+  "Seated calf raise machine with the pads on the thighs":
+    "Máy nhón bắp chân ngồi với đệm đặt trên đùi",
+  "Seated chest press machine": "Máy đẩy ngực ngồi",
+  "Seated chest-supported row on a machine": "Kéo máy ngồi có tựa ngực",
+  "Seated curl": "Cuốn tạ ngồi",
+  "Seated dumbbell calf raise": "Nhón bắp chân ngồi với tạ đơn",
+  "Seated dumbbell shoulder press": "Đẩy vai tạ đơn ngồi",
+  "Seated dumbbell shoulder press against a back pad":
+    "Đẩy vai tạ đơn ngồi tựa lưng vào đệm",
+  "Seated hammer curl": "Cuốn tạ búa ngồi",
+  "Seated leg extension machine": "Máy duỗi gối ngồi",
+  "Seated machine row with the chest against the pad":
+    "Kéo máy ngồi với ngực áp vào đệm",
+  "Seated overhead press pressing straight up":
+    "Đẩy qua đầu ngồi, đẩy thẳng lên",
+  "Seated pelvic tilt": "Nghiêng khung chậu khi ngồi",
+  "Seated press with back support": "Đẩy tạ ngồi có tựa lưng",
+  "Seated toe raise": "Nâng mũi chân khi ngồi",
+  "Secure a light added load so it cannot swing.":
+    "Cố định chắc mức tạ nhẹ thêm vào để tạ không đung đưa.",
+  "Secure the band low behind the body and bring the hands overhead with the elbows bent.":
+    "Cố định dây thấp phía sau cơ thể và đưa hai tay qua đầu với khuỷu tay gập.",
+  "Secure the bar in a landmine, face the sleeve, and hold it at shoulder height.":
+    "Cố định thanh đòn vào Landmine, đứng hướng về đầu thanh và giữ ở ngang vai.",
+  "Secure the dumbbell before starting": "Giữ chắc tạ đơn trước khi bắt đầu",
+  "Secure the load close to the body": "Giữ chắc mức tạ sát cơ thể",
+  "Secure the load, pull the chest up, and lower to a controlled full hang.":
+    "Cố định chắc mức tạ, nâng ngực lên rồi hạ xuống tư thế treo người hoàn toàn có kiểm soát.",
+  "Secure the thighs under the pad and take a palms-facing neutral grip.":
+    "Cố định đùi dưới đệm và nắm tay trung tính với hai lòng bàn tay hướng vào nhau.",
+  "Secure the upper back on the bench": "Tựa chắc lưng trên vào ghế",
+  "Separate the hands until the band nears the chest, then return slowly.":
+    "Tách hai tay cho đến khi dây gần chạm ngực rồi từ từ trở về.",
+  "Set a bar at about hip height (or use a sturdy table).":
+    "Đặt xà ở khoảng ngang hông (hoặc dùng bàn chắc chắn).",
+  "Set a flat back roughly parallel to the floor.":
+    "Giữ lưng phẳng và gần song song với sàn.",
+  "Set a high incline, brace both feet, and hold one dumbbell at shoulder height.":
+    "Chỉnh ghế dốc cao, trụ chắc hai chân và giữ một tạ đơn ở ngang vai.",
+  "Set a high incline, plant the feet, and bring both dumbbells to a stable shoulder position.":
+    "Chỉnh ghế dốc cao, đặt chắc hai chân và đưa hai tạ đơn vào vị trí ổn định ngang vai.",
+  "Set a low cable, face away, and step forward with the working arm extended behind the torso.":
+    "Chỉnh cáp thấp, quay lưng lại rồi bước lên trước với tay tập duỗi ra sau thân người.",
+  "Set a low cable, stand side-on, and hold the handle with the outside hand.":
+    "Chỉnh cáp thấp, đứng xoay ngang người so với máy và cầm tay cầm bằng tay phía ngoài.",
+  "Set a small, fixed bend in the elbows.": "Giữ khuỷu tay hơi gập cố định.",
+  "Set a stable split stance with the front foot forward.":
+    "Vào tư thế đứng chân trước chân sau vững chắc.",
+  "Set a walking pace with a moderate incline.":
+    "Chọn tốc độ đi bộ với độ dốc vừa phải.",
+  "Set an incline bench and lie face down with the chest supported.":
+    "Chỉnh ghế dốc rồi nằm sấp với ngực được đỡ.",
+  "Set an incline bench and sit with the upper back supported.":
+    "Chỉnh ghế dốc rồi ngồi với lưng trên được tựa.",
+  "Set both cables to the selected height and take a stable staggered stance between them.":
+    "Chỉnh cả hai cáp đến độ cao đã chọn và đứng chân trước chân sau vững chắc ở giữa.",
+  "Set both feet securely on the platform and release the safeties only after bracing.":
+    "Đặt chắc cả hai chân trên bàn đạp và chỉ nhả chốt an toàn sau khi đã siết cơ lõi.",
+  "Set hands slightly wider than shoulders.":
+    "Đặt hai tay rộng hơn vai một chút.",
+  "Set it down softly, then alternate without shifting the pelvis.":
+    "Nhẹ nhàng đặt xuống rồi đổi bên mà không xê dịch khung chậu.",
+  "Set shoulder blades back and down on the bench.":
+    "Giữ bả vai kéo ra sau và hạ xuống trên ghế.",
+  "Set the assistance and take a secure overhand grip on the pull-up handles.":
+    "Chỉnh mức hỗ trợ và nắm úp chắc vào tay cầm hít xà.",
+  "Set the bar over the mid-foot and hinge until the torso is nearly parallel.":
+    "Đặt thanh đòn trên giữa bàn chân và gập hông đến khi thân người gần song song với sàn.",
+  "Set the bench to a low or moderate incline.":
+    "Chỉnh ghế ở độ dốc thấp hoặc vừa.",
+  "Set the bench to a modest incline (about 30 degrees).":
+    "Chỉnh ghế ở độ dốc vừa phải (khoảng 30 độ).",
+  "Set the bench upright, sit with the upper back supported, and bring the dumbbells to shoulder height.":
+    "Chỉnh lưng ghế thẳng, ngồi tựa lưng trên và đưa tạ đơn lên ngang vai.",
+  "Set the body in one straight line.": "Giữ cơ thể thành một đường thẳng.",
+  "Set the cable near chest height and stand side-on with the feet planted.":
+    "Chỉnh cáp gần ngang ngực, đứng xoay ngang người so với máy và trụ chắc hai chân.",
+  "Set the cables near shoulder height and take the opposite handle in each hand.":
+    "Chỉnh cáp gần ngang vai và mỗi tay cầm tay cầm ở phía đối diện.",
+  "Set the feet about shoulder-width, toes slightly out.":
+    "Đặt hai chân rộng khoảng bằng vai, mũi chân hơi xoay ra ngoài.",
+  "Set the feet securely on the platform and place the shoulders beneath the pads.":
+    "Đặt chắc hai chân trên bàn đạp và đưa vai vào dưới đệm.",
+  "Set the forearms under the shoulders.": "Đặt cẳng tay ngay dưới vai.",
+  "Set the front foot far enough forward to feel stable.":
+    "Đặt chân trước đủ xa để cảm thấy vững.",
+  "Set the hands under the shoulders and knees under the hips.":
+    "Đặt tay dưới vai và đầu gối dưới hông.",
+  "Set the safeties and a stable low front platform, then center beneath the Smith bar.":
+    "Chỉnh chốt an toàn và bục thấp phía trước thật vững, rồi đứng vào chính giữa dưới thanh máy Smith.",
+  "Set the safeties, place the bar comfortably across the upper back, and position the feet.":
+    "Chỉnh chốt an toàn, đặt thanh đòn thoải mái ngang lưng trên và đặt hai chân đúng vị trí.",
+  "Set the safeties, place the rear foot on a bench, and center the front stance beneath the bar.":
+    "Chỉnh chốt an toàn, đặt chân sau lên ghế và căn chân trước ở giữa dưới thanh đòn.",
+  "Set the shoulder pads comfortably and place the balls of the feet securely on the platform.":
+    "Chỉnh đệm vai cho thoải mái và đặt chắc phần trước bàn chân trên bàn đạp.",
+  "Set the shoulders and drive the elbows down.":
+    "Giữ chắc vai rồi kéo khuỷu tay xuống.",
+  "Set the shoulders down and pull the elbows toward the ribs, then reach up under control.":
+    "Hạ vai xuống và kéo khuỷu tay về phía xương sườn, rồi vươn lên có kiểm soát.",
+  "Set the shoulders, then drive the elbows down without swinging.":
+    "Giữ chắc vai rồi kéo khuỷu tay xuống mà không đung đưa.",
+  "Set the Smith safeties and begin with the bar at the thighs in a stable hip-width stance.":
+    "Chỉnh chốt an toàn máy Smith và bắt đầu với thanh đòn ở đùi, hai chân rộng bằng hông và vững chắc.",
+  "Set the supporting elbow directly under the shoulder.":
+    "Đặt khuỷu tay trụ ngay dưới vai.",
+  "Set the upper back securely on a bench and plant one foot beneath its knee.":
+    "Tựa chắc lưng trên lên ghế và đặt một bàn chân ngay dưới đầu gối.",
+  "Set the weight down safely and repeat on the other side.":
+    "Đặt tạ xuống an toàn rồi lặp lại ở bên kia.",
+  "Set two equal, non-rolling supports and confirm they cannot move.":
+    "Đặt hai điểm kê bằng nhau, không lăn và kiểm tra chắc chắn chúng không thể xê dịch.",
+  "Set up a forearm plank with a straight body line.":
+    "Vào tư thế Plank cẳng tay với cơ thể thành một đường thẳng.",
+  "Setting the bench too steep": "Chỉnh ghế dốc quá cao",
+  "Setting the speed too high": "Chỉnh tốc độ quá cao",
+  "Setting the stance wider than the hips can control":
+    "Đứng rộng hơn mức hông có thể kiểm soát",
+  "Shallow deficit push-up": "Chống đẩy hạ sâu với biên độ nông",
+  "Shift gently forward until you feel the front-of-hip stretch.":
+    "Nhẹ nhàng dồn người ra trước đến khi cảm thấy phần trước hông được kéo giãn.",
+  "Shifting all the weight to one side": "Dồn toàn bộ trọng lượng sang một bên",
+  "Shifting the hips during each repetition":
+    "Xê dịch hông trong mỗi lần thực hiện",
+  "Short easy rounds": "Các hiệp ngắn, nhẹ nhàng",
+  "Short easy swim with frequent rests":
+    "Buổi bơi ngắn, nhẹ với nhiều lần nghỉ",
+  "Short recovery walk": "Đi bộ phục hồi ngắn",
+  "Short-hold side plank": "Plank nghiêng giữ trong thời gian ngắn",
+  "Short-range barbell rollout": "Lăn tạ đòn biên độ ngắn",
+  "Short-range bridge": "Nâng hông biên độ ngắn",
+  "Short-range kneeling rollout": "Lăn tạ quỳ gối biên độ ngắn",
+  "Short-range reach-through": "Luồn tay biên độ ngắn",
+  "Short-range sliding hamstring curl": "Cuốn đùi sau trượt gót biên độ ngắn",
+  "Short-range wall tibialis raise": "Nâng mũi chân tựa tường biên độ ngắn",
+  "Short, choppy reps": "Các lần thực hiện ngắn và giật cục",
+  "Shorten or skip the walk if full rest would aid recovery more.":
+    "Rút ngắn hoặc bỏ buổi đi bộ nếu nghỉ hoàn toàn giúp phục hồi tốt hơn.",
+  "Shorten the range before the back arches":
+    "Rút ngắn biên độ trước khi lưng bị ưỡn",
+  "Shorten the range if the shoulders roll forward or the neck tightens.":
+    "Rút ngắn biên độ nếu vai cuộn ra trước hoặc cổ căng lên.",
+  "Shorten the trunk by curling the ribs down, then return without shifting the hips.":
+    "Gập ngắn thân người bằng cách cuộn xương sườn xuống rồi trở về mà không xê dịch hông.",
+  "Shorter exhales": "Thở ra ngắn hơn",
+  "Shorter hold": "Giữ trong thời gian ngắn hơn",
+  "Shorter pool session": "Buổi tập trong hồ ngắn hơn",
+  "Shoulder blades back and down, press without bouncing.":
+    "Kéo bả vai ra sau và hạ xuống, đẩy tạ mà không nảy.",
+  "Shoulder collapsing": "Vai bị sụp xuống",
+  "Shoulder-width pull-up": "Hít xà tay rộng bằng vai",
+  "Shoulders down, away from ears": "Hạ vai xuống, xa tai",
+  "Shrugging aggressively at the top": "Nhún vai mạnh ở vị trí trên cùng",
+  "Shrugging at lockout": "Nhún vai khi duỗi thẳng tay",
+  "Shrugging instead of using the lower traps":
+    "Nhún vai thay vì dùng cơ thang dưới",
+  "Shrugging into the supporting shoulder": "Sụp người vào vai trụ",
+  "Shrugging or rounding the shoulders": "Nhún vai hoặc cuộn tròn vai",
+  "Shrugging the loaded shoulder": "Nhún bên vai chịu tạ",
+  "Shrugging the shoulder up": "Nhún vai lên",
+  "Shrugging toward the ears": "Nhún vai về phía tai",
+  "Shrugging while rowing": "Nhún vai khi kéo",
+  "Side plank": "Plank nghiêng",
+  "Side plank with leg lift": "Plank nghiêng kèm nâng chân",
+  "Side plank with stacked hips and lifted waist":
+    "Plank nghiêng với hai bên hông xếp chồng và eo nâng khỏi sàn",
+  "Side-lying hold": "Giữ tư thế nằm nghiêng",
+  "Side-plank reach-through": "Plank nghiêng luồn tay",
+  "Single light dumbbell extension": "Duỗi tay với một tạ đơn nhẹ",
+  "Single-arm overhead extension": "Duỗi một tay qua đầu",
+  "Single-leg bridge": "Nâng hông một chân",
+  "Single-leg calf raise": "Nhón bắp chân một chân",
+  "Single-leg RDL": "RDL một chân",
+  "Single-leg Romanian deadlift": "Deadlift kiểu Romania một chân",
+  "Single-leg seated dumbbell calf raise":
+    "Nhón bắp chân ngồi một chân với tạ đơn",
+  "Single-leg sliding hamstring curl": "Cuốn đùi sau trượt gót một chân",
+  "Single-leg wall tibialis raise": "Nâng mũi chân tựa tường một chân",
+  "Sit back with shoulder blades set down and back.":
+    "Ngồi tựa ra sau với bả vai kéo xuống và ra sau.",
+  "Sit down and back, keeping the knees tracking the toes.":
+    "Hạ hông xuống và ra sau, giữ đầu gối đi theo hướng mũi chân.",
+  "Sit or stand tall with the eyes level and the jaw relaxed.":
+    "Ngồi hoặc đứng thẳng, mắt nhìn ngang và thả lỏng hàm.",
+  "Sit or stand with dumbbells at shoulder height.":
+    "Ngồi hoặc đứng với tạ đơn ở ngang vai.",
+  "Sit tall and place a hand on the forehead, back, or side of the head for the selected direction.":
+    "Ngồi thẳng và đặt một tay lên trán, sau đầu hoặc bên đầu tùy theo hướng đã chọn.",
+  "Sit tall on a bench with the knees bent and feet about hip-width.":
+    "Ngồi thẳng trên ghế, gập đầu gối và đặt hai chân rộng khoảng bằng hông.",
+  "Sit tall with the feet braced and take the selected cable attachment.":
+    "Ngồi thẳng, trụ chắc hai chân và nắm phụ kiện cáp đã chọn.",
+  "Sit tall with the ribs over the pelvis and keep the feet and knees aligned while the ankles move through their full range.":
+    "Ngồi thẳng với lồng ngực thẳng hàng với khung chậu, giữ bàn chân và đầu gối thẳng hàng khi cổ chân di chuyển hết biên độ.",
+  "Sit the hips back and let the upper chest reach down through a comfortable thoracic range.":
+    "Đưa hông ra sau và hạ ngực trên xuống trong biên độ cột sống ngực thoải mái.",
+  "Sit with the knee pad secured above the knees and the balls of the feet on the platform.":
+    "Ngồi với đệm gối được cố định phía trên đầu gối và phần trước bàn chân đặt trên bàn đạp.",
+  "Skipping rope with small bounces on the balls of the feet":
+    "Nhảy dây với các nhịp bật nhỏ trên phần trước bàn chân",
+  "Skull crusher with slow eccentric": "Skull Crusher với pha hạ tạ chậm",
+  "Slide the forearms upward while reaching gently into the wall, then return slowly.":
+    "Trượt cẳng tay lên trên đồng thời nhẹ nhàng đẩy vào tường, rồi từ từ trở về.",
+  "Slow down if breathing is no longer conversational or recovery is worsened.":
+    "Giảm tốc nếu bạn không còn thở đủ nhẹ để trò chuyện hoặc khả năng phục hồi kém đi.",
+  "Slow push-up": "Chống đẩy chậm",
+  "Slow reach-through with a pause": "Luồn tay chậm có dừng",
+  "Slow reverse crunch": "Gập bụng ngược chậm",
+  "Slow-eccentric sliding hamstring curl":
+    "Cuốn đùi sau trượt gót với pha duỗi chậm",
+  "Slow-tempo dumbbell curl": "Cuốn tạ đơn nhịp chậm",
+  "Slow-tempo lateral raise": "Nâng tạ sang ngang nhịp chậm",
+  "Slow-tempo rear delt raise": "Nâng tạ vai sau nhịp chậm",
+  "Slower flat walk": "Đi bộ đường bằng chậm hơn",
+  "Slowly lower one arm and the opposite leg.":
+    "Từ từ hạ một tay và chân đối diện.",
+  "Slowly slide the heels away while keeping the pelvis level.":
+    "Từ từ trượt gót ra xa trong khi giữ khung chậu ngang bằng.",
+  "Small bounces on the balls of the feet, wrists do the turning.":
+    "Bật nhẹ trên phần trước bàn chân, dùng cổ tay để quay dây.",
+  "Small fixed elbow bend, open slowly, hug the chest together.":
+    "Giữ khuỷu tay hơi gập cố định, từ từ mở ra rồi khép tay siết ngực.",
+  "Small, controlled movement": "Chuyển động nhỏ, có kiểm soát",
+  "Small, precise range": "Biên độ nhỏ, chính xác",
+  "Smaller-range tilt": "Nghiêng khung chậu với biên độ nhỏ hơn",
+  "Soft knees, not locked": "Đầu gối hơi chùng, không khóa khớp",
+  "Split squat with the rear foot elevated on a bench":
+    "Split Squat với chân sau kê cao trên ghế",
+  "Squat along the fixed path to a controlled depth and stand without snapping the knees.":
+    "Squat theo đường đi cố định đến độ sâu kiểm soát được rồi đứng lên mà không bật khóa đầu gối.",
+  "Squat between the hips to a controlled depth and drive through the whole foot.":
+    "Squat xuống giữa hai hông đến độ sâu kiểm soát được và đạp qua toàn bộ bàn chân.",
+  "Squat holding a dumbbell in each hand": "Squat với mỗi tay cầm một tạ đơn",
+  "Squat only as deep as you can keep the torso and pelvis controlled.":
+    "Chỉ Squat sâu đến mức bạn vẫn kiểm soát được thân người và khung chậu.",
+  "Squatting instead of hinging": "Squat xuống thay vì gập hông",
+  "Squeeze at the top without rolling the shoulders forward.":
+    "Siết ở vị trí trên cùng mà không cuộn vai ra trước.",
+  "Squeeze forearms and biceps": "Siết cẳng tay và cơ tay trước",
+  "Squeeze press with pause": "Đẩy tạ ép sát có dừng",
+  "Squeeze the back-leg glute, tuck the pelvis, feel the front hip.":
+    "Siết cơ mông chân sau, cuộn khung chậu và cảm nhận phần trước hông.",
+  "Squeeze the chest at the top": "Siết cơ ngực ở vị trí trên cùng",
+  "Squeeze the chest to bring the dumbbells back together.":
+    "Siết cơ ngực để đưa hai tạ đơn lại gần nhau.",
+  "Squeeze the forearms and biceps at the top.":
+    "Siết cẳng tay và cơ tay trước ở vị trí trên cùng.",
+  "Squeeze the glute on the back leg": "Siết cơ mông của chân sau",
+  "Squeeze the glute on the back leg.": "Siết cơ mông của chân sau.",
+  "Squeeze the glutes at the top": "Siết cơ mông ở vị trí trên cùng",
+  "Squeeze the glutes before marching":
+    "Siết cơ mông trước khi bước chân tại chỗ",
+  "Squeeze the glutes lightly.": "Siết nhẹ cơ mông.",
+  "Squeeze the glutes to gently tuck the pelvis.":
+    "Siết cơ mông để nhẹ nhàng cuộn khung chậu.",
+  "Squeeze the glutes to lift": "Siết cơ mông để nâng lên",
+  "Squeeze the glutes to lift the hips.": "Siết cơ mông để nâng hông.",
+  "Squeeze the glutes to lift, ribs down, no lower-back arch.":
+    "Siết cơ mông để nâng lên, giữ xương sườn hạ xuống và không ưỡn lưng dưới.",
+  "Squeeze the glutes to tuck the pelvis": "Siết cơ mông để cuộn khung chậu",
+  "Squeeze the rear-leg glute": "Siết cơ mông chân sau",
+  "Squeeze the shoulder blade": "Siết bả vai",
+  "Squeeze the shoulder blades": "Siết hai bả vai",
+  "Squeeze the working glute at the top without arching the lower back.":
+    "Siết cơ mông bên tập ở vị trí trên cùng mà không ưỡn lưng dưới.",
+  "Stable split stance, drop straight down, drive the front foot.":
+    "Đứng chân trước chân sau vững chắc, hạ thẳng xuống và đạp mạnh bằng chân trước.",
+  "Stack the body in one line": "Giữ cơ thể thẳng hàng",
+  "Stack the body in one line, lift the hips, do not sag.":
+    "Giữ cơ thể thẳng hàng, nâng hông lên và không để võng xuống.",
+  "Stack the feet and hips.": "Xếp chồng hai bàn chân và hai bên hông.",
+  "Stance too short (knee over toes)":
+    "Sải chân quá ngắn (đầu gối vượt quá mũi chân)",
+  "Stand close to a stable step or bench with a dumbbell in each hand.":
+    "Đứng gần một bục hoặc ghế chắc chắn, mỗi tay cầm một tạ đơn.",
+  "Stand evenly on both heels with the knees softly bent.":
+    "Đứng dồn lực đều lên cả hai gót, đầu gối hơi chùng.",
+  "Stand facing a wall with the forearms supported and the feet in a comfortable stance.":
+    "Đứng hướng mặt vào tường, cẳng tay được đỡ và hai chân ở tư thế thoải mái.",
+  "Stand in an athletic stance with clear space and knees tracking over the toes.":
+    "Đứng ở tư thế thể thao trong khoảng trống, giữ đầu gối đi theo hướng mũi chân.",
+  "Stand light on the balls of the feet with a slight knee bend.":
+    "Đứng nhẹ trên phần trước bàn chân với đầu gối hơi chùng.",
+  "Stand on a stable low platform with dumbbells at the sides and clear space behind.":
+    "Đứng trên bục thấp chắc chắn, cầm tạ đơn hai bên và chừa khoảng trống phía sau.",
+  "Stand on one foot near a stable support and hold a dumbbell in the other hand.":
+    "Đứng một chân gần điểm tựa chắc chắn và cầm tạ đơn bằng tay đối diện.",
+  "Stand on one leg with a soft knee and hold the dumbbells by the thighs.":
+    "Đứng một chân với đầu gối hơi chùng và giữ tạ đơn cạnh đùi.",
+  "Stand or sit holding dumbbells at the sides.":
+    "Đứng hoặc ngồi, cầm tạ đơn hai bên người.",
+  "Stand side-on to a solid throwing wall with a light medicine ball and clear rebound space.":
+    "Đứng xoay ngang người so với bức tường chắc dùng để ném bóng, cầm bóng tạ nhẹ và chừa trống khu vực bóng bật lại.",
+  "Stand tall by driving the hips forward, without over-arching.":
+    "Đẩy hông ra trước để đứng thẳng mà không ưỡn lưng quá mức.",
+  "Stand tall holding the barbell with an underhand grip.":
+    "Đứng thẳng, cầm thanh đòn bằng tay nắm ngửa.",
+  "Stand tall with a dumbbell at each side and the feet hip-width.":
+    "Đứng thẳng, mỗi bên cầm một tạ đơn và hai chân rộng bằng hông.",
+  "Stand tall with level shoulders and the ribs over the pelvis.":
+    "Đứng thẳng với hai vai ngang bằng và lồng ngực thẳng hàng với khung chậu.",
+  "Stand tall with light dumbbells at the sides.":
+    "Đứng thẳng, cầm tạ đơn nhẹ hai bên người.",
+  "Stand tall with ribs down and a neutral spine; keep the core lightly braced for balance.":
+    "Đứng thẳng với xương sườn hạ xuống và cột sống trung tính; siết nhẹ cơ lõi để giữ thăng bằng.",
+  "Stand tall with the weights beside the thighs.":
+    "Đứng thẳng với tạ ở hai bên đùi.",
+  "Stand tall without leaning back, then lower the bar under control.":
+    "Đứng thẳng mà không ngả ra sau, rồi hạ thanh đòn có kiểm soát.",
+  "Stand tall without over-arching": "Đứng thẳng mà không ưỡn lưng quá mức",
+  "Stand tall, optionally with the balls of the feet on a step.":
+    "Đứng thẳng, có thể đặt phần trước bàn chân lên bục.",
+  "Stand tall, ribs down": "Đứng thẳng, giữ xương sườn hạ xuống",
+  "Stand tall, ribs down, and take smooth steps.":
+    "Đứng thẳng, giữ xương sườn hạ xuống và bước đều, mượt.",
+  "Stand with both feet planted and hold one dumbbell at shoulder height.":
+    "Đứng trụ chắc cả hai chân và giữ một tạ đơn ở ngang vai.",
+  "Stand with one dumbbell held at the side and both feet planted evenly.":
+    "Đứng cầm một tạ đơn bên người và trụ đều trên cả hai chân.",
+  "Stand with two dumbbells at the thighs, feet hip-width, and knees softly bent.":
+    "Đứng với hai tạ đơn ở đùi, hai chân rộng bằng hông và đầu gối hơi chùng.",
+  "Standing cable curl with the elbows pinned":
+    "Cuốn cáp đứng với khuỷu tay giữ cố định",
+  "Standing calf raise machine with the shoulders under the pads":
+    "Máy nhón bắp chân đứng với vai ở dưới đệm",
+  "Standing dumbbell curl": "Cuốn tạ đơn đứng",
+  "Standing dumbbell shoulder press": "Đẩy vai tạ đơn đứng",
+  "Standing flat-footed": "Đứng với toàn bộ bàn chân chạm sàn",
+  "Standing hip flexor stretch": "Giãn cơ gập hông đứng",
+  "Standing hip-flexor stretch": "Giãn cơ gập hông đứng",
+  "Standing one-arm dumbbell press": "Đẩy tạ đơn một tay đứng",
+  "Standing partial rollout": "Lăn tạ biên độ một phần khi đứng",
+  "Standing pelvic tilt": "Nghiêng khung chậu khi đứng",
+  "Standing toe raise with support": "Nâng mũi chân đứng có hỗ trợ",
+  "Standing up during each row": "Dựng người lên trong mỗi lần kéo",
+  "Standing up more upright each rep": "Mỗi lần lại dựng thân người thẳng hơn",
+  "Start at an easy pace that supports relaxed breathing.":
+    "Bắt đầu ở nhịp nhẹ để có thể thở thoải mái.",
+  "Start from a still hang, curl the pelvis up, and never swing.":
+    "Bắt đầu từ tư thế treo yên, cuộn khung chậu lên và tuyệt đối không đung đưa.",
+  "Start from a true dead stop": "Bắt đầu từ trạng thái dừng hoàn toàn",
+  "Start in a push-up and walk the feet in to lift the hips high.":
+    "Bắt đầu ở tư thế chống đẩy rồi bước chân vào gần để nâng hông cao.",
+  "Start shoulders down, pull elbows toward the ribs.":
+    "Bắt đầu với vai hạ xuống, kéo khuỷu tay về phía xương sườn.",
+  "Start with dumbbells at the upper chest.": "Bắt đầu với tạ đơn ở ngực trên.",
+  "Starting with the shoulders shrugged": "Bắt đầu với vai nhún lên",
+  "Static farmer hold": "Giữ tạ hai bên tại chỗ",
+  "Static side plank": "Giữ Plank nghiêng tĩnh",
+  "Stay balanced mid-foot": "Giữ thăng bằng trên giữa bàn chân",
+  "Stay balanced over the whole foot": "Giữ thăng bằng trên toàn bộ bàn chân",
+  "Stay braced during the pause": "Giữ cơ lõi gồng chắc trong lúc dừng",
+  "Stay centered over both feet": "Giữ trọng tâm ở giữa hai bàn chân",
+  "Stay tall with ribs down and core braced; land softly to protect the shins and keep the spine neutral.":
+    "Giữ người thẳng với xương sườn hạ xuống và cơ lõi siết chắc; tiếp đất nhẹ để bảo vệ ống chân và giữ cột sống trung tính.",
+  "Stay tall with the ribs over the pelvis and keep the dumbbell close. Stop the descent before the lower back rounds or arches.":
+    "Giữ người thẳng với lồng ngực thẳng hàng với khung chậu và tạ đơn sát cơ thể. Dừng hạ trước khi lưng dưới cong hoặc ưỡn.",
+  "Stay tall with the ribs stacked and shoulders level. The load is too heavy if it pulls the torso forward or makes each step sway.":
+    "Giữ người thẳng, lồng ngực thẳng hàng với khung chậu và hai vai ngang bằng. Mức tạ quá nặng nếu kéo thân người ra trước hoặc khiến từng bước bị lắc.",
+  "Stay tall with the ribs stacked over the pelvis. Choose a height that lets you keep the knee aligned and the pelvis level.":
+    "Giữ người thẳng với lồng ngực thẳng hàng với khung chậu. Chọn độ cao cho phép đầu gối thẳng hàng và khung chậu ngang bằng.",
+  "Steeper incline walk": "Đi bộ với độ dốc cao hơn",
+  "Step back with control and drive through the planted front foot.":
+    "Bước lùi có kiểm soát rồi đạp qua chân trước đang trụ.",
+  "Step back, lower through the front hip and knee, and drive through the elevated front foot.":
+    "Bước lùi, hạ người qua hông và đầu gối chân trước rồi đạp qua chân trước đang kê cao.",
+  "Step one foot back far enough to keep the front foot planted.":
+    "Bước một chân đủ xa về sau để bàn chân trước vẫn trụ chắc.",
+  "Step one foot back, descend on the front leg, and return without pushing from the rear foot.":
+    "Bước một chân ra sau, hạ người trên chân trước rồi trở về mà không đẩy bằng chân sau.",
+  "Step-throughs": "Bước chuyển chân liên tục",
+  "Step-up with a controlled knee drive":
+    "Bước lên bục kèm nâng gối có kiểm soát",
+  "Stop at a flat hip, do not hyperextend":
+    "Dừng khi hông duỗi thẳng, không duỗi quá mức",
+  "Stop at about shoulder height.": "Dừng ở khoảng ngang vai.",
+  "Stop at shoulder height": "Dừng ở ngang vai",
+  "Stop before elbow discomfort": "Dừng trước khi khuỷu tay khó chịu",
+  "Stop before elbow pain": "Dừng trước khi khuỷu tay đau",
+  "Stop before lumbar position changes and keep the neck neutral throughout.":
+    "Dừng trước khi tư thế lưng dưới thay đổi và luôn giữ cổ trung tính.",
+  "Stop before shoulder pain": "Dừng trước khi vai đau",
+  "Stop before shoulder support fails or the legs begin to swing.":
+    "Dừng trước khi vai không còn giữ vững hoặc chân bắt đầu đung đưa.",
+  "Stop before the hips drop or the lower back arches.":
+    "Dừng trước khi hông hạ xuống hoặc lưng dưới bị ưỡn.",
+  "Stop before the lower back begins to arch.":
+    "Dừng trước khi lưng dưới bắt đầu ưỡn.",
+  "Stop before the lower back rounds or the neck changes position.":
+    "Dừng trước khi lưng dưới cong hoặc cổ đổi vị trí.",
+  "Stop before the pelvis or lower back loses a comfortable neutral position.":
+    "Dừng trước khi khung chậu hoặc lưng dưới mất vị trí trung tính thoải mái.",
+  "Stop before the shoulders feel over-stretched.":
+    "Dừng trước khi vai cảm thấy bị kéo giãn quá mức.",
+  "Stop before the shoulders swing forward": "Dừng trước khi vai lao ra trước",
+  "Stop if the hips sag": "Dừng nếu hông võng xuống",
+  "Stop if the hips start to drop": "Dừng nếu hông bắt đầu hạ xuống",
+  "Stop if the shins flare up": "Dừng nếu triệu chứng đau ống chân bùng lên",
+  "Stop if the shins hurt": "Dừng nếu ống chân bị đau",
+  "Stop just above the forehead.": "Dừng ngay phía trên trán.",
+  "Stop just short of a hard lockout.": "Dừng ngay trước khi khóa khớp cứng.",
+  "Stop level (no over-arch), then lower under control.":
+    "Dừng khi hông ngang bằng (không ưỡn quá mức), rồi hạ xuống có kiểm soát.",
+  "Stop the descent before the pelvis tucks or the lower back lifts from the pad.":
+    "Dừng hạ trước khi khung chậu cuộn lại hoặc lưng dưới nhấc khỏi đệm.",
+  "Stop under control and set both weights down safely.":
+    "Dừng có kiểm soát và đặt cả hai tạ xuống an toàn.",
+  "Stop when the body is straight from knees to shoulders.":
+    "Dừng khi cơ thể thẳng từ đầu gối đến vai.",
+  "Stop when the hamstring is loaded or the pelvis starts to rotate.":
+    "Dừng khi cơ đùi sau đã căng chịu lực hoặc khung chậu bắt đầu xoay.",
+  "Stop with a good shoulder position": "Dừng khi vai vẫn ở vị trí tốt",
+  "Stopping short of full extension": "Dừng trước khi duỗi hết biên độ",
+  "Straight line head to heels, ribs down, glutes squeezed.":
+    "Giữ một đường thẳng từ đầu đến gót, xương sườn hạ xuống và siết cơ mông.",
+  "Straighten the elbows along the cable path, then return to a comfortable stretch.":
+    "Duỗi khuỷu tay theo đường cáp rồi trở về đến độ giãn thoải mái.",
+  "Straighten the elbows until the hands pass the hips, then return under control.":
+    "Duỗi khuỷu tay đến khi bàn tay qua hông rồi trở về có kiểm soát.",
+  "Straighten the elbows without flaring the ribs.":
+    "Duỗi khuỷu tay mà không để xương sườn nhô lên.",
+  "Straighten the elbows without moving the upper arms, then return slowly.":
+    "Duỗi khuỷu tay mà không di chuyển cánh tay trên rồi từ từ trở về.",
+  "Straightening then re-bending the elbows": "Duỗi rồi lại gập khuỷu tay",
+  "Straining the neck": "Gồng căng cổ",
+  "Suitcase hold with a load in one hand and the torso square":
+    "Giữ một tạ ở một bên khi đứng tại chỗ, giữ thân người thẳng, không nghiêng hoặc xoay",
+  "Supine full-exhale breathing": "Thở ra hết khi nằm ngửa",
+  "Support both feet on a wall or bench and gently pull the heels down.":
+    "Đặt cả hai bàn chân lên tường hoặc ghế và nhẹ nhàng kéo gót xuống.",
+  "Support the forearms on the chair pads, brace the back, and let the legs hang quietly.":
+    "Tựa cẳng tay trên đệm ghế, giữ chắc lưng và để chân treo yên.",
+  "Supported bodyweight single-leg hinge":
+    "Gập hông một chân không tạ có hỗ trợ",
+  "Supported couch stretch": "Giãn cơ gập hông tựa ghế có hỗ trợ",
+  "Supported reverse lunge": "Lunge lùi có hỗ trợ",
+  "Supported single-leg hip hinge": "Gập hông một chân có hỗ trợ",
+  "Supported squat": "Squat có hỗ trợ",
+  "Supported step-up": "Bước lên bục có hỗ trợ",
+  "Supported stretch": "Kéo giãn có hỗ trợ",
+  "Sweep the arms back through a comfortable arc and return without letting the stack slam.":
+    "Quét hai tay ra sau theo cung thoải mái rồi trở về mà không để chồng tạ va mạnh.",
+  "Sweep the arms outward with soft elbows and return until the rear delts lengthen.":
+    "Quét hai tay ra ngoài với khuỷu hơi chùng rồi trở về đến khi vai sau được kéo dài.",
+  "Sweep the hands together with soft elbows, then open to a comfortable chest stretch.":
+    "Quét hai tay lại gần nhau với khuỷu hơi chùng, rồi mở ra đến độ giãn ngực thoải mái.",
+  "Swinging or kipping": "Đung đưa hoặc dùng đà kipping",
+  "Swinging or kipping for momentum": "Đung đưa hoặc kipping để lấy đà",
+  "Swinging out of the bottom": "Đung đưa lấy đà từ vị trí dưới cùng",
+  "Swinging the legs": "Đung đưa chân",
+  "Swinging the torso for momentum": "Đung đưa thân người để lấy đà",
+  "Swinging the torso to lift the bar": "Đung đưa thân người để nâng thanh đòn",
+  "Swinging the weights": "Đung đưa tạ",
+  "Swinging the weights up": "Vung tạ lên",
+  "Swinging the weights up with momentum": "Vung tạ lên bằng đà",
+  "T-bar row with the chest supported on the pad":
+    "Kéo T-Bar với ngực tựa trên đệm",
+  "Take a comfortable wide stance with the toes turned out and the bar over mid-foot.":
+    "Đứng rộng thoải mái với mũi chân xoay ra ngoài và thanh đòn ở trên giữa bàn chân.",
+  "Take a controlled step back": "Bước lùi có kiểm soát",
+  "Take a relaxed boxing stance in clear space with the guard in a comfortable position.":
+    "Vào tư thế boxing thả lỏng trong khoảng trống, giữ thế thủ ở vị trí thoải mái.",
+  "Take a relaxed stance with clear space and choose a technical focus for the round.":
+    "Đứng thả lỏng trong khoảng trống và chọn một kỹ thuật trọng tâm cho hiệp.",
+  "Take a secure overhand grip and begin from a still active hang.":
+    "Nắm úp chắc chắn và bắt đầu từ tư thế treo chủ động, không đung đưa.",
+  "Take a secure palms-facing grip and begin from a quiet controlled hang.":
+    "Nắm chắc với hai lòng bàn tay hướng vào nhau và bắt đầu từ tư thế treo yên, có kiểm soát.",
+  "Take a shoulder-width underhand grip and begin from a controlled hang.":
+    "Nắm ngửa rộng bằng vai và bắt đầu từ tư thế treo có kiểm soát.",
+  "Take a stable push-up position with the ribs controlled and elbows comfortably angled.":
+    "Vào tư thế chống đẩy vững chắc, kiểm soát xương sườn và để khuỷu tay ở góc thoải mái.",
+  "Take a stable split stance": "Vào tư thế đứng chân trước chân sau vững chắc",
+  "Take an overhand grip at about shoulder width.":
+    "Nắm úp rộng khoảng bằng vai.",
+  "Take one cable handle with the shoulders and hips square to the machine.":
+    "Cầm một tay cầm cáp, giữ vai và hông hướng thẳng về máy.",
+  "Take quiet, deliberate steps": "Bước nhẹ nhàng, có chủ ý",
+  "Take rests whenever needed": "Nghỉ bất cứ khi nào cần",
+  "Take small, soft bounces on the balls of the feet.":
+    "Bật nhỏ, nhẹ trên phần trước bàn chân.",
+  "Taking long unstable steps": "Bước dài thiếu ổn định",
+  "Taking rushed or uneven steps": "Bước vội hoặc không đều",
+  "Tensing the neck and shoulders": "Gồng căng cổ và vai",
+  "Tensing the shoulders": "Gồng căng vai",
+  "Test the bar and plates before starting":
+    "Kiểm tra thanh đòn và bánh tạ trước khi bắt đầu",
+  "Test the hooks and safety stops before the working set.":
+    "Kiểm tra móc và chốt an toàn trước hiệp tập chính.",
+  "Test the rack hooks and safeties before loading working weight.":
+    "Kiểm tra móc giá đỡ và chốt an toàn trước khi lắp mức tạ tập chính.",
+  "The flat-back requirement makes this one of the best anti-arch drills. If the back lifts, raise the legs higher or tuck the knees.":
+    "Yêu cầu giữ lưng phẳng khiến đây là một trong những bài chống ưỡn lưng tốt nhất. Nếu lưng nhấc lên, hãy nâng chân cao hơn hoặc co gối lại.",
+  "The heel pull and full exhale bring the pelvis and lower ribs toward a stacked position. Keep the movement gentle; this is a breathing and control drill, not a high bridge.":
+    "Động tác kéo gót và thở ra hết đưa khung chậu cùng xương sườn dưới về vị trí thẳng hàng. Thực hiện nhẹ nhàng; đây là bài tập thở và kiểm soát, không phải nâng hông cao.",
+  "The most common fault is flaring the ribs and arching the lower back. Keep ribs down and abs tight through the stretch.":
+    "Lỗi phổ biến nhất là để xương sườn nhô lên và ưỡn lưng dưới. Giữ xương sườn hạ xuống và cơ bụng siết chặt trong suốt động tác giãn.",
+  "The pelvic curl trains posterior tilt control, directly helping an arched-back posture. Keep ribs down.":
+    "Động tác cuộn khung chậu rèn khả năng kiểm soát nghiêng khung chậu ra sau, trực tiếp hỗ trợ tư thế lưng ưỡn. Giữ xương sườn hạ xuống.",
+  "The pelvic tuck, not a lower-back arch, creates the useful hip-flexor stretch. Stay tall only within the range where the ribs remain stacked.":
+    "Cuộn khung chậu, chứ không phải ưỡn lưng dưới, mới tạo độ giãn cơ gập hông hiệu quả. Chỉ giữ người thẳng trong biên độ mà lồng ngực vẫn thẳng hàng với khung chậu.",
+  "The torso should remain vertical with the ribs stacked over the pelvis. Reduce the load if you cannot resist side-bending in either direction.":
+    "Thân người phải giữ thẳng đứng với lồng ngực thẳng hàng với khung chậu. Giảm mức tạ nếu bạn không thể chống nghiêng người sang hai bên.",
+  "This is a light movement-control drill, not a structural correction. Keep it symptom-free and avoid pressing the head forcefully backward.":
+    "Đây là bài kiểm soát chuyển động nhẹ, không phải cách chỉnh sửa cấu trúc cơ thể. Chỉ tập khi không có triệu chứng và tránh dùng lực mạnh ấn đầu ra sau.",
+  "This is an anti-extension drill: keep the ribs down and pelvis lightly tucked. End the rollout as soon as the lower back starts to arch.":
+    "Đây là bài chống duỗi cột sống: giữ xương sườn hạ xuống và khung chậu hơi cuộn. Kết thúc động tác lăn ngay khi lưng dưới bắt đầu ưỡn.",
+  "This is the foundational drill for correcting an over-arched (anterior tilt) lower back. Learn the flatten-and-hold, then apply it during planks, presses and squats.":
+    "Đây là bài nền tảng để chỉnh tư thế lưng dưới ưỡn quá mức (khung chậu nghiêng ra trước). Học cách ép phẳng và giữ, rồi áp dụng khi Plank, đẩy tạ và Squat.",
+  "This is the plank tuned for arched-back correction: the glute squeeze drives a posterior tilt so the lower back stays flat. Ribs down, abs tight, glutes squeezed.":
+    "Đây là biến thể Plank dành cho việc chỉnh lưng ưỡn: siết cơ mông tạo độ nghiêng khung chậu ra sau để lưng dưới giữ phẳng. Hạ xương sườn, siết cơ bụng và cơ mông.",
+  "Throw punches by rotating through the hips and core.":
+    "Ra đòn bằng cách xoay hông và cơ lõi.",
+  "Tight hip flexors pull the pelvis into an arch. Squeezing the glute and tucking the pelvis is what opens the front of the hip — do not just lean forward and arch.":
+    "Cơ gập hông căng kéo khung chậu vào tư thế ưỡn. Siết cơ mông và cuộn khung chậu mới mở được phần trước hông — đừng chỉ nghiêng người ra trước và ưỡn lưng.",
+  "Tighten the abs and lats to pull the bar back to the start.":
+    "Siết cơ bụng và cơ xô để kéo thanh đòn về vị trí ban đầu.",
+  "Tilt with the abs, not by pushing the feet":
+    "Dùng cơ bụng để nghiêng khung chậu, không đẩy bằng bàn chân",
+  "Tip the pelvis back until the lower back rests softly on the mat.":
+    "Nghiêng khung chậu ra sau đến khi lưng dưới nhẹ nhàng áp vào thảm.",
+  "Touch the chest softly": "Chạm nhẹ vào ngực",
+  "Touch the upper arm down softly": "Nhẹ nhàng chạm cánh tay trên xuống",
+  "Touch the upper chest gently": "Chạm nhẹ vào ngực trên",
+  "Track the front knee in line with the toes.":
+    "Giữ đầu gối trước thẳng hàng với mũi chân.",
+  "Track the front knee with the toes":
+    "Giữ đầu gối trước đi theo hướng mũi chân",
+  "Treat the walk as recovery": "Coi buổi đi bộ là hoạt động phục hồi",
+  "Triceps pressdown with the elbows fixed at the sides":
+    "Đẩy tay sau xuống với khuỷu tay cố định hai bên người",
+  "Tuck the pelvis and squeeze the rear glute before moving upright.":
+    "Cuộn khung chậu và siết cơ mông chân sau trước khi dựng người thẳng.",
+  "Tuck the pelvis before moving upright":
+    "Cuộn khung chậu trước khi dựng người thẳng",
+  "Tuck the pelvis under (posterior tilt).":
+    "Cuộn khung chậu xuống dưới (nghiêng ra sau).",
+  "Tuck the ribs down and brace the core.":
+    "Thu xương sườn xuống và siết cơ lõi.",
+  "Tuck the ribs, chin slightly down": "Thu xương sườn, hơi hạ cằm",
+  "Tucking the elbows toward the hips": "Khép khuỷu tay về phía hông",
+  "Turn carefully while keeping the dumbbell close and still.":
+    "Xoay người cẩn thận, giữ tạ đơn sát người và không để tạ đung đưa.",
+  "Turn the rope with the wrists, not big arm swings.":
+    "Quay dây bằng cổ tay, không vung tay biên độ lớn.",
+  "Turn with the wrists": "Quay bằng cổ tay",
+  "Turning a recovery swim into hard intervals":
+    "Biến buổi bơi phục hồi thành các quãng tập nặng",
+  "Turning it into a squat": "Biến động tác thành Squat",
+  "Turning the feet outward": "Xoay bàn chân ra ngoài",
+  "Twenty-to-forty-minute easy walk": "Đi bộ nhẹ từ hai mươi đến bốn mươi phút",
+  "Twisting only from the reaching arm": "Chỉ vặn xoắn bằng cánh tay đang vươn",
+  "Twisting the pelvis": "Vặn xoắn khung chậu",
+  "Twisting the torso to lift heavier": "Vặn thân người để nâng tạ nặng hơn",
+  "Two-arm dumbbell press": "Đẩy tạ đơn hai tay",
+  "Two-leg calf raise": "Nhón bắp chân hai chân",
+  "Underhand grip, drive the elbows down and back.":
+    "Nắm ngửa, kéo khuỷu tay xuống và ra sau.",
+  "Underhand grip, wrists neutral": "Nắm ngửa, giữ cổ tay trung tính",
+  "Uneven time on each side": "Thời gian tập hai bên không đều",
+  "Upper arms stay vertical": "Giữ cánh tay trên thẳng đứng",
+  "Upper arms stay vertical, lower toward the forehead.":
+    "Giữ cánh tay trên thẳng đứng, hạ tạ về phía trán.",
+  "Upper arms swinging": "Cánh tay trên đung đưa",
+  "Upper back on the bench, tuck the ribs, thrust to a flat hip.":
+    "Tựa lưng trên lên ghế, thu xương sườn và đẩy hông đến khi duỗi thẳng.",
+  "Upright couch stretch": "Giãn cơ gập hông tựa ghế với thân người thẳng",
+  "Use a ball and wall rated for throwing and keep bystanders outside the rebound path.":
+    "Dùng bóng và tường phù hợp để ném, đồng thời giữ người xung quanh ngoài đường bóng bật lại.",
+  "Use a band and range that do not irritate the elbows or shoulders.":
+    "Dùng dây và biên độ không gây khó chịu cho khuỷu tay hoặc vai.",
+  "Use a comfortable wide stance": "Dùng tư thế đứng rộng thoải mái",
+  "Use a consistent touch point": "Dùng một điểm chạm nhất quán",
+  "Use a controlled calf stretch": "Kéo giãn bắp chân có kiểm soát",
+  "Use a controlled range": "Dùng biên độ có kiểm soát",
+  "Use a controlled stretch": "Kéo giãn có kiểm soát",
+  "Use a firm whole-hand contact": "Giữ tiếp xúc chắc bằng toàn bộ bàn tay",
+  "Use a full controlled range": "Dùng hết biên độ có kiểm soát",
+  "Use a light controlled load": "Dùng mức tạ nhẹ, có kiểm soát",
+  "Use a light load and row wide toward the upper ribs without shrugging.":
+    "Dùng mức tạ nhẹ và kéo rộng về phía xương sườn trên mà không nhún vai.",
+  "Use a light, controlled load": "Dùng mức tạ nhẹ, có kiểm soát",
+  "Use a load that does not require leaning body weight onto the handle.":
+    "Dùng mức tạ không khiến bạn phải dồn trọng lượng cơ thể lên tay cầm.",
+  "Use a load that lets the neck and upper traps stay relaxed.":
+    "Dùng mức tạ cho phép cổ và cơ thang trên được thả lỏng.",
+  "Use a long complete exhale": "Thở ra dài và hết hoàn toàn",
+  "Use a low non-slip elevation and stop before balance or pelvic control changes.":
+    "Dùng bục kê thấp, chống trượt và dừng trước khi khả năng giữ thăng bằng hoặc kiểm soát khung chậu thay đổi.",
+  "Use a modest bench angle": "Dùng góc ghế vừa phải",
+  "Use a modest incline and lower the bar to the upper chest under control.":
+    "Dùng độ dốc vừa phải và hạ thanh đòn về ngực trên có kiểm soát.",
+  "Use a pain-free arc and keep the neck relaxed.":
+    "Dùng cung chuyển động không đau và giữ cổ thả lỏng.",
+  "Use a pain-free range and avoid kicking the pad with momentum.":
+    "Dùng biên độ không đau và tránh đá đệm bằng đà.",
+  "Use a relaxed natural stride": "Bước chân tự nhiên, thả lỏng",
+  "Use a secure support": "Dùng điểm tựa chắc chắn",
+  "Use a short light suitcase hold":
+    "Giữ tạ một bên tại chỗ trong thời gian ngắn với mức tạ nhẹ",
+  "Use a slight pelvic tuck": "Hơi cuộn khung chậu",
+  "Use a slightly higher box only if landing mechanics stay identical":
+    "Chỉ dùng bục cao hơn một chút nếu kỹ thuật tiếp đất vẫn y hệt",
+  "Use a small controlled foot lift":
+    "Nhấc chân nhẹ với biên độ nhỏ, có kiểm soát",
+  "Use a small controlled range": "Dùng biên độ nhỏ, có kiểm soát",
+  "Use a start position that does not force the shoulders too far behind the torso.":
+    "Dùng vị trí bắt đầu không ép vai ra quá xa phía sau thân người.",
+  "Use bodyweight or very light dumbbells":
+    "Dùng trọng lượng cơ thể hoặc tạ đơn rất nhẹ",
+  "Use easy to moderate effort only; no maximal effort, harness loading, or painful holds.":
+    "Chỉ dùng mức gắng sức nhẹ đến vừa; không gắng sức tối đa, không đeo đai chịu tải hoặc giữ tư thế gây đau.",
+  "Use equal controllable loads": "Dùng mức tạ bằng nhau và kiểm soát được",
+  "Use equal time on both sides": "Dành thời gian bằng nhau cho hai bên",
+  "Use full ankle range, pause at the top, and lower slowly.":
+    "Dùng hết biên độ cổ chân, dừng ở vị trí trên cùng rồi từ từ hạ xuống.",
+  "Use full range": "Dùng hết biên độ",
+  "Use generous padding under the knee": "Lót đệm dày dưới đầu gối",
+  "Use incline instead of running": "Dùng độ dốc thay vì chạy",
+  "Use incline instead of running to spare the shins.":
+    "Dùng độ dốc thay vì chạy để giảm tải cho ống chân.",
+  "Use light resistance; this recovery drill should not create fatigue.":
+    "Dùng lực kháng nhẹ; bài phục hồi này không được gây mệt mỏi.",
+  "Use light tension that allows normal breathing and a level pelvis.":
+    "Dùng lực căng nhẹ cho phép thở bình thường và giữ khung chậu ngang bằng.",
+  "Use only pain-free depth": "Chỉ xuống độ sâu không đau",
+  "Use only symptom-free range and keep the ribs stacked over the pelvis.":
+    "Chỉ dùng biên độ không gây triệu chứng và giữ lồng ngực thẳng hàng với khung chậu.",
+  "Use only the depth where the feet, knees, and pelvis stay controlled.":
+    "Chỉ xuống độ sâu mà bàn chân, đầu gối và khung chậu vẫn ổn định.",
+  "Use only the range that does not cause pinching or lower-back arching.":
+    "Chỉ dùng biên độ không gây cảm giác kẹt hoặc ưỡn lưng dưới.",
+  "Use only when the knees and ankles feel good; stop as soon as jump quality drops.":
+    "Chỉ tập khi đầu gối và cổ chân cảm thấy ổn; dừng ngay khi chất lượng bật nhảy giảm.",
+  "Use safeties and never place the feet so low that they can slide off the platform.":
+    "Dùng chốt an toàn và không bao giờ đặt chân thấp đến mức có thể trượt khỏi bàn đạp.",
+  "Use smooth strokes and an easy pace with relaxed breathing.":
+    "Bơi với động tác nhịp nhàng, nhịp độ nhẹ và hít thở thư giãn.",
+  "Use smooth unhurried strokes": "Bơi với động tác nhịp nhàng, không vội",
+  "Use stable supports and lower between the hands only as far as controlled.":
+    "Dùng điểm kê vững chắc và chỉ hạ người giữa hai tay đến mức kiểm soát được.",
+  "Use support if balance is limiting":
+    "Dùng điểm tựa nếu khả năng thăng bằng là yếu tố giới hạn",
+  "Use the lower abs and a light glute squeeze.":
+    "Dùng cơ bụng dưới và siết nhẹ cơ mông.",
+  "Use the safety stops and a depth that remains comfortable for knees and hips.":
+    "Dùng chốt an toàn và chọn độ sâu vẫn thoải mái cho đầu gối và hông.",
+  "Use very light effort and stop for dizziness, radiating symptoms, or neck pain.":
+    "Chỉ gắng sức rất nhẹ và dừng nếu chóng mặt, có triệu chứng lan tỏa hoặc đau cổ.",
+  "Using a load that changes the movement": "Dùng mức tạ làm thay đổi động tác",
+  "Using a load that prevents control":
+    "Dùng mức tạ khiến bạn không thể kiểm soát",
+  "Using a load that shortens posture": "Dùng mức tạ khiến tư thế bị co rút",
+  "Using a load that shortens the range": "Dùng mức tạ làm rút ngắn biên độ",
+  "Using a loose grip on the dumbbell": "Nắm tạ đơn lỏng lẻo",
+  "Using a range the shoulder cannot control":
+    "Dùng biên độ mà vai không thể kiểm soát",
+  "Using a step that is too short": "Bước chân quá ngắn",
+  "Using a surface that is too high or unstable":
+    "Dùng bề mặt quá cao hoặc thiếu ổn định",
+  "Using an unstable heel support": "Dùng điểm kê gót thiếu ổn định",
+  "Using leg bounce for momentum": "Nhún chân để lấy đà",
+  "Using momentum": "Dùng đà",
+  "Using momentum at the bottom": "Dùng đà ở vị trí dưới cùng",
+  "Using momentum instead of ankle motion":
+    "Dùng đà thay vì chuyển động cổ chân",
+  "Using momentum instead of the biceps": "Dùng đà thay vì cơ tay trước",
+  "Using more range than the hamstrings can control":
+    "Dùng biên độ lớn hơn mức cơ đùi sau có thể kiểm soát",
+  "Using partial range of motion": "Dùng biên độ chuyển động một phần",
+  "Using the biceps or traps instead of rear delts":
+    "Dùng cơ tay trước hoặc cơ thang thay vì vai sau",
+  "Using too much force": "Dùng quá nhiều lực",
+  "Using unsecured or non-rolling plates":
+    "Dùng bánh tạ không được cố định hoặc không lăn được",
+  "Using unstable or rolling supports":
+    "Dùng điểm kê thiếu ổn định hoặc bị lăn",
+  "Using weight that forces momentum": "Dùng mức tạ buộc phải lấy đà",
+  "VR boxing stance with guard up": "Tư thế boxing VR với hai tay giữ thế thủ",
+  "Walk 25-35 minutes, avoiding a hard run.":
+    "Đi bộ 25–35 phút, tránh chạy gắng sức.",
+  "Walk tall and resist leaning toward or away from the load.":
+    "Đi thẳng người và chống nghiêng về phía tạ hoặc ra xa tạ.",
+  "Walk tall with ribs down and a neutral spine. Do not hang on the handrails, which rounds the posture.":
+    "Đi thẳng người với xương sườn hạ xuống và cột sống trung tính. Không bám treo người lên tay vịn vì sẽ làm tư thế bị gù.",
+  "Walk tall with the shoulders loose and arms swinging naturally.":
+    "Đi thẳng người với vai thả lỏng và tay đánh tự nhiên.",
+  "Walk tall without forcing a rigid posture. Keep the ribs comfortably over the pelvis and avoid looking down at a phone for long periods.":
+    "Đi thẳng người mà không gượng ép tư thế cứng nhắc. Giữ lồng ngực thẳng hàng tự nhiên với khung chậu và tránh cúi nhìn điện thoại trong thời gian dài.",
+  "Walk tall without swaying": "Đi thẳng người mà không lắc lư",
+  "Walk with short controlled steps without leaning or swaying.":
+    "Bước ngắn có kiểm soát mà không nghiêng hoặc lắc người.",
+  "Walking hard enough to add fatigue":
+    "Đi bộ với cường độ cao đến mức làm tăng mệt mỏi",
+  "Walking tall on an inclined treadmill":
+    "Đi thẳng người trên máy chạy bộ dốc",
+  "Walking when complete rest is needed": "Đi bộ khi cơ thể cần nghỉ hoàn toàn",
+  "Wall bridge": "Nâng hông tựa tường",
+  "Wall handstand push-up": "Chống đẩy trồng chuối tựa tường",
+  "Wall slide": "Trượt tay trên tường",
+  "Wall tibialis raise close to the wall":
+    "Nâng mũi chân tựa tường khi đứng gần tường",
+  "Wall tibialis raise with feet farther forward":
+    "Nâng mũi chân tựa tường với bàn chân đặt xa hơn về trước",
+  "Wall/box pike hold": "Giữ tư thế chữ V tựa tường/bục",
+  "Wear a secure backpack or add a dip belt.":
+    "Đeo ba lô chắc chắn hoặc dùng đai treo tạ.",
+  "Weighted calf raise": "Nhón bắp chân có tạ",
+  "Weighted chin-up": "Hít xà tay ngửa có tạ",
+  "Weighted chin-up with pause": "Hít xà tay ngửa có tạ và dừng",
+  "Weighted close-grip push-up": "Chống đẩy tay hẹp có tạ",
+  "Weighted dead bug": "Dead Bug có tạ",
+  "Weighted deficit push-up": "Chống đẩy hạ sâu có tạ",
+  "Weighted diamond push-up": "Chống đẩy kim cương có tạ",
+  "Weighted dip (backpack)": "Xà kép có tạ (ba lô)",
+  "Weighted glute bridge": "Nâng hông nằm có tạ",
+  "Weighted hip thrust": "Đẩy hông có tạ",
+  "Weighted inverted row": "Kéo xà thấp có tạ",
+  "Weighted plank (backpack)": "Plank có tạ (ba lô)",
+  "Weighted plank + glute squeeze": "Plank có tạ + siết cơ mông",
+  "Weighted pull-up (light backpack)": "Hít xà có tạ (ba lô nhẹ)",
+  "Weighted pull-up with a backpack or dip belt":
+    "Hít xà có tạ bằng ba lô hoặc đai treo tạ",
+  "Weighted pull-up with pause": "Hít xà có tạ và dừng",
+  "Weighted push-up": "Chống đẩy có tạ",
+  "Weighted side plank": "Plank nghiêng có tạ",
+  "Work in short rounds and build up over time.":
+    "Tập theo các hiệp ngắn và tăng dần theo thời gian.",
+  "Work in short rounds and keep the movement smooth.":
+    "Tập theo các hiệp ngắn và giữ chuyển động mượt.",
+  "Wrap the hands, wear appropriate gloves, and begin at a balanced distance from the bag.":
+    "Quấn tay, đeo găng phù hợp và bắt đầu ở khoảng cách hợp lý với bao cát.",
+  "Wrist strain from a rushed setup": "Căng cổ tay do vào tư thế quá vội",
+  "Wrists stacked over elbows": "Cổ tay thẳng hàng trên khuỷu tay",
+  "Y-raise with a longer pause": "Nâng tay chữ Y với thời gian dừng lâu hơn",
+  "Yanking the bar with the lower back": "Giật thanh đòn bằng lưng dưới",
+  "Yanking the dumbbells with momentum": "Giật tạ đơn bằng đà",
+  "Yanking the neck": "Giật cổ",
+  "Yanking with the biceps only": "Chỉ giật kéo bằng cơ tay trước",
 };
