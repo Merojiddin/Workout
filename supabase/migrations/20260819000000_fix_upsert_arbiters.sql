@@ -22,7 +22,11 @@
 -- the original guarantee: one cloud row per (user_id, local_id).
 --
 -- Safe to re-run. Indexes only - no table or row is touched.
--- (schema.sql now carries the same fix, so applying that whole file works too.)
+--
+-- Two ways to apply it:
+--   supabase db push          (project is already linked; prompts for the DB password)
+--   or paste this file into the dashboard SQL editor
+-- schema.sql now carries the same fix, so re-applying that whole file also works.
 -- =====================================================================
 
 drop index if exists public.workout_sessions_user_local_id_key;

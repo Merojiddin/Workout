@@ -9,6 +9,11 @@ import {
 } from 'react'
 import { isSupabaseConfigured, supabase } from '../lib/supabaseClient'
 import { setStorageNamespace } from '../utils/storageUtils'
+import {
+  forgetSignedInUser,
+  readLastSignedInUser,
+  rememberSignedInUser,
+} from '../utils/lastSignedInUser'
 
 /**
  * Step 12 - Auth context.
@@ -28,9 +33,16 @@ const notConfigured = {
 }
 
 export function AuthProvider({ children }) {
+  // Seeded from the last verified sign-in so a returning device renders its
+  // own data immediately instead of waiting on - or being locked out by - a
+  // token refresh that needs the network. Supabase still has the authoritative
+  // session; this only decides what to show while that answer is outstanding.
+  const [restoredUser] = useState(() =>
+    isSupabaseConfigured ? readLastSignedInUser() : null,
+  )
   const [session, setSession] = useState(null)
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(isSupabaseConfigured)
+  const [user, setUser] = useState(restoredUser)
+  const [loading, setLoading] = useState(isSupabaseConfigured && !restoredUser)
   const [recoveryMode, setRecoveryMode] = useState(false)
   const appliedNamespaceRef = useRef(undefined)
 
@@ -44,6 +56,20 @@ export function AuthProvider({ children }) {
     appliedNamespaceRef.current = activeUserId
   }
 
+  function applySession(nextSession) {
+    setSession(nextSession)
+    setUser(nextSession.user ?? null)
+    rememberSignedInUser(nextSession.user)
+    setLoading(false)
+  }
+
+  function applySignedOut() {
+    setSession(null)
+    setUser(null)
+    forgetSignedInUser()
+    setLoading(false)
+  }
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
       setLoading(false)
@@ -54,13 +80,23 @@ export function AuthProvider({ children }) {
 
     supabase.auth
       .getSession()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (!active) return
-        setSession(data.session ?? null)
-        setUser(data.session?.user ?? null)
-        setLoading(false)
+        if (data.session) {
+          applySession(data.session)
+        } else if (error) {
+          // Null WITH an error means the session could not be confirmed, not
+          // that it is gone: an expired access token plus an unreachable
+          // network. auth-js keeps the refresh token on disk for exactly this
+          // case, so hold the restored user and let the auto-refresh ticker
+          // settle it - a truly dead token comes back as SIGNED_OUT below.
+          setLoading(false)
+        } else {
+          applySignedOut()
+        }
       })
       .catch(() => {
+        // A thrown getSession is the same "cannot confirm" case as above.
         if (!active) return
         setLoading(false)
       })
@@ -73,8 +109,20 @@ export function AuthProvider({ children }) {
         if (event === 'PASSWORD_RECOVERY') {
           setRecoveryMode(true)
         }
-        setSession(nextSession ?? null)
-        setUser(nextSession?.user ?? null)
+
+        if (nextSession) {
+          applySession(nextSession)
+          return
+        }
+
+        // Only an explicit sign-out clears the restored user. INITIAL_SESSION
+        // also arrives with a null session when the startup refresh failed,
+        // and that must not log the device out.
+        if (event === 'SIGNED_OUT') {
+          applySignedOut()
+          return
+        }
+
         setLoading(false)
       },
     )
@@ -125,8 +173,12 @@ export function AuthProvider({ children }) {
 
     try {
       const { error } = await supabase.auth.signOut()
+      // Do not wait for the SIGNED_OUT event: signing out offline can fail to
+      // reach the server, and the restored user must not outlive the intent.
+      forgetSignedInUser()
       return { error }
     } catch (error) {
+      forgetSignedInUser()
       return { error: { message: normalizeError(error) } }
     }
   }
