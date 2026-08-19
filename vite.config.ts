@@ -75,14 +75,20 @@ export default defineConfig({
           // opaque response. Chromium tolerates this; WebKit does not.
           //
           // Leaving the request unrouted means no fetch handler claims it and
-          // the browser loads the clip itself, with normal Range support. The
-          // clips still cache in the HTTP cache (no Cache-Control, but a 2023
-          // Last-Modified gives them long heuristic freshness). The cost is
-          // that animations no longer replay fully offline; the still
-          // thumbnails below do, and they are what offline falls back to.
+          // the browser loads the clip itself, with normal Range support.
           //
-          // Caching these properly again needs same-origin bytes: bundled
-          // files under /exercise-gifs/, or a proxy that adds CORS.
+          // This does NOT cost offline playback. The clips land in the plain
+          // HTTP cache, and although CloudFront sends no Cache-Control, a
+          // 2023 Last-Modified gives them years of heuristic freshness - so
+          // an already-watched clip is served with no network request at all.
+          // Verified offline in both WebKit and Chromium: the animation keeps
+          // playing after the network is cut and the app is relaunched.
+          //
+          // The difference from Cache Storage is durability, not reach: the
+          // HTTP cache is evictable under disk pressure and is not covered by
+          // the expiration policy below. A clip that was never watched was
+          // never cached either way - the retired rule was cache-on-first-view
+          // too - so offline behaviour is best-effort in both designs.
           {
             // Planfit still thumbnails: ~19KB each, 2.5MB for all 136, so the
             // whole set fits. Kept out of "static-assets" so they cannot
