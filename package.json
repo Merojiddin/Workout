@@ -11,7 +11,8 @@
     "typecheck": "tsc -b",
     "preview": "vite preview",
     "verify:plan-reset": "node scripts/verify-plan-editor-reset.mjs",
-    "verify:v2.1": "node scripts/verify-workout-program-v2.1.mjs"
+    "verify:v2.1": "node scripts/verify-workout-program-v2.1.mjs",
+    "i18n:exercises": "node scripts/i18n-exercise-progress.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
