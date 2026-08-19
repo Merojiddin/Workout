@@ -83,7 +83,7 @@ export function validateWorkoutProgram(
     errors,
   )
   validateCoaching(program.coaching, errors)
-  validateStandaloneWorkouts(program.standaloneWorkouts, options, errors)
+  validateStandaloneWorkouts(program.standaloneWorkouts, options, errors, warnings)
 
   if (!Array.isArray(program.days) || program.days.length === 0) {
     errors.push(t('valid.missingDays'))
@@ -197,7 +197,7 @@ export function validateWorkoutProgram(
           `${exerciseLabel}: formTips must contain only non-empty strings.`,
         )
       }
-      validateExerciseExtensions(exercise, exerciseLabel, options, errors)
+      validateExerciseExtensions(exercise, exerciseLabel, options, errors, warnings)
     })
   })
 
@@ -226,6 +226,7 @@ function validateStandaloneWorkouts(
   value: unknown,
   options: WorkoutProgramValidationOptions,
   errors: string[],
+  warnings: string[],
 ) {
   if (value === undefined) {
     return
@@ -298,6 +299,7 @@ function validateStandaloneWorkouts(
       workoutLabel,
       options.knownExerciseIds,
       errors,
+      warnings,
     )
   })
 }
@@ -307,6 +309,7 @@ function validateStandaloneExercises(
   workoutLabel: string,
   knownExerciseIds: Set<string> | undefined,
   errors: string[],
+  warnings: string[],
 ) {
   const seenExerciseIds = new Set<string>()
 
@@ -368,7 +371,7 @@ function validateStandaloneExercises(
     validateExerciseExtensions(exercise, exerciseLabel, {
       knownExerciseIds,
       requireKnownExercises: true,
-    }, errors)
+    }, errors, warnings)
   })
 }
 
@@ -377,6 +380,7 @@ function validateExerciseExtensions(
   exerciseLabel: string,
   options: WorkoutProgramValidationOptions,
   errors: string[],
+  warnings: string[],
 ) {
   if (!exercise) return
 
@@ -436,7 +440,18 @@ function validateExerciseExtensions(
             locationIds.add(id)
             variantIds.add(id)
             if (options.knownExerciseIds && !options.knownExerciseIds.has(id)) {
-              errors.push(`${label}: Exercise ID not found in the supplied exercise library: ${id}.`)
+              // Graded the same way as a primary exercise ID, because the app
+              // treats them the same at runtime: a variant carries its own
+              // name, equipment and rep target, so an unknown ID still tracks
+              // and still swaps -- it only loses its picture and form guide.
+              // Held as a hard error, a single invented ID anywhere in a
+              // seven-day program rejected the whole program.
+              const message = `${label}: Exercise ID not found in the supplied exercise library: ${id}.`
+              if (options.requireKnownExercises) {
+                errors.push(message)
+              } else {
+                warnings.push(message)
+              }
             }
           }
           if (!isNonEmptyString(variant?.name)) {
