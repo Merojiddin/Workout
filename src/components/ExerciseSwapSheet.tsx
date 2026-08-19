@@ -10,22 +10,27 @@ interface ExerciseSwapSheetProps {
   muscleGroup: string
   /** Sets already done on the current movement; drives the split warning. */
   doneSets: number
+  /** True when the program named no alternatives and these came from the
+   *  exercise library instead, which is worth saying out loud. */
+  fromLibrary?: boolean
   variants: ActiveExerciseVariant[]
   onClose: () => void
-  onSelect: (variantId: string) => void
+  onSelect: (variant: ActiveExerciseVariant) => void
 }
 
 /**
  * Swap the movement in one slot without leaving the workout.
  *
  * The bench is taken, the cable station has a queue, a shoulder is complaining
- * -- all of it happens mid-session, and the program already names the
- * alternatives it considers equivalent for the slot. This is that list.
+ * -- all of it happens mid-session. When the program names the alternatives it
+ * considers equivalent for the slot, this is that list; otherwise it is the
+ * library's closest matches for the same movement.
  */
 export function ExerciseSwapSheet({
   currentExerciseId,
   muscleGroup,
   doneSets,
+  fromLibrary = false,
   variants,
   onClose,
   onSelect,
@@ -76,6 +81,12 @@ export function ExerciseSwapSheet({
             : t('swap.sameSlot')}
         </p>
 
+        {fromLibrary ? (
+          <p className="swap-sheet__notice swap-sheet__notice--muted">
+            {t('swap.fromLibrary')}
+          </p>
+        ) : null}
+
         {doneSets > 0 ? (
           <p className="swap-sheet__notice">
             {t('swap.loggedNotice', { count: doneSets })}
@@ -94,7 +105,7 @@ export function ExerciseSwapSheet({
                   className={`swap-sheet__item${
                     selected ? ' swap-sheet__item--selected' : ''
                   }`}
-                  onClick={() => (selected ? onClose() : onSelect(variant.id))}
+                  onClick={() => (selected ? onClose() : onSelect(variant))}
                   type="button"
                 >
                   <span className="swap-sheet__copy">

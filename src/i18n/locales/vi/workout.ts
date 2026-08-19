@@ -111,6 +111,8 @@ export const workoutMessages = {
       'Đã ghi {count} hiệp ở đây. Những hiệp đó vẫn được tính cho bài hiện tại, các hiệp còn lại sẽ chuyển sang bài bạn chọn.',
   },
   'swap.sameTargetArea': 'Cùng vùng cơ mục tiêu',
+  'swap.fromLibrary':
+    'Giáo án của bạn không ghi bài thay thế cho vị trí này, nên đây là các bài gần nhất trong thư viện. Chúng giữ nguyên số hiệp và số lần của vị trí này.',
 
   'unfinished.eyebrow': 'Buổi tập dang dở',
   'unfinished.title': 'Bạn có một buổi tập chưa hoàn thành.',

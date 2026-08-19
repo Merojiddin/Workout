@@ -7386,6 +7386,13 @@ body {
   padding: 10px 12px;
 }
 
+.swap-sheet__notice--muted {
+  background: rgba(27, 210, 220, 0.08);
+  border-color: rgba(27, 210, 220, 0.28);
+  color: var(--muted);
+  font-weight: 600;
+}
+
 .swap-sheet__list {
   display: grid;
   gap: 7px;

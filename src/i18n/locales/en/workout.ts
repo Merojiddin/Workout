@@ -111,6 +111,8 @@ export const workoutMessages = {
       '{count} sets are already logged here. Those stay recorded against the current exercise, and the sets left move to the one you pick.',
   },
   'swap.sameTargetArea': 'Same target area',
+  'swap.fromLibrary':
+    'Your program names no alternatives for this slot, so these are the exercise library\u2019s closest matches. They keep this slot\u2019s sets and rep target.',
 
   'unfinished.eyebrow': 'Unfinished workout',
   'unfinished.title': 'You have an unfinished workout.',

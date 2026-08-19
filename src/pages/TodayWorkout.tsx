@@ -47,9 +47,11 @@ import {
   swapActiveExercise,
   updateActiveSet,
   type ActiveExercise,
+  type ActiveExerciseVariant,
   type ActiveSet,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
+import { getLibrarySwapOptions } from '../utils/exerciseSwapOptions'
 import {
   getExerciseTarget,
   parseDurationTarget,
@@ -255,12 +257,12 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   }
 
   /** Swap the movement in the current slot for one of its alternatives. */
-  function swapExercise(variantId: string) {
+  function swapExercise(variant: ActiveExerciseVariant) {
     if (!session) {
       return
     }
 
-    commit(swapActiveExercise(session, session.currentExerciseIndex, variantId))
+    commit(swapActiveExercise(session, session.currentExerciseIndex, variant))
   }
 
   /** Jump to an exercise without marking anything done. */
@@ -720,7 +722,7 @@ interface LiveWorkoutScreenProps {
   onFinish: () => void
   onGoToExercise: (index: number) => void
   onGoToSet: (setIndex: number) => void
-  onSwapExercise: (variantId: string) => void
+  onSwapExercise: (variant: ActiveExerciseVariant) => void
   restSignal: number
   session: ActiveWorkoutSession
 }
@@ -779,6 +781,25 @@ function LiveWorkoutScreen({
     timed,
   })
 
+  // The program's own alternatives lead. A slot without them falls back to
+  // library matches, so the swap button does not depend on whoever wrote the
+  // program having filled in the optional `alternatives` block.
+  const slotVariants = exercise?.variants ?? []
+  const usesLibraryOptions = slotVariants.length <= 1
+  const swapOptions = useMemo(() => {
+    if (!exercise) {
+      return []
+    }
+
+    return usesLibraryOptions
+      ? getLibrarySwapOptions(exercise, exerciseLibrary)
+      : exercise.variants
+    // Keyed on the slot and the movement in it rather than on `exercise`,
+    // which is a fresh object after every commit: logging a set does not
+    // change what this slot can be swapped for.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseIndex, exercise?.exerciseId, exerciseLibrary, usesLibraryOptions])
+
   // The pending values belong to one set only.
   useEffect(() => {
     setPendingLog(EMPTY_LOG)
@@ -822,7 +843,7 @@ function LiveWorkoutScreen({
   }
 
   const totalSets = exercise.sets.length
-  const canSwap = exercise.variants.length > 1
+  const canSwap = swapOptions.length > 1
   const isLastSet = setIndex >= totalSets - 1
   const isLastExercise = exerciseIndex >= session.exercises.length - 1
   const atStart = setIndex === 0 && exerciseIndex === 0
@@ -935,7 +956,7 @@ function LiveWorkoutScreen({
                   type="button"
                 >
                   <Repeat size={15} strokeWidth={2.4} aria-hidden="true" />
-                  {t('live.swapWithCount', { count: exercise.variants.length })}
+                  {t('live.swapWithCount', { count: swapOptions.length })}
                 </button>
               ) : null}
               {formGuideExercise ? (
@@ -1066,13 +1087,14 @@ function LiveWorkoutScreen({
         <ExerciseSwapSheet
           currentExerciseId={exercise.exerciseId}
           doneSets={exercise.sets.filter(isDoneSet).length}
+          fromLibrary={usesLibraryOptions}
           muscleGroup={exercise.muscleGroup}
           onClose={() => setSwapOpen(false)}
-          onSelect={(variantId) => {
-            onSwapExercise(variantId)
+          onSelect={(variant) => {
+            onSwapExercise(variant)
             setSwapOpen(false)
           }}
-          variants={exercise.variants}
+          variants={swapOptions}
         />
       ) : null}
 

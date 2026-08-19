@@ -136,6 +136,15 @@ const MOVEMENT_FAMILY_BY_ID: Partial<Record<string, MovementFamily>> = {
 }
 
 /**
+ * The curated movement family for a library ID, or null when the ID has none.
+ * Identity matching deliberately ignores families; this is for the places that
+ * want the opposite -- finding movements that train the same pattern.
+ */
+export function getMovementFamily(exerciseId: string): MovementFamily | null {
+  return MOVEMENT_FAMILY_BY_ID[exerciseId] ?? null
+}
+
+/**
  * Formatting-only normalization. It deliberately does not drop movement
  * qualifiers such as "paused", "front", "sumo", "weighted", or "barbell".
  */

@@ -390,7 +390,7 @@ export function addSetToActiveExercise(
 }
 
 /**
- * Swaps the movement in one slot for a sibling variant, mid-workout.
+ * Swaps the movement in one slot for another, mid-workout.
  *
  * Sets already done stay attributed to the movement they were actually done
  * on: when there are any, the original exercise is truncated to those and the
@@ -401,15 +401,13 @@ export function addSetToActiveExercise(
 export function swapActiveExercise(
   session: ActiveWorkoutSession,
   exerciseIndex: number,
-  variantId: string,
+  variant: ActiveExerciseVariant,
 ): ActiveWorkoutSession {
   const exercise = session.exercises[exerciseIndex]
-  if (!exercise) {
-    return session
-  }
-
-  const variant = exercise.variants.find((item) => item.id === variantId)
-  if (!variant || variant.id === exercise.exerciseId) {
+  // The variant is passed in rather than looked up in `exercise.variants`:
+  // a slot the program left without alternatives is offered library matches
+  // instead, and those are not on the session.
+  if (!exercise || !variant?.id || variant.id === exercise.exerciseId) {
     return session
   }
 
