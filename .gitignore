@@ -36,3 +36,6 @@ dist-ssr
 
 # Supabase CLI local state (contains a pooler connection string)
 supabase/.temp/
+
+# Verification screenshots - regenerable, never ship, and were bloating the repo
+artifacts/
