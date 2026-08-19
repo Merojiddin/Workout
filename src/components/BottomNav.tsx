@@ -27,7 +27,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
             onClick={() => onNavigate(item.id)}
             type="button"
           >
-            <Icon size={19} strokeWidth={2.3} aria-hidden="true" />
+            <Icon size={18} strokeWidth={2.3} aria-hidden="true" />
             <span>{t(item.shortLabelKey ?? item.labelKey)}</span>
           </button>
         )
@@ -45,7 +45,7 @@ export function BottomNav({ activePage, onNavigate }: BottomNavProps) {
           avatarDataUrl={avatarDataUrl}
           className="profile-avatar--nav"
           initials={initials}
-          size={22}
+          size={20}
         />
         <span>{firstName || profileLabel}</span>
       </button>
