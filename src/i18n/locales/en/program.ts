@@ -50,6 +50,7 @@ export const programMessages = {
   },
   'pm.preview': 'Preview',
   'pm.install': 'Install',
+  'pm.reapply': 'Apply Update',
   'pm.currentProgram': 'Current Program',
   'pm.keepCurrent': 'Keep Current Plan',
   'pm.currentKept': 'Current Plan Kept',
@@ -140,5 +141,6 @@ export const programMessages = {
   'paste.removeConfirm':
     'Remove "{name}" {version} from your pasted programs?\n\nThis does not change your current workout plan.',
   'paste.removed': 'Removed "{name}" {version}.',
-  'paste.savedThenInstall': '{message} Find it in the list below to install it.',
+  'paste.savedThenInstall':
+    '{message} Confirm the install to train from it right away.',
 } as const

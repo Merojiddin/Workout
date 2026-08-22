@@ -53,6 +53,7 @@ export const programMessages = {
   },
   'pm.preview': 'Xem trước',
   'pm.install': 'Cài đặt',
+  'pm.reapply': 'Áp dụng bản mới',
   'pm.currentProgram': 'Giáo án hiện tại',
   'pm.keepCurrent': 'Giữ giáo án hiện tại',
   'pm.currentKept': 'Đã giữ giáo án hiện tại',
@@ -145,5 +146,5 @@ export const programMessages = {
     'Xoá "{name}" {version} khỏi danh sách giáo án của bạn?\n\nThao tác này không thay đổi giáo án đang dùng.',
   'paste.removed': 'Đã xoá "{name}" {version}.',
   'paste.savedThenInstall':
-    '{message} Hãy tìm trong danh sách bên dưới để cài đặt.',
+    '{message} Xác nhận cài đặt để tập theo giáo án này ngay.',
 } as const

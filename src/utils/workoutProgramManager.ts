@@ -540,9 +540,17 @@ export function installWorkoutProgramLocally(
   if (!installedBefore.success) {
     return fail(dataWithProgram, installedBefore.code ?? 'metadata-read-failed', installedBefore.message)
   }
+  const currentPlan = normalizePlan(getCustomWorkoutPlan())
+  // Matching id and version is not enough to call a program installed.
+  // An uploaded program is stored under its own id and version, so uploading
+  // a revised plan keeps that identity while changing every day inside it -
+  // and refusing the install there left the new upload with no way to reach
+  // the plan at all. What decides it is whether the saved plan already *is*
+  // this program; if it is not, there is a real change to apply.
   if (
     installedBefore.data?.id === registeredProgram.id &&
-    installedBefore.data.version === registeredProgram.version
+    installedBefore.data.version === registeredProgram.version &&
+    areWorkoutPlansEquivalent(currentPlan, registeredProgram.days)
   ) {
     return fail(dataWithProgram, 'already-installed', t('svc.alreadyInstalled'))
   }
@@ -550,7 +558,6 @@ export function installWorkoutProgramLocally(
   const planSnapshot = readJsonStorageSnapshot(CUSTOM_WORKOUT_PLAN_KEY)
   const installedSnapshot = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
   const dismissedSnapshot = readJsonStorageSnapshot(DISMISSED_WORKOUT_PROGRAMS_KEY)
-  const currentPlan = normalizePlan(getCustomWorkoutPlan())
   // A first install has no plan to protect: an empty plan is not a valid
   // backup, and failing the install over it would leave a new account unable
   // to set up the program it just uploaded.

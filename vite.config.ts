@@ -7,7 +7,13 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      injectRegister: 'auto',
+      // Registered by src/utils/appUpdates.ts instead of the script this
+      // plugin would otherwise inject. That script only calls register(): it
+      // never reloads the page, so a new build would take control in the
+      // background while the screen kept showing the old one until the app
+      // happened to be launched again - which an installed PWA, being
+      // resumed rather than navigated, may not do for days.
+      injectRegister: null,
       registerType: 'autoUpdate',
       includeAssets: [
         'favicon.svg',
@@ -49,6 +55,12 @@ export default defineConfig({
       },
       workbox: {
         cleanupOutdatedCaches: true,
+        // Stated rather than inferred from registerType, because the update
+        // path in appUpdates.ts depends on both: skipWaiting so a new build
+        // never sits in "waiting" behind a tab that is never closed, and
+        // clientsClaim so the reload that follows is served by it.
+        skipWaiting: true,
+        clientsClaim: true,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2}'],
         navigateFallback: '/index.html',
         runtimeCaching: [

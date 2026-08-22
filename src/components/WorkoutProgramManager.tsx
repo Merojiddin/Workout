@@ -259,6 +259,30 @@ export function WorkoutProgramManager({
     setInstallProgram(program)
   }
 
+  /**
+   * Uploading is only half the job: the plan a person trains from does not
+   * change until the program is installed. Opening the confirmation straight
+   * away makes "upload this week's plan" one flow ending in one confirm -
+   * which still shows what the switch changes - rather than an upload that
+   * quietly leaves last week's plan in place.
+   */
+  function startInstallAfterUpload(
+    program: WorkoutProgram,
+    state: ManagerState,
+  ) {
+    // Re-uploading the plan already being trained changes nothing; asking to
+    // install it would only offer a confirm that cannot succeed.
+    if (areWorkoutPlansEquivalent(state.savedPlan, program.days)) {
+      return
+    }
+    if (hasUnsavedPlanChanges) {
+      setNotice({ message: t('pm.unsavedInstall'), tone: 'error' })
+      return
+    }
+
+    setInstallProgram(program)
+  }
+
   async function confirmInstallation(program: WorkoutProgram) {
     if (hasUnsavedPlanChanges) {
       setNotice({
@@ -514,10 +538,11 @@ export function WorkoutProgramManager({
       ) : null}
 
       <PasteProgramPanel
-        onSaved={(message, programs) => {
+        onSaved={(message, programs, program) => {
           setNotice({ message, tone: 'success' })
-          refreshState()
+          const next = refreshState()
           persistProgramsToCloud(programs)
+          startInstallAfterUpload(program, next)
         }}
         savedPrograms={managerState.userPrograms}
         onDeleted={(message, programs) => {
@@ -530,6 +555,12 @@ export function WorkoutProgramManager({
       <div className="program-manager__grid">
         {visiblePrograms.map((program) => {
           const current = isCurrentProgram(program, managerState)
+          // Installed, but the saved plan is no longer what this program says:
+          // either the program was re-uploaded under the same version with new
+          // content, or the plan was edited by hand. Both are re-appliable, so
+          // the button stays live rather than reading "Current Program" while
+          // the plan on screen is something else.
+          const outdated = current && modifiedAfterInstallation
           const dismissed = dismissedIdentities.has(
             programIdentity(program.id, program.version),
           )
@@ -607,7 +638,7 @@ export function WorkoutProgramManager({
                 <button
                   className="workout-primary-button"
                   disabled={
-                    current ||
+                    (current && !outdated) ||
                     hasUnsavedPlanChanges ||
                     operationBusy ||
                     managerState.activeWorkoutBlocked ||
@@ -617,7 +648,11 @@ export function WorkoutProgramManager({
                   type="button"
                 >
                   <Package size={18} strokeWidth={2.4} aria-hidden="true" />
-                  {current ? t('pm.currentProgram') : t('pm.install')}
+                  {current
+                    ? outdated
+                      ? t('pm.reapply')
+                      : t('pm.currentProgram')
+                    : t('pm.install')}
                 </button>
                 <button
                   className="workout-secondary-button"
@@ -1426,7 +1461,11 @@ function exportCurrentPlan() {
 
 interface PasteProgramPanelProps {
   onDeleted: (message: string, programs: UserWorkoutProgram[]) => void
-  onSaved: (message: string, programs: UserWorkoutProgram[]) => void
+  onSaved: (
+    message: string,
+    programs: UserWorkoutProgram[],
+    program: UserWorkoutProgram,
+  ) => void
   savedPrograms: UserWorkoutProgram[]
 }
 
@@ -1503,6 +1542,7 @@ function PasteProgramPanel({
     onSaved(
       t('paste.savedThenInstall', { message: saved.message }),
       saved.programs,
+      parsed.program,
     )
   }
 

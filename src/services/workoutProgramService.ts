@@ -208,15 +208,27 @@ export async function installWorkoutProgramInCloud(
     const installed = getValidatedCloudWorkoutProgramManagerMetadata(
       initialSettings,
     ).installedProgram
+    // Matching id and version is not enough to call a program installed.
+    // An uploaded program is stored under its own id and version, so
+    // uploading a revised plan keeps that identity while changing every day
+    // inside it. The cloud plan is what settles it: only a plan that already
+    // is this program has nothing left to install. Mirrors
+    // installWorkoutProgramLocally.
     if (
       installed?.id === registeredProgram.id &&
       installed.version === registeredProgram.version
     ) {
-      return fail(
-        { ...emptyData, program: registeredProgram },
-        'already-installed',
-        t('svc.alreadyInstalled'),
-      )
+      const cloudPlanSnapshot = await store.fetchPlan(authenticatedUser)
+      const cloudPlan = cloudPlanSnapshot.exists
+        ? normalizePlanSnapshot(cloudPlanSnapshot)
+        : []
+      if (areWorkoutPlansEquivalent(cloudPlan, registeredProgram.days)) {
+        return fail(
+          { ...emptyData, program: registeredProgram },
+          'already-installed',
+          t('svc.alreadyInstalled'),
+        )
+      }
     }
 
     prepared = await prepareCloudChange(
