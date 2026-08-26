@@ -95,8 +95,10 @@ export const settingsMessages = {
   'settings.languageTitle': 'Ngôn ngữ ứng dụng',
 
   'settings.backupEyebrow': 'Sao lưu và dữ liệu',
-  'settings.backupTitle': 'Xuất, nhập hoặc xoá dữ liệu trên máy',
-  'settings.exportAll': 'Xuất toàn bộ dữ liệu',
+  'settings.backupTitle': 'Xuất, nhập hoặc xoá dữ liệu tập luyện',
+  'settings.backupHelp':
+    'Các tệp này chứa những gì bạn đã ghi lại — buổi tập, đo cơ thể, dinh dưỡng và hồ sơ. Giáo án tập luyện là một tệp riêng và không bao giờ bị thay đổi ở đây: hãy đổi nó ở thẻ Giáo án.',
+  'settings.exportAll': 'Xuất dữ liệu của tôi',
   'settings.import': 'Nhập dữ liệu',
   'settings.clearAll': 'Xoá toàn bộ dữ liệu',
   'settings.clearConfirm':

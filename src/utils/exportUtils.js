@@ -32,25 +32,54 @@ export function downloadCSV(filename, rows) {
   return csv
 }
 
+/**
+ * The plan as its own file - and as a program the app will take back.
+ *
+ * The exported plan is a valid program object (id, name, version, updatedAt,
+ * description, days), so it round-trips: hand it to a chat with the authoring
+ * prompt, get a revised plan back, and upload it in Settings > Program. That
+ * changes the plan and nothing else. The older `exportedAt` / `program`
+ * fields stay alongside for anything already reading them.
+ */
 export function buildWorkoutPlanExportData(
   activeProgram = getActiveWorkoutProgram(),
   exportedAt = new Date().toISOString(),
 ) {
   const standaloneWorkouts = safeArray(activeProgram?.standaloneWorkouts)
+  const name = activeProgram?.programName || 'Custom Workout Plan'
+  // A plan that was never installed from a program still needs an identity to
+  // come back under, so one is derived from its name rather than left null.
+  const id = activeProgram?.programId || slugifyProgramName(name)
+  const version = activeProgram?.programVersion || '1.0.0'
 
   return {
+    id,
+    name,
+    version,
+    updatedAt: toLocalIsoDate(new Date(exportedAt)),
+    description:
+      activeProgram?.description || `${name} exported from the app.`,
+    days: safeArray(activeProgram?.days),
+    ...(standaloneWorkouts.length > 0 ? { standaloneWorkouts } : {}),
     exportedAt,
     program: {
       id: activeProgram?.programId ?? null,
       version: activeProgram?.programVersion ?? null,
-      name: activeProgram?.programName ?? 'Custom Workout Plan',
+      name,
       modifiedAfterInstallation: Boolean(
         activeProgram?.modifiedAfterInstallation,
       ),
     },
-    days: safeArray(activeProgram?.days),
-    ...(standaloneWorkouts.length > 0 ? { standaloneWorkouts } : {}),
   }
+}
+
+function slugifyProgramName(name) {
+  const slug = String(name)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return slug === '' ? 'custom-workout-plan' : slug
 }
 
 export function exportWorkoutPlanJSON(activeProgram = getActiveWorkoutProgram()) {

@@ -379,4 +379,10 @@ export const serviceMessages = {
   'paste.placeholderDescription': 'Added from a pasted program.',
   'paste.importInvalid': 'Invalid backup file.',
   'paste.importDone': 'Data imported.',
+  'paste.importDoneSummary':
+    'Imported. {added} record(s) were added, and your {kept} existing record(s) were kept.',
+  'paste.importPlanIgnored':
+    'The workout plan in this file was ignored — a data backup never changes your plan. Upload the plan in the Program tab.',
+  'paste.importIsProgram':
+    'That file is a workout program, not a backup. Open the Program tab and upload it there: it changes the plan and leaves your logged history alone.',
 } as const

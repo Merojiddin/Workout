@@ -399,4 +399,10 @@ export const serviceMessages = {
   'paste.placeholderDescription': 'Được thêm từ một giáo án đã dán.',
   'paste.importInvalid': 'Tệp sao lưu không hợp lệ.',
   'paste.importDone': 'Đã nhập dữ liệu.',
+  'paste.importDoneSummary':
+    'Đã nhập. Thêm {added} bản ghi, và giữ nguyên {kept} bản ghi đã có.',
+  'paste.importPlanIgnored':
+    'Giáo án trong tệp này đã được bỏ qua — bản sao lưu dữ liệu không bao giờ đổi giáo án. Hãy tải giáo án lên ở thẻ Giáo án.',
+  'paste.importIsProgram':
+    'Tệp này là một giáo án tập luyện, không phải bản sao lưu. Hãy mở thẻ Giáo án và tải lên ở đó: nó chỉ đổi giáo án và giữ nguyên lịch sử đã ghi.',
 } as const

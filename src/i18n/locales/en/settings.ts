@@ -95,8 +95,10 @@ export const settingsMessages = {
   'settings.languageTitle': 'App language',
 
   'settings.backupEyebrow': 'Backup & Data',
-  'settings.backupTitle': 'Export, import, or clear local data',
-  'settings.exportAll': 'Export All Data',
+  'settings.backupTitle': 'Export, import, or clear your training data',
+  'settings.backupHelp':
+    'These files hold what you have recorded — workouts, check-ins, nutrition and your profile. Your workout plan is a separate file and is never changed here: swap it in the Program tab.',
+  'settings.exportAll': 'Export My Data',
   'settings.import': 'Import Data',
   'settings.clearAll': 'Clear All Data',
   'settings.clearConfirm':

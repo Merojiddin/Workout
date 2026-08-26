@@ -40,6 +40,7 @@ import {
   importAllData,
   resetUserProfileSettings,
 } from '../utils/settingsUtils'
+import { parseWorkoutProgramInput } from '../utils/userWorkoutPrograms'
 import type { PageId } from '../types/navigation'
 import { SHOW_DEV_PAGES } from '../utils/devFlags'
 
@@ -254,9 +255,28 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
 
     const reader = new FileReader()
     reader.onload = () => {
-      const result = importAllData(String(reader.result ?? ''))
+      const contents = String(reader.result ?? '')
+
+      // A workout program dropped in here is a plan change, not a backup
+      // restore. Importing it used to write nothing at all and still report
+      // success; saying where it goes is the honest answer, and the Program
+      // tab installs it with a backup and leaves logged history alone.
+      if (parseWorkoutProgramInput(contents).success) {
+        setNotice(t('paste.importIsProgram'))
+        if (importInputRef.current) {
+          importInputRef.current.value = ''
+        }
+        return
+      }
+
+      const result = importAllData(contents)
       if (result.success) {
         setSettings(getUserProfileSettings())
+        // Signed in, the account is the source of truth: the next cloud pull
+        // overwrites the local profile, so a restore that only landed locally
+        // would quietly revert. The plan is not touched by an import and the
+        // records were merged rather than replaced, so neither is pushed.
+        void pushImportedProfileToCloud()
       }
       setNotice(result.message)
       if (importInputRef.current) {
@@ -265,6 +285,19 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
     }
     reader.onerror = () => setNotice(t('settings.notice.fileFailed'))
     reader.readAsText(file)
+  }
+
+  async function pushImportedProfileToCloud() {
+    if (!user) {
+      return
+    }
+
+    try {
+      await settingsService.saveUserSettings(user, getUserProfileSettings())
+    } catch {
+      // saveUserSettings queues the change for the next sync before throwing,
+      // so an offline or failed upload is already scheduled to retry.
+    }
   }
 
   function handleClearAllData() {
@@ -788,6 +821,8 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
             </div>
             <Database size={22} strokeWidth={2.4} aria-hidden="true" />
           </div>
+
+          <p className="settings-help-copy">{t('settings.backupHelp')}</p>
 
           <div className="backup-action-grid">
             <button
