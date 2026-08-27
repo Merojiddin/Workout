@@ -17,6 +17,8 @@ export const serviceMessages = {
   'valid.emptyGoals': 'Danh sách mục tiêu trống.',
   'valid.goalsArray': 'Mục tiêu phải là một mảng chuỗi ký tự.',
   'valid.goalsStrings': 'Mục tiêu chỉ được chứa các chuỗi không rỗng.',
+  'valid.noLocationVariants':
+    'Không bài tập nào có biến thể tại nhà/phòng gym, nên lựa chọn Tại nhà/Phòng gym sẽ không xuất hiện khi bạn bắt đầu buổi tập.',
   'valid.emptyBenchmarks': 'Danh sách bài đối chiếu trống.',
   'valid.benchmarksArray': 'ID bài đối chiếu phải là một mảng chuỗi ký tự.',
   'valid.benchmarksStrings': 'ID bài đối chiếu chỉ được chứa các chuỗi không rỗng.',

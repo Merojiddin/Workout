@@ -17,6 +17,8 @@ export const serviceMessages = {
   'valid.emptyGoals': 'Empty goals.',
   'valid.goalsArray': 'Goals must be an array of strings.',
   'valid.goalsStrings': 'Goals must contain only non-empty strings.',
+  'valid.noLocationVariants':
+    'No exercise offers home/gym variants, so the Home/Gym choice will not appear when you start a workout.',
   'valid.emptyBenchmarks': 'Empty benchmark list.',
   'valid.benchmarksArray': 'Benchmark exercise IDs must be an array of strings.',
   'valid.benchmarksStrings':

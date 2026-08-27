@@ -62,6 +62,7 @@ import {
   getEffectiveExerciseLibrary,
   getWorkoutDisplaySettings,
   getWorkoutForDate,
+  saveTrainingLocation,
 } from '../utils/settingsUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 import { useAuth } from '../context/AuthContext'
@@ -435,7 +436,17 @@ function PreWorkoutScreen({
 }: PreWorkoutScreenProps) {
   const { firstName } = useProfileIdentity()
   const t = useT()
-  const [location, setLocation] = useState<TrainingLocation>('home')
+  // Restored rather than reset: the place you train is a standing fact about
+  // your week, not a per-session question, and defaulting to home every time
+  // hands a gym-goer the home variants unless they notice the toggle.
+  const [location, setLocation] = useState<TrainingLocation>(
+    () => getWorkoutDisplaySettings().trainingLocation ?? 'home',
+  )
+
+  function chooseLocation(next: TrainingLocation) {
+    setLocation(next)
+    saveTrainingLocation(next)
+  }
   const [showPicker, setShowPicker] = useState(false)
 
   // Per-slot variant picking is gone: the program's own defaults are applied
@@ -557,7 +568,7 @@ function PreWorkoutScreen({
             <button
               aria-pressed={location === 'home'}
               className={location === 'home' ? 'is-active' : ''}
-              onClick={() => setLocation('home')}
+              onClick={() => chooseLocation('home')}
               type="button"
             >
               <Home size={16} strokeWidth={2.4} aria-hidden="true" />
@@ -566,7 +577,7 @@ function PreWorkoutScreen({
             <button
               aria-pressed={location === 'gym'}
               className={location === 'gym' ? 'is-active' : ''}
-              onClick={() => setLocation('gym')}
+              onClick={() => chooseLocation('gym')}
               type="button"
             >
               <Building2 size={16} strokeWidth={2.4} aria-hidden="true" />

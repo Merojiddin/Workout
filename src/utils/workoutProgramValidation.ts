@@ -219,7 +219,42 @@ export function validateWorkoutProgram(
     warnings.push(t('valid.daysNotSequential'))
   }
 
+  // The Home/Gym choice on the workout screen is built from per-exercise
+  // `alternatives`. A program carrying none installs perfectly well and then
+  // silently has no choice to offer, which reads as a missing feature rather
+  // than a missing block - so it is said out loud at install time.
+  if (!programOffersLocationVariants(program.days)) {
+    warnings.push(t('valid.noLocationVariants'))
+  }
+
   return { valid: errors.length === 0, errors, warnings }
+}
+
+/** True when at least one exercise anywhere offers home or gym variants. */
+function programOffersLocationVariants(days: unknown): boolean {
+  if (!Array.isArray(days)) {
+    return false
+  }
+
+  return days.some((day) => {
+    const exercises = isPlainObject(day) ? day.exercises : undefined
+    if (!Array.isArray(exercises)) {
+      return false
+    }
+
+    return exercises.some((exercise) => {
+      const alternatives = isPlainObject(exercise)
+        ? exercise.alternatives
+        : undefined
+      if (!isPlainObject(alternatives)) {
+        return false
+      }
+      return (['home', 'gym'] as const).some((location) => {
+        const variants = alternatives[location]
+        return Array.isArray(variants) && variants.length > 0
+      })
+    })
+  })
 }
 
 function validateStandaloneWorkouts(

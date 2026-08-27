@@ -98,6 +98,10 @@ export const defaultUserProfileSettings = {
     videosCollapsedByDefault: true,
     autoOpenVideo: false,
     preferCompactView: true,
+    // Where the next workout is trained. Remembered rather than re-asked:
+    // most people train in the same place most weeks, and defaulting back to
+    // home every session quietly hands a gym-goer the home variants.
+    trainingLocation: 'home',
   },
 }
 
@@ -134,6 +138,24 @@ export function getUserProfileSettings() {
 /** Workout display preferences (Step 18) - always returns a complete object. */
 export function getWorkoutDisplaySettings() {
   return getUserProfileSettings().workoutDisplay
+}
+
+/**
+ * Remembers where the next workout is trained.
+ *
+ * Written straight into the profile document so it rides the same cloud sync
+ * as every other preference - pick Gym on the phone and the tablet opens on
+ * Gym too, rather than each device keeping its own idea of where you are.
+ */
+export function saveTrainingLocation(location) {
+  const settings = getUserProfileSettings()
+  return saveUserProfileSettings({
+    ...settings,
+    workoutDisplay: {
+      ...settings.workoutDisplay,
+      trainingLocation: location === 'gym' ? 'gym' : 'home',
+    },
+  }).workoutDisplay.trainingLocation
 }
 
 export function saveUserProfileSettings(settings) {
@@ -741,6 +763,8 @@ function normalizeUserProfileSettings(value) {
         workoutDisplay.autoOpenVideo,
         defaultUserProfileSettings.workoutDisplay.autoOpenVideo,
       ),
+      trainingLocation:
+        workoutDisplay.trainingLocation === 'gym' ? 'gym' : 'home',
       preferCompactView: toBoolean(
         workoutDisplay.preferCompactView,
         defaultUserProfileSettings.workoutDisplay.preferCompactView,
