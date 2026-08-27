@@ -26,6 +26,15 @@ import {
 
 const AuthContext = createContext(null)
 
+/**
+ * Where an emailed auth link should come back to: the origin the request was
+ * made from. Supabase only honours it when the origin is in the project's
+ * Redirect URLs allow list, otherwise it falls back to the Site URL.
+ */
+function authRedirectTo() {
+  return typeof window !== 'undefined' ? window.location.origin : undefined
+}
+
 const notConfigured = {
   error: {
     message: t('auth.notConfigured'),
@@ -142,7 +151,14 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { name: name ?? '' } },
+        options: {
+          data: { name: name ?? '' },
+          // Without this the confirmation email points at whatever Site URL
+          // the Supabase project has, which is one fixed origin. Sending the
+          // origin the signup actually came from lands the link back on this
+          // app - production for a production signup, localhost for dev.
+          emailRedirectTo: authRedirectTo(),
+        },
       })
       return { data, error }
     } catch (error) {
@@ -210,10 +226,8 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      const redirectTo =
-        typeof window !== 'undefined' ? window.location.origin : undefined
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
+        redirectTo: authRedirectTo(),
       })
       return { data, error }
     } catch (error) {
