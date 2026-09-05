@@ -13,6 +13,7 @@ export const CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY =
   'cloudWorkoutProgramManagerCache'
 export const USER_PROFILE_SETTINGS_KEY = 'userProfileSettings'
 export const GUIDED_SETTINGS_KEY = 'guidedWorkoutSettings'
+export const CUSTOM_GUIDED_WORKOUTS_KEY = 'customGuidedWorkouts'
 export const REMINDER_SETTINGS_KEY = 'reminderSettings'
 export const REMINDER_HISTORY_KEY = 'reminderHistory'
 export const SENT_REMINDER_LOG_KEY = 'sentReminderLog'
@@ -36,6 +37,7 @@ export const FITNESS_APP_STORAGE_KEYS = [
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   CUSTOM_EXERCISE_LIBRARY_KEY,
   GUIDED_SETTINGS_KEY,
+  CUSTOM_GUIDED_WORKOUTS_KEY,
   REMINDER_SETTINGS_KEY,
   REMINDER_HISTORY_KEY,
   SENT_REMINDER_LOG_KEY,

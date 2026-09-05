@@ -11,8 +11,9 @@ Reached from **More → Guided Workouts**, and from the link on Today's Workout.
 
 | | |
 |---|---|
-| Movement catalog | `src/data/guidedExercises.ts` |
-| Categories + workouts | `src/data/guidedWorkouts.ts` |
+| Movement catalog (136 movements) | `src/data/guidedExercises.ts` |
+| Categories + shipped workouts | `src/data/guidedWorkouts.ts` |
+| Workouts the user builds | `src/utils/customGuidedWorkouts.ts`, `src/components/GuidedWorkoutBuilder.tsx` |
 | Timeline builder, totals, history row | `src/utils/guidedWorkoutUtils.ts` |
 | The clock | `src/hooks/useGuidedTimeline.ts` |
 | Spoken guide | `src/utils/guidedAudio.ts` |
@@ -21,7 +22,29 @@ Reached from **More → Guided Workouts**, and from the link on Today's Workout.
 | Screens | `src/pages/GuidedWorkouts.tsx`, `src/components/GuidedWorkoutPlayer.tsx` |
 | Vietnamese wording | `src/i18n/exercises/guidedVi.ts` (content), `src/i18n/locales/*/guided.ts` (UI) |
 
-## Adding a workout
+## Building a workout in the app
+
+**More → Guided Workouts → Build your own workout.** Name it, pick a category
+and difficulty, set work / rest / rounds / round break / get-ready with the
+steppers, then add movements from the whole 136-movement library (searchable,
+filterable by whether they need equipment). Movements reorder with the arrows
+and each one can override the workout's work time. The running total at the top
+is the real timeline, not an estimate.
+
+Saved workouts:
+
+- are stored under `customGuidedWorkouts`, which `storageUtils` namespaces per
+  signed-in user, so two accounts on one browser never see each other's;
+- are ordinary `GuidedWorkout` objects, so they run through the same player,
+  timeline, audio guide and history path with no special cases;
+- appear at the top of the list with a "Yours" badge, and open with Edit and
+  Delete buttons in their detail sheet.
+
+They are **local to the device** — there is no cloud table for them yet, so a
+workout built on a phone will not appear on a laptop. Adding that means a new
+Supabase table and a service alongside the others in `src/services/`.
+
+## Adding a workout in code
 
 One object in `guidedWorkouts`. Nothing else changes — the card, the durations,
 the timeline, the player and the progress bar are all derived from it.
@@ -48,6 +71,10 @@ the timeline, the player and the progress bar are all derived from it.
 
 A rest follows every movement except the last one of the last round. A step may
 also carry `cue` to replace the movement's coaching line for this workout only.
+
+Thirty sessions ship with the app across four categories — 10 Beginner, 5
+Intermediate and 15 Advanced, seven of them 20 to 31 minutes. They are examples
+as much as anything: delete the ones you do not want.
 
 ## Adding a movement
 

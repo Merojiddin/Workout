@@ -7,6 +7,7 @@ import {
   guidedWorkouts,
   type GuidedCategory,
   type GuidedCategoryId,
+  type GuidedLevel,
   type GuidedWorkout,
   type GuidedWorkoutStep,
 } from '../data/guidedWorkouts'
@@ -249,13 +250,32 @@ export function findGuidedCategory(
   return guidedCategories.find((category) => category.id === id) ?? null
 }
 
-export function getGuidedWorkoutsByCategory(
+/**
+ * The workouts on screen, narrowed by category and by how hard they are.
+ *
+ * Difficulty is a filter of its own rather than a sort, because the two ends
+ * want opposite orders: somebody looking for a beginner session and somebody
+ * looking for the hardest thing here are both served by asking, and neither is
+ * served by a list that leads with the other one.
+ */
+export function filterGuidedWorkouts(
+  workouts: readonly GuidedWorkout[],
   categoryId: GuidedCategoryId | 'all',
+  level: GuidedLevel | 'all' = 'all',
 ): GuidedWorkout[] {
-  if (categoryId === 'all') {
-    return [...guidedWorkouts]
-  }
-  return guidedWorkouts.filter((workout) => workout.categoryId === categoryId)
+  return workouts.filter(
+    (workout) =>
+      (categoryId === 'all' || workout.categoryId === categoryId) &&
+      (level === 'all' || workout.level === level),
+  )
+}
+
+/** The shipped workouts only, already filtered. */
+export function getGuidedWorkouts(
+  categoryId: GuidedCategoryId | 'all',
+  level: GuidedLevel | 'all' = 'all',
+): GuidedWorkout[] {
+  return filterGuidedWorkouts(guidedWorkouts, categoryId, level)
 }
 
 /**

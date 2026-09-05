@@ -1,16 +1,30 @@
-import { Clock3, Layers, ListChecks, Play, X } from 'lucide-react'
+import { Clock3, Layers, ListChecks, Pencil, Play, Plus, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GuidedStepMedia } from '../components/GuidedStepMedia'
+import { GuidedWorkoutBuilder } from '../components/GuidedWorkoutBuilder'
 import { GuidedTimelineList } from '../components/GuidedTimelineList'
 import {
   GuidedWorkoutPlayer,
   type GuidedSaveOutcome,
 } from '../components/GuidedWorkoutPlayer'
 import { useAuth } from '../context/AuthContext'
-import { guidedCategories, type GuidedCategoryId, type GuidedLevel, type GuidedWorkout } from '../data/guidedWorkouts'
+import {
+  guidedCategories,
+  guidedWorkouts,
+  type GuidedCategoryId,
+  type GuidedLevel,
+  type GuidedWorkout,
+} from '../data/guidedWorkouts'
 import { saveWorkoutSession } from '../data/workoutSessions'
 import { useT, type MessageKey } from '../i18n'
 import * as workoutService from '../services/workoutService'
+import {
+  createEmptyCustomWorkout,
+  deleteCustomGuidedWorkout,
+  getCustomGuidedWorkouts,
+  saveCustomGuidedWorkout,
+  type CustomGuidedWorkout,
+} from '../utils/customGuidedWorkouts'
 import { isSpeechSupported, primeSpeech } from '../utils/guidedAudio'
 import {
   defaultGuidedSettings,
@@ -25,19 +39,23 @@ import {
   getGuidedWorkoutExercises,
   getGuidedWorkoutMinutes,
   getGuidedWorkoutSummary,
-  getGuidedWorkoutsByCategory,
+  filterGuidedWorkouts,
   translateGuidedText,
   type GuidedTimelineStep,
 } from '../utils/guidedWorkoutUtils'
 import { unlockAudio } from '../utils/timerFeedback'
 
 type Filter = GuidedCategoryId | 'all'
+type LevelFilter = GuidedLevel | 'all'
 
 const levelKeys: Record<GuidedLevel, MessageKey> = {
   Advanced: 'guided.levelAdvanced',
   Beginner: 'guided.levelBeginner',
   Intermediate: 'guided.levelIntermediate',
 }
+
+/** Hardest first: the list is read to find the top end, not the bottom. */
+const levelFilters: GuidedLevel[] = ['Advanced', 'Intermediate', 'Beginner']
 
 /**
  * Guided workouts: pick a category, pick a session, press play.
@@ -50,6 +68,14 @@ export function GuidedWorkouts() {
   const t = useT()
   const { user } = useAuth()
   const [filter, setFilter] = useState<Filter>('all')
+  const [level, setLevel] = useState<LevelFilter>('all')
+  // Read once at mount and kept in state, so saving or deleting one re-renders
+  // the list without a trip back to storage on every keystroke in the builder.
+  const [custom, setCustom] = useState<CustomGuidedWorkout[]>(() =>
+    getCustomGuidedWorkouts(),
+  )
+  const [building, setBuilding] = useState<CustomGuidedWorkout | null>(null)
+  const [buildingExisting, setBuildingExisting] = useState(false)
   const [detail, setDetail] = useState<GuidedWorkout | null>(null)
   const [active, setActive] = useState<GuidedWorkout | null>(null)
   const [settings, setSettings] = useState<GuidedSettings>(
@@ -59,7 +85,12 @@ export function GuidedWorkouts() {
   // toggle should say so rather than silently doing nothing.
   const speechSupported = useMemo(() => isSpeechSupported(), [])
 
-  const workouts = useMemo(() => getGuidedWorkoutsByCategory(filter), [filter])
+  // A user's own sessions lead: they built them, so they are what they came
+  // for. Everything shipped with the app follows.
+  const workouts = useMemo(
+    () => filterGuidedWorkouts([...custom, ...guidedWorkouts], filter, level),
+    [custom, filter, level],
+  )
 
   function updateSettings(next: GuidedSettings) {
     setSettings(next)
@@ -98,6 +129,31 @@ export function GuidedWorkouts() {
     },
     [active, user],
   )
+
+  function openBuilder(workout?: CustomGuidedWorkout) {
+    setBuilding(workout ?? createEmptyCustomWorkout(filter === 'all' ? 'cardio' : filter))
+    setBuildingExisting(Boolean(workout))
+    setDetail(null)
+  }
+
+  function handleBuilderSave(workout: CustomGuidedWorkout): boolean {
+    if (!saveCustomGuidedWorkout(workout)) {
+      return false
+    }
+    setCustom(getCustomGuidedWorkouts())
+    setBuilding(null)
+    return true
+  }
+
+  function handleBuilderDelete(workout: CustomGuidedWorkout) {
+    if (!window.confirm(t('guided.builderDeleteConfirm', { name: workout.name }))) {
+      return
+    }
+    deleteCustomGuidedWorkout(workout.id)
+    setCustom(getCustomGuidedWorkouts())
+    setBuilding(null)
+    setDetail(null)
+  }
 
   function start(workout: GuidedWorkout) {
     // The tap that starts a workout is the one moment the browser will unlock
@@ -158,6 +214,45 @@ export function GuidedWorkouts() {
           )
         })}
       </div>
+      <div
+        className="guided-filters guided-filters--levels"
+        role="group"
+        aria-label={t('guided.levelsAria')}
+      >
+        <button
+          aria-pressed={level === 'all'}
+          className={`guided-filter guided-filter--sm${
+            level === 'all' ? ' guided-filter--on' : ''
+          }`}
+          onClick={() => setLevel('all')}
+          type="button"
+        >
+          {t('guided.allLevels')}
+        </button>
+        {levelFilters.map((option) => {
+          const on = level === option
+
+          return (
+            <button
+              aria-pressed={on}
+              className={`guided-filter guided-filter--sm${
+                on ? ' guided-filter--on' : ''
+              }`}
+              key={option}
+              onClick={() => setLevel(option)}
+              type="button"
+            >
+              {t(levelKeys[option])}
+            </button>
+          )
+        })}
+      </div>
+
+
+      <button className="guided-build-button" onClick={() => openBuilder()} type="button">
+        <Plus size={18} strokeWidth={2.6} aria-hidden="true" />
+        {t('guided.build')}
+      </button>
 
       {workouts.length === 0 ? (
         <article className="today-empty">
@@ -187,8 +282,23 @@ export function GuidedWorkouts() {
       {detail ? (
         <GuidedWorkoutDetail
           onClose={() => setDetail(null)}
+          onEdit={
+            detail.custom
+              ? () => openBuilder(detail as CustomGuidedWorkout)
+              : undefined
+          }
           onStart={() => start(detail)}
           workout={detail}
+        />
+      ) : null}
+
+      {building ? (
+        <GuidedWorkoutBuilder
+          existing={buildingExisting}
+          onCancel={() => setBuilding(null)}
+          onDelete={handleBuilderDelete}
+          onSave={handleBuilderSave}
+          workout={building}
         />
       ) : null}
     </section>
@@ -276,7 +386,12 @@ function GuidedWorkoutCard({ onOpen, workout }: GuidedWorkoutCardProps) {
       ) : null}
 
       <div className="guided-card__text">
-        <p className="eyebrow">{t(levelKeys[workout.level])}</p>
+        <p className="eyebrow">
+          {t(levelKeys[workout.level])}
+          {workout.custom ? (
+            <span className="guided-card__mine">{t('guided.customBadge')}</span>
+          ) : null}
+        </p>
         <h3>{translateGuidedText(workout.name)}</h3>
         <p className="guided-card__copy">{translateGuidedText(workout.description)}</p>
 
@@ -312,10 +427,13 @@ interface GuidedWorkoutDetailProps {
   workout: GuidedWorkout
   onClose: () => void
   onStart: () => void
+  /** Only a workout the user built themselves can be edited. */
+  onEdit?: () => void
 }
 
 function GuidedWorkoutDetail({
   onClose,
+  onEdit,
   onStart,
   workout,
 }: GuidedWorkoutDetailProps) {
@@ -387,10 +505,22 @@ function GuidedWorkoutDetail({
           ))}
         </p>
 
-        <button className="workout-primary-button" onClick={onStart} type="button">
-          <Play size={20} strokeWidth={2.4} aria-hidden="true" />
-          {t('guided.start')}
-        </button>
+        <div className="guided-detail__actions">
+          <button className="workout-primary-button" onClick={onStart} type="button">
+            <Play size={20} strokeWidth={2.4} aria-hidden="true" />
+            {t('guided.start')}
+          </button>
+          {onEdit ? (
+            <button
+              className="workout-secondary-button"
+              onClick={onEdit}
+              type="button"
+            >
+              <Pencil size={17} strokeWidth={2.4} aria-hidden="true" />
+              {t('guided.edit')}
+            </button>
+          ) : null}
+        </div>
 
         <section className="guided-detail__section">
           <div className="section-title">
