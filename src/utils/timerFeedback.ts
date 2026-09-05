@@ -30,14 +30,69 @@ export function notifyRestComplete(): void {
 }
 
 function vibrate() {
+  // Matches the chime: three pulses and a long final buzz.
+  vibratePattern([180, 90, 180, 90, 180, 120, 500])
+}
+
+/** One buzz pattern, in milliseconds of on/off. Ignored where unsupported. */
+export function vibratePattern(pattern: number | number[]): void {
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
-      // Matches the chime: three pulses and a long final buzz.
-      navigator.vibrate([180, 90, 180, 90, 180, 120, 500])
+      navigator.vibrate(pattern)
     }
   } catch {
     // Vibration is best-effort.
   }
+}
+
+/**
+ * The guided player's phase change: work starting, rest starting, or the whole
+ * session finishing. Each one sounds different on purpose - the point is to
+ * know what just happened without looking at the screen.
+ */
+export type TimerCueKind = 'work' | 'rest' | 'finish'
+
+const cueTones: Record<TimerCueKind, ToneSpec[]> = {
+  // Rising pair: go.
+  work: [
+    { frequency: 987.77, at: 0, duration: 0.16 },
+    { frequency: 1567.98, at: 0.14, duration: 0.34 },
+  ],
+  // Falling pair, softer: stop and breathe.
+  rest: [
+    { frequency: 1174.66, at: 0, duration: 0.16 },
+    { frequency: 783.99, at: 0.15, duration: 0.4 },
+  ],
+  // Three rising notes that resolve: that was the last one.
+  finish: [
+    { frequency: 783.99, at: 0, duration: 0.18 },
+    { frequency: 1046.5, at: 0.17, duration: 0.18 },
+    { frequency: 1567.98, at: 0.34, duration: 0.9 },
+  ],
+}
+
+const cueVibrations: Record<TimerCueKind, number[]> = {
+  work: [90, 60, 220],
+  rest: [220],
+  finish: [180, 90, 180, 90, 400],
+}
+
+/** The tone only - sound and vibration are separate switches in the player. */
+export function playPhaseCue(kind: TimerCueKind): void {
+  playTones(cueTones[kind], 1.1)
+}
+
+/** The buzz only, for a phone face-down on a mat. */
+export function vibratePhaseCue(kind: TimerCueKind): void {
+  vibratePattern(cueVibrations[kind])
+}
+
+/**
+ * One short blip per second over the last few seconds of a step. Quiet and
+ * brief so a run of them reads as a countdown rather than as an alarm.
+ */
+export function playCountdownTick(): void {
+  playTones([{ frequency: 1318.51, at: 0, duration: 0.09 }], 0.7)
 }
 
 /**
@@ -101,9 +156,38 @@ export function unlockAudio(): void {
  * clipping the destination would give.
  */
 function beep() {
+  // Three D6 pulses, then a G6 that rings out: an alarm shape rather than a
+  // single blip, so a missed pulse still leaves two more to notice.
+  playTones(
+    [
+      { frequency: 1174.66, at: 0, duration: 0.2 },
+      { frequency: 1174.66, at: 0.24, duration: 0.2 },
+      { frequency: 1174.66, at: 0.48, duration: 0.2 },
+      { frequency: 1567.98, at: 0.74, duration: 0.85 },
+    ],
+    1.4,
+  )
+}
+
+/** One note in a cue: its pitch, when it starts, and how long it rings. */
+interface ToneSpec {
+  frequency: number
+  /** Seconds after the cue begins. */
+  at: number
+  duration: number
+}
+
+/**
+ * Plays a short sequence of notes through one limited bus.
+ *
+ * `level` drives the limiter on purpose: the ceiling below, not that number,
+ * sets the peak, so a cue sits near full scale throughout instead of only at
+ * each attack.
+ */
+function playTones(notes: ToneSpec[], level: number) {
   try {
     const context = getAudioContext()
-    if (!context) {
+    if (!context || notes.length === 0) {
       return
     }
 
@@ -112,10 +196,7 @@ function beep() {
     }
 
     const master = context.createGain()
-    // Drives the limiter hard on purpose: the ceiling below, not this
-    // number, sets the peak, so the chime sits near full scale throughout
-    // instead of only at each attack.
-    master.gain.setValueAtTime(1.4, context.currentTime)
+    master.gain.setValueAtTime(level, context.currentTime)
 
     const limiter = context.createDynamicsCompressor()
     limiter.threshold.setValueAtTime(-1, context.currentTime)
@@ -126,15 +207,6 @@ function beep() {
 
     master.connect(limiter)
     limiter.connect(context.destination)
-
-    // Three D6 pulses, then a G6 that rings out: an alarm shape rather than
-    // a single blip, so a missed pulse still leaves two more to notice.
-    const notes = [
-      { frequency: 1174.66, at: 0, duration: 0.2 },
-      { frequency: 1174.66, at: 0.24, duration: 0.2 },
-      { frequency: 1174.66, at: 0.48, duration: 0.2 },
-      { frequency: 1567.98, at: 0.74, duration: 0.85 },
-    ]
 
     const start = context.currentTime + 0.02
     let pending = notes.length

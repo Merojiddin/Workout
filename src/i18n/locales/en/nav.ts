@@ -16,6 +16,9 @@ export const navMessages = {
   'nav.more': 'More',
   'nav.profile': 'Profile',
 
+  'nav.guidedWorkouts': 'Guided Workouts',
+  'nav.guidedWorkoutsDescription':
+    'Timed cardio, abs, posture and stretching sessions.',
   'nav.weeklyPlan': 'Weekly Plan',
   'nav.weeklyPlanDescription': 'The seven training days and what each one covers.',
   'nav.exerciseLibrary': 'Exercise Library',

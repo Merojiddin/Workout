@@ -8700,3 +8700,985 @@ body {
   height: 12px;
   width: 12px;
 }
+
+/* --- Guided workouts ------------------------------------------------------
+ *
+ * A second kind of training beside the strength program: timed follow-along
+ * sessions that run as one continuous timeline. The browse screen reuses the
+ * app's card language; the player is its own full-screen layer, built the same
+ * way as the live workout above (fixed header / scrolling body / control dock)
+ * so the two training screens behave identically under the thumb.
+ *
+ * Every category carries an accent through `data-accent`, which sets a local
+ * --accent pair that the cards, chips and the countdown ring all read.
+ */
+
+[data-accent] {
+  --accent: var(--green);
+  --accent-soft: var(--green-soft);
+}
+
+[data-accent='cardio'] {
+  --accent: var(--orange);
+  --accent-soft: var(--orange-soft);
+}
+
+[data-accent='abs'] {
+  --accent: var(--green);
+  --accent-soft: var(--green-soft);
+}
+
+[data-accent='posture'] {
+  --accent: var(--blue);
+  --accent-soft: var(--blue-soft);
+}
+
+[data-accent='mobility'] {
+  --accent: var(--purple);
+  --accent-soft: rgba(152, 119, 255, 0.14);
+}
+
+.guided-page {
+  display: grid;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.guided-page__head h1 {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: -0.7px;
+  margin: 0 0 6px;
+}
+
+.guided-page__head p {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0;
+}
+
+/* --- Category filters ----------------------------------------------------- */
+
+/* Scrolls sideways rather than wrapping to three rows on a narrow phone. */
+.guided-filters {
+  display: flex;
+  gap: 8px;
+  margin: 0 -16px;
+  overflow-x: auto;
+  padding: 2px 16px 4px;
+  scrollbar-width: none;
+}
+
+.guided-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.guided-filter {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--soft);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 750;
+  gap: 6px;
+  min-height: 38px;
+  padding: 0 14px;
+}
+
+.guided-filter:hover,
+.guided-filter:focus-visible {
+  border-color: var(--accent, var(--green));
+  color: var(--text);
+  outline: none;
+}
+
+.guided-filter--on {
+  background: var(--accent-soft, var(--green-soft));
+  border-color: var(--accent, var(--green));
+  color: var(--accent, var(--green));
+}
+
+/* --- Cue switches --------------------------------------------------------- */
+
+.guided-cues {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.guided-cues__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.guided-cues small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.guided-chip {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12.5px;
+  font-weight: 750;
+  min-height: 34px;
+  padding: 0 13px;
+}
+
+.guided-chip--on {
+  background: var(--green-soft);
+  border-color: rgba(27, 210, 220, 0.45);
+  color: var(--green);
+}
+
+.guided-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* --- Workout cards -------------------------------------------------------- */
+
+.guided-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.guided-card {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.015);
+  cursor: pointer;
+  display: grid;
+  gap: 0;
+  grid-template-columns: 104px minmax(0, 1fr);
+  overflow: hidden;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.guided-card:hover,
+.guided-card:focus-visible {
+  border-color: var(--accent, var(--green));
+  outline: none;
+}
+
+.guided-card__text {
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+}
+
+.guided-card__text .eyebrow {
+  color: var(--accent, var(--green));
+}
+
+.guided-card__text h3 {
+  color: var(--text);
+  font-size: 16.5px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.guided-card__copy {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.guided-card__pills,
+.guided-detail__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 0;
+}
+
+.guided-card__pills span,
+.guided-detail__tags span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--r-pill);
+  color: var(--soft);
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 750;
+  gap: 4px;
+  padding: 4px 9px;
+}
+
+/* --- Demonstration media -------------------------------------------------- */
+
+.guided-media {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.guided-media__asset {
+  display: block;
+  height: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
+/* The Planfit stills are 320x180 with a small figure centred in a lot of dark
+   ground. Letterboxed into a card's narrow column that figure comes out the
+   size of a thumbnail of a thumbnail, so the small frames crop instead: the
+   subject is always centred, so cropping the sides only throws away the
+   background. The player's frame keeps `contain` - there the whole movement
+   has to stay in shot. */
+.guided-media--card .guided-media__asset,
+.guided-media--thumb .guided-media__asset {
+  object-fit: cover;
+}
+
+.guided-media--card {
+  align-self: stretch;
+  border-right: 1px solid var(--line);
+  min-height: 104px;
+}
+
+.guided-media--thumb {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  flex: 0 0 auto;
+  height: 62px;
+  width: 62px;
+}
+
+/* Capped against the viewport as well as in pixels: on a short phone the clip
+   gives up height rather than pushing the countdown below the fold. */
+.guided-media--player {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  max-height: min(280px, 34svh);
+  min-height: 120px;
+  width: 100%;
+}
+
+/* --- Detail sheet --------------------------------------------------------- */
+
+.guided-detail {
+  gap: 14px;
+}
+
+.guided-detail__section {
+  display: grid;
+  gap: 10px;
+}
+
+.guided-detail__hint {
+  color: var(--muted);
+  font-size: 12.5px;
+  margin: -4px 0 0;
+}
+
+.guided-move-list {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guided-move-list > li {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 62px minmax(0, 1fr);
+  padding: 10px;
+}
+
+.guided-move-list strong {
+  color: var(--text);
+  display: block;
+  font-size: 14.5px;
+}
+
+.guided-move-list small {
+  color: var(--soft);
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.guided-move-list__how {
+  color: var(--muted);
+  display: grid;
+  font-size: 12px;
+  gap: 3px;
+  line-height: 1.45;
+  margin: 6px 0 0;
+  padding-left: 16px;
+}
+
+.guided-move-list__note {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: italic;
+  margin-top: 6px;
+  opacity: 0.85;
+}
+
+/* --- The timeline --------------------------------------------------------- */
+
+.guided-timeline {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guided-timeline__row {
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: var(--r-sm);
+  color: inherit;
+  display: grid;
+  font-family: inherit;
+  gap: 10px;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  padding: 8px 11px;
+  text-align: left;
+  width: 100%;
+}
+
+.guided-timeline__row--button {
+  cursor: pointer;
+}
+
+.guided-timeline__row--work {
+  border-left-color: var(--green);
+}
+
+.guided-timeline__row--rest,
+.guided-timeline__row--round-rest,
+.guided-timeline__row--prepare {
+  background: transparent;
+  border-left-color: #33403f;
+}
+
+.guided-timeline__row--active {
+  background: var(--green-soft);
+  border-color: rgba(27, 210, 220, 0.45);
+  border-left-color: var(--green);
+}
+
+.guided-timeline__row--done {
+  opacity: 0.45;
+}
+
+.guided-timeline__icon {
+  align-items: center;
+  color: var(--muted);
+  display: inline-flex;
+  justify-content: center;
+}
+
+.guided-timeline__row--work .guided-timeline__icon {
+  color: var(--green);
+}
+
+.guided-timeline__text {
+  min-width: 0;
+}
+
+.guided-timeline__text strong {
+  color: var(--text);
+  display: block;
+  font-size: 13.5px;
+  font-weight: 750;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guided-timeline__text small {
+  color: var(--muted);
+  display: block;
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.guided-timeline__time {
+  color: var(--soft);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+}
+
+/* --- The link from Today's Workout ---------------------------------------- */
+
+.guided-entry {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  color: var(--muted);
+  cursor: pointer;
+  display: grid;
+  gap: 13px;
+  grid-template-columns: 40px minmax(0, 1fr) 18px;
+  padding: 13px 14px;
+  text-align: left;
+  width: 100%;
+}
+
+.guided-entry:hover,
+.guided-entry:focus-visible {
+  border-color: rgba(27, 210, 220, 0.45);
+  outline: none;
+}
+
+.guided-entry__icon {
+  align-items: center;
+  background: var(--green-soft);
+  border: 1px solid rgba(27, 210, 220, 0.16);
+  border-radius: var(--r-md);
+  color: var(--green);
+  display: inline-flex;
+  height: 40px;
+  justify-content: center;
+  width: 40px;
+}
+
+.guided-entry__text strong {
+  color: var(--text);
+  display: block;
+  font-size: 15px;
+}
+
+.guided-entry__text small {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* --- The player ----------------------------------------------------------- */
+
+.guided-player {
+  background: var(--bg);
+  display: grid;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  inset: 0;
+  margin: 0;
+  max-width: none;
+  padding: 0;
+  position: fixed;
+  z-index: 30;
+}
+
+/* A rest is a different screen, not a badge: the ground shifts too. */
+.guided-player--rest {
+  background:
+    radial-gradient(circle at 50% 12%, rgba(27, 210, 220, 0.08), transparent 42%),
+    var(--bg);
+}
+
+.guided-player__header {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+    10px calc(12px + env(safe-area-inset-left));
+}
+
+.guided-player__bar {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.guided-player__name {
+  color: var(--muted);
+  flex: 1 1 auto;
+  font-size: 12px;
+  font-weight: 900;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* The app's progress bar ends on a fixed green, which fights every accent but
+   its own. Here the bar is the category's colour from end to end. */
+.guided-player .live-header__progress span {
+  background: var(--accent, var(--green));
+}
+
+.guided-player__body {
+  display: flex;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 560px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 14px calc(14px + env(safe-area-inset-right)) 14px
+    calc(14px + env(safe-area-inset-left));
+  width: 100%;
+}
+
+/* --- Work step ------------------------------------------------------------ */
+
+.guided-step {
+  display: grid;
+  gap: 10px;
+}
+
+.guided-step__head {
+  display: grid;
+  gap: 2px;
+  text-align: center;
+}
+
+.guided-step__head .eyebrow {
+  color: var(--accent, var(--green));
+}
+
+.guided-step__head h1 {
+  color: var(--text);
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -0.6px;
+  line-height: 1.12;
+  margin: 2px 0 0;
+}
+
+.guided-step__cue {
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.guided-step__side {
+  color: var(--accent, var(--green));
+  font-size: 12.5px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.guided-step__how {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  justify-self: center;
+  min-height: 32px;
+  padding: 0 14px;
+}
+
+.guided-step__how:hover,
+.guided-step__how:focus-visible {
+  border-color: var(--accent, var(--green));
+  color: var(--text);
+  outline: none;
+}
+
+.guided-step__instructions {
+  color: var(--soft);
+  display: grid;
+  font-size: 13px;
+  gap: 5px;
+  line-height: 1.5;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.guided-step__next {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13px;
+  gap: 7px;
+  justify-content: center;
+  margin: 2px 0 0;
+  min-height: 22px;
+  padding-top: 10px;
+}
+
+.guided-step__next strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* --- Rest step ------------------------------------------------------------ */
+
+.guided-rest {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  margin: auto 0;
+  text-align: center;
+  width: 100%;
+}
+
+.guided-rest .eyebrow {
+  color: var(--green);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+}
+
+.guided-rest__add {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--soft);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 800;
+  gap: 5px;
+  min-height: 38px;
+  padding: 0 16px;
+}
+
+.guided-rest__add:hover,
+.guided-rest__add:focus-visible {
+  border-color: var(--green);
+  color: var(--green);
+  outline: none;
+}
+
+.guided-next {
+  align-items: center;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 62px minmax(0, 1fr);
+  max-width: 420px;
+  padding: 11px;
+  text-align: left;
+  width: 100%;
+}
+
+.guided-next__text strong {
+  color: var(--text);
+  display: block;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 2px 0 3px;
+}
+
+.guided-next__text small {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+/* --- The countdown -------------------------------------------------------- */
+
+/* The largest thing on the screen on purpose: it is read from a mat, at arm's
+   length, in the middle of a set. */
+.guided-ring {
+  display: grid;
+  height: min(230px, 46vw);
+  justify-self: center;
+  place-items: center;
+  position: relative;
+  width: min(230px, 46vw);
+}
+
+.guided-ring svg {
+  height: 100%;
+  transform: rotate(-90deg);
+  width: 100%;
+}
+
+.guided-ring__track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 7;
+}
+
+.guided-ring__value {
+  fill: none;
+  stroke: var(--accent, var(--green));
+  stroke-linecap: round;
+  stroke-width: 7;
+  transition: stroke-dashoffset 250ms linear;
+}
+
+.guided-ring--rest .guided-ring__value {
+  stroke: var(--green);
+}
+
+.guided-ring--paused .guided-ring__value {
+  stroke: var(--muted);
+}
+
+.guided-ring__label {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  position: absolute;
+}
+
+.guided-ring__label strong {
+  color: var(--text);
+  font-size: clamp(38px, 12vw, 56px);
+  font-variant-numeric: tabular-nums;
+  font-weight: 850;
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.guided-ring__label small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* --- The timeline sheet, opened mid-workout ------------------------------- */
+
+.guided-player__list {
+  border-top: 1px solid var(--line);
+  margin: 0 auto;
+  max-height: 42svh;
+  max-width: 560px;
+  overflow-y: auto;
+  padding: 10px calc(14px + env(safe-area-inset-right)) 4px
+    calc(14px + env(safe-area-inset-left));
+  width: 100%;
+}
+
+/* --- The control dock ----------------------------------------------------- */
+
+.guided-player__dock {
+  background: linear-gradient(180deg, rgba(12, 17, 22, 0.96), var(--bg));
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  padding-left: max(
+    calc(16px + env(safe-area-inset-left)),
+    calc((100% - 592px) / 2)
+  );
+  padding-right: max(
+    calc(16px + env(safe-area-inset-right)),
+    calc((100% - 592px) / 2)
+  );
+  padding-top: 10px;
+}
+
+.guided-player__controls {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1.5fr 1fr;
+}
+
+.guided-control {
+  align-items: center;
+  background: var(--surface-3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--r-md);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 11px;
+  font-weight: 800;
+  gap: 3px;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.guided-control:hover,
+.guided-control:focus-visible {
+  border-color: rgba(27, 210, 220, 0.54);
+  outline: none;
+}
+
+.guided-control--primary {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--green-ink);
+}
+
+.guided-control--primary:hover,
+.guided-control--primary:focus-visible {
+  background: var(--green-2);
+  border-color: var(--green-2);
+}
+
+.guided-player__tools {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+
+.guided-tool {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 11.5px;
+  font-weight: 800;
+  gap: 5px;
+  min-height: 34px;
+  padding: 0 12px;
+}
+
+.guided-tool:hover,
+.guided-tool:focus-visible {
+  border-color: var(--line);
+  color: var(--text);
+  outline: none;
+}
+
+.guided-tool--on {
+  background: var(--green-soft);
+  border-color: rgba(27, 210, 220, 0.4);
+  color: var(--green);
+}
+
+/* --- Finish screen -------------------------------------------------------- */
+
+.guided-finish {
+  display: grid;
+  gap: 16px;
+  margin: 0 auto;
+  max-width: 560px;
+}
+
+.guided-finish__head h1 {
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 850;
+  letter-spacing: -0.7px;
+  margin: 0 0 6px;
+}
+
+.guided-finish__head p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.guided-finish__saved {
+  background: var(--green-soft);
+  border: 1px solid rgba(27, 210, 220, 0.28);
+  border-radius: var(--r-md);
+  color: var(--soft);
+  font-size: 13px;
+  margin: 0;
+  padding: 11px 13px;
+}
+
+.guided-finish__saved--error {
+  background: var(--orange-soft);
+  border-color: rgba(255, 109, 74, 0.32);
+}
+
+.guided-finish__actions {
+  display: grid;
+  gap: 10px;
+}
+
+/* --- Wider screens -------------------------------------------------------- */
+
+@media (min-width: 620px) {
+  .guided-page {
+    max-width: 900px;
+  }
+
+  .guided-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guided-finish__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* With room to spare the movement and its clock sit side by side, so neither
+   the demonstration nor the countdown has to be scrolled to. */
+@media (min-width: 780px) {
+  .guided-player__body {
+    justify-content: center;
+    max-width: 880px;
+  }
+
+  .guided-step {
+    align-items: center;
+    column-gap: 24px;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+
+  .guided-media--player {
+    grid-column: 1;
+    grid-row: 1 / span 5;
+    max-height: min(400px, 62svh);
+  }
+
+  .guided-step__head,
+  .guided-step__how,
+  .guided-step__instructions,
+  .guided-step__next {
+    grid-column: 2;
+  }
+
+  .guided-ring {
+    grid-column: 2;
+    height: min(230px, 26vw);
+    width: min(230px, 26vw);
+  }
+
+  .guided-player__controls {
+    margin: 0 auto;
+    max-width: 560px;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1220px) {
+  .guided-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

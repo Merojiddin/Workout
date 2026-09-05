@@ -16,6 +16,9 @@ export const navMessages = {
   'nav.more': 'Thêm',
   'nav.profile': 'Hồ sơ',
 
+  'nav.guidedWorkouts': 'Bài tập có hướng dẫn',
+  'nav.guidedWorkoutsDescription':
+    'Cardio, bụng, tư thế và giãn cơ theo đồng hồ.',
   'nav.weeklyPlan': 'Lịch tập tuần',
   'nav.weeklyPlanDescription': 'Bảy ngày tập và nội dung của từng ngày.',
   'nav.exerciseLibrary': 'Thư viện bài tập',

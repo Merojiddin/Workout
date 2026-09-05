@@ -1,6 +1,7 @@
 import type { LibraryExercise } from '../../data/exerciseLibrary'
 import { getLanguage } from '../store'
 import type { LanguageCode } from '../languages'
+import { guidedPhrasesVi } from './guidedVi'
 import { exercisePhrasesVi } from './vi'
 import { translateMuscles } from './terms'
 
@@ -20,7 +21,10 @@ import { translateMuscles } from './terms'
 type PhraseMap = Record<string, string>
 
 const phrases: Partial<Record<LanguageCode, PhraseMap>> = {
-  vi: exercisePhrasesVi,
+  // The guided workouts keep their copy in a file of their own: the strength
+  // library's map is already 2,000 entries, and the two are edited by
+  // different work.
+  vi: { ...exercisePhrasesVi, ...guidedPhrasesVi },
 }
 
 /**

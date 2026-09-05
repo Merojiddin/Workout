@@ -40,6 +40,9 @@ const Progress = lazy(() =>
 const Profile = lazy(() =>
   import('./pages/Profile').then((m) => ({ default: m.Profile })),
 )
+const GuidedWorkouts = lazy(() =>
+  import('./pages/GuidedWorkouts').then((m) => ({ default: m.GuidedWorkouts })),
+)
 const WeeklyPlan = lazy(() =>
   import('./pages/WeeklyPlan').then((m) => ({ default: m.WeeklyPlan })),
 )
@@ -213,6 +216,8 @@ function AuthedApp() {
         return <Nutrition />
       case 'more':
         return <More onNavigate={handleNavigate} />
+      case 'guided-workouts':
+        return <GuidedWorkouts />
       case 'weekly-plan':
         return <WeeklyPlan onNavigate={handleNavigate} />
       case 'body-check-in':

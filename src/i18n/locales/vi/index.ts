@@ -5,6 +5,7 @@ import { checkinMessages } from './checkin'
 import { checklistMessages } from './checklist'
 import { coachMessages } from './coach'
 import { commonMessages } from './common'
+import { guidedMessages } from './guided'
 import { navMessages } from './nav'
 import { nutritionMessages } from './nutrition'
 import { legalMessages } from './legal'
@@ -34,6 +35,7 @@ export const vi: Catalog<MessageKey> = {
   ...checklistMessages,
   ...coachMessages,
   ...commonMessages,
+  ...guidedMessages,
   ...navMessages,
   ...legalMessages,
   ...libraryMessages,

@@ -7,6 +7,7 @@ import {
   MoreHorizontal,
   NotebookPen,
   Settings,
+  Timer,
   Utensils,
 } from 'lucide-react'
 import type { NavItem } from '../types/navigation'
@@ -30,6 +31,12 @@ export const navigationItems: NavItem[] = [
 
 /** Pages listed on the More screen, in the order they appear. */
 export const moreNavigationItems: NavItem[] = [
+  {
+    id: 'guided-workouts',
+    icon: Timer,
+    labelKey: 'nav.guidedWorkouts',
+    descriptionKey: 'nav.guidedWorkoutsDescription',
+  },
   {
     id: 'weekly-plan',
     icon: CalendarDays,

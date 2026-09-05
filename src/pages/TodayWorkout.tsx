@@ -3,6 +3,7 @@ import {
   BookOpen,
   Building2,
   Check,
+  ChevronRight,
   Clock3,
   Dumbbell,
   Flag,
@@ -15,6 +16,7 @@ import {
   ShieldAlert,
   SkipForward,
   Square,
+  Timer,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
@@ -597,6 +599,24 @@ function PreWorkoutScreen({
           </button>
         ) : null}
       </article>
+
+      {/* The guided sessions are a different kind of training - timed,
+          follow-along, no logging - so they are one link away rather than
+          mixed into today's program. */}
+      <button
+        className="guided-entry"
+        onClick={() => onNavigate('guided-workouts')}
+        type="button"
+      >
+        <span className="guided-entry__icon" aria-hidden="true">
+          <Timer size={19} strokeWidth={2.3} />
+        </span>
+        <span className="guided-entry__text">
+          <strong>{t('guided.entryTitle')}</strong>
+          <small>{t('guided.entrySubtitle')}</small>
+        </span>
+        <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
+      </button>
 
       {hasExercises ? (
         <>

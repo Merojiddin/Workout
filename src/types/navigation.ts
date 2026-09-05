@@ -7,6 +7,7 @@ export type PageId =
   | 'nutrition'
   | 'more'
   | 'profile'
+  | 'guided-workouts'
   | 'weekly-plan'
   | 'body-check-in'
   | 'exercise-library'

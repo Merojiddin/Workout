@@ -1113,3 +1113,17 @@ export function getPlanfitExerciseMedia(exerciseId: string) {
     gifAlt: `Planfit ${match.planfitName} looping animation`,
   }
 }
+
+/**
+ * The same pair addressed by catalog id rather than by local exercise id.
+ *
+ * The guided workouts carry their own movement catalog (they are follow-along
+ * drills, not program slots), so they hold the Planfit id directly instead of
+ * going through the local-exercise mapping above.
+ */
+export function getPlanfitMediaById(planfitId: number) {
+  return {
+    imageUrl: `${PLANFIT_CDN_ORIGIN}/training-image/${planfitId}_thumbnail.png`,
+    animationUrl: `${PLANFIT_CDN_ORIGIN}/training-videos-watermarked/${planfitId}.mp4`,
+  }
+}
