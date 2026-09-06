@@ -12,6 +12,10 @@ export const workoutMessages = {
   'workout.easyWeekNotice':
     '{phase}: keep it easy and do not chase a heavier load this week.',
 
+  'workout.modeAria': 'What to train',
+  'workout.modeWorkout': 'Workout',
+  'workout.modeCardio': 'Cardio',
+
   'workout.trainingLocation': 'Training location',
   'workout.locationHome': 'Home',
   'workout.locationGym': 'Gym',
@@ -20,7 +24,11 @@ export const workoutMessages = {
   'workout.statExercises': 'exercises',
   'workout.statWorkingSets': 'working sets',
   'workout.statMinutes': 'minutes',
+  'workout.statMoves': 'moves',
+  'workout.statRounds': 'rounds',
   'workout.exercisesHeading': 'Exercises',
+  'workout.movementsHeading': 'Movements',
+  'workout.stepSeconds': { one: '{count} sec', other: '{count} sec' },
 
   'workout.emptyDay': 'This day has no exercises yet.',
   'workout.viewWeeklyPlan': 'View weekly plan',
@@ -30,6 +38,13 @@ export const workoutMessages = {
   'workout.hideOtherDays': 'Hide other workouts',
   'workout.chooseWorkout': 'Choose a workout',
   'workout.extraStartsNow': 'Extra · starts now',
+
+  'workout.showOtherSessions': 'Pick a different session',
+  'workout.hideOtherSessions': 'Hide other sessions',
+  'workout.chooseSession': 'Choose a cardio session',
+  'workout.noCardio': 'There are no cardio sessions yet.',
+  'workout.moreGuidedTitle': 'All guided sessions',
+  'workout.moreGuidedSub': 'Abs, posture and stretching too, or build your own.',
 
   'workout.saveFailed':
     'Could not save this workout - device storage is full. Free up space (More > Settings > Backup) and press Finish again. Your workout is still here.',

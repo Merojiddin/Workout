@@ -8,16 +8,12 @@ import {
   Plus,
   X,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { GuidedStepMedia } from '../components/GuidedStepMedia'
 import { GuidedWorkoutBuilder } from '../components/GuidedWorkoutBuilder'
 import { GuidedWorkoutImport } from '../components/GuidedWorkoutImport'
 import { GuidedTimelineList } from '../components/GuidedTimelineList'
-import {
-  GuidedWorkoutPlayer,
-  type GuidedSaveOutcome,
-} from '../components/GuidedWorkoutPlayer'
-import { useAuth } from '../context/AuthContext'
+import { GuidedWorkoutPlayer } from '../components/GuidedWorkoutPlayer'
 import {
   guidedCategories,
   guidedWorkouts,
@@ -25,9 +21,8 @@ import {
   type GuidedLevel,
   type GuidedWorkout,
 } from '../data/guidedWorkouts'
-import { saveWorkoutSession } from '../data/workoutSessions'
+import { useGuidedSession } from '../hooks/useGuidedSession'
 import { useT, type MessageKey } from '../i18n'
-import * as workoutService from '../services/workoutService'
 import {
   createEmptyCustomWorkout,
   deleteCustomGuidedWorkout,
@@ -35,34 +30,21 @@ import {
   saveCustomGuidedWorkout,
   type CustomGuidedWorkout,
 } from '../utils/customGuidedWorkouts'
-import { isSpeechSupported, primeSpeech } from '../utils/guidedAudio'
-import {
-  defaultGuidedSettings,
-  getGuidedSettings,
-  saveGuidedSettings,
-  type GuidedSettings,
-} from '../utils/guidedSettings'
+import { isSpeechSupported } from '../utils/guidedAudio'
+import type { GuidedSettings } from '../utils/guidedSettings'
 import {
   buildGuidedTimeline,
-  buildGuidedWorkoutSession,
   formatGuidedClock,
   getGuidedWorkoutExercises,
   getGuidedWorkoutMinutes,
   getGuidedWorkoutSummary,
   filterGuidedWorkouts,
+  guidedLevelKeys as levelKeys,
   translateGuidedText,
-  type GuidedTimelineStep,
 } from '../utils/guidedWorkoutUtils'
-import { unlockAudio } from '../utils/timerFeedback'
 
 type Filter = GuidedCategoryId | 'all'
 type LevelFilter = GuidedLevel | 'all'
-
-const levelKeys: Record<GuidedLevel, MessageKey> = {
-  Advanced: 'guided.levelAdvanced',
-  Beginner: 'guided.levelBeginner',
-  Intermediate: 'guided.levelIntermediate',
-}
 
 /** Hardest first: the list is read to find the top end, not the bottom. */
 const levelFilters: GuidedLevel[] = ['Advanced', 'Intermediate', 'Beginner']
@@ -76,7 +58,7 @@ const levelFilters: GuidedLevel[] = ['Advanced', 'Intermediate', 'Beginner']
  */
 export function GuidedWorkouts() {
   const t = useT()
-  const { user } = useAuth()
+  const guided = useGuidedSession()
   const [filter, setFilter] = useState<Filter>('all')
   const [level, setLevel] = useState<LevelFilter>('all')
   // Read once at mount and kept in state, so saving or deleting one re-renders
@@ -88,10 +70,6 @@ export function GuidedWorkouts() {
   const [buildingExisting, setBuildingExisting] = useState(false)
   const [importing, setImporting] = useState(false)
   const [detail, setDetail] = useState<GuidedWorkout | null>(null)
-  const [active, setActive] = useState<GuidedWorkout | null>(null)
-  const [settings, setSettings] = useState<GuidedSettings>(
-    () => getGuidedSettings() ?? defaultGuidedSettings,
-  )
   // Read once: a browser either has speech voices or it does not, and the
   // toggle should say so rather than silently doing nothing.
   const speechSupported = useMemo(() => isSpeechSupported(), [])
@@ -101,44 +79,6 @@ export function GuidedWorkouts() {
   const workouts = useMemo(
     () => filterGuidedWorkouts([...custom, ...guidedWorkouts], filter, level),
     [custom, filter, level],
-  )
-
-  function updateSettings(next: GuidedSettings) {
-    setSettings(next)
-    saveGuidedSettings(next)
-  }
-
-  /**
-   * A finished session, written to the same history everything else uses so it
-   * shows up in Progress and the weekly review. Only the steps that actually
-   * ran to zero are logged - a skipped movement is not something you did.
-   */
-  const handleComplete = useCallback(
-    (
-      completedWorkSteps: GuidedTimelineStep[],
-      startedAt: Date,
-      finishedAt: Date,
-    ): GuidedSaveOutcome => {
-      if (!active || completedWorkSteps.length === 0) {
-        return 'empty'
-      }
-
-      const session = buildGuidedWorkoutSession(
-        active,
-        completedWorkSteps,
-        startedAt,
-        finishedAt,
-      )
-      if (!saveWorkoutSession(session)) {
-        return 'error'
-      }
-
-      // Local history is already written; the cloud copy follows in the
-      // background and must never hold up the finish screen.
-      void workoutService.saveWorkoutSession(user, session).catch(() => undefined)
-      return 'saved'
-    },
-    [active, user],
   )
 
   function openBuilder(workout?: CustomGuidedWorkout) {
@@ -182,25 +122,19 @@ export function GuidedWorkouts() {
   }
 
   function start(workout: GuidedWorkout) {
-    // The tap that starts a workout is the one moment the browser will unlock
-    // the chime and the speech voice for everything that follows.
-    unlockAudio()
-    if (settings.voice) {
-      primeSpeech()
-    }
     setDetail(null)
-    setActive(workout)
+    guided.start(workout)
   }
 
-  if (active) {
+  if (guided.active) {
     return (
       <GuidedWorkoutPlayer
-        key={active.id}
-        onComplete={handleComplete}
-        onExit={() => setActive(null)}
-        onSettingsChange={updateSettings}
-        settings={settings}
-        workout={active}
+        key={guided.active.id}
+        onComplete={guided.complete}
+        onExit={guided.exit}
+        onSettingsChange={guided.updateSettings}
+        settings={guided.settings}
+        workout={guided.active}
       />
     )
   }
@@ -314,8 +248,8 @@ export function GuidedWorkouts() {
           is for, and the cues are a once-a-year setting that the player also
           carries a switch for. */}
       <GuidedCueSettings
-        onChange={updateSettings}
-        settings={settings}
+        onChange={guided.updateSettings}
+        settings={guided.settings}
         speechSupported={speechSupported}
       />
 

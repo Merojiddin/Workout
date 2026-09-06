@@ -6367,6 +6367,45 @@ body {
   margin-top: 2px;
 }
 
+/* Workout or cardio: the one choice that decides what the whole card says,
+   so it sits above the card's own title rather than beside it. */
+.mode-toggle {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 4px;
+}
+
+.mode-toggle button {
+  align-items: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-pill);
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 7px;
+  justify-content: center;
+  min-height: 42px;
+}
+
+.mode-toggle button.is-active {
+  background: var(--green-soft);
+  color: var(--green);
+}
+
+.today-card__copy {
+  color: var(--soft);
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+}
+
 .location-toggle {
   display: grid;
   gap: 8px;

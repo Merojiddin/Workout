@@ -7,6 +7,7 @@ import {
   Clock3,
   Dumbbell,
   Flag,
+  Flame,
   Home,
   Info,
   Layers,
@@ -16,7 +17,6 @@ import {
   ShieldAlert,
   SkipForward,
   Square,
-  Timer,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ExerciseDetailModal } from '../components/ExerciseDetailModal'
@@ -24,6 +24,8 @@ import { LiveExerciseImage } from '../components/LiveExerciseImage'
 import { LiveWorkoutHeader } from '../components/LiveWorkoutHeader'
 import { OptionalSetLog, type OptionalSetLogValues } from '../components/OptionalSetLog'
 import { ExerciseSwapSheet } from '../components/ExerciseSwapSheet'
+import { GuidedWorkoutPlayer } from '../components/GuidedWorkoutPlayer'
+import { useGuidedSession } from '../hooks/useGuidedSession'
 import { useLiveTimer } from '../hooks/useLiveTimer'
 import { LiveRoundStats } from '../components/LiveRoundStats'
 import { LiveSetTable } from '../components/LiveSetTable'
@@ -31,6 +33,7 @@ import { RemainingExercises } from '../components/RemainingExercises'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
 import { WorkoutFinishSummary } from '../components/WorkoutFinishSummary'
 import type { WorkoutSession } from '../data/workoutSessions'
+import { guidedWorkouts, type GuidedWorkout } from '../data/guidedWorkouts'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import {
@@ -53,6 +56,15 @@ import {
   type ActiveSet,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
+import { getCustomGuidedWorkouts } from '../utils/customGuidedWorkouts'
+import {
+  filterGuidedWorkouts,
+  getGuidedWorkoutMinutes,
+  getGuidedWorkoutSummary,
+  guidedLevelKeys,
+  resolveGuidedStepExercise,
+  translateGuidedText,
+} from '../utils/guidedWorkoutUtils'
 import { getLibrarySwapOptions } from '../utils/exerciseSwapOptions'
 import {
   getExerciseTarget,
@@ -93,6 +105,9 @@ type Screen = 'prompt' | 'intro' | 'active' | 'finished'
 export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   const { user } = useAuth()
   const { language, t } = useLanguage()
+  // Cardio runs on the guided player rather than the set-by-set screen below,
+  // so it keeps its own session alongside the lifting one.
+  const guided = useGuidedSession()
   const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
   const plan = activeProgram.days
   const todayWorkout = useMemo(
@@ -329,6 +344,19 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     setScreen('finished')
   }
 
+  if (guided.active) {
+    return (
+      <GuidedWorkoutPlayer
+        key={guided.active.id}
+        onComplete={guided.complete}
+        onExit={guided.exit}
+        onSettingsChange={guided.updateSettings}
+        settings={guided.settings}
+        workout={guided.active}
+      />
+    )
+  }
+
   if (screen === 'finished' && finishedSession) {
     return (
       <section className="workout-page">
@@ -406,6 +434,7 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
       onNavigate={onNavigate}
       onSelectDay={setSelectedDay}
       onStart={startScheduledWorkout}
+      onStartCardio={guided.start}
       onStartStandalone={startStandaloneWorkout}
       programWeek={programWeek}
       selectedDay={selectedDay}
@@ -417,11 +446,15 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
 // Pre-workout screen
 // ---------------------------------------------------------------------------
 
+/** Which kind of training the card is showing: lifting, or a timed cardio session. */
+type TrainingMode = 'workout' | 'cardio'
+
 interface PreWorkoutScreenProps {
   activeProgram: ActiveWorkoutProgram
   onNavigate: (page: PageId) => void
   onSelectDay: (day: WorkoutDay) => void
   onStart: (workout: WorkoutDay) => void
+  onStartCardio: (workout: GuidedWorkout) => void
   onStartStandalone: (workout: StandaloneWorkout) => void
   programWeek: number | null
   selectedDay: WorkoutDay
@@ -432,6 +465,7 @@ function PreWorkoutScreen({
   onNavigate,
   onSelectDay,
   onStart,
+  onStartCardio,
   onStartStandalone,
   programWeek,
   selectedDay,
@@ -450,6 +484,28 @@ function PreWorkoutScreen({
     saveTrainingLocation(next)
   }
   const [showPicker, setShowPicker] = useState(false)
+  const [mode, setMode] = useState<TrainingMode>('workout')
+
+  function chooseMode(next: TrainingMode) {
+    setMode(next)
+    // The picker below the card lists days in one mode and sessions in the
+    // other, so an open one would be showing the wrong list.
+    setShowPicker(false)
+  }
+
+  // Read once at mount, the way the Guided Workouts screen reads them: a
+  // session the user built themselves is still a cardio session, and it leads.
+  const cardioSessions = useMemo(
+    () => filterGuidedWorkouts([...getCustomGuidedWorkouts(), ...guidedWorkouts], 'cardio'),
+    [],
+  )
+  const [cardioId, setCardioId] = useState(() => cardioSessions[0]?.id ?? '')
+  const cardio =
+    cardioSessions.find((session) => session.id === cardioId) ?? cardioSessions[0] ?? null
+  const cardioSummary = useMemo(
+    () => (cardio ? getGuidedWorkoutSummary(cardio) : null),
+    [cardio],
+  )
 
   // Per-slot variant picking is gone: the program's own defaults are applied
   // for the chosen location. Swapping an exercise is a Weekly Plan concern.
@@ -534,93 +590,211 @@ function PreWorkoutScreen({
 
       <div className="section-title">
         <h2>{t('workout.todaysWorkout')}</h2>
-        <span>{t('workout.dayNumber', { day: selectedDay.day })}</span>
+        <span>
+          {mode === 'workout'
+            ? t('workout.dayNumber', { day: selectedDay.day })
+            : cardio
+              ? t(guidedLevelKeys[cardio.level])
+              : null}
+        </span>
       </div>
 
       <article className="today-card">
-        <div className="today-card__head">
-          <div>
-            <h3>{selectedDay.name}</h3>
-            <p className="today-card__pills">
-              <span>
-                <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
-                {t('workout.exerciseCount', { count: exercises.length })}
-              </span>
-              <span>
-                <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
-                {selectedDay.estimatedTime}
-              </span>
-            </p>
-          </div>
-        </div>
-
-        {easyWeek && phase ? (
-          <p className="today-intro__notice">
-            <ShieldAlert size={15} strokeWidth={2.4} aria-hidden="true" />
-            {t('workout.easyWeekNotice', { phase: phase.name })}
-          </p>
-        ) : null}
-
-        {hasLocationChoice ? (
-          <div
-            className="location-toggle"
-            role="group"
-            aria-label={t('workout.trainingLocation')}
-          >
-            <button
-              aria-pressed={location === 'home'}
-              className={location === 'home' ? 'is-active' : ''}
-              onClick={() => chooseLocation('home')}
-              type="button"
-            >
-              <Home size={16} strokeWidth={2.4} aria-hidden="true" />
-              {t('workout.locationHome')}
-            </button>
-            <button
-              aria-pressed={location === 'gym'}
-              className={location === 'gym' ? 'is-active' : ''}
-              onClick={() => chooseLocation('gym')}
-              type="button"
-            >
-              <Building2 size={16} strokeWidth={2.4} aria-hidden="true" />
-              {t('workout.locationGym')}
-            </button>
-          </div>
-        ) : null}
-
-        {hasExercises ? (
+        {/* Lifting and cardio are the two things this screen starts, so the
+            choice sits above everything the card says rather than beside a
+            second button somewhere else on the page. */}
+        <div className="mode-toggle" role="group" aria-label={t('workout.modeAria')}>
           <button
-            className="workout-primary-button workout-primary-button--large"
-            onClick={() => onStart(resolvedDay)}
+            aria-pressed={mode === 'workout'}
+            className={mode === 'workout' ? 'is-active' : ''}
+            onClick={() => chooseMode('workout')}
             type="button"
           >
-            <Play size={21} strokeWidth={2.4} aria-hidden="true" />
-            {t('workout.start')}
+            <Dumbbell size={16} strokeWidth={2.4} aria-hidden="true" />
+            {t('workout.modeWorkout')}
           </button>
+          <button
+            aria-pressed={mode === 'cardio'}
+            className={mode === 'cardio' ? 'is-active' : ''}
+            onClick={() => chooseMode('cardio')}
+            type="button"
+          >
+            <Flame size={16} strokeWidth={2.4} aria-hidden="true" />
+            {t('workout.modeCardio')}
+          </button>
+        </div>
+
+        {mode === 'workout' ? (
+          <>
+            <div className="today-card__head">
+              <div>
+                <h3>{selectedDay.name}</h3>
+                <p className="today-card__pills">
+                  <span>
+                    <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
+                    {t('workout.exerciseCount', { count: exercises.length })}
+                  </span>
+                  <span>
+                    <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
+                    {selectedDay.estimatedTime}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            {easyWeek && phase ? (
+              <p className="today-intro__notice">
+                <ShieldAlert size={15} strokeWidth={2.4} aria-hidden="true" />
+                {t('workout.easyWeekNotice', { phase: phase.name })}
+              </p>
+            ) : null}
+
+            {hasLocationChoice ? (
+              <div
+                className="location-toggle"
+                role="group"
+                aria-label={t('workout.trainingLocation')}
+              >
+                <button
+                  aria-pressed={location === 'home'}
+                  className={location === 'home' ? 'is-active' : ''}
+                  onClick={() => chooseLocation('home')}
+                  type="button"
+                >
+                  <Home size={16} strokeWidth={2.4} aria-hidden="true" />
+                  {t('workout.locationHome')}
+                </button>
+                <button
+                  aria-pressed={location === 'gym'}
+                  className={location === 'gym' ? 'is-active' : ''}
+                  onClick={() => chooseLocation('gym')}
+                  type="button"
+                >
+                  <Building2 size={16} strokeWidth={2.4} aria-hidden="true" />
+                  {t('workout.locationGym')}
+                </button>
+              </div>
+            ) : null}
+
+            {hasExercises ? (
+              <button
+                className="workout-primary-button workout-primary-button--large"
+                onClick={() => onStart(resolvedDay)}
+                type="button"
+              >
+                <Play size={21} strokeWidth={2.4} aria-hidden="true" />
+                {t('workout.start')}
+              </button>
+            ) : null}
+          </>
+        ) : cardio && cardioSummary ? (
+          <>
+            <div className="today-card__head">
+              <div>
+                <h3>{translateGuidedText(cardio.name)}</h3>
+                <p className="today-card__pills">
+                  <span>
+                    <ListChecks size={13} strokeWidth={2.4} aria-hidden="true" />
+                    {t('guided.moveCount', { count: cardioSummary.exerciseCount })}
+                  </span>
+                  <span>
+                    <Clock3 size={13} strokeWidth={2.4} aria-hidden="true" />
+                    {t('guided.minutes', {
+                      count: getGuidedWorkoutMinutes(cardioSummary.totalSeconds),
+                    })}
+                  </span>
+                  {cardioSummary.lowImpact ? <span>{t('guided.lowImpact')}</span> : null}
+                </p>
+              </div>
+            </div>
+
+            <p className="today-card__copy">{translateGuidedText(cardio.description)}</p>
+
+            <button
+              className="workout-primary-button workout-primary-button--large"
+              onClick={() => onStartCardio(cardio)}
+              type="button"
+            >
+              <Play size={21} strokeWidth={2.4} aria-hidden="true" />
+              {t('workout.start')}
+            </button>
+          </>
         ) : null}
       </article>
 
-      {/* The guided sessions are a different kind of training - timed,
-          follow-along, no logging - so they are one link away rather than
-          mixed into today's program. */}
-      <button
-        className="guided-entry"
-        onClick={() => onNavigate('guided-workouts')}
-        type="button"
-      >
-        <span className="guided-entry__icon" aria-hidden="true">
-          <Timer size={19} strokeWidth={2.3} />
-        </span>
-        <span className="guided-entry__text">
-          <strong>{t('guided.entryTitle')}</strong>
-          <small>{t('guided.entrySubtitle')}</small>
-        </span>
-        <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
-      </button>
+      {mode === 'workout' ? (
+        hasExercises ? (
+          <>
+            {/* Three numbers about the session ahead, the mockup's summary row. */}
+            <div className="summary-grid">
+              <div className="summary-stat">
+                <ListChecks
+                  aria-hidden="true"
+                  className="summary-stat__icon summary-stat__icon--accent"
+                  size={19}
+                  strokeWidth={2.2}
+                />
+                <strong>{exercises.length}</strong>
+                <span>{t('workout.statExercises')}</span>
+              </div>
+              <div className="summary-stat">
+                <Layers
+                  aria-hidden="true"
+                  className="summary-stat__icon summary-stat__icon--warm"
+                  size={19}
+                  strokeWidth={2.2}
+                />
+                <strong>{totalSets}</strong>
+                <span>{t('workout.statWorkingSets')}</span>
+              </div>
+              <div className="summary-stat">
+                <Clock3
+                  aria-hidden="true"
+                  className="summary-stat__icon summary-stat__icon--cool"
+                  size={19}
+                  strokeWidth={2.2}
+                />
+                <strong>{selectedDay.estimatedTime.replace(/\s*min\s*$/i, '')}</strong>
+                <span>{t('workout.statMinutes')}</span>
+              </div>
+            </div>
 
-      {hasExercises ? (
+            <div className="section-title">
+              <h2>{t('workout.exercisesHeading')}</h2>
+              <span>{exercises.length}</span>
+            </div>
+
+            <ol className="today-exercise-list">
+              {exercises.map((exercise, index) => (
+                <li key={`${exercise.id}-${index}`}>
+                  <span aria-hidden="true">{index + 1}</span>
+                  <span>
+                    <strong>{exercise.name}</strong>
+                    <small>
+                      {Math.max(1, Number(exercise.sets) || 1)} ×{' '}
+                      {getExerciseTarget(exercise)}
+                    </small>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </>
+        ) : (
+          <article className="today-empty">
+            <p>{t('workout.emptyDay')}</p>
+            <button
+              className="workout-secondary-button"
+              onClick={() => onNavigate('weekly-plan')}
+              type="button"
+            >
+              {t('workout.viewWeeklyPlan')}
+            </button>
+          </article>
+        )
+      ) : cardio && cardioSummary ? (
         <>
-          {/* Three numbers about the session ahead, the mockup's summary row. */}
+          {/* The same three numbers, counted the way a timed session counts:
+              movements rather than exercises, rounds rather than sets. */}
           <div className="summary-grid">
             <div className="summary-stat">
               <ListChecks
@@ -629,8 +803,8 @@ function PreWorkoutScreen({
                 size={19}
                 strokeWidth={2.2}
               />
-              <strong>{exercises.length}</strong>
-              <span>{t('workout.statExercises')}</span>
+              <strong>{cardioSummary.exerciseCount}</strong>
+              <span>{t('workout.statMoves')}</span>
             </div>
             <div className="summary-stat">
               <Layers
@@ -639,8 +813,8 @@ function PreWorkoutScreen({
                 size={19}
                 strokeWidth={2.2}
               />
-              <strong>{totalSets}</strong>
-              <span>{t('workout.statWorkingSets')}</span>
+              <strong>{cardioSummary.rounds}</strong>
+              <span>{t('workout.statRounds')}</span>
             </div>
             <div className="summary-stat">
               <Clock3
@@ -649,40 +823,48 @@ function PreWorkoutScreen({
                 size={19}
                 strokeWidth={2.2}
               />
-              <strong>{selectedDay.estimatedTime.replace(/\s*min\s*$/i, '')}</strong>
+              <strong>{getGuidedWorkoutMinutes(cardioSummary.totalSeconds)}</strong>
               <span>{t('workout.statMinutes')}</span>
             </div>
           </div>
 
           <div className="section-title">
-            <h2>{t('workout.exercisesHeading')}</h2>
-            <span>{exercises.length}</span>
+            <h2>{t('workout.movementsHeading')}</h2>
+            <span>{cardio.steps.length}</span>
           </div>
 
           <ol className="today-exercise-list">
-            {exercises.map((exercise, index) => (
-              <li key={`${exercise.id}-${index}`}>
-                <span aria-hidden="true">{index + 1}</span>
-                <span>
-                  <strong>{exercise.name}</strong>
-                  <small>
-                    {Math.max(1, Number(exercise.sets) || 1)} ×{' '}
-                    {getExerciseTarget(exercise)}
-                  </small>
-                </span>
-              </li>
-            ))}
+            {cardio.steps.map((step, index) => {
+              const exercise = resolveGuidedStepExercise(step)
+              if (!exercise) {
+                return null
+              }
+
+              return (
+                <li key={`${exercise.id}-${index}`}>
+                  <span aria-hidden="true">{index + 1}</span>
+                  <span>
+                    <strong>{translateGuidedText(exercise.name)}</strong>
+                    <small>
+                      {t('workout.stepSeconds', {
+                        count: step.seconds ?? cardio.workSeconds,
+                      })}
+                    </small>
+                  </span>
+                </li>
+              )
+            })}
           </ol>
         </>
       ) : (
         <article className="today-empty">
-          <p>{t('workout.emptyDay')}</p>
+          <p>{t('workout.noCardio')}</p>
           <button
             className="workout-secondary-button"
-            onClick={() => onNavigate('weekly-plan')}
+            onClick={() => onNavigate('guided-workouts')}
             type="button"
           >
-            {t('workout.viewWeeklyPlan')}
+            {t('workout.moreGuidedTitle')}
           </button>
         </article>
       )}
@@ -693,45 +875,105 @@ function PreWorkoutScreen({
         onClick={() => setShowPicker((open) => !open)}
         type="button"
       >
-        {showPicker ? t('workout.hideOtherDays') : t('workout.showOtherDays')}
+        {mode === 'workout'
+          ? showPicker
+            ? t('workout.hideOtherDays')
+            : t('workout.showOtherDays')
+          : showPicker
+            ? t('workout.hideOtherSessions')
+            : t('workout.showOtherSessions')}
       </button>
 
       {showPicker ? (
-        <div
-          className="today-picker"
-          role="group"
-          aria-label={t('workout.chooseWorkout')}
-        >
-          {activeProgram.days.map((day) => (
-            <button
-              aria-pressed={day.day === selectedDay.day}
-              className={`today-picker__day${
-                day.day === selectedDay.day ? ' today-picker__day--active' : ''
-              }`}
-              key={day.day}
-              onClick={() => {
-                onSelectDay(day)
-                setShowPicker(false)
-              }}
-              type="button"
-            >
-              <strong>{day.name}</strong>
-              <small>{day.estimatedTime}</small>
-            </button>
-          ))}
+        mode === 'workout' ? (
+          <div
+            className="today-picker"
+            role="group"
+            aria-label={t('workout.chooseWorkout')}
+          >
+            {activeProgram.days.map((day) => (
+              <button
+                aria-pressed={day.day === selectedDay.day}
+                className={`today-picker__day${
+                  day.day === selectedDay.day ? ' today-picker__day--active' : ''
+                }`}
+                key={day.day}
+                onClick={() => {
+                  onSelectDay(day)
+                  setShowPicker(false)
+                }}
+                type="button"
+              >
+                <strong>{day.name}</strong>
+                <small>{day.estimatedTime}</small>
+              </button>
+            ))}
 
-          {activeProgram.standaloneWorkouts.map((workout) => (
-            <button
-              className="today-picker__day today-picker__day--extra"
-              key={workout.id}
-              onClick={() => onStartStandalone(resolveStandalone(workout, location))}
-              type="button"
-            >
-              <strong>{workout.name}</strong>
-              <small>{t('workout.extraStartsNow')}</small>
-            </button>
-          ))}
-        </div>
+            {activeProgram.standaloneWorkouts.map((workout) => (
+              <button
+                className="today-picker__day today-picker__day--extra"
+                key={workout.id}
+                onClick={() => onStartStandalone(resolveStandalone(workout, location))}
+                type="button"
+              >
+                <strong>{workout.name}</strong>
+                <small>{t('workout.extraStartsNow')}</small>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div
+            className="today-picker"
+            role="group"
+            aria-label={t('workout.chooseSession')}
+          >
+            {cardioSessions.map((session) => (
+              <button
+                aria-pressed={session.id === cardio?.id}
+                className={`today-picker__day${
+                  session.id === cardio?.id ? ' today-picker__day--active' : ''
+                }`}
+                key={session.id}
+                onClick={() => {
+                  setCardioId(session.id)
+                  setShowPicker(false)
+                }}
+                type="button"
+              >
+                <strong>{translateGuidedText(session.name)}</strong>
+                <small>
+                  {t('guided.minutes', {
+                    count: getGuidedWorkoutMinutes(
+                      getGuidedWorkoutSummary(session).totalSeconds,
+                    ),
+                  })}
+                  {' · '}
+                  {t(guidedLevelKeys[session.level])}
+                </small>
+              </button>
+            ))}
+          </div>
+        )
+      ) : null}
+
+      {/* Cardio is only one of the guided categories, so the way through to
+          abs, posture and stretching sits under the cardio list rather than
+          competing with the card above. */}
+      {mode === 'cardio' ? (
+        <button
+          className="guided-entry"
+          onClick={() => onNavigate('guided-workouts')}
+          type="button"
+        >
+          <span className="guided-entry__icon" aria-hidden="true">
+            <Flame size={19} strokeWidth={2.3} />
+          </span>
+          <span className="guided-entry__text">
+            <strong>{t('workout.moreGuidedTitle')}</strong>
+            <small>{t('workout.moreGuidedSub')}</small>
+          </span>
+          <ChevronRight size={18} strokeWidth={2.4} aria-hidden="true" />
+        </button>
       ) : null}
     </section>
   )

@@ -12,6 +12,10 @@ export const workoutMessages = {
   'workout.easyWeekNotice':
     '{phase}: giữ nhẹ nhàng và đừng cố nâng nặng hơn trong tuần này.',
 
+  'workout.modeAria': 'Tập gì hôm nay',
+  'workout.modeWorkout': 'Tập tạ',
+  'workout.modeCardio': 'Cardio',
+
   'workout.trainingLocation': 'Nơi tập',
   'workout.locationHome': 'Tại nhà',
   'workout.locationGym': 'Phòng gym',
@@ -20,7 +24,11 @@ export const workoutMessages = {
   'workout.statExercises': 'bài tập',
   'workout.statWorkingSets': 'hiệp chính',
   'workout.statMinutes': 'phút',
+  'workout.statMoves': 'động tác',
+  'workout.statRounds': 'vòng',
   'workout.exercisesHeading': 'Bài tập',
+  'workout.movementsHeading': 'Động tác',
+  'workout.stepSeconds': { one: '{count} giây', other: '{count} giây' },
 
   'workout.emptyDay': 'Ngày này chưa có bài tập nào.',
   'workout.viewWeeklyPlan': 'Xem lịch tập tuần',
@@ -30,6 +38,13 @@ export const workoutMessages = {
   'workout.hideOtherDays': 'Ẩn các buổi tập khác',
   'workout.chooseWorkout': 'Chọn một buổi tập',
   'workout.extraStartsNow': 'Bổ sung · bắt đầu ngay',
+
+  'workout.showOtherSessions': 'Chọn buổi cardio khác',
+  'workout.hideOtherSessions': 'Ẩn các buổi khác',
+  'workout.chooseSession': 'Chọn một buổi cardio',
+  'workout.noCardio': 'Chưa có buổi cardio nào.',
+  'workout.moreGuidedTitle': 'Tất cả bài có hướng dẫn',
+  'workout.moreGuidedSub': 'Có cả bụng, tư thế và giãn cơ, hoặc tự tạo bài của bạn.',
 
   'workout.saveFailed':
     'Không lưu được buổi tập này - bộ nhớ thiết bị đã đầy. Hãy giải phóng dung lượng (Thêm > Cài đặt > Sao lưu) rồi bấm Kết thúc lại. Buổi tập của bạn vẫn còn đây.',

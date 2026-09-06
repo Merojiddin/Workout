@@ -12,7 +12,15 @@ import {
   type GuidedWorkoutStep,
 } from '../data/guidedWorkouts'
 import type { LoggedExercise, WorkoutSession } from '../data/workoutSessions'
+import type { MessageKey } from '../i18n'
 import { translateExerciseText } from '../i18n/exercises'
+
+/** How each difficulty is named on screen, wherever a workout is listed. */
+export const guidedLevelKeys: Record<GuidedLevel, MessageKey> = {
+  Advanced: 'guided.levelAdvanced',
+  Beginner: 'guided.levelBeginner',
+  Intermediate: 'guided.levelIntermediate',
+}
 
 /**
  * Turning a guided workout definition into the flat timeline the player runs.
