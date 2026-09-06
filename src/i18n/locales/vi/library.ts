@@ -3,9 +3,9 @@ export const libraryMessages = {
   'library.eyebrow': 'Thư viện bài tập',
   'library.title': 'Thư viện bài tập',
   'library.subtitle':
-    'Tìm hiểu kỹ thuật, nhóm cơ tác động, lỗi thường gặp và cách tăng tiến cho giáo án của bạn.',
+    'Kỹ thuật, nhóm cơ tác động, lỗi thường gặp và cách tăng tiến cho mọi động tác trong ứng dụng.',
   'library.countLabel': 'Bài tập',
-  'library.countValue': '{count} bài trong giáo án của bạn',
+  'library.countValue': '{count} bài trong thư viện',
   'library.resultCount': { one: '{count} bài tập', other: '{count} bài tập' },
   'library.resetFilters': 'Xoá bộ lọc',
   'library.empty': 'Không tìm thấy bài tập nào. Hãy thử đổi bộ lọc.',

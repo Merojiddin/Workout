@@ -1,3 +1,7 @@
+import {
+  getGuidedExerciseMedia,
+  guidedExerciseList,
+} from './guidedExercises'
 import { getPlanfitExerciseMedia } from './planfitExerciseMedia'
 
 export type ExerciseCategory =
@@ -35,6 +39,15 @@ export type EquipmentTag =
   | 'Heavy bag'
   | 'Landmine'
   | "Captain's chair"
+  // Added with the guided-workout movements: conditioning kit the strength
+  // program never called for.
+  | 'Kettlebell'
+  | 'Ab wheel'
+  | 'Exercise ball'
+  | 'Battle rope'
+  | 'Air bike'
+  | 'Air runner'
+  | 'Ski erg'
 
 export interface DemoLink {
   label: string
@@ -115,6 +128,13 @@ export const equipmentOptions: EquipmentTag[] = [
   'Heavy bag',
   'Landmine',
   "Captain's chair",
+  'Kettlebell',
+  'Ab wheel',
+  'Exercise ball',
+  'Battle rope',
+  'Air bike',
+  'Air runner',
+  'Ski erg',
 ]
 
 export const difficultyOptions: Difficulty[] = [
@@ -5320,6 +5340,112 @@ const baseExerciseLibrary: LibraryExercise[] = [
   ...templatedExercises,
 ]
 
+/**
+ * The guided-workout movements, as library entries.
+ *
+ * They are the same movements, so they belong in the one library the guide,
+ * the search and the filters read - not in a second catalog nobody thinks to
+ * look in. `guidedExercises.ts` stays the single definition: this reads the
+ * taxonomy and coaching copy off it and fills in the rest through
+ * `createExercise`, exactly as a hand-written entry would.
+ *
+ * Anything the library already covers is skipped, by id and by normalized
+ * name, so Plank and Dead Bug keep their original hand-written guides rather
+ * than being replaced by the shorter guided copy.
+ */
+const guidedLibraryExercises: LibraryExercise[] = (() => {
+  const existingIds = new Set(baseExerciseLibrary.map((exercise) => exercise.id))
+  const existingNames = new Set(
+    baseExerciseLibrary.map((exercise) => normalizeName(exercise.name)),
+  )
+
+  return guidedExerciseList
+    .filter(
+      (exercise) =>
+        !existingIds.has(exercise.id) &&
+        !existingNames.has(normalizeName(exercise.name)),
+    )
+    .map((exercise) => {
+      const media = getGuidedExerciseMedia(exercise)
+      // A stretch or a drill is not progressed by adding load, and a
+      // conditioning piece is progressed by doing more of it, not heavier.
+      const progressionMode: ProgressionMode =
+        exercise.category === 'Posture'
+          ? 'control'
+          : exercise.category === 'Conditioning'
+            ? 'skill'
+            : 'load'
+
+      // `createExercise` writes its regression and mistakes for a loaded lift.
+      // Told to do a stretch lighter, or a burpee with "a smaller load", that
+      // copy is simply wrong, so the two modes that are not about load bring
+      // their own.
+      const regression =
+        progressionMode === 'control'
+          ? [
+              'Reduce the range to what is comfortable',
+              'Hold it for less time',
+              'Support yourself against a wall, a chair, or the floor',
+            ]
+          : progressionMode === 'skill'
+            ? [
+                'Slow the pace down and keep the movement clean',
+                'Shorten the work interval or take a longer rest',
+                'Use the low-impact version of the movement',
+              ]
+            : undefined
+      const commonMistakes =
+        progressionMode === 'control'
+          ? [
+              'Forcing range instead of easing into it',
+              'Holding your breath through the stretch',
+              'Rounding or over-arching the lower back to reach further',
+              'Working through sharp or nerve-like pain',
+            ]
+          : progressionMode === 'skill'
+            ? [
+                'Starting far too fast to hold the pace out',
+                'Letting technique fall apart as the interval runs down',
+                'Landing heavily instead of absorbing it',
+                'Continuing through sharp or unusual pain',
+              ]
+            : undefined
+
+      return {
+        ...createExercise({
+          id: exercise.id,
+          name: exercise.name,
+          category: exercise.category,
+          primaryMuscles: exercise.primaryMuscles,
+          secondaryMuscles: exercise.secondaryMuscles,
+          equipment: exercise.equipment?.length
+            ? exercise.equipment
+            : ['Bodyweight'],
+          difficulty: exercise.difficulty,
+          formCue: exercise.cue,
+          setup: exercise.instructions[0] ?? exercise.cue,
+          execution: exercise.instructions[1] ?? exercise.cue,
+          safety: exercise.perSide
+            ? 'Give both sides the same time, and stop the set before technique changes or pain appears.'
+            : undefined,
+          progressionMode,
+          postureFocus: exercise.category === 'Posture' || undefined,
+          // These are follow-along drills rather than program slots, so they
+          // are not tied to a day in anybody's plan.
+          relatedWorkoutDays: [],
+          regression,
+        }),
+        ...(commonMistakes ? { commonMistakes } : {}),
+        // Its own demonstration, which the media merge below leaves alone:
+        // these ids are not in the Planfit local-exercise map.
+        imageUrl: media.imageUrl,
+        imageAlt: `${exercise.name} demonstration`,
+        gifUrl: media.animationUrl,
+        gifAlt: `${exercise.name} looping animation`,
+      }
+    })
+})()
+
 // ---------------------------------------------------------------------------
 // Exercise media (Step 18)
 //
@@ -5873,7 +5999,10 @@ const exerciseMedia: Record<string, ExerciseMedia> = {
 }
 
 /** Default library with curated Planfit media plus any form-guide metadata. */
-export const exerciseLibrary: LibraryExercise[] = baseExerciseLibrary.map(
+export const exerciseLibrary: LibraryExercise[] = [
+  ...baseExerciseLibrary,
+  ...guidedLibraryExercises,
+].map(
   (exercise) => {
     const media = exerciseMedia[exercise.id]
     const planfitMedia = getPlanfitExerciseMedia(exercise.id)

@@ -1,4 +1,11 @@
 import { getPlanfitMediaById } from './planfitExerciseMedia'
+// Type-only, so this never becomes a runtime import cycle: exerciseLibrary
+// imports the catalog below as a value, and only the taxonomy comes back.
+import type {
+  Difficulty,
+  EquipmentTag,
+  ExerciseCategory,
+} from './exerciseLibrary'
 
 /**
  * The movement catalog the guided workouts are built from.
@@ -24,6 +31,18 @@ export interface GuidedAudioCue {
 export interface GuidedExercise {
   id: string
   name: string
+  /**
+   * Where the movement sits in the Exercise Library, and what it works.
+   *
+   * Guided movements are library exercises too - they are merged into
+   * `exerciseLibrary` so the guide, the filters and the search find them - so
+   * every entry carries the taxonomy the library needs. Adding a movement here
+   * adds it to both places.
+   */
+  category: ExerciseCategory
+  primaryMuscles: string[]
+  secondaryMuscles?: string[]
+  difficulty?: Difficulty
   /** One line, printed under the name and read aloud as the exercise starts. */
   cue: string
   /** How the movement is performed. Two lines, readable at arm's length. */
@@ -51,7 +70,7 @@ export interface GuidedExercise {
   /** Both feet leave the floor. What the low-impact workouts stay clear of. */
   impact?: 'low' | 'high'
   /** Empty means nothing but a floor and your own bodyweight. */
-  equipment?: string[]
+  equipment?: EquipmentTag[]
 }
 
 /** Resolved demonstration media for one movement. */
@@ -65,6 +84,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'jumping-jacks',
     name: 'Jumping Jacks',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Calves', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Land soft, arms all the way overhead.',
     instructions: [
       'Jump the feet wide and sweep both arms above your head.',
@@ -77,6 +100,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'high-knees',
     name: 'High Knees',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Hip Flexors', 'Calves', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Knees to hip height, stay on the balls of your feet.',
     instructions: [
       'Drive one knee up to hip height, then quickly swap.',
@@ -91,6 +118,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'mountain-climbers',
     name: 'Mountain Climbers',
+    category: 'Conditioning',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Cardiovascular System', 'Shoulders', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Hips low, shoulders stacked over your hands.',
     instructions: [
       'Start in a push-up position with your hands under your shoulders.',
@@ -103,6 +134,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'burpees',
     name: 'Burpees',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Chest', 'Quads', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Chest to the floor, then jump and reach.',
     instructions: [
       'Squat down, plant your hands, and shoot the feet back to a plank.',
@@ -115,6 +150,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'slow-burpees',
     name: 'Slow Burpees',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Chest', 'Quads', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Same shape as a burpee, walked instead of jumped.',
     instructions: [
       'Squat down, plant the hands, and step the feet back one at a time.',
@@ -126,6 +165,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'squat-jumps',
     name: 'Squat Jumps',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Calves', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Sit back, explode up, land quietly.',
     instructions: [
       'Drop into a squat with your chest up and your weight through mid-foot.',
@@ -138,6 +181,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'skater-hops',
     name: 'Skater Hops',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Quads'],
+    secondaryMuscles: ['Adductors', 'Calves', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Bound side to side and stick each landing.',
     instructions: [
       'Push off one leg and bound sideways onto the other.',
@@ -149,6 +196,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'plank-jacks',
     name: 'Plank Jacks',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Shoulders', 'Adductors', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Plank on top, jumping feet underneath.',
     instructions: [
       'Hold a strong plank with your shoulders over your hands.',
@@ -160,6 +211,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'jump-rope',
     name: 'Jump Rope',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Calves', 'Forearms'],
+    difficulty: 'Intermediate',
     cue: 'Small hops, wrists doing the turning.',
     instructions: [
       'Turn the rope from the wrists, elbows tucked in near your ribs.',
@@ -172,6 +227,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'criss-cross-jacks',
     name: 'Criss-Cross Jacks',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Shoulders', 'Adductors'],
+    difficulty: 'Beginner',
     cue: 'Cross the arms and feet, then open wide.',
     instructions: [
       'Jump the feet apart and swing the arms out to the sides.',
@@ -183,6 +242,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'step-jacks',
     name: 'Step Jacks',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Shoulders', 'Calves'],
+    difficulty: 'Beginner',
     cue: 'A jumping jack with one foot always down.',
     instructions: [
       'Step one foot out to the side and sweep both arms overhead.',
@@ -194,6 +257,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'marching-on-spot',
     name: 'Marching On The Spot',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Tall posture, knees up, arms swinging.',
     instructions: [
       'March on the spot lifting each knee to hip height.',
@@ -205,6 +272,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'ankle-touches',
     name: 'Alternating Ankle Touches',
+    category: 'Conditioning',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Cardiovascular System', 'Adductors'],
+    difficulty: 'Beginner',
     cue: 'Hinge side to side and reach for the ankle.',
     instructions: [
       'Stand with your feet wide and bend to one side, reaching for that ankle.',
@@ -216,6 +287,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'front-kicks',
     name: 'Front Kicks',
+    category: 'Conditioning',
+    primaryMuscles: ['Hip Flexors'],
+    secondaryMuscles: ['Core', 'Quads', 'Cardiovascular System'],
+    difficulty: 'Beginner',
     cue: 'Kick from the hip, guard up.',
     instructions: [
       'Keep your hands up and drive one foot forward at hip height.',
@@ -227,6 +302,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wall-sit',
     name: 'Wall Sit',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Glutes', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Thighs parallel, back flat against the wall.',
     instructions: [
       'Slide down a wall until your knees are bent to a right angle.',
@@ -239,6 +318,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'bodyweight-squats',
     name: 'Bodyweight Squats',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Core', 'Hamstrings'],
+    difficulty: 'Beginner',
     cue: 'Sit back between your heels, chest tall.',
     instructions: [
       'Feet about shoulder width, toes turned slightly out.',
@@ -250,6 +333,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'lunge-twist',
     name: 'Lunge With Twist',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Obliques', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Long step, then rotate over the front leg.',
     instructions: [
       'Step forward into a lunge until both knees are bent to a right angle.',
@@ -268,6 +355,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'squat-burpee',
     name: 'Squat Burpee',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Quads', 'Glutes', 'Chest', 'Core'],
+    difficulty: 'Advanced',
     cue: 'A burpee that lands in a full squat every rep.',
     instructions: [
       'Drop into a squat, plant the hands and kick the feet back to a plank.',
@@ -280,6 +371,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'burpee-side-kick',
     name: 'Burpee With Side Kick',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Quads', 'Glutes', 'Core', 'Chest'],
+    difficulty: 'Advanced',
     cue: 'Burpee, then kick out hard on the way up.',
     instructions: [
       'Perform a full burpee back to standing.',
@@ -291,6 +386,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'jump-lunges',
     name: 'Jump Lunges',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Calves', 'Cardiovascular System'],
+    difficulty: 'Advanced',
     cue: 'Swap legs in the air, land deep and quiet.',
     instructions: [
       'Drop into a lunge until both knees are bent to a right angle.',
@@ -303,6 +402,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'box-jumps',
     name: 'Box Jumps',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Calves', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Jump up, stand all the way tall, step back down.',
     instructions: [
       'Stand a short step from the box, load the hips and swing the arms.',
@@ -315,6 +418,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'split-jump-to-box',
     name: 'Split Jump To Box',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Calves', 'Core'],
+    difficulty: 'Advanced',
     cue: 'One foot on the box, swap in the air.',
     instructions: [
       'Put one foot on the box and drop into a split stance.',
@@ -327,6 +434,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'double-unders',
     name: 'Double Unders',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Calves', 'Forearms'],
+    difficulty: 'Advanced',
     cue: 'Two rope turns for every jump.',
     instructions: [
       'Jump a little higher than a single, and turn the rope twice underneath.',
@@ -339,6 +450,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'criss-cross-jumps',
     name: 'Criss-Cross Jumps',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Calves', 'Adductors'],
+    difficulty: 'Intermediate',
     cue: 'Scissor the feet in the air, fast.',
     instructions: [
       'Jump and cross one foot in front of the other.',
@@ -350,6 +465,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'high-knee-squat',
     name: 'High-Knee Squat',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Quads', 'Glutes', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Two knee drives, then a full squat.',
     instructions: [
       'Drive each knee up to hip height on the spot.',
@@ -361,6 +480,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'knee-thrusts',
     name: 'Knee Thrusts',
+    category: 'Conditioning',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Hip Flexors', 'Lats', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Pull the knee hard into your hands.',
     instructions: [
       'Reach both arms overhead and stand tall.',
@@ -372,6 +495,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'twisting-knee-thrusts',
     name: 'Twisting Knee Thrusts',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Hip Flexors', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Opposite elbow meets the knee, from standing.',
     instructions: [
       'Hands behind your head, elbows wide, standing tall.',
@@ -383,6 +510,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'inchworm-climbers',
     name: 'Inchworm To Climbers',
+    category: 'Conditioning',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Hamstrings', 'Shoulders', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Walk out, climb, walk back, stand.',
     instructions: [
       'Hinge and walk your hands out to a plank.',
@@ -395,6 +526,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'side-mountain-climbers',
     name: 'Side Mountain Climbers',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Shoulders', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Knee to the same elbow, hips square.',
     instructions: [
       'Hold a strong plank with your hands under your shoulders.',
@@ -406,6 +541,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'plank-ups',
     name: 'Plank-Ups',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Triceps', 'Front Shoulders', 'Obliques'],
+    difficulty: 'Intermediate',
     cue: 'Forearms to hands and back, no hip swing.',
     instructions: [
       'Start in a forearm plank with your feet a little wider than usual.',
@@ -418,6 +557,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'rotation-push-ups',
     name: 'Rotation Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Obliques', 'Core', 'Front Shoulders'],
+    difficulty: 'Advanced',
     cue: 'Push up, then open into a side plank.',
     instructions: [
       'Perform a full push-up with your chest to the floor.',
@@ -429,6 +572,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'archer-push-ups',
     name: 'Archer Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Load one arm, the other stays straight.',
     instructions: [
       'Take a wide hand position in a push-up.',
@@ -440,6 +587,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'jumping-pull-ups',
     name: 'Jumping Pull-Ups',
+    category: 'Back',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Biceps', 'Upper Back'],
+    difficulty: 'Intermediate',
     cue: 'Jump into it, lower yourself slowly.',
     instructions: [
       'Stand under a bar you can reach with a small jump.',
@@ -452,6 +603,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'battle-ropes',
     name: 'Battle Ropes',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Shoulders', 'Forearms', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Waves from the hips, not the shoulders.',
     instructions: [
       'Hold one rope end in each hand in a quarter squat.',
@@ -465,6 +620,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wall-balls',
     name: 'Wall Balls',
+    category: 'Conditioning',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Shoulders', 'Cardiovascular System'],
+    difficulty: 'Advanced',
     cue: 'Full squat, then throw from the hips.',
     instructions: [
       'Hold a medicine ball at your chest and squat below parallel.',
@@ -477,6 +636,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'air-runner-sprint',
     name: 'Sprint Intervals',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Quads', 'Hamstrings', 'Calves'],
+    difficulty: 'Advanced',
     cue: 'All out. Nothing held back.',
     instructions: [
       'Run flat out for the whole interval, arms driving.',
@@ -492,6 +655,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'squat-to-overhead-press',
     name: 'Squat To Overhead Reach',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Shoulders', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Full squat, then punch both arms up.',
     instructions: [
       'Squat as deep as you can hold a flat back.',
@@ -503,6 +670,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'heel-touch-side-kick-squat',
     name: 'Squat, Touch And Kick',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Obliques', 'Cardiovascular System'],
+    difficulty: 'Intermediate',
     cue: 'Squat, touch the floor, kick out.',
     instructions: [
       'Squat down and touch the floor beside one heel.',
@@ -514,6 +685,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'woodchoppers',
     name: 'Woodchoppers',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Chop from high to low across the body.',
     instructions: [
       'Reach both hands high on one side and hinge into a quarter squat.',
@@ -526,6 +701,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'side-raise-and-kick',
     name: 'Side Raise And Kick',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Knee up, then extend the kick out.',
     instructions: [
       'Stand tall and lift one knee out to the side to hip height.',
@@ -538,6 +717,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'stepback-handraise',
     name: 'Step Back And Reach',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Shoulders', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Long step back, both arms overhead.',
     instructions: [
       'Take a long step back into a lunge.',
@@ -549,6 +732,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'walking-the-dog',
     name: 'Walk The Dog',
+    category: 'Conditioning',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Core', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Walk the hands out, walk them back.',
     instructions: [
       'Hinge and walk your hands out until you are in a long plank.',
@@ -560,6 +747,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'assault-bike',
     name: 'Assault Bike Sprint',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Quads', 'Lats', 'Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'Arms and legs both driving. All out.',
     instructions: [
       'Set up with the seat at hip height and grip the handles.',
@@ -572,6 +763,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'ski-erg',
     name: 'Ski Erg',
+    category: 'Conditioning',
+    primaryMuscles: ['Cardiovascular System'],
+    secondaryMuscles: ['Lats', 'Core', 'Triceps'],
+    difficulty: 'Intermediate',
     cue: 'Hinge and drive down through the handles.',
     instructions: [
       'Reach the handles high with soft knees.',
@@ -590,6 +785,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hand-release-push-ups',
     name: 'Hand-Release Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Front Shoulders', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Chest down, hands off the floor, press.',
     instructions: [
       'Lower all the way until your chest is on the floor.',
@@ -602,6 +801,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hindu-push-ups',
     name: 'Hindu Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps', 'Lower Back'],
+    difficulty: 'Advanced',
     cue: 'Dive under, sweep up, reverse it.',
     instructions: [
       'Start hips high, then dive your chest low between your hands.',
@@ -613,6 +816,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'spiderman-push-ups',
     name: 'Spiderman Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Obliques', 'Triceps', 'Hip Flexors'],
+    difficulty: 'Advanced',
     cue: 'Knee to the elbow on the way down.',
     instructions: [
       'Lower into a push-up and bring one knee up to the elbow on that side.',
@@ -624,6 +831,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'walking-push-ups',
     name: 'Walking Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Triceps', 'Shoulders', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Push up, then travel sideways on your hands.',
     instructions: [
       'Do one push-up, then walk both hands and feet a step to the side.',
@@ -635,6 +846,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wide-push-ups',
     name: 'Wide Push-Ups',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps'],
+    difficulty: 'Beginner',
     cue: 'Hands wide, chest doing the work.',
     instructions: [
       'Set your hands well outside shoulder width.',
@@ -646,6 +861,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'handstand-push-ups',
     name: 'Handstand Push-Ups',
+    category: 'Shoulders',
+    primaryMuscles: ['Shoulders'],
+    secondaryMuscles: ['Triceps', 'Traps', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Kick up to the wall, lower the head to the floor.',
     instructions: [
       'Kick up into a handstand with your heels resting on a wall.',
@@ -658,6 +877,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'bench-dips',
     name: 'Bench Dips',
+    category: 'Arms',
+    primaryMuscles: ['Triceps'],
+    secondaryMuscles: ['Front Shoulders', 'Chest'],
+    difficulty: 'Beginner',
     cue: 'Elbows straight back, hips close to the bench.',
     instructions: [
       'Sit on the edge of a bench with your hands beside your hips and slide forward.',
@@ -670,6 +893,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'weighted-dips',
     name: 'Weighted Dips',
+    category: 'Chest',
+    primaryMuscles: ['Chest', 'Triceps'],
+    secondaryMuscles: ['Front Shoulders'],
+    difficulty: 'Advanced',
     cue: 'Lean forward slightly, full depth.',
     instructions: [
       'Hang a plate or dumbbell from a belt and support yourself on the bars.',
@@ -682,6 +909,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wide-grip-pull-ups',
     name: 'Wide-Grip Pull-Ups',
+    category: 'Back',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Upper Back', 'Biceps', 'Forearms'],
+    difficulty: 'Advanced',
     cue: 'Wide hands, chest to the bar.',
     instructions: [
       'Take a grip well outside shoulder width with your palms forward.',
@@ -694,6 +925,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'close-grip-pull-ups',
     name: 'Close-Grip Pull-Ups',
+    category: 'Back',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Biceps', 'Upper Back', 'Forearms'],
+    difficulty: 'Advanced',
     cue: 'Hands together, elbows driving down.',
     instructions: [
       'Grip the bar with your hands almost touching.',
@@ -706,6 +941,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'archer-pull-ups',
     name: 'Archer Pull-Ups',
+    category: 'Back',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Biceps', 'Upper Back', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Pull to one hand, the other arm stays long.',
     instructions: [
       'Take a wide grip on the bar.',
@@ -718,6 +957,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'butterfly-pull-ups',
     name: 'Butterfly Pull-Ups',
+    category: 'Back',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Upper Back', 'Core', 'Grip'],
+    difficulty: 'Advanced',
     cue: 'Kip in a circle, keep the rhythm unbroken.',
     instructions: [
       'Swing into an arch, then pull as the hips drive forward.',
@@ -730,6 +973,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'superman-row',
     name: 'Superman Row',
+    category: 'Back',
+    primaryMuscles: ['Upper Back'],
+    secondaryMuscles: ['Lower Back', 'Rear Shoulders', 'Glutes'],
+    difficulty: 'Beginner',
     cue: 'Chest off the floor, then row the elbows back.',
     instructions: [
       'Lie face down and lift your chest and arms off the floor.',
@@ -744,6 +991,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'walking-lunges',
     name: 'Walking Lunges',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Travel forward, back knee just off the floor.',
     instructions: [
       'Step forward into a lunge until the back knee nearly touches down.',
@@ -756,6 +1007,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'cross-lunges',
     name: 'Curtsy Lunges',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Quads', 'Adductors'],
+    difficulty: 'Intermediate',
     cue: 'Step back and across, hips square.',
     instructions: [
       'Step one foot back and across behind the other.',
@@ -767,6 +1022,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'side-lunges',
     name: 'Side Lunges',
+    category: 'Legs',
+    primaryMuscles: ['Adductors', 'Quads'],
+    secondaryMuscles: ['Glutes'],
+    difficulty: 'Beginner',
     cue: 'Sit into one hip, the other leg stays straight.',
     instructions: [
       'Take a wide step out to one side and push your hips back.',
@@ -778,6 +1037,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'pistol-squat-to-box',
     name: 'Box Pistol Squats',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Core', 'Calves'],
+    difficulty: 'Advanced',
     cue: 'One leg down to the box, one leg back up.',
     instructions: [
       'Stand on one leg in front of a box with the other leg held out in front.',
@@ -791,6 +1054,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'sissy-squats',
     name: 'Sissy Squats',
+    category: 'Legs',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Core', 'Calves'],
+    difficulty: 'Advanced',
     cue: 'Knees forward, hips and shoulders in one line.',
     instructions: [
       'Hold something for balance and rise onto the balls of your feet.',
@@ -802,6 +1069,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'glute-ham-raise',
     name: 'Glute-Ham Raise',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Glutes', 'Calves', 'Lower Back'],
+    difficulty: 'Advanced',
     cue: 'Lower as slowly as you can hold it.',
     instructions: [
       'Kneel with your ankles anchored and your body upright.',
@@ -814,6 +1085,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'band-lateral-walk',
     name: 'Band Lateral Walks',
+    category: 'Legs',
+    primaryMuscles: ['Glutes'],
+    secondaryMuscles: ['Quads', 'Hips'],
+    difficulty: 'Beginner',
     cue: 'Stay low, tension never goes slack.',
     instructions: [
       'Put a band around your legs above the knees and drop into a quarter squat.',
@@ -826,6 +1101,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dumbbell-walking-lunges',
     name: 'Dumbbell Walking Lunges',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Hamstrings', 'Core', 'Forearms'],
+    difficulty: 'Intermediate',
     cue: 'Loaded, and the back knee still touches down.',
     instructions: [
       'Hold a dumbbell in each hand at your sides.',
@@ -840,6 +1119,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'crunch',
     name: 'Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Core'],
+    difficulty: 'Beginner',
     cue: 'Ribs towards hips - the lower back stays down.',
     instructions: [
       'Lie on your back with your knees bent and your hands by your ears.',
@@ -852,6 +1135,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'bicycle-crunch',
     name: 'Bicycle Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Abs', 'Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Opposite elbow towards opposite knee, slowly.',
     instructions: [
       'Lie back, lift both feet, and bring one knee in as the other leg extends.',
@@ -863,6 +1150,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'reverse-crunch',
     name: 'Reverse Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Abs', 'Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Roll the hips up, do not swing the legs.',
     instructions: [
       'Lie on your back with your knees bent over your hips and arms by your sides.',
@@ -874,6 +1165,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'plank',
     name: 'Plank',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Shoulders', 'Glutes'],
+    difficulty: 'Beginner',
     cue: 'One straight line from your head to your heels.',
     instructions: [
       'Elbows under your shoulders, forearms flat on the floor.',
@@ -886,6 +1181,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'side-plank',
     name: 'Side Plank',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'Hips high, shoulder stacked over the elbow.',
     instructions: [
       'Lie on your side and prop yourself on one forearm, feet stacked.',
@@ -898,6 +1197,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'leg-raise',
     name: 'Lying Leg Raise',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Lower only as far as your back stays flat.',
     instructions: [
       'Lie flat with your hands under your hips and your legs straight.',
@@ -909,6 +1212,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'flutter-kicks',
     name: 'Flutter Kicks',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Small, fast kicks with the lower back pinned down.',
     instructions: [
       'Lie on your back with your legs straight and lifted just off the floor.',
@@ -920,6 +1227,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'russian-twist',
     name: 'Russian Twist',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Rotate from the ribs, chest stays lifted.',
     instructions: [
       'Sit back at about forty-five degrees with your feet off the floor.',
@@ -931,6 +1242,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dead-bug',
     name: 'Dead Bug',
+    category: 'Posture',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Abs', 'Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Lower back glued to the floor throughout.',
     instructions: [
       'Lie back with your arms up and your knees over your hips.',
@@ -943,6 +1258,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hollow-hold',
     name: 'Hollow Hold',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Abs', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Press the lower back down and hold the dish shape.',
     instructions: [
       'Lie on your back and lift your shoulders, arms and legs off the floor.',
@@ -954,6 +1273,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'heel-touches',
     name: 'Heel Touches',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Abs'],
+    difficulty: 'Beginner',
     cue: 'Crunch to the side and tap your heel.',
     instructions: [
       'Lie on your back with your knees bent and heels close to your hips.',
@@ -965,6 +1288,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'oblique-crunch',
     name: 'Oblique Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Abs'],
+    difficulty: 'Beginner',
     cue: 'Drive the elbow towards the opposite hip.',
     instructions: [
       'Lie on your back with both knees dropped to one side.',
@@ -977,6 +1304,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hip-raise-plank',
     name: 'Plank Hip Raise',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Shoulders', 'Hamstrings'],
+    difficulty: 'Intermediate',
     cue: 'From a forearm plank, pike the hips up and back.',
     instructions: [
       'Hold a forearm plank with your feet about hip width apart.',
@@ -988,6 +1319,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'reverse-plank',
     name: 'Reverse Plank',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Glutes', 'Hamstrings', 'Rear Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'Chest open, hips lifted, eyes forward.',
     instructions: [
       'Sit with your legs straight and your hands on the floor behind your hips.',
@@ -999,6 +1334,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'torso-rotation',
     name: 'Standing Torso Rotation',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core'],
+    difficulty: 'Beginner',
     cue: 'Turn from the waist, hips facing forward.',
     instructions: [
       'Stand tall with your arms bent in front of your chest.',
@@ -1011,6 +1350,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'v-ups',
     name: 'V-Ups',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Lower Abs', 'Hip Flexors'],
+    difficulty: 'Advanced',
     cue: 'Fold in half, hands to feet.',
     instructions: [
       'Lie flat with your arms overhead and your legs straight.',
@@ -1023,6 +1366,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'toes-to-bar',
     name: 'Toes To Bar',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Lats', 'Grip', 'Hip Flexors'],
+    difficulty: 'Advanced',
     cue: 'Toes to the bar, no swinging for free reps.',
     instructions: [
       'Hang from a bar with your shoulders active and your body tight.',
@@ -1036,6 +1383,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dragon-flag',
     name: 'Dragon Flag',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Abs', 'Lats', 'Glutes'],
+    difficulty: 'Advanced',
     cue: 'Whole body one rigid line, lowering slowly.',
     instructions: [
       'Lie on a bench and grip behind your head, then drive your legs and hips up over your shoulders.',
@@ -1049,6 +1400,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'ab-wheel',
     name: 'Ab Wheel Rollout',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lats', 'Lower Abs', 'Shoulders'],
+    difficulty: 'Advanced',
     cue: 'Roll out only as far as the ribs stay down.',
     instructions: [
       'Kneel and hold the wheel under your shoulders with your hips tucked.',
@@ -1061,6 +1416,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'knees-to-elbows',
     name: 'Knees To Elbows',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Lats', 'Grip'],
+    difficulty: 'Advanced',
     cue: 'Hanging, knees up to touch the elbows.',
     instructions: [
       'Hang from a bar with active shoulders and no swing.',
@@ -1073,6 +1432,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hanging-leg-raise',
     name: 'Hanging Leg Raise',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Grip', 'Lats'],
+    difficulty: 'Advanced',
     cue: 'Straight legs to horizontal, no swing.',
     instructions: [
       'Hang from a bar with your body tight and still.',
@@ -1085,6 +1448,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'captains-chair-raise',
     name: 'Captain\'s Chair Leg Raise',
+    category: 'Abs',
+    primaryMuscles: ['Lower Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Intermediate',
     cue: 'Back flat against the pad, hips curling up.',
     instructions: [
       'Support yourself on the arm pads with your back against the rest.',
@@ -1097,6 +1464,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'v-sit',
     name: 'V-Sit Hold',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Abs', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Balance on your seat, legs and chest lifted.',
     instructions: [
       'Sit and lift both legs so you are balanced on your sit bones.',
@@ -1108,6 +1479,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'sit-ups',
     name: 'Sit-Ups',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Hip Flexors', 'Core'],
+    difficulty: 'Beginner',
     cue: 'All the way up, all the way down.',
     instructions: [
       'Lie back with your knees bent and feet anchored or flat.',
@@ -1119,6 +1494,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'decline-crunch',
     name: 'Decline Crunch',
+    category: 'Abs',
+    primaryMuscles: ['Abs'],
+    secondaryMuscles: ['Core', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Head lower than the hips, curl up hard.',
     instructions: [
       'Hook your feet at the top of a decline bench and lie back.',
@@ -1131,6 +1510,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'criss-cross',
     name: 'Criss-Cross',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Abs', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Slow rotation, both shoulders off the floor.',
     instructions: [
       'Lie back with your hands behind your head and both feet lifted.',
@@ -1142,6 +1525,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'rotation-plank',
     name: 'Rotation Plank',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'Plank to side plank and back, hips high.',
     instructions: [
       'Hold a forearm plank with your feet a little apart.',
@@ -1153,6 +1540,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'rainbow-plank',
     name: 'Rainbow Plank',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'Dip the hips side to side without dropping them.',
     instructions: [
       'Hold a forearm plank with your feet wide.',
@@ -1164,6 +1555,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'single-leg-plank',
     name: 'Single-Leg Plank',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Glutes', 'Shoulders'],
+    difficulty: 'Intermediate',
     cue: 'One foot up, hips dead level.',
     instructions: [
       'Hold a forearm plank and lift one foot a few inches off the floor.',
@@ -1176,6 +1571,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'plank-lateral-raise',
     name: 'Plank Lateral Raise',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Shoulders', 'Obliques'],
+    difficulty: 'Advanced',
     cue: 'Raise one arm out sideways without twisting.',
     instructions: [
       'Hold a high plank with your feet wide for balance.',
@@ -1187,6 +1586,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'side-knee-ups',
     name: 'Side Knee-Ups',
+    category: 'Abs',
+    primaryMuscles: ['Obliques'],
+    secondaryMuscles: ['Core', 'Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Lying on your side, knee to elbow.',
     instructions: [
       'Lie on one side propped on your forearm with your legs long.',
@@ -1199,6 +1602,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'exercise-ball-pull-in',
     name: 'Ball Pull-Ins',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Abs', 'Shoulders', 'Hip Flexors'],
+    difficulty: 'Intermediate',
     cue: 'Shins on the ball, pull the knees to the chest.',
     instructions: [
       'Get into a high plank with your shins resting on an exercise ball.',
@@ -1213,6 +1620,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'bird-dog',
     name: 'Bird Dog',
+    category: 'Posture',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Glutes', 'Lower Back', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Opposite arm and leg, no wobble through the hips.',
     instructions: [
       'On all fours, hands under shoulders and knees under hips.',
@@ -1225,6 +1636,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'superman',
     name: 'Superman',
+    category: 'Posture',
+    primaryMuscles: ['Lower Back'],
+    secondaryMuscles: ['Glutes', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Lift the chest and thighs, look at the floor.',
     instructions: [
       'Lie face down with your arms reaching in front of you.',
@@ -1236,6 +1651,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'prone-w-raise',
     name: 'Prone W Raise',
+    category: 'Posture',
+    primaryMuscles: ['Lower Traps'],
+    secondaryMuscles: ['Rear Shoulders', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Pull the shoulder blades down and together.',
     instructions: [
       'Lie face down with your elbows bent so your arms make a W.',
@@ -1247,6 +1666,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'band-reverse-fly',
     name: 'Band Reverse Fly',
+    category: 'Posture',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'Traps'],
+    difficulty: 'Beginner',
     cue: 'Open the arms wide, thumbs leading.',
     instructions: [
       'Hold a band in front of you at chest height with straight arms.',
@@ -1259,6 +1682,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'face-pull',
     name: 'Face Pull',
+    category: 'Posture',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back', 'External Rotators'],
+    difficulty: 'Beginner',
     cue: 'Pull to your forehead, elbows high.',
     instructions: [
       'Hold a band at head height and pull it towards your face.',
@@ -1271,6 +1698,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wall-walks',
     name: 'Wall Shoulder Walks',
+    category: 'Posture',
+    primaryMuscles: ['Shoulders'],
+    secondaryMuscles: ['Serratus', 'Lower Traps', 'Core'],
+    difficulty: 'Beginner',
     cue: 'Ribs down - do not arch to reach higher.',
     instructions: [
       'Stand facing a wall and place both hands on it at chest height.',
@@ -1282,6 +1713,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'wall-push-up',
     name: 'Wall Push-Up',
+    category: 'Chest',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Triceps', 'Serratus'],
+    difficulty: 'Beginner',
     cue: 'Push the floor away and let the shoulder blades spread.',
     instructions: [
       'Stand an arm length from a wall with your hands at shoulder height.',
@@ -1293,6 +1728,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'good-morning',
     name: 'Bodyweight Good Morning',
+    category: 'Legs',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Glutes', 'Lower Back'],
+    difficulty: 'Beginner',
     cue: 'Hinge at the hips with a flat back.',
     instructions: [
       'Stand with your hands behind your head and a soft bend in your knees.',
@@ -1304,6 +1743,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'chin-tuck',
     name: 'Chin Tuck',
+    category: 'Posture',
+    primaryMuscles: ['Deep Neck Flexors'],
+    secondaryMuscles: ['Neck Flexors'],
+    difficulty: 'Beginner',
     cue: 'Slide the head back over your shoulders.',
     instructions: [
       'Sit or stand tall and look straight ahead.',
@@ -1317,6 +1760,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'back-slaps',
     name: 'Back Slaps And Wrap',
+    category: 'Posture',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Upper Back', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Swing the arms open, then wrap them around you.',
     instructions: [
       'Swing both arms wide open to stretch across the chest.',
@@ -1328,6 +1775,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'elbows-back-stretch',
     name: 'Elbows Back Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Chest open, shoulders rolling back and down.',
     instructions: [
       'Bring your hands behind your head with your elbows wide.',
@@ -1339,6 +1790,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'reach-up-rotation',
     name: 'Standing Reach And Rotate',
+    category: 'Posture',
+    primaryMuscles: ['Upper Back'],
+    secondaryMuscles: ['Obliques', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Reach tall, then turn and open the chest.',
     instructions: [
       'Reach both arms overhead and lengthen through your side.',
@@ -1350,6 +1805,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'chest-stretch',
     name: 'Overhead Chest Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Hands behind the head, elbows back.',
     instructions: [
       'Lace your fingers behind your head and lift your chest.',
@@ -1361,6 +1820,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'cat-cow',
     name: 'Cat-Cow',
+    category: 'Posture',
+    primaryMuscles: ['Lower Back'],
+    secondaryMuscles: ['Core', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Round on the way out, arch on the way in.',
     instructions: [
       'Start on all fours with your hands under your shoulders.',
@@ -1372,6 +1835,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'cobra-stretch',
     name: 'Cobra Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Lower Back', 'Chest', 'Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Long through the front, shoulders away from your ears.',
     instructions: [
       'Lie face down with your hands under your shoulders.',
@@ -1385,6 +1852,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'downward-dog',
     name: 'Downward Dog',
+    category: 'Posture',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Calves', 'Shoulders', 'Lats'],
+    difficulty: 'Beginner',
     cue: 'Hips high, heels reaching for the floor.',
     instructions: [
       'From all fours, tuck your toes and lift your hips into an upside-down V.',
@@ -1396,6 +1867,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'low-lunge',
     name: 'Low Lunge',
+    category: 'Posture',
+    primaryMuscles: ['Hip Flexors'],
+    secondaryMuscles: ['Quads', 'Glutes'],
+    difficulty: 'Beginner',
     cue: 'Sink the hips forward and stay tall.',
     instructions: [
       'Step one foot forward and lower the back knee to the floor.',
@@ -1408,6 +1883,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'lunge-stretch',
     name: 'Deep Lunge Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Hip Flexors'],
+    secondaryMuscles: ['Quads', 'Adductors'],
+    difficulty: 'Beginner',
     cue: 'Drop the hips and let the chest stay lifted.',
     instructions: [
       'Take a long step forward and sink into a deep lunge.',
@@ -1420,6 +1899,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'hip-flexor-stretch',
     name: 'Kneeling Hip Flexor Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Hip Flexors'],
+    secondaryMuscles: ['Quads', 'Glutes'],
+    difficulty: 'Beginner',
     cue: 'Tuck the tailbone under before you lean.',
     instructions: [
       'Kneel on one knee with the other foot planted in front.',
@@ -1433,6 +1916,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'butterfly-stretch',
     name: 'Butterfly Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Adductors'],
+    secondaryMuscles: ['Hips'],
+    difficulty: 'Beginner',
     cue: 'Soles together, chest tall, knees easing down.',
     instructions: [
       'Sit with the soles of your feet together and your heels near your hips.',
@@ -1444,6 +1931,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'lying-hamstring-stretch',
     name: 'Lying Hamstring Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Calves'],
+    difficulty: 'Beginner',
     cue: 'Straight leg up, the other one pressed down.',
     instructions: [
       'Lie on your back and raise one straight leg towards you.',
@@ -1456,6 +1947,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'standing-hamstring-stretch',
     name: 'Standing Hamstring Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Hamstrings'],
+    secondaryMuscles: ['Lower Back', 'Calves'],
+    difficulty: 'Beginner',
     cue: 'Hinge from the hips, back stays long.',
     instructions: [
       'Put one heel in front of you with that leg straight and toes up.',
@@ -1467,6 +1962,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'quad-stretch',
     name: 'Standing Quad Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Quads'],
+    secondaryMuscles: ['Hip Flexors'],
+    difficulty: 'Beginner',
     cue: 'Knees together, hips tucked under.',
     instructions: [
       'Hold one ankle behind you and bring the knees level.',
@@ -1479,6 +1978,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'calf-stretch',
     name: 'Seated Calf Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Calves'],
+    secondaryMuscles: ['Soleus', 'Hamstrings'],
+    difficulty: 'Beginner',
     cue: 'Pull the toes towards you, knee straight.',
     instructions: [
       'Sit with one leg straight out in front of you.',
@@ -1490,6 +1993,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'lat-stretch',
     name: 'Kneeling Lat Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Lats'],
+    secondaryMuscles: ['Upper Back', 'Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Hips back, armpits sinking towards the floor.',
     instructions: [
       'Kneel and place both hands on the floor in front of you.',
@@ -1501,6 +2008,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'shoulder-stretch',
     name: 'Cross-Body Shoulder Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Rear Shoulders'],
+    secondaryMuscles: ['Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Arm across the chest, shoulder pulled down.',
     instructions: [
       'Bring one straight arm across your chest.',
@@ -1513,6 +2024,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'neck-stretch',
     name: 'Side Neck Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Lateral Neck Flexors'],
+    secondaryMuscles: ['Traps'],
+    difficulty: 'Beginner',
     cue: 'Ear towards the shoulder, no shrugging.',
     instructions: [
       'Sit or stand tall and tilt one ear towards that shoulder.',
@@ -1525,6 +2040,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dynamic-chest-stretch',
     name: 'Dynamic Chest Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Chest'],
+    secondaryMuscles: ['Front Shoulders', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Open the arms wide and pulse gently.',
     instructions: [
       'Bring both arms out to the sides at shoulder height.',
@@ -1536,6 +2055,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dynamic-back-stretch',
     name: 'Dynamic Back Stretch',
+    category: 'Posture',
+    primaryMuscles: ['Upper Back'],
+    secondaryMuscles: ['Lats', 'Rear Shoulders'],
+    difficulty: 'Beginner',
     cue: 'Round forward, then open wide.',
     instructions: [
       'Reach both arms forward and round your upper back.',
@@ -1552,6 +2075,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'kettlebell-swing',
     name: 'Kettlebell Swing',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Hamstrings'],
+    secondaryMuscles: ['Core', 'Lower Back', 'Forearms'],
+    difficulty: 'Intermediate',
     cue: 'Snap the hips - the arms just hold on.',
     instructions: [
       'Hinge at the hips and hike the bell back between your legs.',
@@ -1565,6 +2092,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'one-arm-kettlebell-swing',
     name: 'One-Arm Kettlebell Swing',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Hamstrings'],
+    secondaryMuscles: ['Obliques', 'Core', 'Grip'],
+    difficulty: 'Advanced',
     cue: 'Same hinge, one hand, shoulders square.',
     instructions: [
       'Hike the bell back with one hand and keep the free arm out for balance.',
@@ -1578,6 +2109,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dumbbell-thrusters',
     name: 'Dumbbell Thrusters',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Shoulders'],
+    secondaryMuscles: ['Glutes', 'Triceps', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Squat and press as one movement.',
     instructions: [
       'Hold the dumbbells at your shoulders and squat to depth.',
@@ -1591,6 +2126,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'kettlebell-thrusters',
     name: 'Kettlebell Thrusters',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Shoulders'],
+    secondaryMuscles: ['Glutes', 'Triceps', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Bells racked, squat, punch overhead.',
     instructions: [
       'Rack the bells on your forearms at shoulder height and squat to depth.',
@@ -1603,6 +2142,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dumbbell-power-clean',
     name: 'Dumbbell Power Clean',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Hamstrings'],
+    secondaryMuscles: ['Traps', 'Shoulders', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Pull from the floor, catch at the shoulders.',
     instructions: [
       'Hinge down and grip both dumbbells on the floor with a flat back.',
@@ -1615,6 +2158,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dumbbell-snatch',
     name: 'One-Arm Dumbbell Snatch',
+    category: 'Shoulders',
+    primaryMuscles: ['Shoulders'],
+    secondaryMuscles: ['Glutes', 'Hamstrings', 'Traps', 'Core'],
+    difficulty: 'Advanced',
     cue: 'Floor to overhead in one pull.',
     instructions: [
       'Hinge and grip one dumbbell between your feet.',
@@ -1628,6 +2175,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'turkish-get-up',
     name: 'Turkish Get-Up',
+    category: 'Abs',
+    primaryMuscles: ['Core'],
+    secondaryMuscles: ['Shoulders', 'Glutes', 'Obliques'],
+    difficulty: 'Advanced',
     cue: 'Floor to standing with the bell locked overhead.',
     instructions: [
       'Lie on your back holding a kettlebell straight up in one arm.',
@@ -1642,6 +2193,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'sumo-deadlift-high-pull',
     name: 'Sumo Deadlift High Pull',
+    category: 'Back',
+    primaryMuscles: ['Traps'],
+    secondaryMuscles: ['Glutes', 'Hamstrings', 'Shoulders'],
+    difficulty: 'Advanced',
     cue: 'Wide stance, pull it to your chin.',
     instructions: [
       'Stand wide over a kettlebell and grip it with both hands.',
@@ -1654,6 +2209,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'kettlebell-goblet-squat',
     name: 'Kettlebell Goblet Squat',
+    category: 'Legs',
+    primaryMuscles: ['Quads', 'Glutes'],
+    secondaryMuscles: ['Core', 'Upper Back'],
+    difficulty: 'Beginner',
     cue: 'Bell at the chest, sit straight down.',
     instructions: [
       'Hold a kettlebell at chest height with both hands.',
@@ -1666,6 +2225,10 @@ const catalog: GuidedExercise[] = [
   {
     id: 'dumbbell-swing',
     name: 'Dumbbell Swing',
+    category: 'Legs',
+    primaryMuscles: ['Glutes', 'Hamstrings'],
+    secondaryMuscles: ['Core', 'Lower Back'],
+    difficulty: 'Intermediate',
     cue: 'Same hip snap, one dumbbell.',
     instructions: [
       'Hold one dumbbell with both hands and hinge it back between your legs.',

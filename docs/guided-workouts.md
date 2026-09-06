@@ -12,6 +12,7 @@ Reached from **More → Guided Workouts**, and from the link on Today's Workout.
 | | |
 |---|---|
 | Movement catalog (136 movements) | `src/data/guidedExercises.ts` |
+| Merge into the Exercise Library | `guidedLibraryExercises` in `src/data/exerciseLibrary.ts` |
 | Categories + shipped workouts | `src/data/guidedWorkouts.ts` |
 | Workouts the user builds | `src/utils/customGuidedWorkouts.ts`, `src/components/GuidedWorkoutBuilder.tsx` |
 | Timeline builder, totals, history row | `src/utils/guidedWorkoutUtils.ts` |
@@ -76,6 +77,23 @@ Thirty sessions ship with the app across four categories — 10 Beginner, 5
 Intermediate and 15 Advanced, seven of them 20 to 31 minutes. They are examples
 as much as anything: delete the ones you do not want.
 
+## One catalog, two screens
+
+The guided movements **are** library exercises. `exerciseLibrary.ts` reads
+`guidedExerciseList` and turns every entry into a full `LibraryExercise` through
+`createExercise`, so all 136 appear in the Exercise Library with form guides,
+muscle tags, filters and search — 295 entries in total, up from 167.
+
+Anything the library already covers is skipped, by id **and** by normalized
+name, so the eight movements that existed in both (Plank, Side Plank, Dead Bug,
+Reverse Crunch, Lying Leg Raise, Hanging Leg Raise, Chin Tuck, Kneeling Hip
+Flexor Stretch) keep their original hand-written guides.
+
+`createExercise` writes its regression and common-mistakes copy for a loaded
+lift, so the adapter overrides both for the two modes that are not about load:
+Posture movements get stretch wording, Conditioning gets pace wording. Adding a
+movement in one place adds it to both screens.
+
 ## Adding a movement
 
 One entry in `guidedExercises.ts`:
@@ -84,16 +102,26 @@ One entry in `guidedExercises.ts`:
 {
   id: 'my-movement',
   name: 'My Movement',
+  category: 'Conditioning',      // required: where it sits in the library
+  primaryMuscles: ['Cardiovascular System'],
+  secondaryMuscles: ['Core'],    // optional
+  difficulty: 'Intermediate',    // optional, defaults to Intermediate
   cue: 'One line, printed under the name and read aloud as it starts.',
   instructions: ['First line.', 'Second line.'],
   planfitId: 9006,               // demonstration; see below
   perSide: true,                 // the voice says "switch sides" at halfway
   impact: 'high',                // excluded from the low-impact badge
-  equipment: ['Resistance bands'],
+  equipment: ['Resistance bands'],   // an EquipmentTag; omit for bodyweight
   audioCues: [{ at: 15, say: 'Keep the hips down.' }],
   audioUrl: 'https://…/my-voiceover.mp3',   // optional; replaces the cue above
 }
 ```
+
+Muscle names must come from the vocabulary the library already uses (`Core`,
+`Glutes`, `Cardiovascular System`, …) or the muscle map and the Vietnamese
+term list will not recognise them. New equipment needs adding to `EquipmentTag`
+and `equipmentOptions` in `exerciseLibrary.ts`, and to `viEquipment` in
+`src/i18n/exercises/terms.ts`.
 
 A workout can also define a movement inline (`steps: [{ exercise: {...} }]`)
 instead of naming a catalog id, for a one-off.

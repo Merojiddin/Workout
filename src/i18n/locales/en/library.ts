@@ -3,9 +3,9 @@ export const libraryMessages = {
   'library.eyebrow': 'Exercise Library',
   'library.title': 'Exercise Library',
   'library.subtitle':
-    'Learn form, muscles worked, mistakes, and progressions for your workout plan.',
+    'Form, muscles worked, mistakes and progressions for every movement in the app.',
   'library.countLabel': 'Exercises',
-  'library.countValue': '{count} in your plan',
+  'library.countValue': '{count} in the library',
   'library.resultCount': { one: '{count} exercise', other: '{count} exercises' },
   'library.resetFilters': 'Reset filters',
   'library.empty': 'No exercises found. Try changing filters.',
