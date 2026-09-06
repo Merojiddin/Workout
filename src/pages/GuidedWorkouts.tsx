@@ -1,7 +1,17 @@
-import { Clock3, Layers, ListChecks, Pencil, Play, Plus, X } from 'lucide-react'
+import {
+  Clock3,
+  ClipboardPaste,
+  Layers,
+  ListChecks,
+  Pencil,
+  Play,
+  Plus,
+  X,
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { GuidedStepMedia } from '../components/GuidedStepMedia'
 import { GuidedWorkoutBuilder } from '../components/GuidedWorkoutBuilder'
+import { GuidedWorkoutImport } from '../components/GuidedWorkoutImport'
 import { GuidedTimelineList } from '../components/GuidedTimelineList'
 import {
   GuidedWorkoutPlayer,
@@ -76,6 +86,7 @@ export function GuidedWorkouts() {
   )
   const [building, setBuilding] = useState<CustomGuidedWorkout | null>(null)
   const [buildingExisting, setBuildingExisting] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [detail, setDetail] = useState<GuidedWorkout | null>(null)
   const [active, setActive] = useState<GuidedWorkout | null>(null)
   const [settings, setSettings] = useState<GuidedSettings>(
@@ -133,7 +144,22 @@ export function GuidedWorkouts() {
   function openBuilder(workout?: CustomGuidedWorkout) {
     setBuilding(workout ?? createEmptyCustomWorkout(filter === 'all' ? 'cardio' : filter))
     setBuildingExisting(Boolean(workout))
+    setImporting(false)
     setDetail(null)
+  }
+
+  /**
+   * Saves an imported batch. Each one goes through the same write the builder
+   * uses, so the sheet can stay open and say so when storage refused them.
+   */
+  function handleImport(imported: CustomGuidedWorkout[]): number {
+    const saved = imported.filter((workout) => saveCustomGuidedWorkout(workout)).length
+    if (saved === 0) {
+      return 0
+    }
+    setCustom(getCustomGuidedWorkouts())
+    setImporting(false)
+    return saved
   }
 
   function handleBuilderSave(workout: CustomGuidedWorkout): boolean {
@@ -249,10 +275,24 @@ export function GuidedWorkouts() {
       </div>
 
 
-      <button className="guided-build-button" onClick={() => openBuilder()} type="button">
-        <Plus size={18} strokeWidth={2.6} aria-hidden="true" />
-        {t('guided.build')}
-      </button>
+      <div className="guided-make">
+        <button
+          className="guided-build-button"
+          onClick={() => openBuilder()}
+          type="button"
+        >
+          <Plus size={18} strokeWidth={2.6} aria-hidden="true" />
+          {t('guided.build')}
+        </button>
+        <button
+          className="guided-build-button"
+          onClick={() => setImporting(true)}
+          type="button"
+        >
+          <ClipboardPaste size={18} strokeWidth={2.6} aria-hidden="true" />
+          {t('guided.import')}
+        </button>
+      </div>
 
       {workouts.length === 0 ? (
         <article className="today-empty">
@@ -289,6 +329,13 @@ export function GuidedWorkouts() {
           }
           onStart={() => start(detail)}
           workout={detail}
+        />
+      ) : null}
+
+      {importing ? (
+        <GuidedWorkoutImport
+          onCancel={() => setImporting(false)}
+          onImport={handleImport}
         />
       ) : null}
 

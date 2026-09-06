@@ -15,6 +15,7 @@ Reached from **More → Guided Workouts**, and from the link on Today's Workout.
 | Merge into the Exercise Library | `guidedLibraryExercises` in `src/data/exerciseLibrary.ts` |
 | Categories + shipped workouts | `src/data/guidedWorkouts.ts` |
 | Workouts the user builds | `src/utils/customGuidedWorkouts.ts`, `src/components/GuidedWorkoutBuilder.tsx` |
+| Importing / the AI prompt | `src/utils/guidedWorkoutImport.ts`, `src/components/GuidedWorkoutImport.tsx`, `prompt.guidedTemplate` in `src/i18n/locales/*/prompt.ts` |
 | Timeline builder, totals, history row | `src/utils/guidedWorkoutUtils.ts` |
 | The clock | `src/hooks/useGuidedTimeline.ts` |
 | Spoken guide | `src/utils/guidedAudio.ts` |
@@ -44,6 +45,35 @@ Saved workouts:
 They are **local to the device** — there is no cloud table for them yet, so a
 workout built on a phone will not appear on a laptop. Adding that means a new
 Supabase table and a service alongside the others in `src/services/`.
+
+## Importing workouts
+
+**More → Guided Workouts → Import workouts.** Paste JSON, or load a `.json`
+file. One workout object or an array of them both work, as does an object
+wrapping either in `workouts`. **Check** parses without saving and prints what
+each session will actually run as — its real length and movement count — and
+**Import** saves them as ordinary custom workouts, badged "Yours" like anything
+built by hand.
+
+The parser is forgiving about the wrapper, because the expected source is a
+chat reply: markdown fences and surrounding prose are stripped, a movement may
+be named (`"High Knees"`) instead of given its id, `hiit` / `conditioning` /
+`core` / `stretching` resolve to the four category ids, and a missing name,
+level or category is filled in. Everything it changed is reported under "things
+were changed or dropped" rather than done silently.
+
+It is not forgiving about the movements. A step naming something the catalog
+does not have is **dropped and listed by name** — that is the one mistake that
+costs a step out of the session — and a workout left with no movements at all
+is skipped rather than saved empty. An id that collides with a shipped workout
+or with something already saved gets a suffix, so an import can never knock a
+card off the list.
+
+**Copy AI prompt** puts the whole schema plus every one of the 136 movement ids
+on the clipboard (`buildGuidedWorkoutPrompt()`), generated from the live
+catalog, so a chat can only ever name movements this app actually has. Keep
+`prompt.guidedTemplate` in step with the parser whenever the accepted shape
+changes, and remember it exists in both languages.
 
 ## Adding a workout in code
 

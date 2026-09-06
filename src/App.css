@@ -9728,6 +9728,33 @@ body {
   outline: none;
 }
 
+/* Build and Import sit side by side: two ways into the same list of workouts,
+   neither of them the obvious one. */
+.guided-make {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.guided-import {
+  gap: 12px;
+}
+
+.guided-import .paste-program__hint,
+.guided-import .paste-program__label {
+  margin: 0;
+}
+
+.guided-import .paste-program__textarea {
+  min-height: 150px;
+}
+
+@media (max-width: 419px) {
+  .guided-make {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* A user's own session, marked on its card so it is obvious which are theirs. */
 .guided-card__mine {
   background: var(--green-soft);

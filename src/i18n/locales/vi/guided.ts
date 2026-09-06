@@ -24,6 +24,49 @@ export const guidedMessages = {
   'guided.noEquipment': 'Không cần dụng cụ',
 
   'guided.build': 'Tự tạo bài tập',
+  'guided.import': 'Nhập bài tập',
+
+  // Nhập bài tập viết ở nơi khác - một tệp, hoặc câu trả lời từ AI.
+  'guided.importEyebrow': 'Bài tập của bạn',
+  'guided.importTitle': 'Nhập bài tập',
+  'guided.importHint':
+    'Dán JSON của một bài tập hoặc một danh sách, hoặc tải lên tệp .json. Bấm nút bên dưới để sao chép câu lệnh cho AI - nó đã có sẵn định dạng và toàn bộ động tác của ứng dụng.',
+  'guided.importCopyPrompt': 'Sao chép câu lệnh AI',
+  'guided.importCopyManual': 'Đã đưa vào ô bên dưới - hãy bôi đen và sao chép',
+  'guided.importChooseFile': 'Chọn tệp .json',
+  'guided.importLoaded': 'Đã tải {name}',
+  'guided.importReadFailed': 'Không đọc được {name}.',
+  'guided.importJsonLabel': 'JSON bài tập',
+  'guided.importJsonLabelNote': 'một đối tượng, hoặc một mảng',
+  'guided.importCheck': 'Kiểm tra',
+  'guided.importAction': 'Nhập',
+  'guided.importReady': { one: 'Sẵn sàng nhập: {count} bài tập.', other: 'Sẵn sàng nhập: {count} bài tập.' },
+  'guided.importPreview': '{name} - {moves}, {minutes}',
+  'guided.importUnusable': 'Không có gì để nhập.',
+  'guided.importWarnings': {
+    one: '1 điểm đã được sửa hoặc bỏ qua',
+    other: '{count} điểm đã được sửa hoặc bỏ qua',
+  },
+
+  // Thông báo của bộ đọc. Mỗi câu đều gọi tên bài tập, vì một lần dán có thể
+  // chứa cả chục bài.
+  'guided.importNoJson': 'Không tìm thấy JSON. Hãy dán cả câu trả lời, hoặc chỉ phần JSON.',
+  'guided.importJsonError': 'JSON không hợp lệ. {message}',
+  'guided.importJsonErrorLine':
+    'JSON lỗi ở dòng {line}. {message} Thường là do thừa dấu phẩy hoặc thiếu dấu nháy.',
+  'guided.importNoWorkouts': 'JSON này không chứa bài tập nào.',
+  'guided.importNotWorkout': 'Mục {n} không phải là một bài tập.',
+  'guided.importUnnamed': 'Bài tập {n}',
+  'guided.importUnnamedWorkout': 'Không có tên, nên đã lưu thành "{name}".',
+  'guided.importNoStepList': '"{name}" không có danh sách "steps".',
+  'guided.importNoSteps': 'Đã bỏ qua "{name}": không động tác nào có trong ứng dụng.',
+  'guided.importUnknownMoves':
+    '"{name}": đã bỏ những động tác ứng dụng không có - {moves}.',
+  'guided.importTrimmed': '"{name}" chỉ giữ lại {max} động tác đầu tiên.',
+  'guided.importUnknownCategory': '"{name}": "{value}" không phải là nhóm, nên đã xếp vào Cardio / HIIT.',
+  'guided.importUnknownLevel': '"{name}": "{value}" không phải là độ khó, nên đã đặt là Trung bình.',
+  'guided.importReplaces': '"{name}" thay thế một bài tập đã lưu có cùng id.',
+  'guided.importTooMany': 'Chỉ đọc {max} bài tập đầu tiên.',
   'guided.customBadge': 'Của bạn',
   'guided.edit': 'Sửa',
   'guided.builderEyebrow': 'Bài tập của bạn',

@@ -24,6 +24,53 @@ export const guidedMessages = {
   'guided.noEquipment': 'No equipment',
 
   'guided.build': 'Build your own workout',
+  'guided.import': 'Import workouts',
+
+  // Importing a workout written elsewhere - a file, or a chat reply.
+  'guided.importEyebrow': 'Your workouts',
+  'guided.importTitle': 'Import workouts',
+  'guided.importHint':
+    'Paste JSON for one workout or a list of them, or load a .json file. Copy the prompt below to have a chat write them - it carries the format and every movement this app has.',
+  'guided.importCopyPrompt': 'Copy AI prompt',
+  'guided.importCopyManual': 'Copied into the box - select and copy it',
+  'guided.importChooseFile': 'Choose a .json file',
+  'guided.importLoaded': 'Loaded {name}',
+  'guided.importReadFailed': 'Could not read {name}.',
+  'guided.importJsonLabel': 'Workout JSON',
+  'guided.importJsonLabelNote': 'one object, or an array of them',
+  'guided.importCheck': 'Check',
+  'guided.importAction': 'Import',
+  'guided.importReady': {
+    one: 'Ready to import: {count} workout.',
+    other: 'Ready to import: {count} workouts.',
+  },
+  'guided.importPreview': '{name} - {moves}, {minutes}',
+  'guided.importUnusable': 'Nothing here can be imported.',
+  'guided.importWarnings': {
+    one: '1 thing was changed or dropped',
+    other: '{count} things were changed or dropped',
+  },
+
+  // Parser messages. Every one of them names the workout it is about, because
+  // a paste can hold ten of them.
+  'guided.importNoJson': 'No JSON found. Paste the whole reply, or just the JSON.',
+  'guided.importJsonError': 'Invalid JSON. {message}',
+  'guided.importJsonErrorLine':
+    'Invalid JSON on line {line}. {message} A trailing comma or a missing quote is the usual cause.',
+  'guided.importNoWorkouts': 'That JSON holds no workouts.',
+  'guided.importNotWorkout': 'Item {n} is not a workout object.',
+  'guided.importUnnamed': 'Workout {n}',
+  'guided.importUnnamedWorkout': 'No name was given, so it was saved as "{name}".',
+  'guided.importNoStepList': '"{name}" has no "steps" list.',
+  'guided.importNoSteps':
+    '"{name}" was skipped: none of its movements are in this app.',
+  'guided.importUnknownMoves':
+    '"{name}": dropped movements this app does not have - {moves}.',
+  'guided.importTrimmed': '"{name}" was cut to the first {max} movements.',
+  'guided.importUnknownCategory': '"{name}": "{value}" is not a category, so it went to Cardio / HIIT.',
+  'guided.importUnknownLevel': '"{name}": "{value}" is not a difficulty, so it was set to Intermediate.',
+  'guided.importReplaces': '"{name}" replaces a saved workout with the same id.',
+  'guided.importTooMany': 'Only the first {max} workouts were read.',
   'guided.customBadge': 'Yours',
   'guided.edit': 'Edit',
   'guided.builderEyebrow': 'Your workout',
