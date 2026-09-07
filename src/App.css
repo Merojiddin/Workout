@@ -9811,6 +9811,95 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.guided-detail__remove {
+  grid-column: 1 / -1;
+}
+
+/* Built-in sessions taken off the list. Deliberately quiet: it is a way back,
+   not a second list of workouts to browse. */
+.guided-removed {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.guided-removed__head {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.guided-removed__head .eyebrow {
+  margin: 0;
+}
+
+.guided-removed__restore-all {
+  align-items: center;
+  background: transparent;
+  border: none;
+  color: var(--green);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 12.5px;
+  font-weight: 800;
+  gap: 6px;
+  padding: 4px;
+}
+
+.guided-removed__help {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.guided-removed__list {
+  display: grid;
+  gap: 1px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guided-removed__list li {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 10px 0;
+}
+
+.guided-removed__list span {
+  color: var(--soft);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.guided-removed__list button {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  color: var(--text);
+  cursor: pointer;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 800;
+  min-height: 34px;
+  padding: 0 14px;
+}
+
+.guided-removed__list button:hover,
+.guided-removed__list button:focus-visible {
+  border-color: rgba(27, 210, 220, 0.45);
+  color: var(--green);
+  outline: none;
+}
+
 .guided-builder {
   gap: 14px;
 }

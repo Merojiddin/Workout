@@ -108,6 +108,19 @@ export const guidedMessages = {
   'guided.builderCancel': 'Cancel',
   'guided.builderDelete': 'Delete workout',
   'guided.builderDeleteConfirm': 'Delete "{name}"? This cannot be undone.',
+
+  // Built-in sessions live in the app itself, so removing one only takes it
+  // off this account's list - which the wording has to be straight about.
+  'guided.remove': 'Remove from my list',
+  'guided.removeConfirm':
+    'Remove "{name}" from your list? It comes with the app, so you can put it back at any time.',
+  'guided.removeFailed':
+    'Could not save that - device storage is full. Free up space (More > Settings > Backup) and try again.',
+  'guided.removedEyebrow': 'Removed sessions',
+  'guided.removedHelp':
+    'These came with the app and are hidden from your list. Nothing was deleted.',
+  'guided.restore': 'Put back',
+  'guided.restoreAll': 'Put all back',
   'guided.builderSaveFailed':
     'Could not save this workout - device storage is full. Free up space and try again.',
 

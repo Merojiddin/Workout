@@ -105,6 +105,19 @@ export const guidedMessages = {
   'guided.builderCancel': 'Huỷ',
   'guided.builderDelete': 'Xoá bài tập',
   'guided.builderDeleteConfirm': 'Xoá "{name}"? Không thể hoàn tác.',
+
+  // Bài có sẵn nằm trong ứng dụng, nên gỡ chỉ là ẩn khỏi danh sách của tài
+  // khoản này - câu chữ phải nói rõ điều đó.
+  'guided.remove': 'Gỡ khỏi danh sách',
+  'guided.removeConfirm':
+    'Gỡ "{name}" khỏi danh sách? Đây là bài có sẵn của ứng dụng, bạn có thể đưa lại bất cứ lúc nào.',
+  'guided.removeFailed':
+    'Không lưu được - bộ nhớ thiết bị đã đầy. Hãy giải phóng dung lượng (Thêm > Cài đặt > Sao lưu) rồi thử lại.',
+  'guided.removedEyebrow': 'Bài đã gỡ',
+  'guided.removedHelp':
+    'Đây là các bài có sẵn đang được ẩn khỏi danh sách. Không có gì bị xoá.',
+  'guided.restore': 'Đưa lại',
+  'guided.restoreAll': 'Đưa lại tất cả',
   'guided.builderSaveFailed':
     'Không lưu được bài tập này - bộ nhớ thiết bị đã đầy. Hãy giải phóng dung lượng rồi thử lại.',
 

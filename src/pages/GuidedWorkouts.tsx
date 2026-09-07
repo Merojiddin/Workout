@@ -6,6 +6,8 @@ import {
   Pencil,
   Play,
   Plus,
+  RotateCcw,
+  Trash2,
   X,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -16,7 +18,6 @@ import { GuidedTimelineList } from '../components/GuidedTimelineList'
 import { GuidedWorkoutPlayer } from '../components/GuidedWorkoutPlayer'
 import {
   guidedCategories,
-  guidedWorkouts,
   type GuidedCategoryId,
   type GuidedLevel,
   type GuidedWorkout,
@@ -25,11 +26,16 @@ import { useGuidedSession } from '../hooks/useGuidedSession'
 import { useT, type MessageKey } from '../i18n'
 import {
   createEmptyCustomWorkout,
-  deleteCustomGuidedWorkout,
-  getCustomGuidedWorkouts,
   saveCustomGuidedWorkout,
   type CustomGuidedWorkout,
 } from '../utils/customGuidedWorkouts'
+import {
+  getAvailableGuidedWorkouts,
+  getRemovedGuidedWorkouts,
+  removeGuidedWorkout,
+  restoreAllGuidedWorkouts,
+  restoreGuidedWorkout,
+} from '../utils/guidedWorkoutCatalog'
 import { isSpeechSupported } from '../utils/guidedAudio'
 import type { GuidedSettings } from '../utils/guidedSettings'
 import {
@@ -63,9 +69,18 @@ export function GuidedWorkouts() {
   const [level, setLevel] = useState<LevelFilter>('all')
   // Read once at mount and kept in state, so saving or deleting one re-renders
   // the list without a trip back to storage on every keystroke in the builder.
-  const [custom, setCustom] = useState<CustomGuidedWorkout[]>(() =>
-    getCustomGuidedWorkouts(),
+  const [available, setAvailable] = useState<GuidedWorkout[]>(() =>
+    getAvailableGuidedWorkouts(),
   )
+  const [removed, setRemoved] = useState<GuidedWorkout[]>(() =>
+    getRemovedGuidedWorkouts(),
+  )
+
+  /** Both lists come from the same two stores, so they are always re-read together. */
+  function refreshCatalog() {
+    setAvailable(getAvailableGuidedWorkouts())
+    setRemoved(getRemovedGuidedWorkouts())
+  }
   const [building, setBuilding] = useState<CustomGuidedWorkout | null>(null)
   const [buildingExisting, setBuildingExisting] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -77,8 +92,8 @@ export function GuidedWorkouts() {
   // A user's own sessions lead: they built them, so they are what they came
   // for. Everything shipped with the app follows.
   const workouts = useMemo(
-    () => filterGuidedWorkouts([...custom, ...guidedWorkouts], filter, level),
-    [custom, filter, level],
+    () => filterGuidedWorkouts(available, filter, level),
+    [available, filter, level],
   )
 
   function openBuilder(workout?: CustomGuidedWorkout) {
@@ -97,7 +112,7 @@ export function GuidedWorkouts() {
     if (saved === 0) {
       return 0
     }
-    setCustom(getCustomGuidedWorkouts())
+    refreshCatalog()
     setImporting(false)
     return saved
   }
@@ -106,7 +121,7 @@ export function GuidedWorkouts() {
     if (!saveCustomGuidedWorkout(workout)) {
       return false
     }
-    setCustom(getCustomGuidedWorkouts())
+    refreshCatalog()
     setBuilding(null)
     return true
   }
@@ -115,10 +130,45 @@ export function GuidedWorkouts() {
     if (!window.confirm(t('guided.builderDeleteConfirm', { name: workout.name }))) {
       return
     }
-    deleteCustomGuidedWorkout(workout.id)
-    setCustom(getCustomGuidedWorkouts())
+    removeGuidedWorkout(workout)
+    refreshCatalog()
     setBuilding(null)
     setDetail(null)
+  }
+
+  /**
+   * Removing a session from the list. A session of the user's own is deleted;
+   * one that ships with the app is only taken off the list, so the confirm has
+   * to say which of the two is about to happen.
+   */
+  function handleRemove(workout: GuidedWorkout) {
+    const name = translateGuidedText(workout.name)
+    const confirmed = window.confirm(
+      workout.custom
+        ? t('guided.builderDeleteConfirm', { name })
+        : t('guided.removeConfirm', { name }),
+    )
+    if (!confirmed) {
+      return
+    }
+
+    if (!removeGuidedWorkout(workout)) {
+      window.alert(t('guided.removeFailed'))
+      return
+    }
+
+    refreshCatalog()
+    setDetail(null)
+  }
+
+  function handleRestoreAll() {
+    restoreAllGuidedWorkouts()
+    refreshCatalog()
+  }
+
+  function restoreOne(id: string) {
+    restoreGuidedWorkout(id)
+    refreshCatalog()
   }
 
   function start(workout: GuidedWorkout) {
@@ -244,6 +294,36 @@ export function GuidedWorkouts() {
         </div>
       )}
 
+      {/* Removing a built-in session only takes it off the list, so the way
+          back has to be somewhere. It sits under the list and disappears with
+          the last removed session. */}
+      {removed.length > 0 ? (
+        <section className="guided-removed">
+          <div className="guided-removed__head">
+            <p className="eyebrow">{t('guided.removedEyebrow')}</p>
+            <button
+              className="guided-removed__restore-all"
+              onClick={handleRestoreAll}
+              type="button"
+            >
+              <RotateCcw size={15} strokeWidth={2.4} aria-hidden="true" />
+              {t('guided.restoreAll')}
+            </button>
+          </div>
+          <p className="guided-removed__help">{t('guided.removedHelp')}</p>
+          <ul className="guided-removed__list">
+            {removed.map((workout) => (
+              <li key={workout.id}>
+                <span>{translateGuidedText(workout.name)}</span>
+                <button onClick={() => restoreOne(workout.id)} type="button">
+                  {t('guided.restore')}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {/* Below the list rather than above it: the workouts are what the screen
           is for, and the cues are a once-a-year setting that the player also
           carries a switch for. */}
@@ -256,6 +336,7 @@ export function GuidedWorkouts() {
       {detail ? (
         <GuidedWorkoutDetail
           onClose={() => setDetail(null)}
+          onDelete={() => handleRemove(detail)}
           onEdit={
             detail.custom
               ? () => openBuilder(detail as CustomGuidedWorkout)
@@ -408,12 +489,15 @@ interface GuidedWorkoutDetailProps {
   workout: GuidedWorkout
   onClose: () => void
   onStart: () => void
+  /** Takes it off the list - deleted if it is the user's, hidden if it shipped. */
+  onDelete: () => void
   /** Only a workout the user built themselves can be edited. */
   onEdit?: () => void
 }
 
 function GuidedWorkoutDetail({
   onClose,
+  onDelete,
   onEdit,
   onStart,
   workout,
@@ -501,6 +585,14 @@ function GuidedWorkoutDetail({
               {t('guided.edit')}
             </button>
           ) : null}
+          <button
+            className="workout-secondary-button workout-secondary-button--danger guided-detail__remove"
+            onClick={onDelete}
+            type="button"
+          >
+            <Trash2 size={17} strokeWidth={2.4} aria-hidden="true" />
+            {workout.custom ? t('guided.builderDelete') : t('guided.remove')}
+          </button>
         </div>
 
         <section className="guided-detail__section">

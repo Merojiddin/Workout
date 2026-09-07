@@ -33,7 +33,7 @@ import { RemainingExercises } from '../components/RemainingExercises'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
 import { WorkoutFinishSummary } from '../components/WorkoutFinishSummary'
 import type { WorkoutSession } from '../data/workoutSessions'
-import { guidedWorkouts, type GuidedWorkout } from '../data/guidedWorkouts'
+import type { GuidedWorkout } from '../data/guidedWorkouts'
 import type { LibraryExercise } from '../data/exerciseLibrary'
 import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import {
@@ -56,7 +56,7 @@ import {
   type ActiveSet,
   type ActiveWorkoutSession,
 } from '../utils/liveWorkoutUtils'
-import { getCustomGuidedWorkouts } from '../utils/customGuidedWorkouts'
+import { getAvailableGuidedWorkouts } from '../utils/guidedWorkoutCatalog'
 import {
   filterGuidedWorkouts,
   getGuidedWorkoutMinutes,
@@ -494,9 +494,10 @@ function PreWorkoutScreen({
   }
 
   // Read once at mount, the way the Guided Workouts screen reads them: a
-  // session the user built themselves is still a cardio session, and it leads.
+  // session the user built themselves is still a cardio session and it leads,
+  // and one they removed is not offered here either.
   const cardioSessions = useMemo(
-    () => filterGuidedWorkouts([...getCustomGuidedWorkouts(), ...guidedWorkouts], 'cardio'),
+    () => filterGuidedWorkouts(getAvailableGuidedWorkouts(), 'cardio'),
     [],
   )
   const [cardioId, setCardioId] = useState(() => cardioSessions[0]?.id ?? '')
