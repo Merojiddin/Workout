@@ -631,28 +631,33 @@ function RestPanel({
 
   return (
     <div className="guided-rest">
-      <p className="eyebrow">{title}</p>
-      <CountdownRing paused={paused} seconds={countdown} total={total} tone="rest" />
+      {/* The clock and its controls are one block so that a wide screen can
+          stand the preview beside them rather than under them. */}
+      <div className="guided-rest__clock">
+        <p className="eyebrow">{title}</p>
+        <CountdownRing paused={paused} seconds={countdown} total={total} tone="rest" />
 
-      {kind !== 'prepare' ? (
-        <button
-          aria-label={t('guided.player.addTimeAria')}
-          className="guided-rest__add"
-          onClick={() => addSeconds(20)}
-          type="button"
-        >
-          <Plus size={15} strokeWidth={2.6} aria-hidden="true" />
-          {t('guided.player.addTime')}
-        </button>
-      ) : null}
+        {kind !== 'prepare' ? (
+          <button
+            aria-label={t('guided.player.addTimeAria')}
+            className="guided-rest__add"
+            onClick={() => addSeconds(20)}
+            type="button"
+          >
+            <Plus size={15} strokeWidth={2.6} aria-hidden="true" />
+            {t('guided.player.addTime')}
+          </button>
+        ) : null}
+      </div>
 
+      {/* The clip runs during the break rather than a still of it. A rest is
+          the one moment in the session with nothing to do but watch, and a
+          name plus a line of cue is not enough to set up an unfamiliar
+          movement from. Starting the video here also has it buffered and
+          looping by the time the work step comes on. */}
       {upcoming ? (
         <article className="guided-next">
-          <GuidedStepMedia
-            className="guided-media--thumb"
-            exercise={upcoming}
-            variant="still"
-          />
+          <GuidedStepMedia className="guided-media--next" exercise={upcoming} />
           <div className="guided-next__text">
             <p className="eyebrow">{t('guided.player.nextUp')}</p>
             <strong>{translateGuidedText(upcoming.name)}</strong>

@@ -9404,6 +9404,12 @@ body {
   width: 100%;
 }
 
+.guided-rest__clock {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+
 .guided-rest .eyebrow {
   color: var(--green);
   font-size: 13px;
@@ -9432,17 +9438,29 @@ body {
   outline: none;
 }
 
+/* The next movement, playing. A 62px thumbnail can say which exercise is
+   coming; only the clip can show you how to stand for it, so the frame gets
+   the full width of the card and the text sits under it. */
 .guided-next {
-  align-items: center;
   background: var(--card);
   border: 1px solid var(--card-line);
   border-radius: var(--r-lg);
   display: grid;
-  gap: 12px;
-  grid-template-columns: 62px minmax(0, 1fr);
+  gap: 10px;
   max-width: 420px;
   padding: 11px;
   text-align: left;
+  width: 100%;
+}
+
+/* Capped in svh as well as pixels, like the player's own frame: on a short
+   phone the preview gives up height rather than pushing the countdown or the
+   add-time button off the screen. */
+.guided-media--next {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  max-height: min(200px, 25svh);
+  min-height: 96px;
   width: 100%;
 }
 
@@ -9458,6 +9476,22 @@ body {
   color: var(--muted);
   font-size: 12.5px;
   line-height: 1.4;
+}
+
+/* A short phone cannot fit a full-size clock, the preview, and the name and
+   cue under it. The clock gives up the room first - a countdown is legible at
+   any size - which puts the clip and the movement's name above the fold and
+   leaves only the cue line to scroll to. */
+@media (max-height: 730px) {
+  .guided-rest,
+  .guided-rest__clock {
+    gap: 10px;
+  }
+
+  .guided-rest .guided-ring {
+    height: min(134px, 38vw);
+    width: min(134px, 38vw);
+  }
 }
 
 /* --- The countdown -------------------------------------------------------- */
@@ -9716,10 +9750,31 @@ body {
     grid-column: 2;
   }
 
-  .guided-ring {
+  /* Scoped to the work step: the rest panel is a single-column grid, and an
+     unscoped `grid-column: 2` put its clock in an implicit second column -
+     leaving the heading and the add-time button stranded in a phantom column
+     to the left of it. */
+  .guided-step .guided-ring {
     grid-column: 2;
     height: min(230px, 26vw);
     width: min(230px, 26vw);
+  }
+
+  /* Room for both: the clock keeps the left half and the preview takes the
+     right, the same split the work step uses. Stacked, the two together are
+     taller than a landscape window and the preview fell below the fold. */
+  .guided-rest:has(.guided-next) {
+    align-items: center;
+    column-gap: 28px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .guided-next {
+    max-width: 480px;
+  }
+
+  .guided-media--next {
+    max-height: min(270px, 38svh);
   }
 
   .guided-player__controls {
