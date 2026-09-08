@@ -5461,6 +5461,17 @@ const guidedLibraryExercises: LibraryExercise[] = (() => {
 // "Video guide not added yet" for the optional long-form guide.
 // ---------------------------------------------------------------------------
 const exerciseMedia: Record<string, ExerciseMedia> = {
+  // -------------------------------------------------------------- Posture
+  // Planfit has no cervical-retraction asset - its four neck entries are all
+  // stretches, and the nearest one demonstrates the opposite movement - so
+  // this is the non-Planfit fallback this map exists for. The clip shows the
+  // head sliding straight back over the shoulders, level, which is the
+  // movement. Animated WebP, so it plays as an <img>.
+  // Source: https://loadmuscle.com/exercises/chin-tuck
+  'chin-tuck': {
+    gifUrl: 'https://exercises.loadmuscle.com/gifs/720/3149.webp',
+    gifAlt: 'Chin tuck: the head slides back over the shoulders',
+  },
   // ---------------------------------------------------------------- Chest
   'bench-press': {
     videoUrl: 'https://www.youtube.com/embed/4Y2ZdHCOXok',

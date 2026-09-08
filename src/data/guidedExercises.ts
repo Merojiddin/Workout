@@ -1752,14 +1752,18 @@ const catalog: GuidedExercise[] = [
       'Sit or stand tall and look straight ahead.',
       'Draw your chin straight back to make a double chin, hold, and release.',
     ],
-    // Deliberately no planfitId. Planfit's whole neck family is four
-    // stretches - Forward Neck Flexion, Rotating, Side, and a massage-ball
-    // one - and none of them is a cervical retraction. 10046 (Forward Neck
-    // Flexion Stretch) was standing in here, and it drops the head all the
-    // way to the chest and then tips it back to look at the sky: a different
-    // movement, in the opposite direction, and the exact posture this drill
-    // exists to undo. On a timed follow-along people copy the picture, not
-    // the text, so no clip is better than that one.
+    // Not a Planfit clip. Planfit's whole neck family is four stretches -
+    // Forward Neck Flexion, Rotating, Side, and a massage-ball one - and none
+    // of them is a cervical retraction; 10046 (Forward Neck Flexion Stretch)
+    // used to stand in here and demonstrated the opposite movement, dropping
+    // the head to the chest and then tipping it back.
+    //
+    // This one is the movement: the head slides straight back over the
+    // shoulders, level, with the deep neck flexors shaded. An animated WebP,
+    // so it plays as an <img> rather than a <video>. If the host ever stops
+    // serving it the step falls back to the Posture placeholder.
+    // Source: https://loadmuscle.com/exercises/chin-tuck
+    animationUrl: 'https://exercises.loadmuscle.com/gifs/720/3149.webp',
     impact: 'low',
   },
   {

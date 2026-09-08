@@ -1002,7 +1002,8 @@ export const planfitExerciseMatches: Readonly<
   },
   // 'chin-tuck' is intentionally absent. Planfit has no cervical-retraction
   // asset - only four neck stretches - and the nearest of them demonstrates
-  // the opposite movement. See the note in data/guidedExercises.ts.
+  // the opposite movement, so the movement carries its own animationUrl in
+  // data/guidedExercises.ts instead. See the note there.
   'thoracic-extension-reach': {
     planfitId: 10002,
     slug: 'kneeling-lat-stretch',
