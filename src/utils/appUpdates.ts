@@ -133,3 +133,108 @@ function reloadForUpdate(): void {
 
   window.location.reload()
 }
+
+/**
+ * The Reload button in the top bar.
+ *
+ * Everything above happens on its own schedule; this is the escape hatch for
+ * when someone knows a new version exists and does not want to wait for a
+ * resume, a 15-minute tick, or the end of their workout. A plain
+ * `location.reload()` is not enough on its own: it re-runs the page against
+ * whatever service worker is currently in control, so a device holding the
+ * previous build would reload straight back into it. So this asks for the
+ * check first, gives the new worker a moment to install and take over, and
+ * only then reloads - at which point the fresh HTML, JS and CSS are what the
+ * page is served.
+ *
+ * The reload happens whether or not a new build was found. Someone pressing
+ * Reload expects the app to reload; "you are already up to date" is not worth
+ * a dialog, and a reload with no update is harmless.
+ */
+
+/**
+ * How long to wait for a newly found worker to take control. Past this the
+ * page reloads anyway - a slow install is not a reason to leave someone
+ * looking at a button that did nothing, and the next check will finish the
+ * job.
+ */
+const ACTIVATION_TIMEOUT_MS = 8 * 1000
+
+export async function reloadWithLatestBuild(): Promise<void> {
+  try {
+    await pullLatestServiceWorker()
+  } catch {
+    // Offline, no service worker, or a check the browser rate-limited. The
+    // reload still runs: it is what was asked for, and without a new worker
+    // it simply restarts the build already installed.
+  }
+
+  // The automatic path throttles itself against reload loops. This one is a
+  // deliberate press, so it clears that guard rather than being blocked by a
+  // reload that happened seconds ago.
+  try {
+    window.sessionStorage.removeItem(RELOAD_GUARD_KEY)
+  } catch {
+    // Session storage can be unavailable; the reload does not depend on it.
+  }
+
+  window.location.reload()
+}
+
+/** Checks for a new service worker and waits for it to take control. */
+async function pullLatestServiceWorker(): Promise<void> {
+  if (!('serviceWorker' in navigator)) {
+    return
+  }
+
+  const registration = await navigator.serviceWorker.getRegistration()
+  if (!registration) {
+    return
+  }
+
+  // Bypasses the throttle the background checks use: a press means now.
+  lastCheckedAt = Date.now()
+  await registration.update()
+
+  const pending = registration.installing ?? registration.waiting
+  if (!pending) {
+    return
+  }
+
+  await waitForControl(pending)
+}
+
+/**
+ * Resolves once the given worker is running the page, or once the timeout
+ * passes. `controllerchange` is the event that matters: skipWaiting and
+ * clientsClaim mean an installed worker claims this page, and only then does
+ * a reload get the new build.
+ */
+function waitForControl(worker: ServiceWorker): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false
+
+    const finish = () => {
+      if (settled) {
+        return
+      }
+      settled = true
+      window.clearTimeout(timer)
+      worker.removeEventListener('statechange', onStateChange)
+      navigator.serviceWorker.removeEventListener('controllerchange', finish)
+      resolve()
+    }
+
+    const onStateChange = () => {
+      // "redundant" means the install failed - waiting longer will not help.
+      if (worker.state === 'activated' || worker.state === 'redundant') {
+        finish()
+      }
+    }
+
+    const timer = window.setTimeout(finish, ACTIVATION_TIMEOUT_MS)
+    worker.addEventListener('statechange', onStateChange)
+    navigator.serviceWorker.addEventListener('controllerchange', finish)
+    onStateChange()
+  })
+}

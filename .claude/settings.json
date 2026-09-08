@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(set -e)",
+      "Bash(mv /Users/merojiddin/Desktop/Workout/src/utils/guidedCatalogSync.ts __TRACKED_VAR__/src/utils/guidedCatalogSync.ts)",
+      "Bash(rmdir /Users/merojiddin/Desktop/Workout/src/utils /Users/merojiddin/Desktop/Workout/src /Users/merojiddin/Desktop/Workout)",
+      "Read(//Users/merojiddin/Desktop/**)"
+    ]
+  }
+}

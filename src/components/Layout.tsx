@@ -4,6 +4,7 @@ import { BottomNav } from './BottomNav'
 import { LanguageToggle } from './LanguageToggle'
 import { NotificationCenter } from './NotificationCenter'
 import { OfflineBanner } from './OfflineBanner'
+import { ReloadAppButton } from './ReloadAppButton'
 import { Sidebar } from './Sidebar'
 import { useT } from '../i18n'
 import type { PageId } from '../types/navigation'
@@ -50,6 +51,9 @@ export function Layout({
           {/* Pinned to the end of the bar so it sits in the same place on
               every page, back button or not. */}
           <LanguageToggle variant="compact" className="app-main__language" />
+          {/* Next to the language picker because both are app-level controls
+              rather than anything to do with the page being looked at. */}
+          <ReloadAppButton />
           <NotificationCenter />
         </div>
         {children}

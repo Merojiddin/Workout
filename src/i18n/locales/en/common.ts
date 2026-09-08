@@ -91,6 +91,9 @@ export const commonMessages = {
   'language.switchTo': 'Switch to {language}',
   'language.current': '{language} is selected',
 
+  'appReload.label': 'Reload the app',
+  'appReload.title': 'Reload to pick up the latest version',
+
   'error.title': 'Something went wrong',
   'error.generic': 'Something went wrong. Please try again.',
   'error.storageFull':

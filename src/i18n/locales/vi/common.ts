@@ -91,6 +91,9 @@ export const commonMessages = {
   'language.switchTo': 'Chuyển sang {language}',
   'language.current': 'Đang dùng {language}',
 
+  'appReload.label': 'Tải lại ứng dụng',
+  'appReload.title': 'Tải lại để cập nhật phiên bản mới nhất',
+
   'error.title': 'Đã xảy ra lỗi',
   'error.generic': 'Đã xảy ra lỗi. Vui lòng thử lại.',
   'error.storageFull':

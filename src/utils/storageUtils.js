@@ -16,6 +16,16 @@ export const GUIDED_SETTINGS_KEY = 'guidedWorkoutSettings'
 export const CUSTOM_GUIDED_WORKOUTS_KEY = 'customGuidedWorkouts'
 /** Ids of the shipped guided workouts this account has removed from its list. */
 export const HIDDEN_GUIDED_WORKOUTS_KEY = 'hiddenGuidedWorkouts'
+/**
+ * Guided sessions this account deleted, as id -> ISO timestamp.
+ *
+ * Kept because the guided catalog syncs across devices: without a record that
+ * a deletion happened, the next pull from a device that still has the workout
+ * would hand it straight back.
+ */
+export const DELETED_GUIDED_WORKOUTS_KEY = 'deletedGuidedWorkouts'
+/** When the hidden list above last changed, so the newer device's list wins. */
+export const HIDDEN_GUIDED_WORKOUTS_AT_KEY = 'hiddenGuidedWorkoutsAt'
 export const REMINDER_SETTINGS_KEY = 'reminderSettings'
 export const REMINDER_HISTORY_KEY = 'reminderHistory'
 export const SENT_REMINDER_LOG_KEY = 'sentReminderLog'
@@ -41,6 +51,8 @@ export const FITNESS_APP_STORAGE_KEYS = [
   GUIDED_SETTINGS_KEY,
   CUSTOM_GUIDED_WORKOUTS_KEY,
   HIDDEN_GUIDED_WORKOUTS_KEY,
+  DELETED_GUIDED_WORKOUTS_KEY,
+  HIDDEN_GUIDED_WORKOUTS_AT_KEY,
   REMINDER_SETTINGS_KEY,
   REMINDER_HISTORY_KEY,
   SENT_REMINDER_LOG_KEY,

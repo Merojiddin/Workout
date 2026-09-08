@@ -5,7 +5,12 @@ import type {
   GuidedWorkout,
   GuidedWorkoutStep,
 } from '../data/guidedWorkouts'
-import { CUSTOM_GUIDED_WORKOUTS_KEY, safeGetJSON, safeSetJSON } from './storageUtils'
+import {
+  CUSTOM_GUIDED_WORKOUTS_KEY,
+  DELETED_GUIDED_WORKOUTS_KEY,
+  safeGetJSON,
+  safeSetJSON,
+} from './storageUtils'
 
 /**
  * Workouts the user builds themselves.
@@ -155,12 +160,82 @@ export function saveCustomGuidedWorkout(workout: CustomGuidedWorkout): boolean {
   }
 
   const existing = getCustomGuidedWorkouts().filter((item) => item.id !== normalized.id)
-  return Boolean(safeSetJSON(CUSTOM_GUIDED_WORKOUTS_KEY, [normalized, ...existing]))
+  if (!safeSetJSON(CUSTOM_GUIDED_WORKOUTS_KEY, [normalized, ...existing])) {
+    return false
+  }
+
+  // Saving something back under an id this device deleted retires the
+  // tombstone, so the next sync does not re-delete what was just written.
+  clearGuidedWorkoutDeletion(normalized.id)
+  return true
+}
+
+/**
+ * Replaces the whole list in one write. Used by the sync merge, which has
+ * already decided what the list should be and must not re-stamp `updatedAt` -
+ * that timestamp is what the merge compares, so bumping it here would make
+ * every pulled session look newer than the copy it came from.
+ */
+export function replaceCustomGuidedWorkouts(workouts: CustomGuidedWorkout[]): boolean {
+  const normalized = workouts
+    .map(normalize)
+    .filter((workout): workout is CustomGuidedWorkout => workout !== null)
+  return Boolean(safeSetJSON(CUSTOM_GUIDED_WORKOUTS_KEY, normalized))
 }
 
 export function deleteCustomGuidedWorkout(id: string): boolean {
   const remaining = getCustomGuidedWorkouts().filter((workout) => workout.id !== id)
-  return Boolean(safeSetJSON(CUSTOM_GUIDED_WORKOUTS_KEY, remaining))
+  if (!safeSetJSON(CUSTOM_GUIDED_WORKOUTS_KEY, remaining)) {
+    return false
+  }
+
+  // Record that this happened. The catalog syncs, so without a tombstone the
+  // next pull from a device that still has the session would restore it.
+  recordGuidedWorkoutDeletion(id)
+  return true
+}
+
+// --- deletion tombstones -----------------------------------------------------
+
+/** Deleted sessions as id -> ISO timestamp. See guidedCatalogSync. */
+export function getDeletedGuidedWorkouts(): Record<string, string> {
+  try {
+    const stored = safeGetJSON(DELETED_GUIDED_WORKOUTS_KEY, {})
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+      return {}
+    }
+
+    const deleted: Record<string, string> = {}
+    for (const [id, at] of Object.entries(stored as Record<string, unknown>)) {
+      if (id && typeof at === 'string') {
+        deleted[id] = at
+      }
+    }
+    return deleted
+  } catch {
+    return {}
+  }
+}
+
+export function recordGuidedWorkoutDeletion(id: string): boolean {
+  const deleted = getDeletedGuidedWorkouts()
+  deleted[id] = new Date().toISOString()
+  return Boolean(safeSetJSON(DELETED_GUIDED_WORKOUTS_KEY, deleted))
+}
+
+function clearGuidedWorkoutDeletion(id: string): boolean {
+  const deleted = getDeletedGuidedWorkouts()
+  if (!(id in deleted)) {
+    return true
+  }
+  delete deleted[id]
+  return Boolean(safeSetJSON(DELETED_GUIDED_WORKOUTS_KEY, deleted))
+}
+
+export function replaceDeletedGuidedWorkouts(
+  deleted: Record<string, string>,
+): boolean {
+  return Boolean(safeSetJSON(DELETED_GUIDED_WORKOUTS_KEY, deleted))
 }
 
 /** A blank workout to open the builder on, with workable defaults. */
