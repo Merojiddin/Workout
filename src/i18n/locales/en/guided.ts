@@ -68,6 +68,8 @@ export const guidedMessages = {
     '"{name}": dropped movements this app does not have - {moves}.',
   'guided.importTrimmed': '"{name}" was cut to the first {max} movements.',
   'guided.importUnknownCategory': '"{name}": "{value}" is not a category, so it went to Cardio / HIIT.',
+  'guided.importFixedQuotes':
+    'Your keyboard had curled the quote marks, which is not valid JSON. They were straightened out and the import went ahead.',
   'guided.importUnknownLevel': '"{name}": "{value}" is not a difficulty, so it was set to Intermediate.',
   'guided.importReplaces': '"{name}" replaces a saved workout with the same id.',
   'guided.importTooMany': 'Only the first {max} workouts were read.',

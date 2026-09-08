@@ -30,7 +30,13 @@ export interface CustomGuidedWorkout extends GuidedWorkout {
   updatedAt: string
 }
 
-const categories: GuidedCategoryId[] = ['cardio', 'abs', 'posture', 'mobility']
+const categories: GuidedCategoryId[] = [
+  'cardio',
+  'abs',
+  'posture',
+  'mobility',
+  'calisthenics',
+]
 const levels: GuidedLevel[] = ['Beginner', 'Intermediate', 'Advanced']
 
 /** Bounds that keep a saved workout runnable whatever was typed into it. */

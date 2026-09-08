@@ -64,6 +64,8 @@ export const guidedMessages = {
     '"{name}": đã bỏ những động tác ứng dụng không có - {moves}.',
   'guided.importTrimmed': '"{name}" chỉ giữ lại {max} động tác đầu tiên.',
   'guided.importUnknownCategory': '"{name}": "{value}" không phải là nhóm, nên đã xếp vào Cardio / HIIT.',
+  'guided.importFixedQuotes':
+    'Bàn phím đã đổi dấu ngoặc kép thành dạng cong, vốn không hợp lệ trong JSON. Chúng đã được sửa lại và quá trình nhập vẫn tiếp tục.',
   'guided.importUnknownLevel': '"{name}": "{value}" không phải là độ khó, nên đã đặt là Trung bình.',
   'guided.importReplaces': '"{name}" thay thế một bài tập đã lưu có cùng id.',
   'guided.importTooMany': 'Chỉ đọc {max} bài tập đầu tiên.',

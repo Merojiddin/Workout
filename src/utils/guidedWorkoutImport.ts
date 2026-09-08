@@ -38,18 +38,27 @@ export interface ParsedGuidedWorkoutsResult {
   warnings: string[]
 }
 
-const categoryIds: GuidedCategoryId[] = ['cardio', 'abs', 'posture', 'mobility']
+const categoryIds: GuidedCategoryId[] = [
+  'cardio',
+  'abs',
+  'posture',
+  'mobility',
+  'calisthenics',
+]
 const levels: GuidedLevel[] = ['Beginner', 'Intermediate', 'Advanced']
 
 /** Wording an AI reply reaches for that is not one of the four category ids. */
 const categorySynonyms: Record<string, GuidedCategoryId> = {
   abs: 'abs',
+  bodyweight: 'calisthenics',
+  calisthenics: 'calisthenics',
   cardio: 'cardio',
   conditioning: 'cardio',
   core: 'abs',
   hiit: 'cardio',
   mobility: 'mobility',
   posture: 'posture',
+  strength: 'calisthenics',
   stretch: 'mobility',
   stretching: 'mobility',
 }
@@ -85,12 +94,26 @@ export function parseGuidedWorkoutInput(input: string): ParsedGuidedWorkoutsResu
   try {
     parsed = JSON.parse(text)
   } catch (error) {
-    return {
-      success: false,
-      workouts: [],
-      errors: [describeJsonError(error, text)],
-      warnings,
+    // Before giving up, try again assuming a phone keyboard curled the quotes.
+    const repaired = extractJsonText(repairTypographicPunctuation(input))
+    let recovered: unknown = null
+    try {
+      recovered = repaired ? JSON.parse(repaired) : null
+    } catch {
+      recovered = null
     }
+
+    if (recovered === null) {
+      return {
+        success: false,
+        workouts: [],
+        errors: [describeJsonError(error, text)],
+        warnings,
+      }
+    }
+
+    parsed = recovered
+    warnings.push(t('guided.importFixedQuotes'))
   }
 
   const raw = collectWorkouts(parsed)
@@ -419,6 +442,27 @@ function buildMovementCatalog(): string {
  * anything inside a string. Handles an array as well as an object, because a
  * set of workouts is the normal thing to import.
  */
+/**
+ * Undoes what a phone keyboard does to pasted JSON.
+ *
+ * iOS "smart punctuation" rewrites every straight quote as a curly one the
+ * moment the text lands in a textarea, and `JSON.parse` rejects the result
+ * with `Unrecognized token '\u201c'`. The same paste works on a laptop, which
+ * makes it look like the phone cannot import at all.
+ *
+ * Only ever used as a second attempt, after an honest parse has already
+ * failed: a description legitimately containing a curly quote must not have it
+ * rewritten into a string terminator, and that is exactly what this would do
+ * to input that was fine to begin with.
+ */
+function repairTypographicPunctuation(input: string): string {
+  return input
+    .replace(/[\u201c\u201d\u201e\u201f]/g, '"')
+    .replace(/[\u2018\u2019\u201a\u201b]/g, "'")
+    // Non-breaking and narrow spaces are not JSON whitespace either.
+    .replace(/[\u00a0\u2007\u202f]/g, ' ')
+}
+
 function extractJsonText(input: string): string {
   if (typeof input !== 'string') {
     return ''

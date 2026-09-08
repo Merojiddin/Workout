@@ -1,4 +1,4 @@
-import { Activity, Flame, PersonStanding, Waves } from 'lucide-react'
+import { Activity, Dumbbell, Flame, PersonStanding, Waves } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { GuidedExercise } from './guidedExercises'
 
@@ -16,7 +16,12 @@ import type { GuidedExercise } from './guidedExercises'
  * instead - same fields, including its own GIF/video URL and instructions.
  */
 
-export type GuidedCategoryId = 'cardio' | 'posture' | 'abs' | 'mobility'
+export type GuidedCategoryId =
+  | 'cardio'
+  | 'posture'
+  | 'abs'
+  | 'mobility'
+  | 'calisthenics'
 
 export type GuidedLevel = 'Beginner' | 'Intermediate' | 'Advanced'
 
@@ -99,6 +104,15 @@ export const guidedCategories: readonly GuidedCategory[] = [
     description: 'Longer holds for range of motion, warm-ups and cool-downs.',
     icon: Waves,
     accent: 'purple',
+  },
+  {
+    id: 'calisthenics',
+    name: 'Calisthenics',
+    description: 'Bodyweight strength: pushing, pulling, legs and core held for time.',
+    icon: Dumbbell,
+    // Shares cardio's orange: the accent set is a fixed four, and conditioning
+    // is the closest neighbour to bodyweight strength work.
+    accent: 'orange',
   },
 ]
 
