@@ -138,6 +138,29 @@ export const workoutMessages = {
   'unfinished.discard': 'Huỷ buổi tập',
   'unfinished.workoutFallback': 'Buổi tập',
 
+  'unfinished.browse': 'Xem các buổi tập khác',
+  'unfinished.browseHint': 'Buổi tập vẫn được lưu. Bạn có thể quay lại bất cứ lúc nào.',
+
+  'paused.eyebrow': 'Buổi tập đang tạm dừng',
+  'paused.resume': 'Tiếp tục',
+  'paused.discard': 'Huỷ',
+
+  'startConflict.title': 'Bắt đầu một buổi tập khác?',
+  'startConflict.body':
+    'Bạn đang tập dở {name} - đã xong {done}/{total} hiệp. Bắt đầu {next} sẽ kết thúc buổi đó.',
+  'startConflict.bodyEmpty':
+    '{name} vẫn đang mở và chưa ghi hiệp nào. Bắt đầu {next} sẽ kết thúc buổi đó.',
+  'startConflict.saveAndStart': 'Lưu lại rồi bắt đầu buổi mới',
+  'startConflict.discardAndStart': 'Huỷ buổi đó rồi bắt đầu buổi mới',
+  'startConflict.startAnyway': 'Bắt đầu buổi mới',
+  'startConflict.bodyRestart':
+    'Bạn đang tập dở {name} - đã xong {done}/{total} hiệp. Bắt đầu lại sẽ xoá phần đang tập.',
+  'startConflict.bodyEmptyRestart':
+    '{name} vẫn đang mở và chưa ghi hiệp nào. Bắt đầu lại sẽ thay thế buổi đó.',
+  'startConflict.startAgain': 'Bắt đầu lại',
+  'startConflict.saveAndRestart': 'Lưu lại rồi tập lại từ đầu',
+  'startConflict.discardAndRestart': 'Huỷ rồi tập lại từ đầu',
+
   'finish.title': 'Đã tập xong',
   'finish.savedLine': '{name} · đã lưu',
   'finish.exercises': 'bài tập',

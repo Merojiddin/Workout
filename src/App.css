@@ -3072,15 +3072,206 @@
   width: 100%;
 }
 
-/* Finish pain warnings */
+/* The way out of the prompt without ending the workout. Deliberately the
+   quietest thing on the card: it is the answer to a question the other two
+   buttons have already offered, not a third button competing with them. */
+.unfinished-prompt__browse {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--green);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 8px;
+  margin-top: 4px;
+  min-height: 34px;
+  padding: 0;
+}
 
-/* Dashboard unfinished-workout banner */
+.unfinished-prompt__browse:hover,
+.unfinished-prompt__browse:focus-visible {
+  outline: none;
+  text-decoration: underline;
+}
+
+.unfinished-prompt__hint {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Paused-workout banner, shown above the pre-workout screen while a session
+   is left running. */
+.active-workout-banner {
+  background: var(--surface-2);
+  border: 1px solid rgba(27, 210, 220, 0.32);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+}
 
 .active-workout-banner .eyebrow {
   align-items: center;
   color: var(--green);
   display: inline-flex;
   gap: 6px;
+}
+
+.active-workout-banner__summary {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.active-workout-banner__actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* A banner is not the place for a full-width 56px button - it sits beside its
+   own text rather than under it. */
+.workout-primary-button--small {
+  font-size: 14px;
+  gap: 7px;
+  min-height: 42px;
+  padding: 0 18px;
+  width: auto;
+}
+
+.active-workout-banner__discard {
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  display: inline-flex;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 6px;
+  min-height: 42px;
+  padding: 0 8px;
+}
+
+.active-workout-banner__discard:hover,
+.active-workout-banner__discard:focus-visible {
+  color: var(--red);
+  outline: none;
+}
+
+/* Confirm dialog - one question, answered before anything is destroyed. */
+.confirm-dialog {
+  display: grid;
+  inset: 0;
+  position: fixed;
+  z-index: 60;
+}
+
+.confirm-dialog__backdrop {
+  background: rgba(0, 0, 0, 0.68);
+  border: none;
+  cursor: pointer;
+  grid-area: 1 / 1;
+  padding: 0;
+}
+
+.confirm-dialog__panel {
+  align-content: start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 10px;
+  grid-area: 1 / 1;
+  justify-items: start;
+  margin: 16px;
+  max-height: calc(100svh - 32px);
+  max-width: 460px;
+  overflow-y: auto;
+  padding: 20px;
+  place-self: center;
+  width: calc(100% - 32px);
+}
+
+.confirm-dialog__icon {
+  align-items: center;
+  background: var(--orange-soft);
+  border: 1px solid rgba(255, 109, 74, 0.3);
+  border-radius: var(--r-md);
+  color: var(--orange);
+  display: flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.confirm-dialog__panel h2 {
+  color: var(--text);
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 2px 0 0;
+}
+
+.confirm-dialog__body {
+  color: var(--soft);
+  font-size: 15px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.confirm-dialog__error {
+  background: var(--red-soft);
+  border: 1px solid rgba(255, 92, 92, 0.35);
+  border-radius: var(--r-sm);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 800;
+  margin: 0;
+  padding: 10px 12px;
+}
+
+.confirm-dialog__actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+  width: 100%;
+}
+
+/* These labels name both halves of the trade ("discard it and start the new
+   one"), which is longer than a button usually carries. A step down in size
+   keeps them on one line on a phone. */
+.confirm-dialog__actions .workout-primary-button,
+.confirm-dialog__actions .workout-secondary-button {
+  font-size: 15px;
+  min-height: 50px;
+  text-align: center;
+}
+
+.confirm-dialog__cancel {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 900;
+  min-height: 44px;
+  padding: 0;
+}
+
+.confirm-dialog__cancel:hover,
+.confirm-dialog__cancel:focus-visible {
+  color: var(--text);
+  outline: none;
 }
 
 @media (min-width: 620px) {

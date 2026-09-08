@@ -1,4 +1,4 @@
-import { Play, RotateCcw, Trash2 } from 'lucide-react'
+import { ListChecks, Play, RotateCcw, Trash2 } from 'lucide-react'
 import { formatDate, useT } from '../i18n'
 import {
   getDoneSetsCount,
@@ -10,12 +10,15 @@ interface UnfinishedWorkoutPromptProps {
   session: ActiveWorkoutSession
   onContinue: () => void
   onDiscard: () => void
+  /** Leaves the workout paused and shows the rest of the tab. */
+  onBrowse: () => void
 }
 
 export function UnfinishedWorkoutPrompt({
   session,
   onContinue,
   onDiscard,
+  onBrowse,
 }: UnfinishedWorkoutPromptProps) {
   const t = useT()
   const doneSets = getDoneSetsCount(session)
@@ -65,6 +68,17 @@ export function UnfinishedWorkoutPrompt({
           {t('unfinished.discard')}
         </button>
       </div>
+
+      {/* Continue and Discard used to be the only ways off this screen, which
+          made an unfinished workout a wall in front of the rest of the tab:
+          the only way to look at another session was to throw this one away.
+          Leaving is neither of those things, so it is a third, quieter
+          action rather than a variation on the two above. */}
+      <button className="unfinished-prompt__browse" onClick={onBrowse} type="button">
+        <ListChecks size={16} strokeWidth={2.4} aria-hidden="true" />
+        {t('unfinished.browse')}
+      </button>
+      <p className="unfinished-prompt__hint">{t('unfinished.browseHint')}</p>
     </section>
   )
 }

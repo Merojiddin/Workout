@@ -138,6 +138,29 @@ export const workoutMessages = {
   'unfinished.discard': 'Discard Workout',
   'unfinished.workoutFallback': 'Workout',
 
+  'unfinished.browse': 'Browse other workouts',
+  'unfinished.browseHint': 'It stays saved. Pick it up again whenever you like.',
+
+  'paused.eyebrow': 'Paused workout',
+  'paused.resume': 'Resume',
+  'paused.discard': 'Discard',
+
+  'startConflict.title': 'Start a different workout?',
+  'startConflict.body':
+    "You're partway through {name} - {done} of {total} sets done. Starting {next} ends it.",
+  'startConflict.bodyEmpty':
+    '{name} is still open, with nothing logged yet. Starting {next} ends it.',
+  'startConflict.saveAndStart': 'Save it and start the new one',
+  'startConflict.discardAndStart': 'Discard it and start the new one',
+  'startConflict.startAnyway': 'Start the new one',
+  'startConflict.bodyRestart':
+    "You're partway through {name} - {done} of {total} sets done. Starting it again ends what you have.",
+  'startConflict.bodyEmptyRestart':
+    '{name} is still open, with nothing logged yet. Starting it again replaces it.',
+  'startConflict.startAgain': 'Start it again',
+  'startConflict.saveAndRestart': 'Save it and start again',
+  'startConflict.discardAndRestart': 'Discard it and start again',
+
   'finish.title': 'Workout done',
   'finish.savedLine': '{name} · saved',
   'finish.exercises': 'exercises',

@@ -30,6 +30,8 @@ import { useLiveTimer } from '../hooks/useLiveTimer'
 import { LiveRoundStats } from '../components/LiveRoundStats'
 import { LiveSetTable } from '../components/LiveSetTable'
 import { RemainingExercises } from '../components/RemainingExercises'
+import { ActiveWorkoutBanner } from '../components/ActiveWorkoutBanner'
+import { StartWorkoutConflictDialog } from '../components/StartWorkoutConflictDialog'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
 import { WorkoutFinishSummary } from '../components/WorkoutFinishSummary'
 import type { WorkoutSession } from '../data/workoutSessions'
@@ -102,6 +104,18 @@ interface TodayWorkoutProps {
 
 type Screen = 'prompt' | 'intro' | 'active' | 'finished'
 
+/**
+ * The workout whose unfinished-workout screen has already been stepped past.
+ *
+ * Switching tabs unmounts this page, so without this the wall came back on
+ * every return to Workout - which is the same nag the Browse button exists to
+ * answer. Deliberately module-level rather than stored: it is a fact about
+ * this visit, and a fresh launch should say "you left something unfinished"
+ * again. Keyed on the session id so a *different* unfinished workout still
+ * gets its own prompt.
+ */
+let browsedPastSessionId: string | null = null
+
 export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   const { user } = useAuth()
   const { language, t } = useLanguage()
@@ -140,13 +154,21 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   )
   const [screen, setScreen] = useState<Screen>(() => {
     const existing = getActiveWorkoutSession()
-    return existing && !existing.completed ? 'prompt' : 'intro'
+    if (!existing || existing.completed) {
+      return 'intro'
+    }
+
+    return existing.id === browsedPastSessionId ? 'intro' : 'prompt'
   })
   const [selectedDay, setSelectedDay] = useState<WorkoutDay>(todayWorkout)
   const [finishedSession, setFinishedSession] = useState<WorkoutSession | null>(null)
   const [finishError, setFinishError] = useState<string | null>(null)
   const [restSignal, setRestSignal] = useState(0)
   const [nowTs, setNowTs] = useState(() => Date.now())
+  // The workout waiting on the answer to "start this one instead?". Held
+  // rather than started so the question can still be answered with "no".
+  const [pendingStart, setPendingStart] = useState<ActiveWorkoutSession | null>(null)
+  const [startError, setStartError] = useState<string | null>(null)
 
   // Keep the elapsed time ticking while training.
   useEffect(() => {
@@ -167,16 +189,78 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   function beginWorkout(fresh: ActiveWorkoutSession) {
     const existing = getActiveWorkoutSession()
     if (existing && !existing.completed) {
+      // Only one workout runs at a time, so this one would end the other.
+      // Bouncing silently back to the unfinished-workout screen looked like
+      // the press had failed; ask instead, and let the sets already logged be
+      // kept or thrown away on purpose.
       setSession(existing)
-      setScreen('prompt')
+      setStartError(null)
+      setPendingStart(fresh)
       return
     }
 
+    startFresh(fresh)
+  }
+
+  function startFresh(fresh: ActiveWorkoutSession) {
     saveActiveWorkoutSession(fresh)
     setSession(fresh)
+    setPendingStart(null)
+    setStartError(null)
     setRestSignal(0)
     setNowTs(Date.now())
     setScreen('active')
+  }
+
+  /**
+   * Throws the active workout away, after naming what goes with it. Shared by
+   * the unfinished-workout screen and the paused banner so both ask the same
+   * question and neither can delete a workout on a single tap.
+   */
+  function discardSession(target: ActiveWorkoutSession): boolean {
+    const doneSets = getDoneSetsCount(target)
+    const confirmed = window.confirm(
+      doneSets > 0
+        ? t('workout.discardConfirm', { count: doneSets })
+        : t('workout.discardConfirmEmpty'),
+    )
+    if (!confirmed) {
+      return false
+    }
+
+    clearActiveWorkoutSession()
+    setSession(null)
+    setScreen('intro')
+    return true
+  }
+
+  /** Answers the conflict dialog: keep the sets already done, then start. */
+  function saveAndStartPending() {
+    if (!session || !pendingStart) {
+      return
+    }
+
+    const { saved, session: finished } = completeActiveWorkoutSession(session)
+    if (!saved) {
+      // History is full. The workout is still on the device, so the new one
+      // deliberately does not start - that would trade one for the other,
+      // which is exactly what the user asked to avoid.
+      setStartError(t('workout.saveFailed'))
+      return
+    }
+
+    void workoutService.saveWorkoutSession(user, finished).catch(() => undefined)
+    startFresh(pendingStart)
+  }
+
+  /** Answers the conflict dialog: bin the unfinished workout, then start. */
+  function discardAndStartPending() {
+    if (!pendingStart) {
+      return
+    }
+
+    clearActiveWorkoutSession()
+    startFresh(pendingStart)
   }
 
   function startScheduledWorkout(day: WorkoutDay) {
@@ -381,21 +465,13 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
             setNowTs(Date.now())
             setScreen('active')
           }}
-          onDiscard={() => {
-            // Sits next to "Continue" and cannot be undone, so name what is
-            // about to be thrown away before doing it.
-            const doneSets = getDoneSetsCount(session)
-            const confirmed = window.confirm(
-              doneSets > 0
-                ? t('workout.discardConfirm', { count: doneSets })
-                : t('workout.discardConfirmEmpty'),
-            )
-            if (!confirmed) {
-              return
-            }
-
-            clearActiveWorkoutSession()
-            setSession(null)
+          // Sits next to "Continue" and cannot be undone, so it names what
+          // is about to be thrown away before doing it.
+          onDiscard={() => discardSession(session)}
+          // Leaves the workout exactly where it is and shows the rest of the
+          // tab. The banner on that screen is what leads back to it.
+          onBrowse={() => {
+            browsedPastSessionId = session.id
             setScreen('intro')
           }}
           session={session}
@@ -429,16 +505,37 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   }
 
   return (
-    <PreWorkoutScreen
-      activeProgram={activeProgram}
-      onNavigate={onNavigate}
-      onSelectDay={setSelectedDay}
-      onStart={startScheduledWorkout}
-      onStartCardio={guided.start}
-      onStartStandalone={startStandaloneWorkout}
-      programWeek={programWeek}
-      selectedDay={selectedDay}
-    />
+    <>
+      <PreWorkoutScreen
+        activeProgram={activeProgram}
+        onDiscardPaused={() => session && discardSession(session)}
+        onNavigate={onNavigate}
+        onResumePaused={() => {
+          setNowTs(Date.now())
+          setScreen('active')
+        }}
+        onSelectDay={setSelectedDay}
+        onStart={startScheduledWorkout}
+        onStartCardio={guided.start}
+        onStartStandalone={startStandaloneWorkout}
+        pausedSession={session}
+        programWeek={programWeek}
+        selectedDay={selectedDay}
+      />
+      {pendingStart && session ? (
+        <StartWorkoutConflictDialog
+          current={session}
+          error={startError}
+          nextName={pendingStart.workoutName ?? t('unfinished.workoutFallback')}
+          onCancel={() => {
+            setPendingStart(null)
+            setStartError(null)
+          }}
+          onDiscardAndStart={discardAndStartPending}
+          onSaveAndStart={saveAndStartPending}
+        />
+      ) : null}
+    </>
   )
 }
 
@@ -451,22 +548,29 @@ type TrainingMode = 'workout' | 'cardio'
 
 interface PreWorkoutScreenProps {
   activeProgram: ActiveWorkoutProgram
+  onDiscardPaused: () => void
   onNavigate: (page: PageId) => void
+  onResumePaused: () => void
   onSelectDay: (day: WorkoutDay) => void
   onStart: (workout: WorkoutDay) => void
   onStartCardio: (workout: GuidedWorkout) => void
   onStartStandalone: (workout: StandaloneWorkout) => void
+  /** A workout left running while this screen is browsed, if there is one. */
+  pausedSession: ActiveWorkoutSession | null
   programWeek: number | null
   selectedDay: WorkoutDay
 }
 
 function PreWorkoutScreen({
   activeProgram,
+  onDiscardPaused,
   onNavigate,
+  onResumePaused,
   onSelectDay,
   onStart,
   onStartCardio,
   onStartStandalone,
+  pausedSession,
   programWeek,
   selectedDay,
 }: PreWorkoutScreenProps) {
@@ -543,6 +647,16 @@ function PreWorkoutScreen({
           <p>{t('workout.greetingSub')}</p>
         </div>
       </header>
+
+      {/* Above the plan card, because a workout already underway outranks the
+          one this screen is offering to start. */}
+      {pausedSession ? (
+        <ActiveWorkoutBanner
+          onDiscard={onDiscardPaused}
+          onResume={onResumePaused}
+          session={pausedSession}
+        />
+      ) : null}
 
       {/* The plan card: which program is running and how far into it you are. */}
       <article className="plan-card">
