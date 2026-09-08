@@ -12,9 +12,11 @@ import {
 import { pushBodyCheckInToCloud } from './bodyCheckInService'
 import { pushNutritionLogToCloud } from './nutritionService'
 import {
+  fetchGuidedCatalogFromCloud,
   fetchUserWorkoutProgramsFromCloud,
   saveCustomExerciseLibrary,
   saveCustomWorkoutPlan,
+  saveGuidedCatalogToCloud,
   saveUserSettings,
   saveUserWorkoutProgramsToCloud,
 } from './settingsService'
@@ -22,6 +24,13 @@ import {
   getUserWorkoutPrograms,
   replaceUserWorkoutPrograms,
 } from '../utils/userWorkoutPrograms'
+import {
+  isEmptyGuidedCatalog,
+  mergeGuidedCatalogs,
+  normalizeGuidedCatalog,
+  readLocalGuidedCatalog,
+  writeLocalGuidedCatalog,
+} from '../utils/guidedCatalogSync'
 import { pushWorkoutSessionToCloud } from './workoutService'
 import {
   backupLocalKey,
@@ -98,6 +107,38 @@ export async function getCloudDataSummary(user) {
   }
 }
 
+/**
+ * Reconciles this device's guided catalog with the cloud, both ways.
+ *
+ * Unlike the other documents here there is no upload direction and download
+ * direction to pick between: sessions are added on whichever device is to
+ * hand, so both copies hold something the other needs. One merge settles it,
+ * and because the merge is symmetric the result is the same whichever device
+ * runs it first. The merged catalog is written back to both sides, so the two
+ * converge after a single sync rather than ping-ponging.
+ *
+ * Exported because the guided screen calls it directly: every import, edit and
+ * delete reconciles rather than pushing the local list over the cloud one, so
+ * a device that has been offline cannot drop what another device added while
+ * it was away.
+ *
+ * Returns the number of sessions in the reconciled catalog.
+ */
+export async function reconcileGuidedCatalog(user) {
+  const local = readLocalGuidedCatalog()
+  const cloud = normalizeGuidedCatalog(await fetchGuidedCatalogFromCloud(user))
+  const merged = mergeGuidedCatalogs(local, cloud)
+
+  writeLocalGuidedCatalog(merged)
+
+  // Nothing anywhere yet - skip the write rather than storing an empty row.
+  if (!isEmptyGuidedCatalog(merged)) {
+    await saveGuidedCatalogToCloud(user, merged)
+  }
+
+  return merged.workouts.length
+}
+
 export async function syncLocalToCloud(user) {
   if (!isCloudMode(user)) {
     throw new Error(t('sync.signInUpload'))
@@ -111,6 +152,7 @@ export async function syncLocalToCloud(user) {
     customPlan: 0,
     customLibrary: 0,
     userPrograms: 0,
+    guidedWorkouts: 0,
     errors: [],
   }
 
@@ -176,6 +218,12 @@ export async function syncLocalToCloud(user) {
     }
   }
 
+  try {
+    summary.guidedWorkouts = await reconcileGuidedCatalog(user)
+  } catch (error) {
+    summary.errors.push(describe(t('sync.entity.guidedWorkouts'), error))
+  }
+
   return summary
 }
 
@@ -192,6 +240,7 @@ export async function syncCloudToLocal(user) {
     customPlan: 0,
     customLibrary: 0,
     userPrograms: 0,
+    guidedWorkouts: 0,
     errors: [],
   }
 
@@ -304,6 +353,14 @@ export async function syncCloudToLocal(user) {
     }
   } catch (error) {
     summary.errors.push(describe(t('sync.entity.pastedPrograms'), error))
+  }
+
+  // Runs on every app load (see App.tsx), which is what makes a session
+  // imported on one device show up on the other without anyone pressing sync.
+  try {
+    summary.guidedWorkouts = await reconcileGuidedCatalog(user)
+  } catch (error) {
+    summary.errors.push(describe(t('sync.entity.guidedWorkouts'), error))
   }
 
   return summary
@@ -446,6 +503,14 @@ async function processQueueItem(user, item) {
       return processSingleValueQueueItem(
         'user_workout_programs',
         'programs',
+        user,
+        item,
+        payload,
+      )
+    case 'guidedCatalog':
+      return processSingleValueQueueItem(
+        'guided_workout_catalogs',
+        'catalog',
         user,
         item,
         payload,

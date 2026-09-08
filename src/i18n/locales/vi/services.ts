@@ -268,6 +268,7 @@ export const serviceMessages = {
   'sync.entity.nutritionLog': 'nhật ký dinh dưỡng',
   'sync.entity.nutritionLogs': 'các nhật ký dinh dưỡng',
   'sync.entity.pastedPrograms': 'các giáo án đã dán',
+  'sync.entity.guidedWorkouts': 'các buổi tập có hướng dẫn',
   'sync.entity.workoutPlan': 'giáo án tập luyện',
   'sync.entity.programMetadata': 'thông tin giáo án tập luyện',
   'sync.entity.workoutSession': 'buổi tập',

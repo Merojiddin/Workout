@@ -364,3 +364,51 @@ drop trigger if exists user_workout_programs_set_updated_at on public.user_worko
 create trigger user_workout_programs_set_updated_at
   before update on public.user_workout_programs
   for each row execute function public.set_updated_at();
+
+-- =====================================================================
+-- guided_workout_catalogs  (one row per user)
+--
+-- The guided sessions a user built or imported, plus the removals that go
+-- with them, as a single JSON document:
+--
+--   { workouts: [...], deleted: { id: isoDate }, hidden: [...], hiddenAt }
+--
+-- Sessions get added on whichever device is to hand, so the app merges the
+-- two sides per session rather than letting one overwrite the other, and the
+-- `deleted` tombstones are what stop a deleted session coming back from a
+-- device that had not synced yet. The merge lives in src/utils/guidedCatalogSync.ts;
+-- this table just stores the agreed result.
+-- =====================================================================
+create table if not exists public.guided_workout_catalogs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  catalog jsonb not null default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Plain (not partial) unique index: upserts use user_id as the conflict
+-- arbiter, and a partial index cannot serve one - Postgres rejects it at
+-- runtime with 42P10.
+create unique index if not exists guided_workout_catalogs_user_id_key
+  on public.guided_workout_catalogs (user_id);
+
+alter table public.guided_workout_catalogs enable row level security;
+
+drop policy if exists "Users can view own guided catalog" on public.guided_workout_catalogs;
+create policy "Users can view own guided catalog"
+  on public.guided_workout_catalogs for select using (auth.uid() = user_id);
+drop policy if exists "Users can insert own guided catalog" on public.guided_workout_catalogs;
+create policy "Users can insert own guided catalog"
+  on public.guided_workout_catalogs for insert with check (auth.uid() = user_id);
+drop policy if exists "Users can update own guided catalog" on public.guided_workout_catalogs;
+create policy "Users can update own guided catalog"
+  on public.guided_workout_catalogs for update using (auth.uid() = user_id);
+drop policy if exists "Users can delete own guided catalog" on public.guided_workout_catalogs;
+create policy "Users can delete own guided catalog"
+  on public.guided_workout_catalogs for delete using (auth.uid() = user_id);
+
+drop trigger if exists guided_workout_catalogs_set_updated_at on public.guided_workout_catalogs;
+create trigger guided_workout_catalogs_set_updated_at
+  before update on public.guided_workout_catalogs
+  for each row execute function public.set_updated_at();

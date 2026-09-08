@@ -251,6 +251,7 @@ export const serviceMessages = {
   'sync.entity.nutritionLog': 'nutrition log',
   'sync.entity.nutritionLogs': 'nutrition logs',
   'sync.entity.pastedPrograms': 'pasted workout programs',
+  'sync.entity.guidedWorkouts': 'guided workouts',
   'sync.entity.workoutPlan': 'workout plan',
   'sync.entity.programMetadata': 'workout program metadata',
   'sync.entity.workoutSession': 'workout session',

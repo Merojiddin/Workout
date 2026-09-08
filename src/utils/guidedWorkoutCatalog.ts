@@ -1,6 +1,15 @@
 import { guidedWorkouts, type GuidedWorkout } from '../data/guidedWorkouts'
-import { deleteCustomGuidedWorkout, getCustomGuidedWorkouts } from './customGuidedWorkouts'
-import { HIDDEN_GUIDED_WORKOUTS_KEY, safeGetJSON, safeSetJSON } from './storageUtils'
+import {
+  deleteCustomGuidedWorkout,
+  getCustomGuidedWorkouts,
+  replaceDeletedGuidedWorkouts,
+} from './customGuidedWorkouts'
+import {
+  HIDDEN_GUIDED_WORKOUTS_AT_KEY,
+  HIDDEN_GUIDED_WORKOUTS_KEY,
+  safeGetJSON,
+  safeSetJSON,
+} from './storageUtils'
 
 /**
  * Which guided sessions this account actually has.
@@ -23,6 +32,41 @@ export function getHiddenGuidedWorkoutIds(): string[] {
   } catch {
     return []
   }
+}
+
+/**
+ * When the hidden list last changed. The catalog syncs across devices and the
+ * hidden list is merged whole rather than per id, so this is what decides
+ * which device's list wins.
+ */
+export function getHiddenGuidedWorkoutsAt(): string {
+  const stored = safeGetJSON(HIDDEN_GUIDED_WORKOUTS_AT_KEY, '')
+  return typeof stored === 'string' && stored ? stored : '1970-01-01T00:00:00.000Z'
+}
+
+/** Writes the hidden list and stamps when it changed, so a sync can order it. */
+function writeHiddenGuidedWorkoutIds(ids: string[]): boolean {
+  if (!safeSetJSON(HIDDEN_GUIDED_WORKOUTS_KEY, ids)) {
+    return false
+  }
+  safeSetJSON(HIDDEN_GUIDED_WORKOUTS_AT_KEY, new Date().toISOString())
+  return true
+}
+
+/**
+ * Puts a merged catalog's removals back on this device in one go. Takes the
+ * timestamp rather than stamping a new one: this is the sync writing back what
+ * both devices agreed on, not the user changing their list.
+ */
+export function replaceGuidedRemovals(
+  hidden: string[],
+  hiddenAt: string,
+  deleted: Record<string, string>,
+): boolean {
+  const hiddenWritten =
+    Boolean(safeSetJSON(HIDDEN_GUIDED_WORKOUTS_KEY, hidden)) &&
+    Boolean(safeSetJSON(HIDDEN_GUIDED_WORKOUTS_AT_KEY, hiddenAt))
+  return replaceDeletedGuidedWorkouts(deleted) && hiddenWritten
 }
 
 /** Every session on offer: the user's own first, then the shipped ones they kept. */
@@ -54,16 +98,16 @@ export function removeGuidedWorkout(workout: GuidedWorkout): boolean {
   if (hidden.includes(workout.id)) {
     return true
   }
-  return Boolean(safeSetJSON(HIDDEN_GUIDED_WORKOUTS_KEY, [...hidden, workout.id]))
+  return writeHiddenGuidedWorkoutIds([...hidden, workout.id])
 }
 
 /** Puts one removed shipped session back. */
 export function restoreGuidedWorkout(id: string): boolean {
   const remaining = getHiddenGuidedWorkoutIds().filter((hiddenId) => hiddenId !== id)
-  return Boolean(safeSetJSON(HIDDEN_GUIDED_WORKOUTS_KEY, remaining))
+  return writeHiddenGuidedWorkoutIds(remaining)
 }
 
 /** Puts every removed shipped session back. */
 export function restoreAllGuidedWorkouts(): boolean {
-  return Boolean(safeSetJSON(HIDDEN_GUIDED_WORKOUTS_KEY, []))
+  return writeHiddenGuidedWorkoutIds([])
 }

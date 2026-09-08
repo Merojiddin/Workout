@@ -4,7 +4,7 @@
 -- Run AFTER schema.sql and storage.sql. Every row should read "ok".
 -- =====================================================================
 
--- 1. All 8 app tables exist, and every one has RLS enabled.
+-- 1. All 9 app tables exist, and every one has RLS enabled.
 select
   t.table_name,
   case when c.relrowsecurity then 'ok - RLS on' else 'FAIL - RLS OFF' end as rls,
@@ -17,9 +17,9 @@ where t.table_schema = 'public'
   and t.table_name in (
     'workout_sessions', 'workout_sets', 'body_check_ins', 'nutrition_logs',
     'custom_workout_plans', 'custom_exercise_libraries', 'user_settings',
-    'user_workout_programs')
+    'user_workout_programs', 'guided_workout_catalogs')
 order by t.table_name;
--- Expect: 8 rows, all "ok - RLS on", each with 4 policies.
+-- Expect: 9 rows, all "ok - RLS on", each with 4 policies.
 
 -- 2. The private progress-photos bucket exists and is NOT public.
 select

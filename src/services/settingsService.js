@@ -287,6 +287,43 @@ export async function fetchUserWorkoutProgramsFromCloud(user) {
   return fetchSingle('user_workout_programs', user, 'programs')
 }
 
+// --- guided workout catalog --------------------------------------------------
+
+/**
+ * The user's guided sessions and their removals, as one JSON document.
+ *
+ * Same offline-first single-document shape as the pasted programs above, with
+ * one difference that matters: the caller merges before it saves. Two devices
+ * both add to this list, so the write here is the merged result, not whatever
+ * one device happened to be holding.
+ */
+export async function saveGuidedCatalogToCloud(user, catalog) {
+  if (!isCloudMode(user)) {
+    return catalog
+  }
+
+  if (!isBrowserOnline()) {
+    queueSettingsChange('guidedCatalog', 'update', catalog, 'offline')
+    throw createCloudSyncError(new Error('offline'))
+  }
+
+  try {
+    await upsertSingle('guided_workout_catalogs', user, 'catalog', catalog)
+  } catch (error) {
+    queueSettingsChange('guidedCatalog', 'update', catalog, describeError(error))
+    throw createCloudSyncError(error)
+  }
+
+  return catalog
+}
+
+export async function fetchGuidedCatalogFromCloud(user) {
+  if (!isCloudMode(user) || !isBrowserOnline()) {
+    return null
+  }
+  return fetchSingle('guided_workout_catalogs', user, 'catalog')
+}
+
 // --- custom exercise library ------------------------------------------------
 
 export async function getCustomExerciseLibrary(user) {

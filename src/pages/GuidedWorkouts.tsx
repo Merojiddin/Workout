@@ -22,6 +22,8 @@ import {
   type GuidedLevel,
   type GuidedWorkout,
 } from '../data/guidedWorkouts'
+import { useAuth } from '../context/AuthContext'
+import { reconcileGuidedCatalog } from '../services/syncService'
 import { useGuidedSession } from '../hooks/useGuidedSession'
 import { useT, type MessageKey } from '../i18n'
 import {
@@ -65,6 +67,7 @@ const levelFilters: GuidedLevel[] = ['Advanced', 'Intermediate', 'Beginner']
 export function GuidedWorkouts() {
   const t = useT()
   const guided = useGuidedSession()
+  const { user } = useAuth()
   const [filter, setFilter] = useState<Filter>('all')
   const [level, setLevel] = useState<LevelFilter>('all')
   // Read once at mount and kept in state, so saving or deleting one re-renders
@@ -76,10 +79,29 @@ export function GuidedWorkouts() {
     getRemovedGuidedWorkouts(),
   )
 
-  /** Both lists come from the same two stores, so they are always re-read together. */
+  /**
+   * Both lists come from the same two stores, so they are always re-read
+   * together - and since every path that changes the catalog ends here, this
+   * is also where the change is reconciled with the cloud so the user's other
+   * devices pick it up - and so anything they added arrives here.
+   *
+   * Fire-and-forget: the local write already succeeded, and a failed upload is
+   * retried from the offline queue rather than blocking the screen or throwing
+   * away what was just saved.
+   */
   function refreshCatalog() {
     setAvailable(getAvailableGuidedWorkouts())
     setRemoved(getRemovedGuidedWorkouts())
+    if (user) {
+      reconcileGuidedCatalog(user)
+        .then(() => {
+          // The merge can bring back sessions added on another device, so show
+          // whatever it settled on rather than only what this device wrote.
+          setAvailable(getAvailableGuidedWorkouts())
+          setRemoved(getRemovedGuidedWorkouts())
+        })
+        .catch(() => undefined)
+    }
   }
   const [building, setBuilding] = useState<CustomGuidedWorkout | null>(null)
   const [buildingExisting, setBuildingExisting] = useState(false)
