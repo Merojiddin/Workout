@@ -14,6 +14,7 @@ import {
 import type { LoggedExercise, WorkoutSession } from '../data/workoutSessions'
 import type { MessageKey } from '../i18n'
 import { translateExerciseText } from '../i18n/exercises'
+import { toLocalIsoDate } from './dateUtils'
 
 /** How each difficulty is named on screen, wherever a workout is listed. */
 export const guidedLevelKeys: Record<GuidedLevel, MessageKey> = {
@@ -355,7 +356,9 @@ export function buildGuidedWorkoutSession(
 
   return {
     completed: true,
-    date: startedAt.toISOString().slice(0, 10),
+    // Local, matching how a lifting session is dated - a UTC date puts an
+    // early-morning session on the wrong calendar day.
+    date: toLocalIsoDate(startedAt),
     exercises: [...byExercise.values()],
     finishedAt: finishedAt.toISOString(),
     id: `guided-${workout.id}-${startedAt.getTime()}`,

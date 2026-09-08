@@ -1,3 +1,4 @@
+import { toLocalIsoDate } from '../utils/dateUtils'
 import { safeGetJSON, safeSetJSON } from '../utils/storageUtils'
 
 export const WORKOUT_SESSIONS_KEY = 'workoutSessions'
@@ -81,7 +82,9 @@ export function getCurrentWorkoutStreak(sessions = getWorkoutSessions()) {
   let streak = 0
   const cursor = new Date()
 
-  while (completedDates.has(cursor.toISOString().slice(0, 10))) {
+  // Local, not UTC: `date` on a session is a local calendar day, so a UTC
+  // key skips today's workout wherever the two dates differ.
+  while (completedDates.has(toLocalIsoDate(cursor))) {
     streak += 1
     cursor.setDate(cursor.getDate() - 1)
   }

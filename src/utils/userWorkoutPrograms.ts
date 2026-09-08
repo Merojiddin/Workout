@@ -9,6 +9,7 @@ import {
   safeSetJSON,
   USER_WORKOUT_PROGRAMS_KEY,
 } from './storageUtils'
+import { toLocalIsoDate } from './dateUtils'
 import { validateWorkoutProgram } from './workoutProgramValidation'
 
 /**
@@ -230,7 +231,7 @@ export function buildProgramAuthoringPrompt(
   profileSettings?: UserProfileSettingsLike,
 ): string {
   return t('prompt.template', {
-    today: new Date().toISOString().slice(0, 10),
+    today: toLocalIsoDate(),
     aboutMe: buildAboutMeSection(profileSettings),
     exerciseIds: buildExerciseIdCatalog(),
   })
@@ -419,7 +420,7 @@ function applyMetadataRepairs(
   }
 
   if (!isNonEmptyString(draft.updatedAt) || !isValidDate(draft.updatedAt)) {
-    draft.updatedAt = new Date().toISOString().slice(0, 10)
+    draft.updatedAt = toLocalIsoDate()
     repairs.push(`Set updatedAt to today (${String(draft.updatedAt)}).`)
   }
 

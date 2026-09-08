@@ -1,6 +1,7 @@
 import { WORKOUT_SESSIONS_KEY, type WorkoutSession } from '../data/workoutSessions'
 import type { Exercise, WorkoutDay } from '../data/workoutPlan'
 import { isRestDay } from './activeWorkoutProgram'
+import { toLocalIsoDate } from './dateUtils'
 import { safeGetJSON, safeSetJSON } from './storageUtils'
 
 export interface WeeklyCompletionPoint {
@@ -198,8 +199,18 @@ function getStartOfWeek(date: Date) {
   return start
 }
 
+/**
+ * A day key that matches how sessions are actually dated.
+ *
+ * `toISOString()` is UTC. Sessions are stamped with `toLocalIsoDate`, so east
+ * of Greenwich the two disagree: local midnight Monday is Sunday 17:00 UTC in
+ * UTC+7, which shifted every cell of the week strip one day forward - a
+ * Monday workout appeared under Tuesday, and a Sunday one fell off the end of
+ * the strip and showed nowhere at all. The streak had the same fault in the
+ * small hours, when the UTC date is still yesterday's.
+ */
 function toDateKey(date: Date) {
-  return date.toISOString().slice(0, 10)
+  return toLocalIsoDate(date)
 }
 
 function toNumber(value: number | string | null | undefined) {
