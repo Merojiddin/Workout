@@ -1752,9 +1752,14 @@ const catalog: GuidedExercise[] = [
       'Sit or stand tall and look straight ahead.',
       'Draw your chin straight back to make a double chin, hold, and release.',
     ],
-    planfitId: 10046,
-    mediaNote:
-      'Planfit Forward Neck Flexion Stretch: it starts from the same chin-in retraction, then continues into a larger neck stretch.',
+    // Deliberately no planfitId. Planfit's whole neck family is four
+    // stretches - Forward Neck Flexion, Rotating, Side, and a massage-ball
+    // one - and none of them is a cervical retraction. 10046 (Forward Neck
+    // Flexion Stretch) was standing in here, and it drops the head all the
+    // way to the chest and then tips it back to look at the sky: a different
+    // movement, in the opposite direction, and the exact posture this drill
+    // exists to undo. On a timed follow-along people copy the picture, not
+    // the text, so no clip is better than that one.
     impact: 'low',
   },
   {

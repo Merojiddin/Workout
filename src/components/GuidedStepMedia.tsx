@@ -4,7 +4,7 @@ import {
   type GuidedExercise,
 } from '../data/guidedExercises'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
-import { DEFAULT_EXERCISE_IMAGE, isExerciseAnimationVideo } from '../utils/mediaUtils'
+import { getExerciseImage, isExerciseAnimationVideo } from '../utils/mediaUtils'
 import { translateGuidedText } from '../utils/guidedWorkoutUtils'
 
 interface GuidedStepMediaProps {
@@ -46,7 +46,11 @@ export function GuidedStepMedia({
   const retryCountRef = useRef(0)
   const retryTimerRef = useRef<number | null>(null)
   const [animationFailed, setAnimationFailed] = useState(false)
-  const [stillSrc, setStillSrc] = useState(imageUrl || DEFAULT_EXERCISE_IMAGE)
+  // Falls back to the placeholder for the movement's own category, so a
+  // movement with no hosted clip shows a posture or conditioning figure
+  // rather than the generic silhouette.
+  const placeholder = getExerciseImage({ category: exercise.category })
+  const [stillSrc, setStillSrc] = useState(imageUrl || placeholder)
   const showAnimation = variant === 'clip' && animationUrl !== '' && !animationFailed
   const alt = translateGuidedText(exercise.name)
 
@@ -58,7 +62,7 @@ export function GuidedStepMedia({
     }
     retryCountRef.current = 0
     setAnimationFailed(false)
-    setStillSrc(imageUrl || DEFAULT_EXERCISE_IMAGE)
+    setStillSrc(imageUrl || placeholder)
 
     return () => {
       if (retryTimerRef.current !== null) {
@@ -66,7 +70,7 @@ export function GuidedStepMedia({
         retryTimerRef.current = null
       }
     }
-  }, [animationUrl, imageUrl])
+  }, [animationUrl, imageUrl, placeholder])
 
   // A request that failed while offline deserves another go the moment the
   // connection is back, without waiting for the next exercise.
@@ -133,8 +137,8 @@ export function GuidedStepMedia({
       className="guided-media__asset"
       loading="eager"
       onError={() => {
-        if (stillSrc !== DEFAULT_EXERCISE_IMAGE) {
-          setStillSrc(DEFAULT_EXERCISE_IMAGE)
+        if (stillSrc !== placeholder) {
+          setStillSrc(placeholder)
         }
       }}
       src={stillSrc}

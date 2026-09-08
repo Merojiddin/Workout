@@ -1000,13 +1000,9 @@ export const planfitExerciseMatches: Readonly<
     planfitName: 'Briskly Walking',
     confidence: 'high',
   },
-  'chin-tuck': {
-    planfitId: 10046,
-    slug: 'forward-neck-flexion-stretch',
-    planfitName: 'Forward Neck Flexion Stretch',
-    confidence: 'low',
-    note: 'Closest asset-complete neck drill explicitly begins by pulling the chin in, but continues into large flexion and extension stretches rather than a small cervical-retraction hold; the closer neck-curl record lacks its MP4.',
-  },
+  // 'chin-tuck' is intentionally absent. Planfit has no cervical-retraction
+  // asset - only four neck stretches - and the nearest of them demonstrates
+  // the opposite movement. See the note in data/guidedExercises.ts.
   'thoracic-extension-reach': {
     planfitId: 10002,
     slug: 'kneeling-lat-stretch',
