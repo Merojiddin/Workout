@@ -271,10 +271,6 @@ export function WorkoutProgramManager({
       })
       return
     }
-    if (cloudActive && !isOnline) {
-      setNotice({ message: cloudOfflineMessage, tone: 'error' })
-      return
-    }
     const currentLocation = getWorkoutDisplaySettings().trainingLocation as TrainingLocation
     const locations = getProgramTrainingLocations(program)
     const location = locations.includes(currentLocation) ? currentLocation : locations[0]
@@ -594,8 +590,7 @@ export function WorkoutProgramManager({
                     current ||
                     hasUnsavedPlanChanges ||
                     operationBusy ||
-                    managerState.activeWorkoutBlocked ||
-                    (cloudActive && !isOnline)
+                    managerState.activeWorkoutBlocked
                   }
                   onClick={() => openInstallConfirmation(program)}
                   type="button"
@@ -1232,7 +1227,7 @@ function InstallConfirmationDialog({
         ) : null}
         {cloudActive && !isOnline ? (
           <p className="program-install-confirmation__warning">
-            {t('pm.cloudOffline')}
+            {t('library.offlineSelection')}
           </p>
         ) : null}
         <div className="program-install-confirmation__actions">
@@ -1256,8 +1251,7 @@ function InstallConfirmationDialog({
             className="workout-primary-button"
             disabled={
               activeWorkoutBlocked ||
-              operationBusy ||
-              (cloudActive && !isOnline)
+              operationBusy
             }
             onClick={onConfirm}
             type="button"

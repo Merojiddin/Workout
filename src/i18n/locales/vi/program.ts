@@ -11,7 +11,7 @@ export const programMessages = {
   'pm.localIntro':
     'Thêm giáo án cho tại nhà hoặc phòng gym, xem trước và chọn giáo án muốn dùng. Các giáo án đã lưu vẫn luôn có sẵn.',
   'pm.cloudOffline':
-    'Hãy kết nối internet trước khi thay đổi giáo án trên đám mây.',
+    'Bạn có thể chọn giáo án đã lưu khi ngoại tuyến. Thao tác với bản sao lưu và ẩn giáo án trên đám mây cần kết nối internet.',
   'pm.activeWorkoutBlocked':
     'Hãy kết thúc hoặc huỷ buổi tập đang diễn ra trước khi đổi giáo án.',
   'pm.unsavedEdits':
@@ -135,6 +135,9 @@ export const programMessages = {
   'paste.savedChoice': 'Đã thêm "{name}". Hãy chọn giáo án này trong danh sách khi bạn muốn sử dụng.',
   'paste.activeDeleteBlocked': 'Hãy chọn giáo án khác để sử dụng trước khi xoá giáo án này.',
   'library.selected': 'Đã chọn giáo án tập.',
+  'library.syncPending': 'Lựa chọn giáo án đang được đồng bộ. Hãy thử lại thao tác đám mây này sau khi đồng bộ xong.',
+  'library.offlineSelection': 'Lựa chọn được lưu trên thiết bị và sẽ đồng bộ khi có kết nối trở lại.',
+  'library.queueFailed': 'Không thể lưu lựa chọn trên thiết bị. Hãy giải phóng bộ nhớ rồi thử lại; giáo án trước đó vẫn được chọn.',
   'library.wrongLocation': 'Giáo án này không có sẵn cho địa điểm tập này.',
   'valid.trainingLocations': 'trainingLocations phải chứa home, gym hoặc cả hai.',
   'paste.chooseFile': 'Chọn tệp giáo án',

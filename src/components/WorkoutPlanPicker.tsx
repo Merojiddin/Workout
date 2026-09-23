@@ -3,14 +3,14 @@ import { lazy, Suspense, useRef, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import type { TrainingLocation } from '../data/workoutPlan'
 import { useT } from '../i18n'
-import { saveUserSettings, saveUserWorkoutProgramsToCloud } from '../services/settingsService'
+import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import type { ActiveWorkoutProgram } from '../utils/activeWorkoutProgram'
-import { getUserProfileSettings, saveTrainingLocation } from '../utils/settingsUtils'
 import { getUserWorkoutPrograms } from '../utils/userWorkoutPrograms'
 import {
   getPreferredWorkoutProgram,
   getProgramsForLocation,
   selectWorkoutProgram,
+  selectWorkoutTrainingLocation,
 } from '../utils/workoutProgramLibrary'
 
 const PasteProgramPanel = lazy(() =>
@@ -66,10 +66,13 @@ export function WorkoutPlanPicker({ activeProgram, location, paused, onChanged }
       return
     }
     // An empty collection is browsable without overwriting the installed plan.
-    saveTrainingLocation(next)
-    onChanged(next)
-    setNotice(null)
-    saveUserSettings(user, getUserProfileSettings()).catch(() => undefined)
+    const result = selectWorkoutTrainingLocation(next, user)
+    if (result.success) {
+      onChanged(next)
+      setNotice(null)
+    } else {
+      setNotice({ message: result.message, error: true })
+    }
   }
 
   return (

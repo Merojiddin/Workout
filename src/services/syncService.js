@@ -55,6 +55,7 @@ import {
   CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   INSTALLED_WORKOUT_PROGRAM_KEY,
+  resolveStorageKey,
   USER_WORKOUT_PROGRAMS_KEY,
 } from '../utils/storageUtils'
 import { hydrateWorkoutProgramManagerFromCloudSettings } from './workoutProgramService'
@@ -70,6 +71,7 @@ import { hydrateWorkoutProgramManagerFromCloudSettings } from './workoutProgramS
 
 const USER_SETTINGS_KEY = 'userProfileSettings'
 const MAX_QUEUE_ATTEMPTS = 5
+const queueDrains = new Map()
 
 export function getLocalDataSummary() {
   return {
@@ -125,8 +127,10 @@ export async function getCloudDataSummary(user) {
  * Returns the number of sessions in the reconciled catalog.
  */
 export async function reconcileGuidedCatalog(user) {
+  if (!isUserStorageActive(user)) return 0
   const local = readLocalGuidedCatalog()
   const cloud = normalizeGuidedCatalog(await fetchGuidedCatalogFromCloud(user))
+  if (!isUserStorageActive(user)) return 0
   const merged = mergeGuidedCatalogs(local, cloud)
 
   writeLocalGuidedCatalog(merged)
@@ -243,10 +247,20 @@ export async function syncCloudToLocal(user) {
     guidedWorkouts: 0,
     errors: [],
   }
+  if (!isUserStorageActive(user)) return summary
+
+  // A cloud read started before a selection must not undo it, even if the
+  // selection finishes syncing while that read is still in flight.
+  const programSnapshot = captureProgramMirror()
+  const hadPendingProgramChanges = hasPendingProgramChanges()
+  const mayHydratePrograms = () => isUserStorageActive(user) &&
+    !hadPendingProgramChanges && !hasPendingProgramChanges() &&
+    programSnapshot === captureProgramMirror()
 
   // Workout sessions (reconstruct from raw_data).
   try {
     const sessions = await fetchAll('workout_sessions', user, 'date')
+    if (!isUserStorageActive(user)) return summary
     const list = sessions.map((row) => row.raw_data ?? { id: row.local_id ?? row.id })
     if (list.length > 0) {
       backupLocalKey(WORKOUT_SESSIONS_KEY)
@@ -263,6 +277,7 @@ export async function syncCloudToLocal(user) {
   // Body check-ins.
   try {
     const rows = await fetchAll('body_check_ins', user, 'date')
+    if (!isUserStorageActive(user)) return summary
     const list = rows.map((row) => row.raw_data).filter(Boolean)
     if (list.length > 0) {
       backupLocalKey(BODY_CHECK_INS_KEY)
@@ -279,6 +294,7 @@ export async function syncCloudToLocal(user) {
   // Nutrition logs.
   try {
     const rows = await fetchAll('nutrition_logs', user, 'date')
+    if (!isUserStorageActive(user)) return summary
     const list = rows.map((row) => row.raw_data).filter(Boolean)
     if (list.length > 0) {
       backupLocalKey(NUTRITION_LOGS_KEY)
@@ -292,10 +308,17 @@ export async function syncCloudToLocal(user) {
     summary.errors.push(describe(t('sync.entity.nutritionLogs'), error))
   }
 
-  // Single-row documents.
+  // Read the related program documents together and commit without yielding,
+  // so a local selection cannot leave metadata and editable days out of step.
   try {
-    const settings = await fetchSingleValue('user_settings', user, 'settings')
-    if (settings) {
+    const [settings, plan, programs] = await Promise.all([
+      fetchSingleValue('user_settings', user, 'settings'),
+      fetchSingleValue('custom_workout_plans', user, 'plan'),
+      fetchUserWorkoutProgramsFromCloud(user),
+    ])
+    if (!isUserStorageActive(user)) return summary
+    if (mayHydratePrograms()) {
+      if (settings) {
       backupLocalKey(USER_SETTINGS_KEY)
       backupLocalKey(INSTALLED_WORKOUT_PROGRAM_KEY)
       backupLocalKey(DISMISSED_WORKOUT_PROGRAMS_KEY)
@@ -314,20 +337,19 @@ export async function syncCloudToLocal(user) {
         )
       }
       summary.settings = 1
+      }
+      if (plan) {
+        backupLocalKey('customWorkoutPlan')
+        writeJsonKey('customWorkoutPlan', plan)
+        summary.customPlan = 1
+      }
+      if (Array.isArray(programs) && programs.length > 0) {
+        backupLocalKey(USER_WORKOUT_PROGRAMS_KEY)
+        summary.userPrograms = replaceUserWorkoutPrograms(programs).length
+      }
     }
   } catch (error) {
     summary.errors.push(describe('settings', error))
-  }
-
-  try {
-    const plan = await fetchSingleValue('custom_workout_plans', user, 'plan')
-    if (plan) {
-      backupLocalKey('customWorkoutPlan')
-      writeJsonKey('customWorkoutPlan', plan)
-      summary.customPlan = 1
-    }
-  } catch (error) {
-    summary.errors.push(describe(t('sync.entity.workoutPlan'), error))
   }
 
   try {
@@ -336,6 +358,7 @@ export async function syncCloudToLocal(user) {
       user,
       'library',
     )
+    if (!isUserStorageActive(user)) return summary
     if (library) {
       backupLocalKey('customExerciseLibrary')
       writeJsonKey('customExerciseLibrary', library)
@@ -343,16 +366,6 @@ export async function syncCloudToLocal(user) {
     }
   } catch (error) {
     summary.errors.push(describe(t('sync.entity.exerciseLibrary'), error))
-  }
-
-  try {
-    const cloudPrograms = await fetchUserWorkoutProgramsFromCloud(user)
-    if (Array.isArray(cloudPrograms) && cloudPrograms.length > 0) {
-      backupLocalKey(USER_WORKOUT_PROGRAMS_KEY)
-      summary.userPrograms = replaceUserWorkoutPrograms(cloudPrograms).length
-    }
-  } catch (error) {
-    summary.errors.push(describe(t('sync.entity.pastedPrograms'), error))
   }
 
   // Runs on every app load (see App.tsx), which is what makes a session
@@ -366,9 +379,20 @@ export async function syncCloudToLocal(user) {
   return summary
 }
 
-export async function syncPendingQueue(user) {
+export function syncPendingQueue(user) {
+  const key = user?.id ?? ''
+  if (queueDrains.has(key)) return queueDrains.get(key)
+  const drain = drainPendingQueue(user).finally(() => {
+    if (queueDrains.get(key) === drain) queueDrains.delete(key)
+  })
+  queueDrains.set(key, drain)
+  return drain
+}
+
+async function drainPendingQueue(user) {
   const summary = {
     synced: 0,
+    selectionSynced: 0,
     failed: 0,
     skipped: 0,
     errors: [],
@@ -379,28 +403,36 @@ export async function syncPendingQueue(user) {
     summary.skippedReason = t('sync.offlinePending')
     return summary
   }
-  if (!isCloudMode(user)) {
+  if (!isCloudMode(user) || !isUserStorageActive(user)) {
     summary.skippedReason = t('sync.signInPending')
     return summary
   }
 
-  const queue = getSyncQueue()
-  if (queue.length === 0) {
-    return summary
-  }
-
-  for (const item of queue) {
-    if (item.status === 'failed' || item.attempts >= MAX_QUEUE_ATTEMPTS) {
-      summary.skipped += 1
-      continue
-    }
+  // Re-read between uploads so replacements and new changes are drained in
+  // order. A failed revision is attempted only once per trigger.
+  const attempted = new Set()
+  summary.skipped = getSyncQueue().filter((item) =>
+    item.status === 'failed' || item.attempts >= MAX_QUEUE_ATTEMPTS,
+  ).length
+  while (isUserStorageActive(user) && isBrowserOnline()) {
+    const item = getSyncQueue().find((candidate) =>
+      !attempted.has(candidate.id) && candidate.status !== 'failed' &&
+      candidate.attempts < MAX_QUEUE_ATTEMPTS,
+    )
+    if (!item) break
+    attempted.add(item.id)
+    const isCurrent = () => isUserStorageActive(user) &&
+      getSyncQueue().some((queued) => queued.id === item.id)
 
     try {
-      await processQueueItem(user, item)
+      await processQueueItem(user, item, isCurrent)
+      if (!isCurrent()) continue
       removeFromSyncQueue(item.id)
       markLocalSynced(item)
       summary.synced += 1
+      if (item.type === 'workoutProgramSelection') summary.selectionSynced += 1
     } catch (error) {
+      if (!isCurrent()) continue
       const attempts = item.attempts + 1
       const failedPermanently = attempts >= MAX_QUEUE_ATTEMPTS
       updateSyncQueueItem(item.id, {
@@ -413,7 +445,7 @@ export async function syncPendingQueue(user) {
     }
   }
 
-  if (summary.synced > 0) {
+  if (summary.synced > 0 && isUserStorageActive(user)) {
     setLastOfflineSyncAt()
   }
 
@@ -468,13 +500,15 @@ function describe(label, error) {
   return `${label}: ${message}`
 }
 
-async function processQueueItem(user, item) {
+async function processQueueItem(user, item, isCurrent) {
   const payload = unwrapPayload(item.payload)
   if (!payload && item.action !== 'delete') {
     throw new Error(t('sync.missingPayload'))
   }
 
   switch (item.type) {
+    case 'workoutProgramSelection':
+      return processProgramSelection(user, payload?.value ?? payload, isCurrent)
     case 'workoutSession':
       return processWorkoutQueueItem(user, item, payload)
     case 'bodyCheckIn':
@@ -482,14 +516,24 @@ async function processQueueItem(user, item) {
     case 'nutritionLog':
       return processNutritionQueueItem(user, item, payload)
     case 'userSettings':
-      return processSingleValueQueueItem('user_settings', 'settings', user, item, payload)
+      return processSingleValueQueueItem('user_settings', 'settings', user, item, {
+        value: {
+          ...(payload?.value ?? payload),
+          workoutProgramManager: localGetSettings().workoutProgramManager,
+          workoutProgramLibrary: localGetSettings().workoutProgramLibrary,
+          workoutDisplay: {
+            ...(payload?.value ?? payload)?.workoutDisplay,
+            trainingLocation: localGetSettings().workoutDisplay.trainingLocation,
+          },
+        },
+      })
     case 'customWorkoutPlan':
       return processSingleValueQueueItem(
         'custom_workout_plans',
         'plan',
         user,
         item,
-        payload,
+        { value: localGetPlan() },
       )
     case 'customExerciseLibrary':
       return processSingleValueQueueItem(
@@ -505,7 +549,7 @@ async function processQueueItem(user, item) {
         'programs',
         user,
         item,
-        payload,
+        { value: getUserWorkoutPrograms() },
       )
     case 'guidedCatalog':
       return processSingleValueQueueItem(
@@ -526,6 +570,43 @@ async function processWorkoutQueueItem(user, item, payload) {
     return
   }
   await pushWorkoutSessionToCloud(user, withSyncMetadata(payload, 'synced'))
+}
+
+async function processProgramSelection(user, selection, isCurrent) {
+  if (!selection || !Array.isArray(selection.plan) ||
+    !Array.isArray(selection.programs) || !selection.installedProgram ||
+    !selection.library || !['home', 'gym'].includes(selection.trainingLocation)) {
+    throw new Error(t('sync.missingPayload'))
+  }
+  // These helpers write cloud documents only. Completion must never hydrate
+  // the local mirror: the user may already have selected a different plan.
+  const write = (table, column, value) => processSingleValueQueueItem(
+    table, column, user, { action: 'update' }, { value },
+  )
+  if (!isCurrent()) return
+  await write('user_workout_programs', 'programs', selection.programs)
+  if (!isCurrent()) return
+  await write('custom_workout_plans', 'plan', selection.plan)
+  if (!isCurrent()) return
+  const cloudSettings = await fetchSingleValue('user_settings', user, 'settings')
+  if (!isCurrent()) return
+  const settings = isRecord(cloudSettings) ? cloudSettings : {}
+  const manager = isRecord(settings.workoutProgramManager)
+    ? settings.workoutProgramManager : {}
+  const display = isRecord(settings.workoutDisplay) ? settings.workoutDisplay : {}
+  await write('user_settings', 'settings', {
+    ...settings,
+    workoutDisplay: { ...display, trainingLocation: selection.trainingLocation },
+    workoutProgramLibrary: selection.library,
+    workoutProgramManager: {
+      ...manager,
+      installedProgram: selection.installedProgram,
+      dismissedPrograms: (Array.isArray(manager.dismissedPrograms) ? manager.dismissedPrograms : [])
+        .filter((item) => item.id !== selection.installedProgram.id ||
+          item.version !== selection.installedProgram.version),
+      backups: Array.isArray(manager.backups) ? manager.backups : [],
+    },
+  })
 }
 
 async function processBodyCheckInQueueItem(user, item, payload) {
@@ -609,4 +690,29 @@ function markArrayRecordSynced(key, id) {
     item?.id === id ? withSyncMetadata(item, 'synced') : item,
   )
   writeArrayKey(key, next)
+}
+
+function isUserStorageActive(user) {
+  if (!user || typeof user.id !== 'string' || !user.id.trim()) return false
+  const namespace = user.id.trim().replace(/:/g, '-')
+  return resolveStorageKey(USER_SETTINGS_KEY) === `u:${namespace}:${USER_SETTINGS_KEY}`
+}
+
+function captureProgramMirror() {
+  return JSON.stringify([
+    readJsonKey(USER_SETTINGS_KEY),
+    readJsonKey('customWorkoutPlan'),
+    readJsonKey(INSTALLED_WORKOUT_PROGRAM_KEY),
+    readJsonKey(USER_WORKOUT_PROGRAMS_KEY),
+  ])
+}
+
+function hasPendingProgramChanges() {
+  return getSyncQueue().some((item) => [
+    'workoutProgramSelection', 'customWorkoutPlan', 'userSettings', 'userWorkoutPrograms',
+  ].includes(item.type))
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
 }

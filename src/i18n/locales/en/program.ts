@@ -11,7 +11,7 @@ export const programMessages = {
   'pm.localIntro':
     'Add programs for Home or Gym, preview them, and choose which one to use. Your saved plans stay available.',
   'pm.cloudOffline':
-    'Connect to the internet before changing a cloud workout program.',
+    'You can choose saved plans offline. Cloud backup and dismissal actions need an internet connection.',
   'pm.activeWorkoutBlocked':
     'Finish or discard the active workout before changing programs.',
   'pm.unsavedEdits':
@@ -131,6 +131,9 @@ export const programMessages = {
   'paste.savedChoice': 'Added "{name}". Choose it from your workout plans when you are ready.',
   'paste.activeDeleteBlocked': 'Choose another active plan before removing this program.',
   'library.selected': 'Workout plan selected.',
+  'library.syncPending': 'Your plan choice is still syncing. Try this cloud action again after sync finishes.',
+  'library.offlineSelection': 'This choice is saved on your device and will sync when you reconnect.',
+  'library.queueFailed': 'Could not save this choice on your device. Free up storage and try again; your previous plan is still selected.',
   'library.wrongLocation': 'This plan is not available for this location.',
   'valid.trainingLocations': 'trainingLocations must contain home, gym, or both.',
   'paste.chooseFile': 'Choose program file',

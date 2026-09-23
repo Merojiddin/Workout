@@ -7,9 +7,30 @@ import {
   getCustomWorkoutPlan,
   getUserProfileSettings,
   normalizeCustomWorkoutPlan,
+  notifyUserProfileSettingsChanged,
+  saveUserProfileSettingsSafely,
 } from './settingsUtils'
-import { INSTALLED_WORKOUT_PROGRAM_KEY, safeGetJSON } from './storageUtils'
-import type { InstalledWorkoutProgram } from './workoutProgramManager'
+import {
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+  CUSTOM_WORKOUT_PLAN_KEY,
+  DISMISSED_WORKOUT_PROGRAMS_KEY,
+  INSTALLED_WORKOUT_PROGRAM_KEY,
+  USER_PROFILE_SETTINGS_KEY,
+  USER_WORKOUT_PROGRAMS_KEY,
+  WORKOUT_PLAN_BACKUPS_KEY,
+  resolveStorageKey,
+  safeGetJSON,
+  safeSetJSON,
+} from './storageUtils'
+import {
+  getDismissedWorkoutPrograms,
+  getInstalledWorkoutProgram,
+  getWorkoutProgramChangeProtection,
+  installWorkoutProgramLocally,
+  type InstalledWorkoutProgram,
+} from './workoutProgramManager'
+import { getUserWorkoutPrograms, saveUserWorkoutProgram } from './userWorkoutPrograms'
+import { addToSyncQueue } from './offlineSyncQueue'
 
 type ProgramIdentity = Pick<WorkoutProgram, 'id' | 'version'>
 
@@ -114,7 +135,7 @@ export function prepareWorkoutProgramSelection(
   }
 }
 
-/** Select through the existing verified install transaction, without reinstalling defaults. */
+/** Commit cached plans locally; cloud latency never delays choosing a workout. */
 export async function selectWorkoutProgram(
   identity: ProgramIdentity,
   location: TrainingLocation,
@@ -122,17 +143,16 @@ export async function selectWorkoutProgram(
 ): Promise<{ success: boolean; message: string; plan?: WorkoutDay[] }> {
   const program = getProgramsForLocation(location).find((candidate) => sameProgram(candidate, identity))
   if (!program) return { success: false, message: t('library.wrongLocation') }
-  const manager = await import('./workoutProgramManager')
-  if (manager.getWorkoutProgramChangeProtection().data.blocked) {
+  if (getWorkoutProgramChangeProtection().data.blocked) {
     return { success: false, message: t('svc.activeWorkoutBlocks') }
   }
+  const snapshots = user ? snapshotSelectionStorage() : null
 
   // Accounts that predate program imports can have edited days with no identity.
   // Give those days a recoverable catalog entry before the first switch.
   let preservedCustomProgram: InstalledWorkoutProgram | undefined
   const currentPlan = getCustomWorkoutPlan() as WorkoutDay[]
-  if (!manager.getInstalledWorkoutProgram().data && currentPlan.length > 0) {
-    const { saveUserWorkoutProgram } = await import('./userWorkoutPrograms')
+  if (!getInstalledWorkoutProgram().data && currentPlan.length > 0) {
     const savedAt = new Date().toISOString()
     const saved = saveUserWorkoutProgram({
       id: 'saved-custom-workout-plan',
@@ -147,25 +167,87 @@ export async function selectWorkoutProgram(
     })
     if (!saved.success || !saved.program) return { success: false, message: saved.message }
     preservedCustomProgram = { id: saved.program.id, version: saved.program.version, installedAt: savedAt }
-    if (user) {
-      const { saveUserWorkoutProgramsToCloud } = await import('../services/settingsService')
-      try {
-        await saveUserWorkoutProgramsToCloud(user, saved.programs)
-      } catch (error) {
-        return { success: false, message: error instanceof Error ? error.message : t('paste.storageFull') }
-      }
-    }
   }
 
   const options = { selectionLocation: location, preservedCustomProgram }
-  const result = user
-    ? await (await import('../services/workoutProgramService')).installWorkoutProgramInCloud(identity, user, options)
-    : manager.installWorkoutProgramLocally(identity, options)
+  const result = installWorkoutProgramLocally(identity, options)
+  if (!result.success && snapshots) restoreSelectionStorage(snapshots)
+  if (result.success && user && !queueSelectedProgram(user)) {
+    restoreSelectionStorage(snapshots!)
+    return { success: false, message: t('library.queueFailed') }
+  }
   return {
     success: result.success,
     message: result.success ? t('library.selected') : [result.message, ...result.details].join(' '),
     ...(result.data.plan ? { plan: result.data.plan } : {}),
   }
+}
+
+/** Empty locations use the same ordered sync lane as program switches. */
+export function selectWorkoutTrainingLocation(location: TrainingLocation, user: AuthUser | null) {
+  if (getWorkoutProgramChangeProtection().data.blocked) {
+    return { success: false, message: t('svc.activeWorkoutBlocks') }
+  }
+  const snapshots = snapshotSelectionStorage()
+  const settings = getUserProfileSettings()
+  const saved = saveUserProfileSettingsSafely({
+    ...settings,
+    workoutDisplay: { ...settings.workoutDisplay, trainingLocation: location },
+  })
+  if (!saved.success || (user && !queueSelectedProgram(user))) {
+    restoreSelectionStorage(snapshots)
+    return { success: false, message: t('library.queueFailed') }
+  }
+  return { success: true, message: t('library.selected') }
+}
+
+function queueSelectedProgram(user: AuthUser): boolean {
+  const settings = getUserProfileSettings()
+  const installedProgram = getInstalledWorkoutProgram().data
+  const metadata = {
+    ...(isObject(settings.workoutProgramManager) ? settings.workoutProgramManager : {}),
+    installedProgram,
+    dismissedPrograms: getDismissedWorkoutPrograms().data,
+  }
+  // Other pages must see the local choice even while its cloud write is pending.
+  if (!saveUserProfileSettingsSafely({ ...settings, workoutProgramManager: metadata }).success ||
+    !safeSetJSON(CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY, { userId: user.id, metadata })) return false
+
+  return Boolean(addToSyncQueue({
+    type: 'workoutProgramSelection',
+    action: 'update',
+    payload: {
+      id: 'workoutProgramSelection',
+      value: {
+        plan: getCustomWorkoutPlan(),
+        programs: getUserWorkoutPrograms(),
+        installedProgram,
+        library: getWorkoutProgramLibrary(settings),
+        trainingLocation: settings.workoutDisplay.trainingLocation,
+      },
+    },
+  }))
+}
+
+const selectionStorageKeys = [
+  CUSTOM_WORKOUT_PLAN_KEY, INSTALLED_WORKOUT_PROGRAM_KEY, DISMISSED_WORKOUT_PROGRAMS_KEY,
+  USER_PROFILE_SETTINGS_KEY, WORKOUT_PLAN_BACKUPS_KEY, USER_WORKOUT_PROGRAMS_KEY,
+  CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY,
+]
+
+function snapshotSelectionStorage(): Array<[string, string | null]> {
+  return selectionStorageKeys.map((key) => {
+    const physicalKey = resolveStorageKey(key)
+    return [physicalKey, window.localStorage.getItem(physicalKey)]
+  })
+}
+
+function restoreSelectionStorage(snapshots: Array<[string, string | null]>) {
+  for (const [key, value] of snapshots) {
+    if (value === null) window.localStorage.removeItem(key)
+    else window.localStorage.setItem(key, value)
+  }
+  notifyUserProfileSettingsChanged()
 }
 
 function sameProgram(left: ProgramIdentity, right: unknown): boolean {

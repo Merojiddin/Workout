@@ -35,6 +35,7 @@ import { validateWorkoutProgram } from '../utils/workoutProgramValidation'
 import { getProgramTrainingLocations, prepareWorkoutProgramSelection } from '../utils/workoutProgramLibrary'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { isBrowserOnline } from './serviceUtils'
+import { getSyncQueue } from '../utils/offlineSyncQueue'
 import {
   deleteCloudUserSettings,
   deleteCloudWorkoutPlan,
@@ -1273,6 +1274,9 @@ function guardCloudProgramChange(
       code: 'active-workout',
       message: t('svc.activeWorkoutBlocks'),
     }
+  }
+  if (getSyncQueue().some((item) => item?.type === 'workoutProgramSelection')) {
+    return { code: 'selection-sync-pending', message: t('library.syncPending') }
   }
   return null
 }

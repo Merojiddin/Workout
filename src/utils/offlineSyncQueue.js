@@ -11,6 +11,9 @@ const VALID_TYPES = new Set([
   'userSettings',
   'customWorkoutPlan',
   'customExerciseLibrary',
+  'userWorkoutPrograms',
+  'guidedCatalog',
+  'workoutProgramSelection',
 ])
 
 const VALID_ACTIONS = new Set(['create', 'update', 'delete'])
@@ -27,7 +30,7 @@ export function addToSyncQueue(item) {
     (queued) =>
       queued.type === normalized.type &&
       getPayloadId(queued.payload) === payloadId &&
-      queued.status !== 'failed',
+      (queued.status !== 'failed' || normalized.type === 'workoutProgramSelection'),
   )
 
   if (existingIndex >= 0) {
@@ -35,7 +38,9 @@ export function addToSyncQueue(item) {
     queue[existingIndex] = {
       ...existing,
       ...normalized,
-      id: existing.id,
+      // Each replacement is a new revision. An upload of the old revision
+      // must never remove or mark a more recent change as failed.
+      id: normalized.id,
       action:
         normalized.action === 'delete'
           ? 'delete'
@@ -51,8 +56,8 @@ export function addToSyncQueue(item) {
     queue.push(normalized)
   }
 
-  writeQueue(queue)
-  return normalized
+  if (!writeQueue(queue, { enqueue: true })) return null
+  return existingIndex >= 0 ? queue[existingIndex] : normalized
 }
 
 export function getSyncQueue() {
@@ -185,13 +190,15 @@ function getPayloadId(payload) {
   return String(payload.id ?? payload.localId ?? payload.local_id ?? '')
 }
 
-function writeQueue(queue) {
+function writeQueue(queue, detail = {}) {
   if (typeof window === 'undefined') {
-    return
+    return false
   }
   if (safeSetJSON(PENDING_SYNC_QUEUE_KEY, queue)) {
-    window.dispatchEvent(new CustomEvent('offline-sync-queue-changed'))
+    window.dispatchEvent(new CustomEvent('offline-sync-queue-changed', { detail }))
+    return true
   }
+  return false
 }
 
 function createQueueId() {

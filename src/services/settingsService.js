@@ -6,7 +6,7 @@ import {
   saveCustomWorkoutPlan as localSavePlan,
   saveUserProfileSettings as localSaveSettings,
 } from '../utils/settingsUtils'
-import { addToSyncQueue } from '../utils/offlineSyncQueue'
+import { addToSyncQueue, getSyncQueue } from '../utils/offlineSyncQueue'
 import {
   createCloudSyncError,
   describeError,
@@ -203,6 +203,10 @@ export async function deleteCloudWorkoutPlan(user) {
 export async function saveUserSettings(user, settings) {
   const saved = localSaveSettings(settings)
   if (isCloudMode(user)) {
+    if (hasPendingPlanSelection()) {
+      queueSettingsChange('userSettings', 'update', saved, null)
+      return saved
+    }
     if (!isBrowserOnline()) {
       queueSettingsChange('userSettings', 'update', saved, 'offline')
       throw createCloudSyncError(new Error('offline'))
@@ -237,6 +241,10 @@ export async function getCustomWorkoutPlan(user) {
 export async function saveCustomWorkoutPlan(user, plan) {
   const saved = localSavePlan(plan)
   if (isCloudMode(user)) {
+    if (hasPendingPlanSelection()) {
+      queueSettingsChange('customWorkoutPlan', 'update', saved, null)
+      return saved
+    }
     if (!isBrowserOnline()) {
       queueSettingsChange('customWorkoutPlan', 'update', saved, 'offline')
       throw createCloudSyncError(new Error('offline'))
@@ -262,6 +270,10 @@ export async function saveCustomWorkoutPlan(user, plan) {
 export async function saveUserWorkoutProgramsToCloud(user, programs) {
   const list = Array.isArray(programs) ? programs : []
   if (!isCloudMode(user)) {
+    return list
+  }
+  if (hasPendingPlanSelection()) {
+    queueSettingsChange('userWorkoutPrograms', 'update', list, null)
     return list
   }
 
@@ -370,4 +382,8 @@ function queueSettingsChange(type, action, payload, lastError) {
     payload: { id: type, value: payload },
     lastError,
   })
+}
+
+function hasPendingPlanSelection() {
+  return getSyncQueue().some((item) => item?.type === 'workoutProgramSelection')
 }

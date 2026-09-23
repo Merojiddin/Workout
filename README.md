@@ -15,6 +15,7 @@ Workout plans are personal uploads. On the main Workout page, choose Home or Gym
 
 ```sh
 npm run verify:plan-library
+npm run verify:fast-switch
 npm run verify:plan-reset
 npm run verify:v2.1
 ```

@@ -1,10 +1,8 @@
 import { AlertTriangle, CheckCircle2, Copy, Dumbbell, Upload } from 'lucide-react'
 import { useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { LanguageToggle } from '../components/LanguageToggle'
 import { useT } from '../i18n'
-import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import {
   buildProgramAuthoringPrompt,
   parseWorkoutProgramInput,
@@ -29,7 +27,6 @@ interface ProgramSetupProps {
 export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
   const { user } = useAuth()
   const t = useT()
-  const { isOnline } = useOnlineStatus()
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
@@ -40,7 +37,6 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
   )
   const [copyLabel, setCopyLabel] = useState<'idle' | 'copied' | 'manual'>('idle')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
-  const cloudActive = Boolean(user)
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -71,10 +67,6 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
     }
 
     setError(null)
-    if (cloudActive && !isOnline) {
-      setError(t('setup.program.offline'))
-      return
-    }
     setBusy(true)
     try {
       const saved = saveUserWorkoutProgram({
@@ -86,17 +78,6 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         return
       }
 
-      if (cloudActive) {
-        // Keep the program itself in the cloud too, so the same account can
-        // set up a second device without the file on hand. A failure here is
-        // not fatal: the program is already saved locally and the install below
-        // is what actually matters.
-        try {
-          await saveUserWorkoutProgramsToCloud(user, saved.programs)
-        } catch {
-          // Queued for the next sync by settingsService.
-        }
-      }
       const location = destination === 'both'
         ? getWorkoutDisplaySettings().trainingLocation as TrainingLocation
         : destination

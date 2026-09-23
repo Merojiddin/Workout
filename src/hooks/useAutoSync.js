@@ -1,5 +1,5 @@
 import { t } from '../i18n/t'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { syncPendingQueue } from '../services/syncService'
 import { getPendingSyncCount } from '../utils/offlineSyncQueue'
 import { useOnlineStatus } from './useOnlineStatus'
@@ -8,82 +8,76 @@ export function useAutoSync(user, options = {}) {
   const { isOnline } = useOnlineStatus()
   const onSynced = options.onSynced
   const userId = user?.id ?? ''
-  const wasOnline = useRef(isOnline)
-  const attemptedInitialSync = useRef(false)
   const [syncMessage, setSyncMessage] = useState(null)
   const [syncTone, setSyncTone] = useState('info')
   const [isSyncing, setIsSyncing] = useState(false)
+  const [pendingCount, setPendingCount] = useState(() => getPendingSyncCount())
 
   useEffect(() => {
-    attemptedInitialSync.current = false
-  }, [userId])
-
-  useEffect(() => {
-    const cameBackOnline = !wasOnline.current && isOnline
-    const shouldTryInitialSync =
-      !attemptedInitialSync.current &&
-      isOnline &&
-      user &&
-      getPendingSyncCount() > 0
-
-    if (shouldTryInitialSync) {
-      attemptedInitialSync.current = true
-    }
-
-    wasOnline.current = isOnline
-
-    if ((!cameBackOnline && !shouldTryInitialSync) || !user) {
-      return
-    }
-
     let active = true
-    setIsSyncing(true)
-    syncPendingQueue(user)
-      .then((result) => {
-        if (!active) {
-          return
-        }
-        if (result.synced > 0 && result.failed === 0) {
+    let running = false
+    let timer
+    setPendingCount(getPendingSyncCount())
+    setIsSyncing(false)
+
+    async function run() {
+      if (!active || running || !isOnline || !user || getPendingSyncCount() === 0) return
+      running = true
+      setIsSyncing(true)
+      try {
+        const result = await syncPendingQueue(user)
+        if (!active) return
+        const ordinaryChanges = result.synced - (result.selectionSynced ?? 0)
+        if (ordinaryChanges > 0 && result.failed === 0) {
           setSyncTone('success')
-          setSyncMessage(`${result.synced} offline changes synced.`)
+          setSyncMessage(`${ordinaryChanges} offline changes synced.`)
         } else if (result.failed > 0) {
           setSyncTone('warn')
           setSyncMessage(t('sync.someFailed'))
         }
-        if (result.synced > 0 && typeof onSynced === 'function') {
-          onSynced(result)
-        }
-      })
-      .catch(() => {
+        // Selecting a plan already refreshed its preview locally. Remounting
+        // pages after its upload could interrupt a workout started meanwhile.
+        if (ordinaryChanges > 0 && typeof onSynced === 'function') onSynced(result)
+      } catch {
         if (active) {
           setSyncTone('warn')
           setSyncMessage(t('sync.someFailed'))
         }
-      })
-      .finally(() => {
+      } finally {
+        running = false
         if (active) {
           setIsSyncing(false)
+          setPendingCount(getPendingSyncCount())
         }
-      })
+      }
+    }
 
+    function schedule() {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => void run(), 120)
+    }
+
+    function onQueueChanged(event) {
+      setPendingCount(getPendingSyncCount())
+      // Retry only on a new change or reconnect, not on the worker's own
+      // failure updates/removals, which would create a retry loop.
+      if (event.detail?.enqueue) schedule()
+    }
+
+    window.addEventListener('offline-sync-queue-changed', onQueueChanged)
+    schedule()
     return () => {
       active = false
+      window.clearTimeout(timer)
+      window.removeEventListener('offline-sync-queue-changed', onQueueChanged)
     }
-  }, [isOnline, onSynced, user])
+  }, [isOnline, onSynced, user, userId])
 
   useEffect(() => {
-    if (!syncMessage) {
-      return undefined
-    }
+    if (!syncMessage) return undefined
     const timer = window.setTimeout(() => setSyncMessage(null), 4200)
     return () => window.clearTimeout(timer)
   }, [syncMessage])
 
-  return {
-    isOnline,
-    isSyncing,
-    pendingCount: getPendingSyncCount(),
-    syncMessage,
-    syncTone,
-  }
+  return { isOnline, isSyncing, pendingCount, syncMessage, syncTone }
 }
