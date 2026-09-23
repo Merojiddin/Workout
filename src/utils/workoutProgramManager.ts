@@ -1,6 +1,6 @@
 import { t } from '../i18n/t'
 import { exerciseLibrary } from '../data/exerciseLibrary'
-import type { WorkoutDay } from '../data/workoutPlan'
+import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
 import type {
   WorkoutProgram,
@@ -8,15 +8,19 @@ import type {
 } from '../types/workoutProgram'
 import {
   getCustomWorkoutPlan,
+  getUserProfileSettings,
   normalizeCustomWorkoutPlan,
   saveCustomWorkoutPlanSafely,
+  saveUserProfileSettingsSafely,
 } from './settingsUtils'
+import { getProgramTrainingLocations, prepareWorkoutProgramSelection } from './workoutProgramLibrary'
 import {
   ACTIVE_WORKOUT_SESSION_KEY,
   CUSTOM_WORKOUT_PLAN_KEY,
   DISMISSED_WORKOUT_PROGRAMS_KEY,
   INSTALLED_WORKOUT_PROGRAM_KEY,
   WORKOUT_PLAN_BACKUPS_KEY,
+  USER_PROFILE_SETTINGS_KEY,
   safeGetJSON,
   safeHasStorageKey,
   safeRemove,
@@ -105,6 +109,9 @@ interface CreateBackupOptions {
 
 export interface LocalProgramChangeOptions {
   cloudMode?: boolean
+  /** Restore this program's own edited days/start date and remember its location. */
+  selectionLocation?: TrainingLocation
+  preservedCustomProgram?: InstalledWorkoutProgram
 }
 
 export function getInstalledWorkoutProgram(): ProgramManagerResult<
@@ -510,6 +517,10 @@ export function installWorkoutProgramLocally(
     return fail(emptyData, 'program-not-found', t('svc.notInRegistry'))
   }
 
+  if (options.selectionLocation && !getProgramTrainingLocations(registeredProgram).includes(options.selectionLocation)) {
+    return fail(emptyData, 'wrong-location', t('library.wrongLocation'))
+  }
+
   const validation = validateWorkoutProgram(registeredProgram, {
     knownExerciseIds: new Set(exerciseLibrary.map((exercise) => exercise.id)),
   })
@@ -541,6 +552,16 @@ export function installWorkoutProgramLocally(
     return fail(dataWithProgram, installedBefore.code ?? 'metadata-read-failed', installedBefore.message)
   }
   const currentPlan = normalizePlan(getCustomWorkoutPlan())
+  const selection = options.selectionLocation
+    ? prepareWorkoutProgramSelection(
+        getUserProfileSettings(),
+        currentPlan,
+        installedBefore.data ?? options.preservedCustomProgram ?? null,
+        registeredProgram,
+        options.selectionLocation,
+        new Date().toISOString(),
+      )
+    : null
   // Matching id and version is not enough to call a program installed.
   // An uploaded program is stored under its own id and version, so uploading
   // a revised plan keeps that identity while changing every day inside it -
@@ -548,6 +569,7 @@ export function installWorkoutProgramLocally(
   // the plan at all. What decides it is whether the saved plan already *is*
   // this program; if it is not, there is a real change to apply.
   if (
+    !selection &&
     installedBefore.data?.id === registeredProgram.id &&
     installedBefore.data.version === registeredProgram.version &&
     areWorkoutPlansEquivalent(currentPlan, registeredProgram.days)
@@ -558,6 +580,7 @@ export function installWorkoutProgramLocally(
   const planSnapshot = readJsonStorageSnapshot(CUSTOM_WORKOUT_PLAN_KEY)
   const installedSnapshot = readJsonStorageSnapshot(INSTALLED_WORKOUT_PROGRAM_KEY)
   const dismissedSnapshot = readJsonStorageSnapshot(DISMISSED_WORKOUT_PROGRAMS_KEY)
+  const settingsSnapshot = readJsonStorageSnapshot(USER_PROFILE_SETTINGS_KEY)
   // A first install has no plan to protect: an empty plan is not a valid
   // backup, and failing the install over it would leave a new account unable
   // to set up the program it just uploaded.
@@ -581,7 +604,7 @@ export function installWorkoutProgramLocally(
     ...dataWithProgram,
     backup: backupResult?.data ?? null,
   }
-  const savedPlan = saveCustomWorkoutPlanSafely(registeredProgram.days)
+  const savedPlan = saveCustomWorkoutPlanSafely(selection?.plan ?? registeredProgram.days)
   if (!savedPlan.success) {
     return failInstallWithRollback(
       dataAfterBackup,
@@ -590,6 +613,7 @@ export function installWorkoutProgramLocally(
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
+      settingsSnapshot,
     )
   }
 
@@ -602,10 +626,11 @@ export function installWorkoutProgramLocally(
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
+      settingsSnapshot,
     )
   }
 
-  const metadataResult = setInstalledWorkoutProgram(registeredProgram)
+  const metadataResult = setInstalledWorkoutProgram(selection?.installedProgram ?? registeredProgram)
   if (!metadataResult.success || !metadataResult.data) {
     return failInstallWithRollback(
       dataAfterBackup,
@@ -614,6 +639,7 @@ export function installWorkoutProgramLocally(
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
+      settingsSnapshot,
     )
   }
 
@@ -629,6 +655,19 @@ export function installWorkoutProgramLocally(
       planSnapshot,
       installedSnapshot,
       dismissedSnapshot,
+      settingsSnapshot,
+    )
+  }
+
+  if (selection && !saveUserProfileSettingsSafely(selection.settings).success) {
+    return failInstallWithRollback(
+      dataAfterBackup,
+      'settings-save-failed',
+      t('svc.installedMetadataSaveFailed'),
+      planSnapshot,
+      installedSnapshot,
+      dismissedSnapshot,
+      settingsSnapshot,
     )
   }
 
@@ -799,11 +838,13 @@ function failInstallWithRollback(
   planSnapshot: JsonStorageSnapshot,
   installedSnapshot: JsonStorageSnapshot,
   dismissedSnapshot: JsonStorageSnapshot,
+  settingsSnapshot?: JsonStorageSnapshot,
 ): ProgramManagerResult<InstallWorkoutProgramData> {
   const rollback = rollbackStorageSnapshots([
     [CUSTOM_WORKOUT_PLAN_KEY, planSnapshot],
     [INSTALLED_WORKOUT_PROGRAM_KEY, installedSnapshot],
     [DISMISSED_WORKOUT_PROGRAMS_KEY, dismissedSnapshot],
+    ...(settingsSnapshot ? [[USER_PROFILE_SETTINGS_KEY, settingsSnapshot] as [string, JsonStorageSnapshot]] : []),
   ])
 
   return fail(

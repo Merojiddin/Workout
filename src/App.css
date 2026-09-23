@@ -6681,6 +6681,98 @@ body {
   color: var(--green);
 }
 
+.workout-plan-picker {
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: var(--r-lg);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.workout-plan-picker__row {
+  align-items: end;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.workout-plan-picker__row label {
+  display: grid;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 700;
+  gap: 7px;
+  min-width: 0;
+}
+
+.workout-plan-picker__row select {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  min-height: 44px;
+  padding: 10px;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.workout-plan-picker__row button {
+  flex-shrink: 0;
+  min-height: 44px;
+  width: auto;
+}
+
+.workout-plan-picker__hint,
+.workout-plan-picker__error {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.workout-plan-picker__error {
+  color: var(--danger, #f87171);
+}
+
+.paste-program__destination {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 16px;
+  text-align: left;
+}
+
+.paste-program__destination select {
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  color: var(--text);
+  font: inherit;
+  min-height: 44px;
+  padding: 10px;
+  width: 100%;
+}
+
+.paste-program__destination small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.workout-plan-picker button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 380px) {
+  .workout-plan-picker__row {
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .today-exercise-list {
   background: var(--card);
   border: 1px solid var(--card-line);

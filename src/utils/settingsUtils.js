@@ -431,6 +431,9 @@ export function importAllData(jsonData) {
         ...(current.workoutProgramManager === undefined
           ? {}
           : { workoutProgramManager: current.workoutProgramManager }),
+        ...(current.workoutProgramLibrary === undefined
+          ? {}
+          : { workoutProgramLibrary: current.workoutProgramLibrary }),
       })
     }
 
@@ -497,7 +500,11 @@ function withoutProgramMetadata(settings) {
     return {}
   }
 
-  const { workoutProgramManager: _ignored, ...rest } = settings
+  const {
+    workoutProgramManager: _ignored,
+    workoutProgramLibrary: _library,
+    ...rest
+  } = settings
   return clone(rest)
 }
 

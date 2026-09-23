@@ -19,13 +19,13 @@ import { exerciseLibrary } from '../data/exerciseLibrary'
 import type {
   Exercise,
   ExercisePhaseTarget,
+  TrainingLocation,
   WorkoutDay,
 } from '../data/workoutPlan'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import {
   dismissWorkoutProgramInCloud,
   getHydratedCloudWorkoutProgramManager,
-  installWorkoutProgramInCloud,
   restoreWorkoutProgramBackupInCloud,
   type CloudProgramOperationStatus,
   type CloudWorkoutPlanBackup,
@@ -51,6 +51,7 @@ import {
   getCustomWorkoutPlan,
   getExerciseTargetLabel,
   getUserProfileSettings,
+  getWorkoutDisplaySettings,
   hasCustomWorkoutPlan,
 } from '../utils/settingsUtils'
 import {
@@ -62,12 +63,15 @@ import {
   getInstalledWorkoutProgram,
   getWorkoutPlanBackups,
   getWorkoutProgramChangeProtection,
-  installWorkoutProgramLocally,
   restoreWorkoutPlanBackup,
   type DismissedWorkoutProgram,
   type InstalledWorkoutProgram,
   type WorkoutPlanBackup,
 } from '../utils/workoutProgramManager'
+import {
+  getProgramTrainingLocations,
+  selectWorkoutProgram,
+} from '../utils/workoutProgramLibrary'
 
 interface WorkoutProgramManagerProps {
   hasUnsavedPlanChanges: boolean
@@ -259,30 +263,6 @@ export function WorkoutProgramManager({
     setInstallProgram(program)
   }
 
-  /**
-   * Uploading is only half the job: the plan a person trains from does not
-   * change until the program is installed. Opening the confirmation straight
-   * away makes "upload this week's plan" one flow ending in one confirm -
-   * which still shows what the switch changes - rather than an upload that
-   * quietly leaves last week's plan in place.
-   */
-  function startInstallAfterUpload(
-    program: WorkoutProgram,
-    state: ManagerState,
-  ) {
-    // Re-uploading the plan already being trained changes nothing; asking to
-    // install it would only offer a confirm that cannot succeed.
-    if (areWorkoutPlansEquivalent(state.savedPlan, program.days)) {
-      return
-    }
-    if (hasUnsavedPlanChanges) {
-      setNotice({ message: t('pm.unsavedInstall'), tone: 'error' })
-      return
-    }
-
-    setInstallProgram(program)
-  }
-
   async function confirmInstallation(program: WorkoutProgram) {
     if (hasUnsavedPlanChanges) {
       setNotice({
@@ -291,54 +271,29 @@ export function WorkoutProgramManager({
       })
       return
     }
-    if (cloudActive) {
-      if (!isOnline) {
-        setNotice({ message: cloudOfflineMessage, tone: 'error' })
-        return
-      }
-
-      setNotice(null)
-      setOperationStatus(null)
-      setOperationBusy(true)
-      let cloudPlanChanged = false
-      try {
-        const result = await installWorkoutProgramInCloud(program, user, {
-          onStatus: setOperationStatus,
-        })
-        setNotice({
-          message: result.message,
-          tone: result.success ? 'success' : 'error',
-        })
-        if (result.success && result.data.plan) {
-          onPlanChanged(result.data.plan)
-          setInstallProgram(null)
-          cloudPlanChanged = true
-        }
-        refreshState()
-      } finally {
-        setOperationStatus(null)
-        setOperationBusy(false)
-      }
-      if (cloudPlanChanged) {
-        onDataChanged?.()
-      }
+    if (cloudActive && !isOnline) {
+      setNotice({ message: cloudOfflineMessage, tone: 'error' })
       return
     }
-
-    const result = installWorkoutProgramLocally(program, {
-      cloudMode: cloudActive,
-    })
-    setNotice({
-      message: result.success
-        ? result.message
-        : [result.message, ...result.details].join(' '),
-      tone: result.success ? 'success' : 'error',
-    })
-    if (result.success && result.data.plan) {
-      onPlanChanged(result.data.plan)
-      setInstallProgram(null)
+    const currentLocation = getWorkoutDisplaySettings().trainingLocation as TrainingLocation
+    const locations = getProgramTrainingLocations(program)
+    const location = locations.includes(currentLocation) ? currentLocation : locations[0]
+    setNotice(null)
+    setOperationBusy(true)
+    let changed = false
+    try {
+      const result = await selectWorkoutProgram(program, location, user)
+      setNotice({ message: result.message, tone: result.success ? 'success' : 'error' })
+      if (result.success && result.plan) {
+        onPlanChanged(result.plan)
+        setInstallProgram(null)
+        changed = true
+      }
+      refreshState()
+    } finally {
+      setOperationBusy(false)
     }
-    refreshState()
+    if (changed) onDataChanged?.()
   }
 
   function restoreLocalBackup(backup: WorkoutPlanBackup) {
@@ -538,11 +493,10 @@ export function WorkoutProgramManager({
       ) : null}
 
       <PasteProgramPanel
-        onSaved={(message, programs, program) => {
+        onSaved={(message, programs) => {
           setNotice({ message, tone: 'success' })
-          const next = refreshState()
+          refreshState()
           persistProgramsToCloud(programs)
-          startInstallAfterUpload(program, next)
         }}
         savedPrograms={managerState.userPrograms}
         onDeleted={(message, programs) => {
@@ -555,12 +509,6 @@ export function WorkoutProgramManager({
       <div className="program-manager__grid">
         {visiblePrograms.map((program) => {
           const current = isCurrentProgram(program, managerState)
-          // Installed, but the saved plan is no longer what this program says:
-          // either the program was re-uploaded under the same version with new
-          // content, or the plan was edited by hand. Both are re-appliable, so
-          // the button stays live rather than reading "Current Program" while
-          // the plan on screen is something else.
-          const outdated = current && modifiedAfterInstallation
           const dismissed = dismissedIdentities.has(
             programIdentity(program.id, program.version),
           )
@@ -592,6 +540,11 @@ export function WorkoutProgramManager({
               <p className="program-manager-card__description">
                 {program.description}
               </p>
+              <span className="program-manager-card__location">
+                {getProgramTrainingLocations(program)
+                  .map((location) => t(`paste.location.${location}`))
+                  .join(' · ')}
+              </span>
               <dl className="program-manager-card__stats">
                 <div>
                   <dt>{t('pm.updated')}</dt>
@@ -638,7 +591,7 @@ export function WorkoutProgramManager({
                 <button
                   className="workout-primary-button"
                   disabled={
-                    (current && !outdated) ||
+                    current ||
                     hasUnsavedPlanChanges ||
                     operationBusy ||
                     managerState.activeWorkoutBlocked ||
@@ -649,9 +602,7 @@ export function WorkoutProgramManager({
                 >
                   <Package size={18} strokeWidth={2.4} aria-hidden="true" />
                   {current
-                    ? outdated
-                      ? t('pm.reapply')
-                      : t('pm.currentProgram')
+                    ? t('pm.currentProgram')
                     : t('pm.install')}
                 </button>
                 <button
@@ -1459,6 +1410,27 @@ function exportCurrentPlan() {
   exportWorkoutPlanJSON()
 }
 
+function ProgramLocationPicker({
+  value,
+  onChange,
+}: {
+  value: TrainingLocation | 'both'
+  onChange: (value: TrainingLocation | 'both') => void
+}) {
+  const t = useT()
+  return (
+    <label className="paste-program__destination">
+      <span>{t('paste.destination')}</span>
+      <select value={value} onChange={(event) => onChange(event.target.value as TrainingLocation | 'both')}>
+        <option value="home">{t('paste.location.home')}</option>
+        <option value="gym">{t('paste.location.gym')}</option>
+        <option value="both">{t('paste.location.both')}</option>
+      </select>
+      <small>{t('paste.destinationHint')}</small>
+    </label>
+  )
+}
+
 interface PasteProgramPanelProps {
   onDeleted: (message: string, programs: UserWorkoutProgram[]) => void
   onSaved: (
@@ -1467,6 +1439,9 @@ interface PasteProgramPanelProps {
     program: UserWorkoutProgram,
   ) => void
   savedPrograms: UserWorkoutProgram[]
+  defaultLocation?: TrainingLocation
+  initiallyOpen?: boolean
+  showSavedPrograms?: boolean
 }
 
 /**
@@ -1477,18 +1452,31 @@ interface PasteProgramPanelProps {
  * the same per-user program list; the file picker is just the path that works
  * when the program arrived as a file rather than on the clipboard.
  */
-function PasteProgramPanel({
+export function PasteProgramPanel({
   onDeleted,
   onSaved,
   savedPrograms,
+  defaultLocation = getWorkoutDisplaySettings().trainingLocation as TrainingLocation,
+  initiallyOpen = false,
+  showSavedPrograms = true,
 }: PasteProgramPanelProps) {
   const t = useT()
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(initiallyOpen)
+  const [destination, setDestination] = useState<TrainingLocation | 'both'>(defaultLocation)
   const [text, setText] = useState('')
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
   const [copyLabel, setCopyLabel] = useState<'idle' | 'copied' | 'manual'>('idle')
   const [fileName, setFileName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+
+  useEffect(() => {
+    setDestination(defaultLocation)
+  }, [defaultLocation])
+
+  function isInstalled(program: UserWorkoutProgram) {
+    const installed = getInstalledWorkoutProgram().data
+    return installed?.id === program.id && installed.version === program.version
+  }
 
   async function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
@@ -1529,7 +1517,10 @@ function PasteProgramPanel({
       return
     }
 
-    const saved = saveUserWorkoutProgram(parsed.program)
+    const saved = saveUserWorkoutProgram({
+      ...parsed.program,
+      trainingLocations: destination === 'both' ? ['home', 'gym'] : [destination],
+    })
     if (!saved.success) {
       setResult({ ...parsed, success: false, errors: [saved.message] })
       return
@@ -1540,9 +1531,9 @@ function PasteProgramPanel({
     setFileName(null)
     setOpen(false)
     onSaved(
-      t('paste.savedThenInstall', { message: saved.message }),
+      saved.message,
       saved.programs,
-      parsed.program,
+      saved.program,
     )
   }
 
@@ -1560,6 +1551,7 @@ function PasteProgramPanel({
   }
 
   function handleDelete(program: UserWorkoutProgram) {
+    if (isInstalled(program)) return
     const confirmed = window.confirm(
       t('paste.removeConfirm', {
         name: program.name,
@@ -1596,6 +1588,8 @@ function PasteProgramPanel({
           <p className="paste-program__hint">
             {t('paste.hint')}
           </p>
+
+          <ProgramLocationPicker value={destination} onChange={setDestination} />
 
           <input
             accept="application/json,.json"
@@ -1730,7 +1724,7 @@ function PasteProgramPanel({
         </div>
       ) : null}
 
-      {savedPrograms.length > 0 ? (
+      {showSavedPrograms && savedPrograms.length > 0 ? (
         <div className="paste-program__saved">
           <p className="paste-program__saved-title">
             {t('paste.savedTitle', { count: savedPrograms.length })}
@@ -1741,7 +1735,9 @@ function PasteProgramPanel({
                 <span>
                   {program.name}{' '}
                   <span className="paste-program__saved-version">
-                    {program.version}
+                    {program.version} · {getProgramTrainingLocations(program)
+                      .map((location) => t(`paste.location.${location}`))
+                      .join(' / ')}
                   </span>
                 </span>
                 <button
@@ -1750,6 +1746,8 @@ function PasteProgramPanel({
                     version: program.version,
                   })}
                   className="paste-program__delete"
+                  disabled={isInstalled(program)}
+                  title={isInstalled(program) ? t('paste.activeDeleteBlocked') : undefined}
                   onClick={() => handleDelete(program)}
                   type="button"
                 >
@@ -1758,6 +1756,9 @@ function PasteProgramPanel({
               </li>
             ))}
           </ul>
+          {savedPrograms.some(isInstalled) ? (
+            <p className="paste-program__hint">{t('paste.activeDeleteBlocked')}</p>
+          ) : null}
         </div>
       ) : null}
     </div>

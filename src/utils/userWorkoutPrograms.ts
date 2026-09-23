@@ -48,22 +48,35 @@ export function getUserWorkoutPrograms(): UserWorkoutProgram[] {
 
   return stored.filter(isUserWorkoutProgram)
 }
-/**
- * Saves a pasted program. An existing program with the same id AND version is
- * replaced, so re-pasting a corrected copy updates in place rather than
- * creating a conflicting duplicate.
- */
+/** Saves another choice without changing an existing program definition. */
 export function saveUserWorkoutProgram(program: UserWorkoutProgram): {
-  success: boolean
+  success: true
   message: string
+  program: UserWorkoutProgram
+  programs: UserWorkoutProgram[]
+} | {
+  success: false
+  message: string
+  program: null
   programs: UserWorkoutProgram[]
 } {
   const existing = getUserWorkoutPrograms()
-  const next = existing.filter(
-    (item) => !(item.id === program.id && item.version === program.version),
+  const duplicate = existing.some(
+    (item) => item.id === program.id && item.version === program.version,
   )
-  const replaced = next.length !== existing.length
-  next.push(program)
+  let savedProgram = program
+  if (duplicate) {
+    const usedIds = new Set(existing.map((item) => item.id))
+    let copyNumber = 2
+    while (usedIds.has(`${program.id}-copy-${copyNumber}`)) copyNumber += 1
+    savedProgram = {
+      ...program,
+      id: `${program.id}-copy-${copyNumber}`,
+      name: t('paste.copyName', { name: program.name, number: copyNumber }),
+      savedAt: new Date().toISOString(),
+    }
+  }
+  const next = [...existing, savedProgram]
   next.sort(
     (left, right) =>
       left.id.localeCompare(right.id) ||
@@ -75,15 +88,15 @@ export function saveUserWorkoutProgram(program: UserWorkoutProgram): {
       success: false,
       message:
         t('paste.storageFull'),
+      program: null,
       programs: existing,
     }
   }
 
   return {
     success: true,
-    message: replaced
-      ? `Replaced "${program.name}" ${program.version}.`
-      : `Saved "${program.name}" ${program.version}.`,
+    message: t('paste.savedChoice', { name: savedProgram.name }),
+    program: savedProgram,
     programs: next,
   }
 }

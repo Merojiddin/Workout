@@ -179,7 +179,18 @@ export function Settings({ onDataCleared, onNavigate }: SettingsProps) {
 
   async function saveSettings(message: string) {
     try {
-      const saved = await settingsService.saveUserSettings(user, settings)
+      // The program manager can change selection while this page stays mounted.
+      // Profile drafts must not write an older library/installed-plan snapshot.
+      const current = getUserProfileSettings()
+      const saved = await settingsService.saveUserSettings(user, {
+        ...settings,
+        workoutProgramManager: current.workoutProgramManager,
+        workoutProgramLibrary: current.workoutProgramLibrary,
+        workoutDisplay: {
+          ...settings.workoutDisplay,
+          trainingLocation: current.workoutDisplay.trainingLocation,
+        },
+      })
       setSettings(saved)
       setNotice(message)
     } catch {

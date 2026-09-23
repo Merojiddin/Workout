@@ -1,5 +1,16 @@
 # Adding Workout Programs
 
+## Add a plan in the app
+
+On the main Workout page, choose **Home** or **Gym**, then **Add plan**. Upload a JSON file or paste program JSON, choose **Home**, **Gym**, or **Home and Gym**, and save. The plan becomes another option; your current selection stays active until you choose the new plan. Settings → Program uses the same additive upload flow. First-run setup selects its first upload so you can enter the app.
+
+Home and Gym remember separate choices. Selecting a plan restores its saved edits and original start date. Unfinished workouts must be completed or discarded before changing the active plan. An empty location shows an add/select prompt instead of the other location's exercises.
+
+An optional root field, `"trainingLocations": ["home"]`, `["gym"]`, or `["home", "gym"]`, describes where a program is available. Older JSON without this field is available in both lists. The destination chosen in the upload form takes precedence. Importing an existing ID/version creates a separately named copy with a unique ID instead of overwriting the existing definition.
+
+See [PROJECT_MAP.md](PROJECT_MAP.md) for the location library storage and cloud data flow. Run `npm run verify:plan-library` after changing this behavior.
+
+
 There are two ways to add a program.
 
 ## 1. Add it in the app (no deploy)
@@ -261,4 +272,4 @@ Run exactly:
 npm run build
 ```
 
-The build includes TypeScript checking. Fix errors caused by the new program file, then re-run the same command. The future Program Manager should only offer programs that the registry accepted.
+The build includes TypeScript checking. Fix errors caused by the new program file, then re-run the same command. The Program Manager only offers programs that the registry accepted.

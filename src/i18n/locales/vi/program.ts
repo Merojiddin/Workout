@@ -7,9 +7,9 @@ export const programMessages = {
   'pm.localTitle': 'Trình quản lý giáo án trên máy',
   'pm.heading': 'Giáo án tập luyện',
   'pm.cloudIntro':
-    'Xem trước các giáo án đã tìm thấy, cài đặt kèm bản sao lưu trên máy và trên đám mây, hoặc giữ nguyên giáo án hiện tại.',
+    'Thêm giáo án cho tại nhà hoặc phòng gym, xem trước và chọn giáo án muốn dùng. Các giáo án đã lưu vẫn luôn có sẵn.',
   'pm.localIntro':
-    'Xem trước các giáo án đã tìm thấy, cài đặt một giáo án kèm bản sao lưu trên máy, hoặc giữ nguyên giáo án hiện tại.',
+    'Thêm giáo án cho tại nhà hoặc phòng gym, xem trước và chọn giáo án muốn dùng. Các giáo án đã lưu vẫn luôn có sẵn.',
   'pm.cloudOffline':
     'Hãy kết nối internet trước khi thay đổi giáo án trên đám mây.',
   'pm.activeWorkoutBlocked':
@@ -52,7 +52,7 @@ export const programMessages = {
     other: '{count} cảnh báo kiểm tra',
   },
   'pm.preview': 'Xem trước',
-  'pm.install': 'Cài đặt',
+  'pm.install': 'Dùng giáo án này',
   'pm.reapply': 'Áp dụng bản mới',
   'pm.currentProgram': 'Giáo án hiện tại',
   'pm.keepCurrent': 'Giữ giáo án hiện tại',
@@ -111,13 +111,13 @@ export const programMessages = {
   'pm.rules.safety': 'Nguyên tắc — An toàn',
   'pm.rules.neckWork': 'Nguyên tắc — Bài cổ (không bắt buộc)',
 
-  'pm.confirmCloudTitle': 'Xác nhận cài đặt trên đám mây',
-  'pm.confirmLocalTitle': 'Xác nhận cài đặt trên máy',
+  'pm.confirmCloudTitle': 'Dùng giáo án này?',
+  'pm.confirmLocalTitle': 'Dùng giáo án này?',
   'pm.confirmCloudCopy':
-    'Thao tác này chỉ thay thế giáo án tuỳ chỉnh trên đám mây sau khi đã tạo bản sao lưu trên máy và trên đám mây. Giáo án đã kiểm tra sau đó sẽ cập nhật lên thiết bị này. Lịch sử tập luyện của bạn không bị thay đổi.',
+    'Giáo án hiện tại và các chỉnh sửa đã lưu vẫn có sẵn sau khi chuyển. Lựa chọn này được lưu vào tài khoản và lịch sử tập luyện được giữ nguyên.',
   'pm.confirmLocalCopy':
-    'Thao tác này sẽ thay giáo án tuỳ chỉnh đang dùng bằng giáo án đã chọn. Lịch sử tập luyện của bạn không bị thay đổi. Một bản sao lưu giáo án hiện tại sẽ được tạo trước.',
-  'pm.installProgram': 'Cài đặt giáo án',
+    'Giáo án hiện tại và các chỉnh sửa đã lưu vẫn có sẵn sau khi chuyển. Bạn có thể chọn lại bất cứ lúc nào và lịch sử tập luyện được giữ nguyên.',
+  'pm.installProgram': 'Dùng giáo án này',
   'pm.activeWorkoutBlock': 'Chặn do buổi tập đang diễn ra',
   'pm.blocked': 'Đang bị chặn',
   'pm.noActiveWorkout': 'Không có buổi tập nào đang diễn ra',
@@ -126,6 +126,17 @@ export const programMessages = {
   'paste.close': 'Đóng bảng nhập',
   'paste.hint':
     'Hãy tải giáo án của bạn lên dưới dạng tệp .json. Nếu giáo án đang ở dạng văn bản thuần, hãy sao chép lời nhắc bên dưới vào ChatGPT (hoặc bất kỳ AI chat nào) kèm giáo án của bạn, rồi tải lên hoặc dán đoạn JSON nhận được.',
+  'paste.destination': 'Địa điểm tập',
+  'paste.destinationHint': 'Thêm giáo án vào danh sách tại nhà, phòng gym hoặc cả hai.',
+  'paste.location.home': 'Tại nhà',
+  'paste.location.gym': 'Phòng gym',
+  'paste.location.both': 'Tại nhà và phòng gym',
+  'paste.copyName': '{name} (bản sao {number})',
+  'paste.savedChoice': 'Đã thêm "{name}". Hãy chọn giáo án này trong danh sách khi bạn muốn sử dụng.',
+  'paste.activeDeleteBlocked': 'Hãy chọn giáo án khác để sử dụng trước khi xoá giáo án này.',
+  'library.selected': 'Đã chọn giáo án tập.',
+  'library.wrongLocation': 'Giáo án này không có sẵn cho địa điểm tập này.',
+  'valid.trainingLocations': 'trainingLocations phải chứa home, gym hoặc cả hai.',
   'paste.chooseFile': 'Chọn tệp giáo án',
   'paste.loaded': 'Đã tải {name}',
   'paste.readFailed': 'Không đọc được "{name}". Hãy thử chọn lại tệp.',
@@ -134,7 +145,7 @@ export const programMessages = {
   'paste.check': 'Kiểm tra',
   'paste.save': 'Lưu giáo án',
   'paste.looksGood': '{name} hợp lệ - {days} ngày, {exercises} bài tập.',
-  'paste.saveHint': 'Chọn "Lưu giáo án" để thêm vào danh sách của bạn.',
+  'paste.saveHint': 'Lưu để thêm một lựa chọn. Giáo án bạn đang dùng vẫn được giữ nguyên.',
   'paste.cannotSave': 'Giáo án này chưa lưu được.',
   'paste.warningSummary': {
     one: '{count} cảnh báo (giáo án vẫn dùng được)',
@@ -146,5 +157,5 @@ export const programMessages = {
     'Xoá "{name}" {version} khỏi danh sách giáo án của bạn?\n\nThao tác này không thay đổi giáo án đang dùng.',
   'paste.removed': 'Đã xoá "{name}" {version}.',
   'paste.savedThenInstall':
-    '{message} Xác nhận cài đặt để tập theo giáo án này ngay.',
+    '{message} Hãy chọn giáo án này khi bạn muốn sử dụng.',
 } as const

@@ -1,6 +1,6 @@
 import { t } from '../i18n/t'
 import { exerciseLibrary } from '../data/exerciseLibrary'
-import type { WorkoutDay } from '../data/workoutPlan'
+import type { TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 import { getWorkoutProgramByIdAndVersion } from '../data/workoutProgramRegistry'
 import type { AuthUser } from '../context/AuthContext'
 import type { WorkoutProgram } from '../types/workoutProgram'
@@ -32,6 +32,7 @@ import {
   type WorkoutPlanBackup,
 } from '../utils/workoutProgramManager'
 import { validateWorkoutProgram } from '../utils/workoutProgramValidation'
+import { getProgramTrainingLocations, prepareWorkoutProgramSelection } from '../utils/workoutProgramLibrary'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { isBrowserOnline } from './serviceUtils'
 import {
@@ -97,6 +98,8 @@ export interface CloudProgramOperationOptions {
   store?: CloudProgramStore
   now?: () => string
   createId?: () => string
+  selectionLocation?: TrainingLocation
+  preservedCustomProgram?: InstalledWorkoutProgram
 }
 
 export interface CloudProgramRollbackResult extends StorageRollbackResult {
@@ -144,6 +147,7 @@ interface LocalCommitOptions {
   manager: CloudWorkoutProgramManagerMetadata
   removeCustomPlan?: boolean
   userId: string
+  settings?: Record<string, unknown>
 }
 
 interface LocalCommitResult {
@@ -186,6 +190,10 @@ export async function installWorkoutProgramInCloud(
     )
   }
 
+  if (options.selectionLocation && !getProgramTrainingLocations(registeredProgram).includes(options.selectionLocation)) {
+    return fail(emptyData, 'wrong-location', t('library.wrongLocation'))
+  }
+
   const validation = validateWorkoutProgram(registeredProgram, {
     knownExerciseIds: new Set(exerciseLibrary.map((exercise) => exercise.id)),
   })
@@ -215,6 +223,7 @@ export async function installWorkoutProgramInCloud(
     // is this program has nothing left to install. Mirrors
     // installWorkoutProgramLocally.
     if (
+      !options.selectionLocation &&
       installed?.id === registeredProgram.id &&
       installed.version === registeredProgram.version
     ) {
@@ -268,8 +277,18 @@ export async function installWorkoutProgramInCloud(
     localBackup: prepared.localBackup,
     program: registeredProgram,
   }
-  const expectedPlan = normalizePlan(registeredProgram.days)
-  const installedProgram: InstalledWorkoutProgram = {
+  const selection = options.selectionLocation
+    ? prepareWorkoutProgramSelection(
+        prepared.cloudSettingsWithBackup,
+        prepared.cloudBackup.plan,
+        prepared.managerBefore.installedProgram ?? options.preservedCustomProgram ?? null,
+        registeredProgram,
+        options.selectionLocation,
+        prepared.cloudBackup.createdAt,
+      )
+    : null
+  const expectedPlan = normalizePlan(selection?.plan ?? registeredProgram.days)
+  const installedProgram: InstalledWorkoutProgram = selection?.installedProgram ?? {
     id: registeredProgram.id,
     version: registeredProgram.version,
     installedAt: prepared.cloudBackup.createdAt,
@@ -321,6 +340,16 @@ export async function installWorkoutProgramInCloud(
       backups,
     })
     finalSettings = mergeWorkoutProgramManager(latestSettings, finalManager)
+    if (selection) {
+      finalSettings = {
+        ...finalSettings,
+        workoutProgramLibrary: selection.settings.workoutProgramLibrary,
+        workoutDisplay: {
+          ...(isPlainObject(latestSettings.workoutDisplay) ? latestSettings.workoutDisplay : {}),
+          trainingLocation: options.selectionLocation,
+        },
+      }
+    }
     await store.writeSettings(authenticatedUser, finalSettings)
   } catch (error) {
     return failWithCloudRollback(
@@ -363,6 +392,7 @@ export async function installWorkoutProgramInCloud(
     expectedPlan,
     manager: verified.manager,
     userId: authenticatedUser.id,
+    settings: verified.settings,
   })
   if (!localCommit.success) {
     return failWithCloudRollback(
@@ -1133,7 +1163,7 @@ function commitLocalState(options: LocalCommitOptions): LocalCommitResult {
 
   const metadata = commitLocalMetadata(
     options.userId,
-    mergeWorkoutProgramManager(getUserProfileSettings(), options.manager),
+    mergeWorkoutProgramManager(options.settings ?? getUserProfileSettings(), options.manager),
     options.manager,
   )
   if (!metadata.success) {
@@ -1170,6 +1200,17 @@ function commitLocalMetadata(
   const settingsSaved = saveUserProfileSettingsSafely({
     ...settings,
     ...localSettings,
+    ...(isPlainObject(settings.workoutProgramLibrary)
+      ? {
+          workoutProgramLibrary: clone(settings.workoutProgramLibrary),
+          workoutDisplay: {
+            ...localSettings.workoutDisplay,
+            ...(isPlainObject(settings.workoutDisplay)
+              ? { trainingLocation: settings.workoutDisplay.trainingLocation }
+              : {}),
+          },
+        }
+      : {}),
     workoutProgramManager: clone(manager),
   }).success
   const cacheSaved = safeSetJSON(CLOUD_WORKOUT_PROGRAM_MANAGER_CACHE_KEY, {

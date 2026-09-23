@@ -34,6 +34,15 @@ export function validateWorkoutProgram(
     errors.push(t('valid.missingUpdatedAt'))
   }
   if (
+    program.trainingLocations !== undefined &&
+    (!Array.isArray(program.trainingLocations) ||
+      program.trainingLocations.length === 0 ||
+      !program.trainingLocations.every((location) => location === 'home' || location === 'gym') ||
+      new Set(program.trainingLocations).size !== program.trainingLocations.length)
+  ) {
+    errors.push(t('valid.trainingLocations'))
+  }
+  if (
     program.durationWeeks !== undefined &&
     !isPositiveInteger(program.durationWeeks)
   ) {

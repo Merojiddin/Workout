@@ -7,9 +7,9 @@ export const programMessages = {
   'pm.localTitle': 'Local Program Manager',
   'pm.heading': 'Workout Programs',
   'pm.cloudIntro':
-    'Preview discovered programs, install with verified local and cloud backups, or keep your current plan.',
+    'Add programs for Home or Gym, preview them, and choose which one to use. Your saved plans stay available.',
   'pm.localIntro':
-    'Preview discovered programs, install one with a local backup, or keep your current custom plan.',
+    'Add programs for Home or Gym, preview them, and choose which one to use. Your saved plans stay available.',
   'pm.cloudOffline':
     'Connect to the internet before changing a cloud workout program.',
   'pm.activeWorkoutBlocked':
@@ -49,7 +49,7 @@ export const programMessages = {
     other: '{count} validation warnings',
   },
   'pm.preview': 'Preview',
-  'pm.install': 'Install',
+  'pm.install': 'Use this plan',
   'pm.reapply': 'Apply Update',
   'pm.currentProgram': 'Current Program',
   'pm.keepCurrent': 'Keep Current Plan',
@@ -107,13 +107,13 @@ export const programMessages = {
   'pm.rules.safety': 'Rules — Safety',
   'pm.rules.neckWork': 'Rules — Optional neck work',
 
-  'pm.confirmCloudTitle': 'Confirm cloud installation',
-  'pm.confirmLocalTitle': 'Confirm local installation',
+  'pm.confirmCloudTitle': 'Use this workout plan?',
+  'pm.confirmLocalTitle': 'Use this workout plan?',
   'pm.confirmCloudCopy':
-    'This will replace your cloud custom workout plan only after local and cloud backups are created. The verified plan will then update this device. Your workout history will not be changed.',
+    'Your current plan and saved edits stay available when you switch. This choice is saved to your account, and your workout history is kept.',
   'pm.confirmLocalCopy':
-    'This will replace your active custom workout plan with the selected program. Your workout history will not be changed. A local backup of your current plan will be created first.',
-  'pm.installProgram': 'Install Program',
+    'Your current plan and saved edits stay available when you switch. You can choose them again at any time, and your workout history is kept.',
+  'pm.installProgram': 'Use this plan',
   'pm.activeWorkoutBlock': 'Active workout block',
   'pm.blocked': 'Blocked',
   'pm.noActiveWorkout': 'No active workout',
@@ -122,6 +122,17 @@ export const programMessages = {
   'paste.close': 'Close import panel',
   'paste.hint':
     'Upload your program as a .json file. If you have your plan as plain text, copy the prompt below into ChatGPT (or any AI chat) along with your plan, then upload or paste the JSON it returns.',
+  'paste.destination': 'Available for',
+  'paste.destinationHint': 'Add this plan to Home, Gym, or both lists.',
+  'paste.location.home': 'Home',
+  'paste.location.gym': 'Gym',
+  'paste.location.both': 'Home and Gym',
+  'paste.copyName': '{name} (copy {number})',
+  'paste.savedChoice': 'Added "{name}". Choose it from your workout plans when you are ready.',
+  'paste.activeDeleteBlocked': 'Choose another active plan before removing this program.',
+  'library.selected': 'Workout plan selected.',
+  'library.wrongLocation': 'This plan is not available for this location.',
+  'valid.trainingLocations': 'trainingLocations must contain home, gym, or both.',
   'paste.chooseFile': 'Choose program file',
   'paste.loaded': 'Loaded {name}',
   'paste.readFailed': 'Could not read "{name}". Try choosing the file again.',
@@ -130,17 +141,17 @@ export const programMessages = {
   'paste.check': 'Check',
   'paste.save': 'Save program',
   'paste.looksGood': '{name} looks good - {days} days, {exercises} exercises.',
-  'paste.saveHint': 'Choose "Save program" to add it to your list.',
+  'paste.saveHint': 'Save adds another choice. Your current workout plan stays selected.',
   'paste.cannotSave': 'This program cannot be saved yet.',
   'paste.warningSummary': {
     one: '{count} warning (program still works)',
     other: '{count} warnings (program still works)',
   },
-  'paste.savedTitle': 'Your pasted programs ({count})',
+  'paste.savedTitle': 'Your saved programs ({count})',
   'paste.removeAria': 'Remove {name} {version}',
   'paste.removeConfirm':
     'Remove "{name}" {version} from your pasted programs?\n\nThis does not change your current workout plan.',
   'paste.removed': 'Removed "{name}" {version}.',
   'paste.savedThenInstall':
-    '{message} Confirm the install to train from it right away.',
+    '{message} Choose this plan when you are ready to use it.',
 } as const

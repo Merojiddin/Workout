@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext'
 import { useOnlineStatus } from '../hooks/useOnlineStatus'
 import { LanguageToggle } from '../components/LanguageToggle'
 import { useT } from '../i18n'
-import { installWorkoutProgramInCloud } from '../services/workoutProgramService'
 import { saveUserWorkoutProgramsToCloud } from '../services/settingsService'
 import {
   buildProgramAuthoringPrompt,
@@ -12,8 +11,9 @@ import {
   saveUserWorkoutProgram,
   type ParsedWorkoutProgramResult,
 } from '../utils/userWorkoutPrograms'
-import { getUserProfileSettings } from '../utils/settingsUtils'
-import { installWorkoutProgramLocally } from '../utils/workoutProgramManager'
+import { getUserProfileSettings, getWorkoutDisplaySettings } from '../utils/settingsUtils'
+import { selectWorkoutProgram } from '../utils/workoutProgramLibrary'
+import type { TrainingLocation } from '../data/workoutPlan'
 
 interface ProgramSetupProps {
   onInstalled: () => void
@@ -29,12 +29,15 @@ interface ProgramSetupProps {
 export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
   const { user } = useAuth()
   const t = useT()
-  const isOnline = useOnlineStatus()
+  const { isOnline } = useOnlineStatus()
   const [text, setText] = useState('')
   const [fileName, setFileName] = useState<string | null>(null)
   const [result, setResult] = useState<ParsedWorkoutProgramResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [destination, setDestination] = useState<TrainingLocation | 'both'>(
+    () => getWorkoutDisplaySettings().trainingLocation as TrainingLocation,
+  )
   const [copyLabel, setCopyLabel] = useState<'idle' | 'copied' | 'manual'>('idle')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cloudActive = Boolean(user)
@@ -68,24 +71,22 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
     }
 
     setError(null)
+    if (cloudActive && !isOnline) {
+      setError(t('setup.program.offline'))
+      return
+    }
     setBusy(true)
     try {
-      const saved = saveUserWorkoutProgram(parsed.program)
+      const saved = saveUserWorkoutProgram({
+        ...parsed.program,
+        trainingLocations: destination === 'both' ? ['home', 'gym'] : [destination],
+      })
       if (!saved.success) {
         setError(saved.message)
         return
       }
 
-      const identity = {
-        id: parsed.program.id,
-        version: parsed.program.version,
-      }
-
       if (cloudActive) {
-        if (!isOnline) {
-          setError(t('setup.program.offline'))
-          return
-        }
         // Keep the program itself in the cloud too, so the same account can
         // set up a second device without the file on hand. A failure here is
         // not fatal: the program is already saved locally and the install below
@@ -95,17 +96,14 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
         } catch {
           // Queued for the next sync by settingsService.
         }
-        const installed = await installWorkoutProgramInCloud(identity, user)
-        if (!installed.success) {
-          setError([installed.message, ...installed.details].join(' '))
-          return
-        }
-      } else {
-        const installed = installWorkoutProgramLocally(identity)
-        if (!installed.success) {
-          setError([installed.message, ...installed.details].join(' '))
-          return
-        }
+      }
+      const location = destination === 'both'
+        ? getWorkoutDisplaySettings().trainingLocation as TrainingLocation
+        : destination
+      const installed = await selectWorkoutProgram(saved.program, location, user)
+      if (!installed.success) {
+        setError(installed.message)
+        return
       }
 
       onInstalled()
@@ -140,6 +138,20 @@ export function ProgramSetup({ onInstalled }: ProgramSetupProps) {
       <p className="profile-setup__step">{t('setup.step1')}</p>
       <h1>{t('setup.program.title')}</h1>
       <p className="program-setup__subtitle">{t('setup.program.subtitle')}</p>
+
+      <label className="paste-program__destination">
+        <span>{t('paste.destination')}</span>
+        <select
+          disabled={busy}
+          value={destination}
+          onChange={(event) => setDestination(event.target.value as TrainingLocation | 'both')}
+        >
+          <option value="home">{t('paste.location.home')}</option>
+          <option value="gym">{t('paste.location.gym')}</option>
+          <option value="both">{t('paste.location.both')}</option>
+        </select>
+        <small>{t('paste.destinationHint')}</small>
+      </label>
 
       <input
         accept="application/json,.json"

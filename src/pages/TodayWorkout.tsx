@@ -1,14 +1,12 @@
 import {
   ArrowLeft,
   BookOpen,
-  Building2,
   Check,
   ChevronRight,
   Clock3,
   Dumbbell,
   Flag,
   Flame,
-  Home,
   Info,
   Layers,
   ListChecks,
@@ -34,6 +32,7 @@ import { ActiveWorkoutBanner } from '../components/ActiveWorkoutBanner'
 import { StartWorkoutConflictDialog } from '../components/StartWorkoutConflictDialog'
 import { UnfinishedWorkoutPrompt } from '../components/UnfinishedWorkoutPrompt'
 import { WorkoutFinishSummary } from '../components/WorkoutFinishSummary'
+import { WorkoutPlanPicker } from '../components/WorkoutPlanPicker'
 import type { WorkoutSession } from '../data/workoutSessions'
 import type { GuidedWorkout } from '../data/guidedWorkouts'
 import type { LibraryExercise } from '../data/exerciseLibrary'
@@ -78,7 +77,6 @@ import {
   getEffectiveExerciseLibrary,
   getWorkoutDisplaySettings,
   getWorkoutForDate,
-  saveTrainingLocation,
 } from '../utils/settingsUtils'
 import type { WorkoutDisplaySettings } from '../utils/mediaUtils'
 import { useAuth } from '../context/AuthContext'
@@ -97,6 +95,7 @@ import {
   resolveWorkoutDefinition,
   type WorkoutExerciseSelections,
 } from '../utils/workoutSelectionUtils'
+import { getProgramsForLocation } from '../utils/workoutProgramLibrary'
 
 interface TodayWorkoutProps {
   onNavigate: (page: PageId) => void
@@ -122,7 +121,10 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
   // Cardio runs on the guided player rather than the set-by-set screen below,
   // so it keeps its own session alongside the lifting one.
   const guided = useGuidedSession()
-  const activeProgram = useMemo(() => getActiveWorkoutProgram(), [])
+  const [activeProgram, setActiveProgram] = useState(() => getActiveWorkoutProgram())
+  const [location, setLocation] = useState<TrainingLocation>(
+    () => getWorkoutDisplaySettings().trainingLocation ?? 'home',
+  )
   const plan = activeProgram.days
   const todayWorkout = useMemo(
     () => getWorkoutForDate(new Date(), plan) as WorkoutDay,
@@ -508,6 +510,13 @@ export function TodayWorkout({ onNavigate }: TodayWorkoutProps) {
     <>
       <PreWorkoutScreen
         activeProgram={activeProgram}
+        location={location}
+        onProgramChanged={(nextLocation) => {
+          const next = getActiveWorkoutProgram()
+          setActiveProgram(next)
+          setLocation(nextLocation)
+          setSelectedDay(getWorkoutForDate(new Date(), next.days) as WorkoutDay)
+        }}
         onDiscardPaused={() => session && discardSession(session)}
         onNavigate={onNavigate}
         onResumePaused={() => {
@@ -548,6 +557,8 @@ type TrainingMode = 'workout' | 'cardio'
 
 interface PreWorkoutScreenProps {
   activeProgram: ActiveWorkoutProgram
+  location: TrainingLocation
+  onProgramChanged: (location: TrainingLocation) => void
   onDiscardPaused: () => void
   onNavigate: (page: PageId) => void
   onResumePaused: () => void
@@ -563,6 +574,8 @@ interface PreWorkoutScreenProps {
 
 function PreWorkoutScreen({
   activeProgram,
+  location,
+  onProgramChanged,
   onDiscardPaused,
   onNavigate,
   onResumePaused,
@@ -576,19 +589,11 @@ function PreWorkoutScreen({
 }: PreWorkoutScreenProps) {
   const { firstName } = useProfileIdentity()
   const t = useT()
-  // Restored rather than reset: the place you train is a standing fact about
-  // your week, not a per-session question, and defaulting to home every time
-  // hands a gym-goer the home variants unless they notice the toggle.
-  const [location, setLocation] = useState<TrainingLocation>(
-    () => getWorkoutDisplaySettings().trainingLocation ?? 'home',
-  )
-
-  function chooseLocation(next: TrainingLocation) {
-    setLocation(next)
-    saveTrainingLocation(next)
-  }
   const [showPicker, setShowPicker] = useState(false)
   const [mode, setMode] = useState<TrainingMode>('workout')
+  const hasSelectedPlan = activeProgram.source === 'custom' || getProgramsForLocation(location).some(
+    (program) => program.id === activeProgram.programId && program.version === activeProgram.programVersion,
+  )
 
   function chooseMode(next: TrainingMode) {
     setMode(next)
@@ -620,11 +625,8 @@ function PreWorkoutScreen({
     progressionPhases: activeProgram.progressionPhases,
     selections: createDefaultSelections(selectedDay, location),
   })
-  const exercises = resolvedDay.exercises
+  const exercises = hasSelectedPlan ? resolvedDay.exercises : []
   const hasExercises = exercises.length > 0
-  const hasLocationChoice = selectedDay.exercises.some((exercise) =>
-    Boolean(exercise.alternatives),
-  )
   const phase = activeProgram.progressionPhases.find((item) =>
     programWeek ? item.weeks.includes(programWeek) : false,
   )
@@ -658,8 +660,14 @@ function PreWorkoutScreen({
         />
       ) : null}
 
+      <WorkoutPlanPicker activeProgram={activeProgram} location={location} paused={Boolean(pausedSession)}
+        onChanged={(nextLocation) => {
+          setShowPicker(false)
+          onProgramChanged(nextLocation)
+        }} />
+
       {/* The plan card: which program is running and how far into it you are. */}
-      <article className="plan-card">
+      {hasSelectedPlan ? <article className="plan-card">
         <div className="plan-card__top">
           <div>
             <p className="eyebrow">{t('workout.currentPlan')}</p>
@@ -701,14 +709,14 @@ function PreWorkoutScreen({
             </div>
           </>
         ) : null}
-      </article>
+      </article> : null}
 
       <div className="section-title">
         <h2>{t('workout.todaysWorkout')}</h2>
         <span>
-          {mode === 'workout'
+          {mode === 'workout' && hasSelectedPlan
             ? t('workout.dayNumber', { day: selectedDay.day })
-            : cardio
+            : mode === 'cardio' && cardio
               ? t(guidedLevelKeys[cardio.level])
               : null}
         </span>
@@ -739,7 +747,7 @@ function PreWorkoutScreen({
           </button>
         </div>
 
-        {mode === 'workout' ? (
+        {mode === 'workout' && hasSelectedPlan ? (
           <>
             <div className="today-card__head">
               <div>
@@ -764,33 +772,6 @@ function PreWorkoutScreen({
               </p>
             ) : null}
 
-            {hasLocationChoice ? (
-              <div
-                className="location-toggle"
-                role="group"
-                aria-label={t('workout.trainingLocation')}
-              >
-                <button
-                  aria-pressed={location === 'home'}
-                  className={location === 'home' ? 'is-active' : ''}
-                  onClick={() => chooseLocation('home')}
-                  type="button"
-                >
-                  <Home size={16} strokeWidth={2.4} aria-hidden="true" />
-                  {t('workout.locationHome')}
-                </button>
-                <button
-                  aria-pressed={location === 'gym'}
-                  className={location === 'gym' ? 'is-active' : ''}
-                  onClick={() => chooseLocation('gym')}
-                  type="button"
-                >
-                  <Building2 size={16} strokeWidth={2.4} aria-hidden="true" />
-                  {t('workout.locationGym')}
-                </button>
-              </div>
-            ) : null}
-
             {hasExercises ? (
               <button
                 className="workout-primary-button workout-primary-button--large"
@@ -802,7 +783,7 @@ function PreWorkoutScreen({
               </button>
             ) : null}
           </>
-        ) : cardio && cardioSummary ? (
+        ) : mode === 'cardio' && cardio && cardioSummary ? (
           <>
             <div className="today-card__head">
               <div>
@@ -896,14 +877,16 @@ function PreWorkoutScreen({
           </>
         ) : (
           <article className="today-empty">
-            <p>{t('workout.emptyDay')}</p>
-            <button
+            <p>{hasSelectedPlan ? t('workout.emptyDay') : t('workout.noPlanForLocation', {
+              location: t(location === 'home' ? 'workout.locationHome' : 'workout.locationGym'),
+            })}</p>
+            {hasSelectedPlan ? <button
               className="workout-secondary-button"
               onClick={() => onNavigate('weekly-plan')}
               type="button"
             >
               {t('workout.viewWeeklyPlan')}
-            </button>
+            </button> : null}
           </article>
         )
       ) : cardio && cardioSummary ? (
@@ -984,7 +967,7 @@ function PreWorkoutScreen({
         </article>
       )}
 
-      <button
+      {mode === 'cardio' || hasSelectedPlan ? <button
         aria-expanded={showPicker}
         className="today-picker__toggle"
         onClick={() => setShowPicker((open) => !open)}
@@ -997,9 +980,9 @@ function PreWorkoutScreen({
           : showPicker
             ? t('workout.hideOtherSessions')
             : t('workout.showOtherSessions')}
-      </button>
+      </button> : null}
 
-      {showPicker ? (
+      {showPicker && (mode === 'cardio' || hasSelectedPlan) ? (
         mode === 'workout' ? (
           <div
             className="today-picker"

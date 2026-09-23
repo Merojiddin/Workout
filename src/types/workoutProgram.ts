@@ -1,4 +1,4 @@
-import type { Exercise, WorkoutDay } from '../data/workoutPlan'
+import type { Exercise, TrainingLocation, WorkoutDay } from '../data/workoutPlan'
 
 export interface WorkoutProgramRules {
   effort?: string[]
@@ -55,6 +55,8 @@ export interface WorkoutProgram {
   version: string
   updatedAt: string
   description: string
+  /** Omitted on older programs, which remain available at Home and Gym. */
+  trainingLocations?: TrainingLocation[]
   durationWeeks?: number
   normalWeeklyDays?: number
   goals?: string[]

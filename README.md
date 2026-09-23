@@ -1,32 +1,22 @@
-# React + TypeScript + Vite
+# Workout OS
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + TypeScript/JavaScript workout tracker built with Vite, with optional Supabase accounts, offline storage, English/Vietnamese, and PWA support.
 
-Currently, two official plugins are available:
+Start with the [project map](docs/PROJECT_MAP.md) for pages, feature ownership, data flow, storage, and verification. Keep it updated whenever the app changes; see [AGENTS.md](AGENTS.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+npm install
+npm run dev
+npm run build
+npm run lint
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Workout plans are personal uploads. On the main Workout page, choose Home or Gym, then select a saved plan. Add plan saves another option in Home, Gym, or both without replacing your current plan. See [program authoring and import](docs/adding-workout-programs.md).
+
+```sh
+npm run verify:plan-library
+npm run verify:plan-reset
+npm run verify:v2.1
+```
+
+See [deployment](docs/deployment.md) and [multi-user setup](docs/multi-user-setup.md) for hosting and Supabase configuration.
